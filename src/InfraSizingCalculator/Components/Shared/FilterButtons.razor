@@ -1,0 +1,33 @@
+@* Reusable filter buttons component *@
+
+<div class="filter-buttons @AdditionalClass">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <span class="filter-label">@Label</span>
+    }
+    @foreach (var option in Options)
+    {
+        <button class="filter-btn @(SelectedValue == option.Value ? "active" : "")"
+                @onclick="() => OnFilterSelected(option.Value)">
+            @option.Label
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public string SelectedValue { get; set; } = "";
+    [Parameter] public IEnumerable<FilterOption> Options { get; set; } = Enumerable.Empty<FilterOption>();
+    [Parameter] public EventCallback<string> OnValueChanged { get; set; }
+
+    private async Task OnFilterSelected(string value)
+    {
+        if (OnValueChanged.HasDelegate)
+        {
+            await OnValueChanged.InvokeAsync(value);
+        }
+    }
+
+    public record FilterOption(string Value, string Label);
+}

@@ -1,0 +1,54 @@
+@* Wizard stepper component showing step progress *@
+
+<div class="wizard-stepper @AdditionalClass">
+    @for (int i = 1; i <= TotalSteps; i++)
+    {
+        var step = i;
+        var stepClass = step < CurrentStep ? "completed" : (step == CurrentStep ? "active" : "");
+        var isClickable = step < CurrentStep;
+        <div class="stepper-step @stepClass @(isClickable ? "" : "disabled")"
+             @onclick="() => OnStepClicked(step)">
+            <div class="stepper-number">
+                @if (step < CurrentStep)
+                {
+                    <span class="icon icon-check"></span>
+                }
+                else
+                {
+                    <span>@step</span>
+                }
+            </div>
+            <span class="stepper-label">@GetStepLabel(step)</span>
+        </div>
+        @if (i < TotalSteps)
+        {
+            <div class="stepper-line @(step < CurrentStep ? "completed" : "")"></div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    [Parameter] public int TotalSteps { get; set; } = 5;
+    [Parameter] public IReadOnlyList<string> StepLabels { get; set; } = Array.Empty<string>();
+    [Parameter] public EventCallback<int> OnStepSelected { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private string GetStepLabel(int step)
+    {
+        if (step > 0 && step <= StepLabels.Count)
+        {
+            return StepLabels[step - 1];
+        }
+        return $"Step {step}";
+    }
+
+    private async Task OnStepClicked(int step)
+    {
+        // Only allow going to completed steps
+        if (step < CurrentStep && OnStepSelected.HasDelegate)
+        {
+            await OnStepSelected.InvokeAsync(step);
+        }
+    }
+}

@@ -1,0 +1,163 @@
+@using InfraSizingCalculator.Models
+
+@* Node specifications panel for K8s configuration *@
+
+<div class="node-specs-panel @AdditionalClass">
+    <div class="specs-section">
+        <h4>🎛️ Control Plane</h4>
+        <div class="specs-grid">
+            <div class="specs-group">
+                <label>Production</label>
+                <div class="inline-specs">
+                    <div>
+                        <label>CPU</label>
+                        <input type="number" value="@NodeSpecs.ProdMasterCpu"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdMasterCpu), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>RAM</label>
+                        <input type="number" value="@NodeSpecs.ProdMasterRam"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdMasterRam), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>Disk</label>
+                        <input type="number" value="@NodeSpecs.ProdMasterDisk"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdMasterDisk), ParseInt(e.Value))" />
+                    </div>
+                </div>
+            </div>
+            <div class="specs-group">
+                <label>Non-Production</label>
+                <div class="inline-specs">
+                    <div>
+                        <label>CPU</label>
+                        <input type="number" value="@NodeSpecs.NonProdMasterCpu"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdMasterCpu), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>RAM</label>
+                        <input type="number" value="@NodeSpecs.NonProdMasterRam"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdMasterRam), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>Disk</label>
+                        <input type="number" value="@NodeSpecs.NonProdMasterDisk"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdMasterDisk), ParseInt(e.Value))" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (ShowInfraSpecs)
+    {
+        <div class="specs-section">
+            <h4>🏗️ Infrastructure (OpenShift)</h4>
+            <div class="specs-grid">
+                <div class="specs-group">
+                    <label>Production</label>
+                    <div class="inline-specs">
+                        <div>
+                            <label>CPU</label>
+                            <input type="number" value="@NodeSpecs.ProdInfraCpu"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdInfraCpu), ParseInt(e.Value))" />
+                        </div>
+                        <div>
+                            <label>RAM</label>
+                            <input type="number" value="@NodeSpecs.ProdInfraRam"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdInfraRam), ParseInt(e.Value))" />
+                        </div>
+                        <div>
+                            <label>Disk</label>
+                            <input type="number" value="@NodeSpecs.ProdInfraDisk"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdInfraDisk), ParseInt(e.Value))" />
+                        </div>
+                    </div>
+                </div>
+                <div class="specs-group">
+                    <label>Non-Production</label>
+                    <div class="inline-specs">
+                        <div>
+                            <label>CPU</label>
+                            <input type="number" value="@NodeSpecs.NonProdInfraCpu"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdInfraCpu), ParseInt(e.Value))" />
+                        </div>
+                        <div>
+                            <label>RAM</label>
+                            <input type="number" value="@NodeSpecs.NonProdInfraRam"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdInfraRam), ParseInt(e.Value))" />
+                        </div>
+                        <div>
+                            <label>Disk</label>
+                            <input type="number" value="@NodeSpecs.NonProdInfraDisk"
+                                   @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdInfraDisk), ParseInt(e.Value))" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="specs-section">
+        <h4>⚡ Worker Nodes</h4>
+        <div class="specs-grid">
+            <div class="specs-group">
+                <label>Production</label>
+                <div class="inline-specs">
+                    <div>
+                        <label>CPU</label>
+                        <input type="number" value="@NodeSpecs.ProdWorkerCpu"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdWorkerCpu), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>RAM</label>
+                        <input type="number" value="@NodeSpecs.ProdWorkerRam"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdWorkerRam), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>Disk</label>
+                        <input type="number" value="@NodeSpecs.ProdWorkerDisk"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.ProdWorkerDisk), ParseInt(e.Value))" />
+                    </div>
+                </div>
+            </div>
+            <div class="specs-group">
+                <label>Non-Production</label>
+                <div class="inline-specs">
+                    <div>
+                        <label>CPU</label>
+                        <input type="number" value="@NodeSpecs.NonProdWorkerCpu"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdWorkerCpu), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>RAM</label>
+                        <input type="number" value="@NodeSpecs.NonProdWorkerRam"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdWorkerRam), ParseInt(e.Value))" />
+                    </div>
+                    <div>
+                        <label>Disk</label>
+                        <input type="number" value="@NodeSpecs.NonProdWorkerDisk"
+                               @onchange="e => UpdateSpec(nameof(NodeSpecs.NonProdWorkerDisk), ParseInt(e.Value))" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public NodeSpecsConfig NodeSpecs { get; set; } = new();
+    [Parameter] public bool ShowInfraSpecs { get; set; } = true;
+    [Parameter] public EventCallback<(string property, int value)> OnSpecChanged { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private async Task UpdateSpec(string property, int value)
+    {
+        if (OnSpecChanged.HasDelegate)
+        {
+            await OnSpecChanged.InvokeAsync((property, value));
+        }
+    }
+
+    private static int ParseInt(object? value) => int.TryParse(value?.ToString(), out var result) ? result : 0;
+}

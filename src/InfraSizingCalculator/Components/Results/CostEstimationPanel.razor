@@ -1,0 +1,115 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="cost-estimation-panel @(IsExpanded ? "expanded" : "collapsed")">
+    <div class="cost-panel-header" @onclick="ToggleExpanded">
+        <span class="panel-icon">@(IsExpanded ? "▼" : "▶")</span>
+        <span class="panel-title">Cost Estimation</span>
+        @if (CurrentEstimate != null)
+        {
+            <span class="panel-preview">@FormatCurrency(CurrentEstimate.MonthlyTotal)/mo</span>
+        }
+    </div>
+
+    @if (IsExpanded)
+    {
+        <div class="cost-panel-content">
+            <InfraSizingCalculator.Components.Configuration.PricingSelector
+                Options="@costOptions"
+                Distribution="@Distribution"
+                OnCalculate="HandleCalculateCosts" />
+
+            @if (IsCalculating)
+            {
+                <div class="cost-loading">
+                    <span>Calculating costs...</span>
+                </div>
+            }
+            else if (CurrentEstimate != null)
+            {
+                <InfraSizingCalculator.Components.Results.CostSummary CostEstimate="@CurrentEstimate" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public K8sSizingResult? K8sResult { get; set; }
+    [Parameter] public VMSizingResult? VMResult { get; set; }
+    [Parameter] public string? Distribution { get; set; }
+    [Parameter] public bool IsExpanded { get; set; } = false;
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+
+    [Inject] private ICostEstimationService CostEstimationService { get; set; } = default!;
+    [Inject] private IPricingService PricingService { get; set; } = default!;
+
+    private CostEstimationOptions costOptions = new();
+    private CostEstimate? CurrentEstimate { get; set; }
+    private bool IsCalculating { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(Distribution))
+        {
+            costOptions.Distribution = Distribution;
+        }
+    }
+
+    private async Task ToggleExpanded()
+    {
+        IsExpanded = !IsExpanded;
+        await IsExpandedChanged.InvokeAsync(IsExpanded);
+    }
+
+    private async Task HandleCalculateCosts((CloudProvider provider, string region, CostEstimationOptions options) args)
+    {
+        IsCalculating = true;
+        StateHasChanged();
+
+        try
+        {
+            var (provider, region, options) = args;
+            options.Distribution = Distribution;
+
+            if (K8sResult != null)
+            {
+                if (provider == CloudProvider.OnPrem)
+                {
+                    var onPremPricing = PricingService.GetOnPremPricing();
+                    CurrentEstimate = CostEstimationService.EstimateOnPremCost(K8sResult, onPremPricing, options);
+                }
+                else
+                {
+                    CurrentEstimate = await CostEstimationService.EstimateK8sCostAsync(K8sResult, provider, region, options);
+                }
+            }
+            else if (VMResult != null)
+            {
+                if (provider == CloudProvider.OnPrem)
+                {
+                    var onPremPricing = PricingService.GetOnPremPricing();
+                    CurrentEstimate = CostEstimationService.EstimateOnPremVMCost(VMResult, onPremPricing, options);
+                }
+                else
+                {
+                    CurrentEstimate = await CostEstimationService.EstimateVMCostAsync(VMResult, provider, region, options);
+                }
+            }
+        }
+        finally
+        {
+            IsCalculating = false;
+            StateHasChanged();
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+}

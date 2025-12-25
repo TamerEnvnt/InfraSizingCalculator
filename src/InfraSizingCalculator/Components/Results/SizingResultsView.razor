@@ -1,0 +1,533 @@
+@namespace InfraSizingCalculator.Components.Results
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+<!-- Sizing Results View with Expandable Environment Cards -->
+<!-- Uses progressive disclosure pattern instead of tabs -->
+
+<div class="sizing-results-view">
+    @if (K8sResults != null)
+    {
+        <!-- Grand Total Bar (always visible) -->
+        <div class="grand-total-bar">
+            <div class="total-item">
+                <span class="total-value">@K8sResults.GrandTotal.TotalNodes</span>
+                <span class="total-label">Nodes</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@K8sResults.GrandTotal.TotalCpu</span>
+                <span class="total-label">vCPU</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@K8sResults.GrandTotal.TotalRam.ToString("N0")</span>
+                <span class="total-label">RAM (GB)</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@K8sResults.GrandTotal.TotalDisk.ToString("N0")</span>
+                <span class="total-label">Disk (GB)</span>
+            </div>
+        </div>
+
+        <!-- Cluster Mode Banner -->
+        @if (!string.IsNullOrEmpty(ClusterModeDescription))
+        {
+            <div class="cluster-mode-banner @ClusterModeBannerClass">
+                <span class="banner-icon">@ClusterModeIcon</span>
+                <span class="banner-text">@ClusterModeDescription</span>
+            </div>
+        }
+
+        <!-- Environment Cards (Expandable) -->
+        <div class="env-cards-container">
+            @foreach (var env in K8sResults.Environments)
+            {
+                var isExpanded = ExpandedEnvironment == env.Environment.ToString();
+                <div class="env-card @(isExpanded ? "expanded" : "") env-@env.Environment.ToString().ToLower()">
+                    <div class="env-card-header" @onclick="() => ToggleExpand(env.Environment.ToString())">
+                        <div class="env-header-left">
+                            <span class="env-indicator"></span>
+                            <span class="env-name">@env.Environment</span>
+                        </div>
+                        <div class="env-summary">
+                            <span class="summary-item">@env.TotalNodes nodes</span>
+                            <span class="summary-sep">|</span>
+                            <span class="summary-item">@env.TotalCpu vCPU</span>
+                            <span class="summary-sep">|</span>
+                            <span class="summary-item">@env.TotalRam.ToString("N0") GB</span>
+                        </div>
+                        <span class="expand-icon">@(isExpanded ? "▼" : "▶")</span>
+                    </div>
+
+                    @if (isExpanded)
+                    {
+                        <div class="env-card-details">
+                            <div class="env-metrics-grid">
+                                @if (!IsSharedClusterMode)
+                                {
+                                    <div class="env-metric">
+                                        <span class="metric-icon">👑</span>
+                                        <span class="metric-value">@env.Masters</span>
+                                        <span class="metric-label">Masters</span>
+                                    </div>
+                                    <div class="env-metric">
+                                        <span class="metric-icon">🔧</span>
+                                        <span class="metric-value">@env.Infra</span>
+                                        <span class="metric-label">Infra</span>
+                                    </div>
+                                }
+                                <div class="env-metric">
+                                    <span class="metric-icon">⚙️</span>
+                                    <span class="metric-value">@env.Workers</span>
+                                    <span class="metric-label">Workers</span>
+                                </div>
+                                @if (!IsSharedClusterMode)
+                                {
+                                    <div class="env-metric highlight">
+                                        <span class="metric-icon">🖥️</span>
+                                        <span class="metric-value">@env.TotalNodes</span>
+                                        <span class="metric-label">Total Nodes</span>
+                                    </div>
+                                }
+                                <div class="env-metric">
+                                    <span class="metric-icon">💻</span>
+                                    <span class="metric-value">@env.TotalCpu</span>
+                                    <span class="metric-label">vCPU</span>
+                                </div>
+                                <div class="env-metric">
+                                    <span class="metric-icon">🧠</span>
+                                    <span class="metric-value">@env.TotalRam.ToString("N0")</span>
+                                    <span class="metric-label">RAM (GB)</span>
+                                </div>
+                                <div class="env-metric">
+                                    <span class="metric-icon">💾</span>
+                                    <span class="metric-value">@env.TotalDisk.ToString("N0")</span>
+                                    <span class="metric-label">Disk (GB)</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else if (VMResults != null)
+    {
+        <!-- VM Grand Total Bar -->
+        <div class="grand-total-bar vm-mode">
+            <div class="total-item">
+                <span class="total-value">@VMResults.GrandTotal.TotalVMs</span>
+                <span class="total-label">VMs</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@VMResults.GrandTotal.TotalCpu</span>
+                <span class="total-label">vCPU</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@VMResults.GrandTotal.TotalRam.ToString("N0")</span>
+                <span class="total-label">RAM (GB)</span>
+            </div>
+            <div class="total-item">
+                <span class="total-value">@VMResults.GrandTotal.TotalDisk.ToString("N0")</span>
+                <span class="total-label">Disk (GB)</span>
+            </div>
+        </div>
+
+        <!-- VM Mode Banner -->
+        <div class="cluster-mode-banner vm-mode">
+            <span class="banner-icon">🖥️</span>
+            <span class="banner-text">Virtual Machine Sizing - @VMResults.TechnologyName</span>
+        </div>
+
+        <!-- VM Environment Cards (Expandable) -->
+        <div class="env-cards-container">
+            @foreach (var env in VMResults.Environments)
+            {
+                var isExpanded = ExpandedEnvironment == env.Environment.ToString();
+                <div class="env-card @(isExpanded ? "expanded" : "") env-@env.Environment.ToString().ToLower() @(env.IsProd ? "prod" : "")">
+                    <div class="env-card-header" @onclick="() => ToggleExpand(env.Environment.ToString())">
+                        <div class="env-header-left">
+                            <span class="env-indicator"></span>
+                            <span class="env-name">@env.EnvironmentName</span>
+                        </div>
+                        <div class="env-summary">
+                            <span class="summary-item">@env.TotalVMs VMs</span>
+                            <span class="summary-sep">|</span>
+                            <span class="summary-item">@env.TotalCpu vCPU</span>
+                            <span class="summary-sep">|</span>
+                            <span class="summary-item">@env.TotalRam.ToString("N0") GB</span>
+                        </div>
+                        <span class="expand-icon">@(isExpanded ? "▼" : "▶")</span>
+                    </div>
+
+                    @if (isExpanded)
+                    {
+                        <div class="env-card-details">
+                            <div class="vm-env-info">
+                                <span class="info-badge">@GetHAPatternDisplay(env.HAPattern)</span>
+                                @if (env.LoadBalancerVMs > 0)
+                                {
+                                    <span class="info-badge lb">@env.LoadBalancerVMs LB VMs</span>
+                                }
+                            </div>
+                            <table class="vm-roles-table">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Size</th>
+                                        <th>Instances</th>
+                                        <th>CPU</th>
+                                        <th>RAM</th>
+                                        <th>Disk</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var role in env.Roles)
+                                    {
+                                        <tr>
+                                            <td>@role.RoleName</td>
+                                            <td><span class="size-badge">@role.Size</span></td>
+                                            <td>@role.TotalInstances</td>
+                                            <td>@role.TotalCpu</td>
+                                            <td>@role.TotalRam</td>
+                                            <td>@role.TotalDisk</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-results">
+            <span class="no-results-icon">📊</span>
+            <p>Run a sizing calculation to see results</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public K8sSizingResult? K8sResults { get; set; }
+    [Parameter] public VMSizingResult? VMResults { get; set; }
+    [Parameter] public bool IsSharedClusterMode { get; set; }
+    [Parameter] public string ClusterModeIcon { get; set; } = "";
+    [Parameter] public string ClusterModeDescription { get; set; } = "";
+    [Parameter] public string ClusterModeBannerClass { get; set; } = "";
+
+    private string? ExpandedEnvironment { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        // Auto-expand Prod environment by default
+        if (ExpandedEnvironment == null)
+        {
+            if (K8sResults != null)
+            {
+                var prodEnv = K8sResults.Environments.FirstOrDefault(e => e.Environment == EnvironmentType.Prod);
+                ExpandedEnvironment = prodEnv?.Environment.ToString() ?? K8sResults.Environments.FirstOrDefault()?.Environment.ToString();
+            }
+            else if (VMResults != null)
+            {
+                var prodEnv = VMResults.Environments.FirstOrDefault(e => e.IsProd);
+                ExpandedEnvironment = prodEnv?.Environment.ToString() ?? VMResults.Environments.FirstOrDefault()?.Environment.ToString();
+            }
+        }
+    }
+
+    private void ToggleExpand(string envName)
+    {
+        ExpandedEnvironment = ExpandedEnvironment == envName ? null : envName;
+    }
+
+    private string GetHAPatternDisplay(HAPattern pattern)
+    {
+        return pattern switch
+        {
+            HAPattern.None => "None",
+            HAPattern.ActivePassive => "Active-Passive",
+            HAPattern.ActiveActive => "Active-Active",
+            HAPattern.NPlus1 => "N+1",
+            HAPattern.NPlus2 => "N+2",
+            _ => pattern.ToString()
+        };
+    }
+}
+
+<style>
+    .sizing-results-view {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Grand Total Bar */
+    .grand-total-bar {
+        display: flex;
+        gap: 24px;
+        padding: 16px 20px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .grand-total-bar.vm-mode {
+        background: linear-gradient(135deg, var(--bg-secondary), rgba(102, 126, 234, 0.1));
+    }
+
+    .total-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .total-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Cluster Mode Banner */
+    .cluster-mode-banner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .cluster-mode-banner.multi-cluster {
+        border-left: 3px solid var(--accent-color);
+    }
+
+    .cluster-mode-banner.single-cluster {
+        border-left: 3px solid var(--warning-color);
+    }
+
+    .cluster-mode-banner.vm-mode {
+        border-left: 3px solid #667eea;
+    }
+
+    /* Environment Cards */
+    .env-cards-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .env-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .env-card.expanded {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .env-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .env-card-header:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .env-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .env-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-secondary);
+    }
+
+    .env-card.env-prod .env-indicator,
+    .env-card.prod .env-indicator {
+        background: var(--error-color);
+    }
+
+    .env-card.env-dr .env-indicator {
+        background: var(--warning-color);
+    }
+
+    .env-card.env-stage .env-indicator {
+        background: var(--accent-color);
+    }
+
+    .env-card.env-test .env-indicator {
+        background: var(--success-color);
+    }
+
+    .env-card.env-dev .env-indicator {
+        background: #9ca3af;
+    }
+
+    .env-name {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .env-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .summary-sep {
+        color: var(--border-color);
+    }
+
+    .expand-icon {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        transition: transform 0.2s ease;
+    }
+
+    .env-card.expanded .expand-icon {
+        transform: rotate(0deg);
+    }
+
+    /* Environment Details */
+    .env-card-details {
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-primary);
+    }
+
+    .env-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 16px;
+    }
+
+    .env-metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 12px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .env-metric.highlight {
+        background: var(--accent-color);
+        color: white;
+    }
+
+    .env-metric .metric-icon {
+        font-size: 1.2rem;
+    }
+
+    .env-metric .metric-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .env-metric.highlight .metric-value {
+        color: white;
+    }
+
+    .env-metric .metric-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    .env-metric.highlight .metric-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* VM Specific Styles */
+    .vm-env-info {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .info-badge {
+        padding: 4px 10px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .info-badge.lb {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .vm-roles-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .vm-roles-table th,
+    .vm-roles-table td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .vm-roles-table th {
+        background: var(--bg-tertiary);
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .size-badge {
+        padding: 2px 8px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+
+    /* No Results State */
+    .no-results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .no-results-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+</style>

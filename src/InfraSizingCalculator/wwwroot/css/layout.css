@@ -1,0 +1,543 @@
+/* Layout CSS - Three-Panel SPA Dashboard */
+/* Fixed 100vh viewport with CSS Grid */
+
+/* ========================================
+   APP SHELL - Main Grid Structure
+   ======================================== */
+
+.app-shell {
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    grid-template-columns: 200px 1fr 260px;
+    grid-template-areas:
+        "header header header"
+        "left   main   right";
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* NO page scroll */
+    background: var(--bg-primary);
+}
+
+/* ========================================
+   HEADER BAR
+   ======================================== */
+
+.header-bar {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-left .logo {
+    width: 32px;
+    height: 32px;
+}
+
+.header-left h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.header-center .context {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-right button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: background 0.2s ease;
+}
+
+.header-right button:hover {
+    background: var(--accent-color);
+}
+
+/* ========================================
+   LEFT SIDEBAR - Navigation
+   ======================================== */
+
+.left-sidebar {
+    grid-area: left;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 0;
+}
+
+.nav-section {
+    margin-bottom: 8px;
+}
+
+.nav-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 8px 16px 4px;
+    margin: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.nav-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.nav-item .icon {
+    width: 20px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.nav-item .label {
+    flex: 1;
+}
+
+.nav-item .badge {
+    background: var(--warning-color);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+.nav-item .badge.critical {
+    background: var(--error-color);
+    color: white;
+}
+
+/* ========================================
+   MAIN CONTENT AREA
+   ======================================== */
+
+.main-content {
+    grid-area: main;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px 20px;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Content Tabs */
+.content-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.content-tab {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.content-tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.content-tab.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.content-tab .tab-badge {
+    margin-left: 6px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+
+/* Tab Content */
+.tab-content {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Tab panels - Blazor uses conditional rendering so no display:none needed */
+.tab-panel {
+    height: 100%;
+}
+
+/* ========================================
+   RIGHT STATS SIDEBAR
+   ======================================== */
+
+.right-stats {
+    grid-area: right;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stats-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 4px 0;
+}
+
+.stats-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.stats-card .stats-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stats-card .stats-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stats-card .stats-delta {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.stats-card.highlight {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark, #0052a3));
+    color: white;
+}
+
+.stats-card.highlight .stats-label,
+.stats-card.highlight .stats-value,
+.stats-card.highlight .stats-delta {
+    color: white;
+}
+
+.stats-card .stats-trend {
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.stats-card .stats-trend.up {
+    color: var(--success-color);
+}
+
+.stats-card .stats-trend.down {
+    color: var(--error-color);
+}
+
+/* Stats Warnings */
+.stats-warnings {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.warning-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.warning-badge.critical {
+    background: var(--error-color);
+    color: white;
+}
+
+.warning-badge.warning {
+    background: var(--warning-color);
+    color: #000;
+}
+
+.warning-badge.info {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.quick-actions button {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-actions .btn-primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.quick-actions .btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.quick-actions .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.quick-actions .btn-secondary:hover {
+    background: var(--bg-primary);
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+/* Tablet - Collapse right sidebar */
+@media (max-width: 1200px) {
+    .app-shell {
+        grid-template-columns: 200px 1fr 0;
+    }
+
+    .right-stats {
+        display: none;
+    }
+}
+
+/* Smaller tablet - Collapse left sidebar to icons */
+@media (max-width: 900px) {
+    .app-shell {
+        grid-template-columns: 56px 1fr 0;
+    }
+
+    .left-sidebar .nav-section-title {
+        display: none;
+    }
+
+    .left-sidebar .nav-item .label {
+        display: none;
+    }
+
+    .left-sidebar .nav-item .badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        min-width: 14px;
+        padding: 1px 4px;
+        font-size: 0.6rem;
+    }
+
+    .left-sidebar .nav-item {
+        position: relative;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .left-sidebar .nav-item .icon {
+        font-size: 1.2rem;
+    }
+
+    .header-left h1 {
+        display: none;
+    }
+}
+
+/* Mobile - Stack layout */
+@media (max-width: 600px) {
+    .app-shell {
+        grid-template-rows: 56px 1fr 56px;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "main"
+            "left";
+    }
+
+    .left-sidebar {
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .left-sidebar .nav-section {
+        display: flex;
+        margin: 0;
+    }
+
+    .left-sidebar .nav-section-title {
+        display: none;
+    }
+
+    .left-sidebar .nav-item {
+        flex-direction: column;
+        padding: 8px 12px;
+        gap: 2px;
+    }
+
+    .left-sidebar .nav-item .label {
+        display: block;
+        font-size: 0.65rem;
+    }
+
+    .left-sidebar .nav-item .icon {
+        font-size: 1.1rem;
+    }
+}
+
+/* ========================================
+   QUICK ACTION BAR
+   ======================================== */
+
+.quick-action-bar {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    margin-bottom: var(--space-sm);
+}
+
+.quick-action-bar .btn,
+.quick-action-bar button,
+.quick-action-bar a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: var(--font-sm);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.quick-action-bar .btn-secondary,
+.quick-action-bar button:not(.btn-primary) {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.quick-action-bar .btn-secondary:hover,
+.quick-action-bar button:not(.btn-primary):hover {
+    background: var(--bg-elevated, var(--bg-secondary));
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.left-sidebar::-webkit-scrollbar,
+.main-content::-webkit-scrollbar,
+.right-stats::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.left-sidebar::-webkit-scrollbar-track,
+.main-content::-webkit-scrollbar-track,
+.right-stats::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb,
+.main-content::-webkit-scrollbar-thumb,
+.right-stats::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.left-sidebar::-webkit-scrollbar-thumb:hover,
+.main-content::-webkit-scrollbar-thumb:hover,
+.right-stats::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}

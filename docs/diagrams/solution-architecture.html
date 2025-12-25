@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infrastructure Sizing Calculator - Solution Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: #fff;
+        }
+        .diagram-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .layer {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .layer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .layer-title img {
+            width: 24px;
+            height: 24px;
+        }
+        .presentation .layer-title { border-color: #667eea; color: #667eea; }
+        .business .layer-title { border-color: #48bb78; color: #48bb78; }
+        .data .layer-title { border-color: #ed8936; color: #ed8936; }
+
+        .components {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .component {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 200px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .component-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .component-icon img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .component-icon svg {
+            width: 48px;
+            height: 48px;
+        }
+        .component-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .component-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Arrows */
+        .arrows {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+        .arrow {
+            width: 40px;
+            height: 30px;
+            position: relative;
+        }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, #667eea, #48bb78);
+        }
+        .arrow::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #48bb78;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .tech-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .tech-item img {
+            width: 32px;
+            height: 32px;
+        }
+        .tech-item span {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        .legend h3 {
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.7);
+        }
+        .legend-items {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>Infrastructure Sizing Calculator - Solution Architecture</h1>
+
+        <div class="architecture">
+            <!-- Presentation Layer -->
+            <div class="layer presentation">
+                <div class="layer-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/>
+                        <path d="M9 8h2v8H9zm4 0h2v8h-2z"/>
+                    </svg>
+                    Presentation Layer
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">
+                            <!-- Blazor Icon -->
+                            <svg viewBox="0 0 24 24" fill="#512BD4">
+                                <path d="M23.834 8.101a13.912 13.912 0 0 1-13.643 11.72 10.105 10.105 0 0 1-1.994-.12 6.111 6.111 0 0 1-5.082-5.761 5.934 5.934 0 0 1 11.867-.084c.025.983-.401 1.846-1.277 1.871-.936 0-1.374-.668-1.374-1.567v-2.5a1.531 1.531 0 0 0-1.52-1.533H8.715a3.648 3.648 0 1 0 2.695 6.08l.073-.11.074.121a2.58 2.58 0 0 0 2.2 1.048 2.909 2.909 0 0 0 2.695-3.04 7.912 7.912 0 0 0-.217-1.933 7.404 7.404 0 0 0-14.64 1.603 7.497 7.497 0 0 0 7.308 7.405s.549.05 1.167.035a15.803 15.803 0 0 0 8.475-2.528c.036-.025.072.025.048.061a12.44 12.44 0 0 1-9.69 3.963 8.744 8.744 0 0 1-8.9-8.972 9.049 9.049 0 0 1 3.635-7.247 8.863 8.863 0 0 1 5.229-1.726h2.813a7.915 7.915 0 0 0 5.839-2.578.11.11 0 0 1 .059-.034.112.112 0 0 1 .12.053.113.113 0 0 1 .015.067 7.934 7.934 0 0 1-1.227 3.549.107.107 0 0 0-.014.06.11.11 0 0 0 .073.095.109.109 0 0 0 .062.004 8.505 8.505 0 0 0 5.913-4.876.155.155 0 0 1 .055-.053.15.15 0 0 1 .147 0 .153.153 0 0 1 .054.053A10.779 10.779 0 0 1 23.834 8.1zM8.895 11.628a2.188 2.188 0 1 0 2.188 2.188 2.188 2.188 0 0 0-2.188-2.188z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">Blazor Server UI</div>
+                        <div class="component-desc">Interactive wizard interface<br/>Home.razor (3700+ lines)</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#48bb78">
+                                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+                                <path d="M8 12h8v2H8zm0 4h8v2H8z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">REST API</div>
+                        <div class="component-desc">4 Controllers<br/>K8s, VM, Tech, Distros</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrows">
+                <div class="arrow"></div>
+                <div class="arrow"></div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Business Logic Layer -->
+            <div class="layer business">
+                <div class="layer-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                    </svg>
+                    Business Logic Layer - Services
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#326CE5">
+                                <path d="M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L7.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l-.01-.006.3-2.602a5.19 5.19 0 0 0-2.895 1.63l1.9 1.322.006-.007zm2.097-.268a.44.44 0 0 0 .615.468l.007.004 2.06-1.57a5.185 5.185 0 0 0-3.033-1.143l.344 2.245.007-.004zm1.86 1.156a.44.44 0 0 0-.044.748l.007.01 1.9 1.322a5.18 5.18 0 0 0 .474-3.268l-2.33.181-.007.007zm.456 2.362l-.014.006a.44.44 0 0 0-.574.504l-.004.011.867 2.443a5.15 5.15 0 0 0 1.752-2.64l-2.027-.324z"/>
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-.424 16.882a5.304 5.304 0 0 1-3.05-.956 5.352 5.352 0 0 1-1.95-2.478 5.38 5.38 0 0 1-.15-3.2 5.355 5.355 0 0 1 1.563-2.707 5.319 5.319 0 0 1 2.627-1.418 5.278 5.278 0 0 1 3.137.167 5.307 5.307 0 0 1 2.4 1.767 5.36 5.36 0 0 1 1.09 2.87 5.385 5.385 0 0 1-.544 3.077 5.347 5.347 0 0 1-2.126 2.15 5.293 5.293 0 0 1-2.997.728z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">K8sSizingService</div>
+                        <div class="component-desc">Kubernetes cluster<br/>sizing calculations</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#ed8936">
+                                <path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">VMSizingService</div>
+                        <div class="component-desc">Virtual machine<br/>sizing calculations</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#667eea">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">TechnologyService</div>
+                        <div class="component-desc">7 technologies<br/>tier specifications</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#764ba2">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">DistributionService</div>
+                        <div class="component-desc">11 K8s distributions<br/>node specifications</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#48bb78">
+                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">ExportService</div>
+                        <div class="component-desc">CSV, JSON, Excel<br/>HTML export</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrows">
+                <div class="arrow"></div>
+                <div class="arrow"></div>
+                <div class="arrow"></div>
+            </div>
+
+            <!-- Data Layer -->
+            <div class="layer data">
+                <div class="layer-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2zM6 17v-1.32c1.34.82 3.5 1.32 6 1.32s4.66-.5 6-1.32V17c0 .5-2.13 2-6 2s-6-1.5-6-2z"/>
+                    </svg>
+                    Data Layer - Models
+                </div>
+                <div class="components">
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#f56565">
+                                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">Input Models</div>
+                        <div class="component-desc">K8sSizingInput<br/>VMSizingInput</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#48bb78">
+                                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 9h-2V9.5L9.5 11 8 9.5l3-3 3 3-1.5 1.5V11zm0 3H9v2h4v-2zm0 3H9v2h4v-2z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">Output Models</div>
+                        <div class="component-desc">K8sSizingResult<br/>VMSizingResult</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#667eea">
+                                <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">Config Models</div>
+                        <div class="component-desc">TechnologyConfig<br/>DistributionConfig</div>
+                    </div>
+                    <div class="component">
+                        <div class="component-icon">
+                            <svg viewBox="0 0 24 24" fill="#ed8936">
+                                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                            </svg>
+                        </div>
+                        <div class="component-name">Enumerations</div>
+                        <div class="component-desc">11 enum types<br/>Technology, Distribution, etc.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Technology Stack</h3>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="#512BD4">
+                        <path d="M23.834 8.101a13.912 13.912 0 0 1-13.643 11.72 10.105 10.105 0 0 1-1.994-.12 6.111 6.111 0 0 1-5.082-5.761 5.934 5.934 0 0 1 11.867-.084c.025.983-.401 1.846-1.277 1.871-.936 0-1.374-.668-1.374-1.567v-2.5a1.531 1.531 0 0 0-1.52-1.533H8.715a3.648 3.648 0 1 0 2.695 6.08l.073-.11.074.121a2.58 2.58 0 0 0 2.2 1.048 2.909 2.909 0 0 0 2.695-3.04 7.912 7.912 0 0 0-.217-1.933 7.404 7.404 0 0 0-14.64 1.603 7.497 7.497 0 0 0 7.308 7.405s.549.05 1.167.035a15.803 15.803 0 0 0 8.475-2.528c.036-.025.072.025.048.061a12.44 12.44 0 0 1-9.69 3.963 8.744 8.744 0 0 1-8.9-8.972 9.049 9.049 0 0 1 3.635-7.247 8.863 8.863 0 0 1 5.229-1.726h2.813a7.915 7.915 0 0 0 5.839-2.578.11.11 0 0 1 .059-.034.112.112 0 0 1 .12.053.113.113 0 0 1 .015.067 7.934 7.934 0 0 1-1.227 3.549.107.107 0 0 0-.014.06.11.11 0 0 0 .073.095.109.109 0 0 0 .062.004 8.505 8.505 0 0 0 5.913-4.876.155.155 0 0 1 .055-.053.15.15 0 0 1 .147 0 .153.153 0 0 1 .054.053A10.779 10.779 0 0 1 23.834 8.1z"/>
+                    </svg>
+                    <span>.NET 10.0 / Blazor Server</span>
+                </div>
+                <div class="tech-item">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="#E34F26">
+                        <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z"/>
+                    </svg>
+                    <span>HTML5 / CSS3</span>
+                </div>
+                <div class="tech-item">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="#217346">
+                        <path d="M23 1.5q.41 0 .7.3.3.29.3.7v19q0 .41-.3.7-.29.3-.7.3H7q-.41 0-.7-.3-.3-.29-.3-.7V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h5V2.5q0-.41.3-.7.29-.3.7-.3zM6 13.28l1.42 2.66h2.14l-2.38-3.87 2.34-3.8H7.46l-1.3 2.4-.05.08-.04.09-.64-1.28-.66-1.29H2.59l2.27 3.82-2.48 3.85h2.16zM14.25 21v-3H7.5v3zm0-4.5v-3.75H12v3.75zm0-5.25V7.5H12v3.75zm0-5.25V3H7.5v3zm8.25 15v-3h-6.75v3zm0-4.5v-3.75h-6.75v3.75zm0-5.25V7.5h-6.75v3.75zm0-5.25V3h-6.75v3z"/>
+                    </svg>
+                    <span>ClosedXML (Excel)</span>
+                </div>
+                <div class="tech-item">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="#CB3837">
+                        <path d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8H0zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331v5.331zm4 0v1.336H8.001V8.667h5.334v5.332h-2.669v-.001zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002v5.331zM10.665 10H12v2.667h-1.335V10z"/>
+                    </svg>
+                    <span>xUnit / bUnit / Playwright</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

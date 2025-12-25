@@ -1,0 +1,49 @@
+@* Base modal component with overlay and standard structure *@
+
+@if (IsOpen)
+{
+    <div class="modal-overlay" @onclick="OnOverlayClick">
+        <div class="modal-content @SizeClass @AdditionalClass" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>@Title</h2>
+                <button class="modal-close" @onclick="OnClose">×</button>
+            </div>
+            <div class="modal-body @BodyClass">
+                @ChildContent
+            </div>
+            @if (FooterContent != null)
+            {
+                <div class="modal-footer">
+                    @FooterContent
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Size { get; set; } = ""; // empty for default, "small", "large"
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public string? BodyClass { get; set; }
+    [Parameter] public bool CloseOnOverlayClick { get; set; } = true;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? FooterContent { get; set; }
+
+    private string SizeClass => Size switch
+    {
+        "small" => "small",
+        "large" => "large",
+        _ => ""
+    };
+
+    private async Task OnOverlayClick()
+    {
+        if (CloseOnOverlayClick && OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+}

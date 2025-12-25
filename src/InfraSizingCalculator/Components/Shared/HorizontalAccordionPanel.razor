@@ -1,0 +1,85 @@
+@* Horizontal Accordion Panel - A single expandable panel *@
+
+<div class="h-accordion-panel @(GetIsExpanded() ? "expanded" : "collapsed") @AdditionalClass"
+     style="@GetFlexStyle()">
+    <div class="h-accordion-header" @onclick="HandleClick">
+        <div class="header-content">
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <span class="panel-icon">@Icon</span>
+            }
+            <span class="panel-title">@Title</span>
+            @if (!string.IsNullOrEmpty(Subtitle) && !GetIsExpanded())
+            {
+                <span class="panel-subtitle">@Subtitle</span>
+            }
+        </div>
+        <span class="expand-indicator icon @(GetIsExpanded() ? "icon-arrow-left" : "icon-arrow-right")"></span>
+    </div>
+
+    @if (GetIsExpanded())
+    {
+        <div class="h-accordion-content">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] public HorizontalAccordion? ParentAccordion { get; set; }
+
+    [Parameter] public string? Key { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    /// <summary>
+    /// Whether this panel is expanded (used when not in a parent accordion)
+    /// </summary>
+    [Parameter] public bool IsExpanded { get; set; }
+
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+
+    /// <summary>
+    /// Collapsed width (CSS value like "60px" or "auto")
+    /// </summary>
+    [Parameter] public string CollapsedWidth { get; set; } = "60px";
+
+    /// <summary>
+    /// Expanded flex grow value
+    /// </summary>
+    [Parameter] public int ExpandedFlex { get; set; } = 1;
+
+    private bool GetIsExpanded()
+    {
+        if (ParentAccordion != null && !string.IsNullOrEmpty(Key))
+        {
+            return ParentAccordion.IsPanelExpanded(Key);
+        }
+        return IsExpanded;
+    }
+
+    private string GetFlexStyle()
+    {
+        if (GetIsExpanded())
+        {
+            return $"flex: {ExpandedFlex} 1 auto;";
+        }
+        return $"flex: 0 0 {CollapsedWidth};";
+    }
+
+    private async Task HandleClick()
+    {
+        if (ParentAccordion != null && !string.IsNullOrEmpty(Key))
+        {
+            await ParentAccordion.TogglePanel(Key);
+        }
+        else
+        {
+            IsExpanded = !IsExpanded;
+            await IsExpandedChanged.InvokeAsync(IsExpanded);
+        }
+    }
+}

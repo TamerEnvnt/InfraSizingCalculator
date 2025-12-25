@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Sizing Architecture - Infrastructure Sizing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: #fff;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ed8936, #f6ad55, #48bb78);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 50px;
+        }
+
+        /* Architecture Overview */
+        .arch-overview {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        @media (max-width: 1200px) {
+            .arch-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .env-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .env-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #667eea;
+        }
+        .env-title svg {
+            width: 24px;
+            height: 24px;
+        }
+        .env-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .env-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .env-item:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        .env-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .env-dev .env-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .env-test .env-icon { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .env-stage .env-icon { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .env-prod .env-icon { background: linear-gradient(135deg, #f56565, #c53030); }
+        .env-dr .env-icon { background: linear-gradient(135deg, #9f7aea, #805ad5); }
+        .env-name {
+            font-weight: 500;
+        }
+        .env-badge {
+            margin-left: auto;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+
+        /* Server Roles Panel */
+        .server-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ed8936;
+        }
+        .panel-title svg {
+            width: 28px;
+            height: 28px;
+            fill: #ed8936;
+        }
+
+        .server-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .server-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--role-color);
+            border-radius: 12px 12px 0 0;
+        }
+        .server-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--role-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .server-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .server-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--role-color);
+        }
+        .server-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+        }
+        .server-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+        }
+        .server-specs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .spec-item {
+            text-align: center;
+        }
+        .spec-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--role-color);
+        }
+        .spec-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .server-constraint {
+            margin-top: 10px;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* HA Panel */
+        .ha-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .ha-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #48bb78;
+        }
+        .ha-patterns {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .ha-pattern {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .ha-pattern-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ha-pattern-name svg {
+            width: 20px;
+            height: 20px;
+        }
+        .ha-pattern-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 10px;
+        }
+        .ha-nodes {
+            display: flex;
+            gap: 8px;
+        }
+        .ha-node {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .ha-node.active {
+            background: #48bb78;
+            color: #fff;
+        }
+        .ha-node.passive {
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* OutSystems Section */
+        .outsystems-section {
+            margin-top: 50px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .section-logo {
+            width: 50px;
+            height: 50px;
+            background: #FF4F1F;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-logo svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+        .section-info h2 {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+        .section-info .vendor {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .outsystems-arch {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .os-diagram {
+            display: flex;
+            align-items: stretch;
+            gap: 30px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        .os-tier {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        .os-tier::after {
+            content: '→';
+            position: absolute;
+            right: -22px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #FF4F1F;
+        }
+        .os-tier:last-child::after {
+            display: none;
+        }
+        .os-tier-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .os-tier-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+        .os-controller .os-tier-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .os-frontend .os-tier-icon { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .os-db .os-tier-icon { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .os-lifetime .os-tier-icon { background: linear-gradient(135deg, #f56565, #c53030); }
+
+        .os-tier-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .os-tier-role {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 15px;
+        }
+        .os-tier-specs {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .os-tier-spec {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        .os-tier-spec:last-child {
+            margin-bottom: 0;
+        }
+        .os-tier-spec .label {
+            color: rgba(255,255,255,0.5);
+        }
+        .os-tier-spec .value {
+            font-weight: 600;
+            color: #FF4F1F;
+        }
+        .os-tier-constraint {
+            font-size: 0.8rem;
+            padding: 8px 12px;
+            background: rgba(255, 79, 31, 0.1);
+            border: 1px solid rgba(255, 79, 31, 0.3);
+            border-radius: 8px;
+            color: #FF4F1F;
+        }
+
+        /* Legend */
+        .legend {
+            margin-top: 50px;
+            padding: 25px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+        }
+        .legend h3 {
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.7);
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .legend-section h4 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Virtual Machine Sizing Architecture</h1>
+        <p class="subtitle">Technology-specific server roles with environment-based sizing and HA patterns</p>
+
+        <!-- Architecture Overview -->
+        <div class="arch-overview">
+            <!-- Environments Panel -->
+            <div class="env-panel">
+                <div class="env-title">
+                    <svg viewBox="0 0 24 24" fill="#667eea"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
+                    Environments
+                </div>
+                <div class="env-list">
+                    <div class="env-item env-dev">
+                        <div class="env-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                        </div>
+                        <span class="env-name">Development</span>
+                        <span class="env-badge">1x HA</span>
+                    </div>
+                    <div class="env-item env-test">
+                        <div class="env-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/></svg>
+                        </div>
+                        <span class="env-name">Testing</span>
+                        <span class="env-badge">1x HA</span>
+                    </div>
+                    <div class="env-item env-stage">
+                        <div class="env-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <span class="env-name">Staging</span>
+                        <span class="env-badge">2x HA</span>
+                    </div>
+                    <div class="env-item env-prod">
+                        <div class="env-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                        </div>
+                        <span class="env-name">Production</span>
+                        <span class="env-badge">N+1 HA</span>
+                    </div>
+                    <div class="env-item env-dr">
+                        <div class="env-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                        </div>
+                        <span class="env-name">Disaster Recovery</span>
+                        <span class="env-badge">Standby</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Roles Panel -->
+            <div class="server-panel">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><circle cx="6" cy="7" r="1.5" fill="#16213e"/><circle cx="6" cy="17" r="1.5" fill="#16213e"/></svg>
+                    Standard Server Roles
+                </div>
+                <div class="server-grid">
+                    <div class="server-card" style="--role-color: #667eea;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/><path d="M9 8h2v8H9zm4 0h2v8h-2z"/></svg>
+                        </div>
+                        <div class="server-name">Application</div>
+                        <div class="server-desc">Runtime & Business Logic</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">2-8</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">4-32</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-card" style="--role-color: #48bb78;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </div>
+                        <div class="server-name">Web Server</div>
+                        <div class="server-desc">HTTP/HTTPS Frontend</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">2-4</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">4-16</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-card" style="--role-color: #ed8936;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+                        </div>
+                        <div class="server-name">Database</div>
+                        <div class="server-desc">Data Persistence</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">4-16</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">16-64</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                        <div class="server-constraint">Clusterable (AlwaysOn/RAC)</div>
+                    </div>
+
+                    <div class="server-card" style="--role-color: #f56565;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        </div>
+                        <div class="server-name">Search</div>
+                        <div class="server-desc">Elasticsearch/Solr</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">2-8</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">8-32</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-card" style="--role-color: #9f7aea;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                        </div>
+                        <div class="server-name">Message Queue</div>
+                        <div class="server-desc">RabbitMQ/Kafka</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">2-4</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">4-16</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="server-card" style="--role-color: #38b2ac;">
+                        <div class="server-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                        </div>
+                        <div class="server-name">Cache</div>
+                        <div class="server-desc">Redis/Memcached</div>
+                        <div class="server-specs">
+                            <div class="spec-item">
+                                <div class="spec-value">1-4</div>
+                                <div class="spec-label">vCPU</div>
+                            </div>
+                            <div class="spec-item">
+                                <div class="spec-value">4-32</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HA Patterns Panel -->
+            <div class="ha-panel">
+                <div class="ha-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#48bb78"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                    HA Patterns
+                </div>
+                <div class="ha-patterns">
+                    <div class="ha-pattern">
+                        <div class="ha-pattern-name">
+                            <svg viewBox="0 0 24 24" fill="#48bb78"><circle cx="12" cy="12" r="10"/></svg>
+                            Active-Passive
+                        </div>
+                        <div class="ha-pattern-desc">One active node, one standby for failover</div>
+                        <div class="ha-nodes">
+                            <div class="ha-node active">A</div>
+                            <div class="ha-node passive">S</div>
+                        </div>
+                    </div>
+                    <div class="ha-pattern">
+                        <div class="ha-pattern-name">
+                            <svg viewBox="0 0 24 24" fill="#667eea"><circle cx="12" cy="12" r="10"/></svg>
+                            Active-Active
+                        </div>
+                        <div class="ha-pattern-desc">Both nodes active, load balanced</div>
+                        <div class="ha-nodes">
+                            <div class="ha-node active">A1</div>
+                            <div class="ha-node active">A2</div>
+                        </div>
+                    </div>
+                    <div class="ha-pattern">
+                        <div class="ha-pattern-name">
+                            <svg viewBox="0 0 24 24" fill="#ed8936"><circle cx="12" cy="12" r="10"/></svg>
+                            N+1 Cluster
+                        </div>
+                        <div class="ha-pattern-desc">N active + 1 spare for redundancy</div>
+                        <div class="ha-nodes">
+                            <div class="ha-node active">1</div>
+                            <div class="ha-node active">2</div>
+                            <div class="ha-node active">3</div>
+                            <div class="ha-node passive">+1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OutSystems Section -->
+        <div class="outsystems-section">
+            <div class="section-header">
+                <div class="section-logo">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" fill="#FF4F1F"/><circle cx="12" cy="12" r="2.5" fill="white"/></svg>
+                </div>
+                <div class="section-info">
+                    <h2>OutSystems Server Roles</h2>
+                    <div class="vendor">Low-Code Platform (VM Only)</div>
+                </div>
+            </div>
+
+            <div class="outsystems-arch">
+                <div class="os-diagram">
+                    <div class="os-tier os-controller">
+                        <div class="os-tier-icon">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/></svg>
+                        </div>
+                        <div class="os-tier-name">Controller</div>
+                        <div class="os-tier-role">Deployment Orchestration</div>
+                        <div class="os-tier-specs">
+                            <div class="os-tier-spec">
+                                <span class="label">vCPU</span>
+                                <span class="value">4 cores</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">RAM</span>
+                                <span class="value">16 GB</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">Disk</span>
+                                <span class="value">100 GB</span>
+                            </div>
+                        </div>
+                        <div class="os-tier-constraint">MaxInstances = 1</div>
+                    </div>
+
+                    <div class="os-tier os-frontend">
+                        <div class="os-tier-icon">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </div>
+                        <div class="os-tier-name">Frontend</div>
+                        <div class="os-tier-role">Application Runtime</div>
+                        <div class="os-tier-specs">
+                            <div class="os-tier-spec">
+                                <span class="label">vCPU</span>
+                                <span class="value">4-8 cores</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">RAM</span>
+                                <span class="value">8-32 GB</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">Disk</span>
+                                <span class="value">100 GB</span>
+                            </div>
+                        </div>
+                        <div class="os-tier-constraint">Scalable (1-N)</div>
+                    </div>
+
+                    <div class="os-tier os-db">
+                        <div class="os-tier-icon">
+                            <svg viewBox="0 0 24 24" fill="white"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+                        </div>
+                        <div class="os-tier-name">Database</div>
+                        <div class="os-tier-role">SQL Server / Oracle</div>
+                        <div class="os-tier-specs">
+                            <div class="os-tier-spec">
+                                <span class="label">vCPU</span>
+                                <span class="value">4-16 cores</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">RAM</span>
+                                <span class="value">16-64 GB</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">Disk</span>
+                                <span class="value">200+ GB</span>
+                            </div>
+                        </div>
+                        <div class="os-tier-constraint">Clusterable</div>
+                    </div>
+
+                    <div class="os-tier os-lifetime">
+                        <div class="os-tier-icon">
+                            <svg viewBox="0 0 24 24" fill="white"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        </div>
+                        <div class="os-tier-name">LifeTime</div>
+                        <div class="os-tier-role">DevOps Dashboard</div>
+                        <div class="os-tier-specs">
+                            <div class="os-tier-spec">
+                                <span class="label">vCPU</span>
+                                <span class="value">4 cores</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">RAM</span>
+                                <span class="value">8 GB</span>
+                            </div>
+                            <div class="os-tier-spec">
+                                <span class="label">Disk</span>
+                                <span class="value">50 GB</span>
+                            </div>
+                        </div>
+                        <div class="os-tier-constraint">MaxInstances = 1</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <h3>Legend & Sizing Guidelines</h3>
+            <div class="legend-grid">
+                <div class="legend-section">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#667eea"><circle cx="12" cy="12" r="10"/></svg>
+                        Environment Types
+                    </h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                            Development - Minimal specs, single instance
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #48bb78, #38a169);"></div>
+                            Testing - Dev-like specs, integration testing
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #ed8936, #dd6b20);"></div>
+                            Staging - Production-like, user acceptance
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #f56565, #c53030);"></div>
+                            Production - Full specs, HA enabled
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #9f7aea, #805ad5);"></div>
+                            DR - Standby for disaster recovery
+                        </div>
+                    </div>
+                </div>
+                <div class="legend-section">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#48bb78"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                        HA Multipliers
+                    </h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <strong>Dev/Test:</strong> 1x (no HA)
+                        </div>
+                        <div class="legend-item">
+                            <strong>Stage:</strong> 2x (Active-Passive)
+                        </div>
+                        <div class="legend-item">
+                            <strong>Prod:</strong> N+1 (Clustered)
+                        </div>
+                        <div class="legend-item">
+                            <strong>DR:</strong> Matches Prod (standby)
+                        </div>
+                    </div>
+                </div>
+                <div class="legend-section">
+                    <h4>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF4F1F"><circle cx="12" cy="12" r="10"/></svg>
+                        MaxInstances Constraints
+                    </h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <strong>OutSystems Controller:</strong> MaxInstances = 1
+                        </div>
+                        <div class="legend-item">
+                            <strong>OutSystems LifeTime:</strong> MaxInstances = 1
+                        </div>
+                        <div class="legend-item">
+                            <strong>OutSystems Frontend:</strong> Unlimited (scalable)
+                        </div>
+                        <div class="legend-item">
+                            <strong>OutSystems Database:</strong> Clusterable
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1604 @@
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+@inject IPricingSettingsService PricingSettingsService
+
+<div class="pricing-step">
+    <div class="step-header">
+        <h3>💰 @GetPricingStepTitle()</h3>
+        <p class="step-description">
+            @GetPricingStepDescription()
+        </p>
+    </div>
+
+    <!-- Tab Navigation - Dynamic based on deployment type -->
+    <div class="pricing-tabs">
+        @if (IsMendixCloudDeployment)
+        {
+            <!-- Mendix Cloud (SaaS/Dedicated) - Only show cloud resource pricing -->
+            <button class="pricing-tab active">
+                <span class="tab-icon">☁️</span>
+                <span class="tab-label">Mendix Cloud Pricing</span>
+            </button>
+        }
+        else if (IsManagedCloudK8s)
+        {
+            <!-- Managed Cloud K8s (EKS, AKS, GKE, Azure Private Cloud) -->
+            <button class="pricing-tab @(_activeTab == "cloud" ? "active" : "")"
+                    @onclick='() => _activeTab = "cloud"'>
+                <span class="tab-icon">☁️</span>
+                <span class="tab-label">Cloud Infrastructure</span>
+            </button>
+            @if (IsLowCodePlatform)
+            {
+                <button class="pricing-tab @(_activeTab == "lowcode" ? "active" : "")"
+                        @onclick='() => _activeTab = "lowcode"'>
+                    <span class="tab-icon">🟠</span>
+                    <span class="tab-label">Mendix Licenses</span>
+                </button>
+            }
+        }
+        else
+        {
+            <!-- On-Prem K8s (OpenShift, Rancher, K3s, Generic K8s) -->
+            <button class="pricing-tab @(_activeTab == "onprem" ? "active" : "")"
+                    @onclick='() => _activeTab = "onprem"'>
+                <span class="tab-icon">🏢</span>
+                <span class="tab-label">Infrastructure Costs</span>
+            </button>
+            <button class="pricing-tab @(_activeTab == "cloud" ? "active" : "")"
+                    @onclick='() => _activeTab = "cloud"'>
+                <span class="tab-icon">☁️</span>
+                <span class="tab-label">Cloud Alternatives</span>
+            </button>
+            @if (IsLowCodePlatform)
+            {
+                <button class="pricing-tab @(_activeTab == "lowcode" ? "active" : "")"
+                        @onclick='() => _activeTab = "lowcode"'>
+                    <span class="tab-icon">🟠</span>
+                    <span class="tab-label">Mendix Licenses</span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="pricing-tab-content">
+        @if (_activeTab == "onprem")
+        {
+            <!-- On-Premises Pricing Tab -->
+            <div class="onprem-panel">
+                <div class="toggle-card">
+                    <label class="toggle-row">
+                        <input type="checkbox" @bind="_includePricing" @bind:after="NotifyPricingChange" />
+                        <span class="toggle-text">
+                            <strong>Include Pricing in Results</strong>
+                            <small>@(_includePricing ? "Costs will be calculated and shown" : "Costs will show as N/A")</small>
+                        </span>
+                    </label>
+                </div>
+
+                @if (_includePricing)
+                {
+                    <div class="cost-sections">
+                        <div class="cost-row">
+                            <span class="cost-icon">📜</span>
+                            <span class="cost-name">K8s Distribution License</span>
+                            <span class="cost-value">@FormatCurrency(GetK8sLicenseMonthlyCost())/mo</span>
+                        </div>
+                        <div class="cost-row">
+                            <span class="cost-icon">🖥️</span>
+                            <span class="cost-name">Infrastructure (@GetServersNeeded() servers)</span>
+                            <span class="cost-value">@FormatCurrency(GetMonthlyHardwareCost())/mo</span>
+                        </div>
+                        <div class="cost-row">
+                            <span class="cost-icon">🏭</span>
+                            <span class="cost-name">Data Center</span>
+                            <span class="cost-value">@FormatCurrency(GetMonthlyDataCenterCost())/mo</span>
+                        </div>
+                        <div class="cost-row">
+                            <span class="cost-icon">👷</span>
+                            <span class="cost-name">Labor (@GetEngineersNeeded().ToString("F1") engineers)</span>
+                            <span class="cost-value">@FormatCurrency(GetMonthlyLaborCost())/mo</span>
+                        </div>
+                        <div class="cost-total">
+                            <div class="total-item">
+                                <span class="label">Monthly</span>
+                                <span class="value">@FormatCurrency(GetTotalMonthlyCost())</span>
+                            </div>
+                            <div class="total-item">
+                                <span class="label">Yearly</span>
+                                <span class="value">@FormatCurrency(GetTotalMonthlyCost() * 12)</span>
+                            </div>
+                            <div class="total-item">
+                                <span class="label">3-Year TCO</span>
+                                <span class="value">@FormatCurrency(GetTotalMonthlyCost() * 36)</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="no-pricing-note">
+                        <span>💡</span>
+                        <span>Enable the toggle above to see cost estimates. Results will show "N/A" for costs.</span>
+                    </div>
+                }
+            </div>
+        }
+        else if (_activeTab == "cloud")
+        {
+            <!-- Cloud Alternatives Tab - Two Column Layout -->
+            <div class="cloud-panel-wide">
+                <div class="cloud-main-area">
+                    @{
+                        var sortedAlternatives = GetDetailedCloudAlternatives();
+                        var lowestKey = sortedAlternatives.FirstOrDefault()?.Key;
+                        var openshiftAlts = sortedAlternatives.Where(a => a.IsManagedOpenShift).ToList();
+                        var genericAlts = sortedAlternatives.Where(a => !a.IsManagedOpenShift).ToList();
+                    }
+
+                    @if (IsOpenShiftDistribution() && openshiftAlts.Any())
+                    {
+                        <div class="section-label">
+                            <span class="label-icon">🔴</span>
+                            <span>Managed OpenShift</span>
+                            <span class="label-badge recommended">Recommended</span>
+                        </div>
+                        <div class="cloud-grid-detailed">
+                            @foreach (var alt in openshiftAlts.OrderBy(a => a.TotalCost))
+                        {
+                            var isLowest = alt.Key == lowestKey;
+                            @RenderCloudCard(alt, isLowest)
+                        }
+                    </div>
+
+                    @if (genericAlts.Any())
+                    {
+                        <div class="section-label secondary">
+                            <span class="label-icon">☸️</span>
+                            <span>Other Cloud K8s</span>
+                        </div>
+                        <div class="cloud-grid-detailed">
+                            @foreach (var alt in genericAlts.OrderBy(a => a.TotalCost))
+                            {
+                                var isLowest = alt.Key == lowestKey;
+                                @RenderCloudCard(alt, isLowest)
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="cloud-grid-detailed">
+                        @foreach (var alt in sortedAlternatives)
+                        {
+                            var isLowest = alt.Key == lowestKey;
+                            @RenderCloudCard(alt, isLowest)
+                        }
+                    </div>
+                }
+                </div>
+
+                <!-- Sidebar: Node Comparison & Actions -->
+                <div class="cloud-sidebar">
+                    <div class="sidebar-section">
+                        <div class="sidebar-title">📊 Node Comparison</div>
+                        <div class="comparison-compact">
+                            <div class="comp-row">
+                                <span class="comp-label">🏢 On-Prem:</span>
+                                <span class="comp-value">@TotalNodes nodes (@MasterNodes M + @InfraNodes I + @WorkerNodes W)</span>
+                            </div>
+                            <div class="comp-row">
+                                <span class="comp-label">☁️ Cloud:</span>
+                                <span class="comp-value">@GetCloudWorkerCount() workers (managed control)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <div class="sidebar-title">💰 Cost Summary</div>
+                        <div class="cost-summary-compact">
+                            <div class="cost-row">
+                                <span>On-Prem:</span>
+                                <span class="cost-val">@(_includePricing ? FormatCurrency(GetTotalMonthlyCost()) : "N/A")/mo</span>
+                            </div>
+                            @foreach (var alt in GetCloudAlternatives().Take(3))
+                            {
+                                <div class="cost-row @(IsLowestCost(alt.Key) ? "lowest" : "")">
+                                    <span>@alt.Label:</span>
+                                    <span class="cost-val">@FormatCurrency(alt.Cost)/mo</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="sidebar-actions">
+                        <button class="btn-save-full" @onclick="SaveCurrentScenario">💾 Save Scenario</button>
+                        @if (!string.IsNullOrEmpty(_selectedAlternative))
+                        {
+                            var selectedAlt = GetDetailedCloudAlternatives().FirstOrDefault(a => a.Key == _selectedAlternative);
+                            @if (selectedAlt != null)
+                            {
+                                <button class="btn-apply-full" @onclick="() => ApplySelectedAlternative(selectedAlt)">
+                                    ⚡ Apply @selectedAlt.Label
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_activeTab == "lowcode" && IsLowCodePlatform)
+        {
+            <!-- Low-Code Licenses Tab - Dynamic based on selection -->
+            <div class="lowcode-panel">
+                @if (MendixCategory == MendixDeploymentCategory.Cloud)
+                {
+                    <!-- Mendix Cloud Pricing -->
+                    <div class="platform-section">
+                        <div class="platform-header">
+                            <span class="platform-icon mendix">M</span>
+                            <div>
+                                <strong>@(MendixCloudType == MendixCloudType.SaaS ? "Mendix Cloud (SaaS)" : "Mendix Cloud Dedicated")</strong>
+                                <small>@(MendixCloudType == MendixCloudType.SaaS ? "Multi-tenant managed service" : "Single-tenant dedicated infrastructure")</small>
+                            </div>
+                        </div>
+
+                        @if (MendixCloudType == MendixCloudType.SaaS)
+                        {
+                            <div class="mendix-pricing-detail">
+                                <div class="pricing-row">
+                                    <span class="pricing-label">☁️ Cloud Tokens</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.CloudTokenPrice)/token</span>
+                                </div>
+                                <div class="pricing-section-title">Resource Packs (99.5% SLA)</div>
+                                <div class="resource-pack-grid">
+                                    @foreach (var pack in _mendixPricing.StandardResourcePacks.Take(4))
+                                    {
+                                        <div class="resource-pack-item">
+                                            <span class="pack-name">@pack.DisplayName</span>
+                                            <span class="pack-price">@FormatCurrency(pack.PricePerYear)/year</span>
+                                            <span class="pack-specs">@pack.MxMemoryGB GB RAM • @pack.MxVCpu vCPU • @pack.DbStorageGB GB DB</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mendix-pricing-detail">
+                                <div class="pricing-row highlight">
+                                    <span class="pricing-label">🏢 Annual License</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.CloudDedicatedPricePerYear)/year</span>
+                                </div>
+                                <div class="pricing-note">Includes dedicated infrastructure, SLA guarantees, and premium support.</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (MendixCategory == MendixDeploymentCategory.PrivateCloud)
+                {
+                    <!-- Private Cloud Pricing (Azure or K8s) -->
+                    <div class="platform-section">
+                        <div class="platform-header">
+                            <span class="platform-icon mendix-private">M</span>
+                            <div>
+                                <strong>@GetMendixPrivateCloudTitle()</strong>
+                                <small>@GetMendixPrivateCloudSubtitle()</small>
+                            </div>
+                            @if (PricingSettingsService.IsMendixSupportedProvider(MendixPrivateProvider ?? MendixPrivateCloudProvider.GenericK8s))
+                            {
+                                <span class="badge-supported">✓ Officially Supported</span>
+                            }
+                        </div>
+
+                        <div class="mendix-pricing-detail">
+                            @if (MendixPrivateProvider == MendixPrivateCloudProvider.Azure)
+                            {
+                                <div class="pricing-row">
+                                    <span class="pricing-label">📋 Base Platform Fee</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.AzureBasePricePerYear)/year</span>
+                                </div>
+                                <div class="pricing-row">
+                                    <span class="pricing-label">📦 Included Environments</span>
+                                    <span class="pricing-value">@_mendixPricing.AzureBaseEnvironmentsIncluded environments</span>
+                                </div>
+                                <div class="pricing-row">
+                                    <span class="pricing-label">➕ Additional Environment</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.AzureAdditionalEnvironmentPrice)/year each</span>
+                                </div>
+                                <div class="pricing-total">
+                                    <span class="total-label">Estimated Annual Mendix Cost</span>
+                                    <span class="total-value">@FormatCurrency(GetAzureTotalYearlyCost())/year</span>
+                                    <span class="total-note">(@MendixEnvironments environments)</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- K8s providers (EKS, AKS, GKE, OpenShift) -->
+                                <div class="pricing-row">
+                                    <span class="pricing-label">📋 Base Platform Fee</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.K8sBasePricePerYear)/year</span>
+                                </div>
+                                <div class="pricing-section-title">Environment Pricing Tiers</div>
+                                @foreach (var tier in _mendixPricing.K8sEnvironmentTiers)
+                                {
+                                    <div class="pricing-row tier-row">
+                                        <span class="pricing-label">@tier.MinEnvironments-@(tier.MaxEnvironments == -1 ? "∞" : tier.MaxEnvironments.ToString()) environments</span>
+                                        <span class="pricing-value">@(tier.PricePerEnvironment == 0 ? "FREE" : $"{FormatCurrency(tier.PricePerEnvironment)}/env/year")</span>
+                                    </div>
+                                }
+                                <div class="pricing-total">
+                                    <span class="total-label">Estimated Annual Mendix Cost</span>
+                                    <span class="total-value">@FormatCurrency(GetK8sTotalYearlyCost())/year</span>
+                                    <span class="total-note">(@MendixEnvironments environments)</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (MendixCategory == MendixDeploymentCategory.Other)
+                {
+                    <!-- Other Deployment Pricing (Server, StackIT, SAP BTP) -->
+                    <div class="platform-section">
+                        <div class="platform-header">
+                            <span class="platform-icon mendix-other">M</span>
+                            <div>
+                                <strong>@GetMendixOtherDeploymentTitle()</strong>
+                                <small>@GetMendixOtherDeploymentSubtitle()</small>
+                            </div>
+                            <span class="badge-manual">Manual Setup Required</span>
+                        </div>
+
+                        <div class="mendix-pricing-detail">
+                            @if (MendixOtherType.HasValue)
+                            {
+                                var (perApp, unlimited) = GetOtherDeploymentPricing();
+                                <div class="pricing-row">
+                                    <span class="pricing-label">📱 Per-App License</span>
+                                    <span class="pricing-value">@FormatCurrency(perApp)/app/year</span>
+                                </div>
+                                <div class="pricing-row highlight">
+                                    <span class="pricing-label">♾️ Unlimited Apps License</span>
+                                    <span class="pricing-value">@FormatCurrency(unlimited)/year</span>
+                                </div>
+                            }
+                            else if (MendixPrivateProvider.HasValue)
+                            {
+                                <!-- Unsupported K8s (Rancher, K3s, Docker, Generic) -->
+                                <div class="pricing-note warning">
+                                    <span>⚠️ This provider is not officially supported by Mendix.</span>
+                                    <span>You may still use Mendix for Private Cloud (K8s) pricing but without official support guarantees.</span>
+                                </div>
+                                <div class="pricing-row">
+                                    <span class="pricing-label">📋 Base Platform Fee</span>
+                                    <span class="pricing-value">@FormatCurrency(_mendixPricing.K8sBasePricePerYear)/year</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- No category selected yet -->
+                    <div class="no-selection-note">
+                        <span>ℹ️</span>
+                        <span>Select a Mendix deployment option in Step 4 to see pricing details.</span>
+                    </div>
+                }
+
+                <!-- User Licensing (applies to all) -->
+                <div class="platform-section user-licensing">
+                    <div class="platform-header">
+                        <span class="platform-icon users">👥</span>
+                        <div>
+                            <strong>User Licensing</strong>
+                            <small>Required for all Mendix deployments</small>
+                        </div>
+                    </div>
+
+                    <div class="mendix-pricing-detail">
+                        <div class="pricing-row">
+                            <span class="pricing-label">👤 Internal Users (@MendixInternalUsers users)</span>
+                            <span class="pricing-value">@FormatCurrency(GetInternalUserCost())/year</span>
+                        </div>
+                        <div class="pricing-row">
+                            <span class="pricing-label">🌐 External Users (@(MendixExternalUsers > 0 ? MendixExternalUsers.ToString("N0") : "0"))</span>
+                            <span class="pricing-value">@FormatCurrency(GetExternalUserCost())/year</span>
+                        </div>
+                        <div class="pricing-total">
+                            <span class="total-label">User Licensing Total</span>
+                            <span class="total-value">@FormatCurrency(CalculateUserLicensingCost())/year</span>
+                        </div>
+                    </div>
+
+                    <div class="pricing-note rate-info">
+                        💡 Rates: Internal @FormatCurrency(_mendixPricing.InternalUsersPer100PerYear)/100 users • External @FormatCurrency(_mendixPricing.ExternalUsersPer250KPerYear)/250K users
+                    </div>
+                </div>
+
+                <!-- Mendix Cost Summary -->
+                @if (MendixCategory != null && GetMendixSummary() is var summary && summary != null)
+                {
+                    <div class="mendix-cost-summary">
+                        <div class="summary-header">
+                            <span class="summary-icon">💰</span>
+                            <span class="summary-title">Estimated Mendix Cost Summary</span>
+                        </div>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Monthly</span>
+                                <span class="summary-value">@FormatCurrency(summary.TotalPerMonth)</span>
+                            </div>
+                            <div class="summary-item highlight">
+                                <span class="summary-label">Annual</span>
+                                <span class="summary-value">@FormatCurrency(summary.TotalPerYear)</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">3-Year TCO</span>
+                                <span class="summary-value">@FormatCurrency(summary.TotalThreeYear)</span>
+                            </div>
+                        </div>
+                        <div class="summary-breakdown">
+                            @if (summary.PlatformLicenseCost > 0)
+                            {
+                                <div class="breakdown-row">
+                                    <span>Platform License</span>
+                                    <span>@FormatCurrency(summary.PlatformLicenseCost)/yr</span>
+                                </div>
+                            }
+                            @if (summary.DeploymentFeeCost > 0)
+                            {
+                                <div class="breakdown-row">
+                                    <span>Deployment Fee</span>
+                                    <span>@FormatCurrency(summary.DeploymentFeeCost)/yr</span>
+                                </div>
+                            }
+                            @if (summary.EnvironmentCost > 0)
+                            {
+                                <div class="breakdown-row">
+                                    <span>Environment Licensing</span>
+                                    <span>@FormatCurrency(summary.EnvironmentCost)/yr</span>
+                                </div>
+                            }
+                            @if (summary.UserLicenseCost > 0)
+                            {
+                                <div class="breakdown-row">
+                                    <span>User Licensing</span>
+                                    <span>@FormatCurrency(summary.UserLicenseCost)/yr</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="license-note">
+                    💡 <strong>Note:</strong> Prices shown are from the June 2025 Mendix pricebook.
+                    Actual pricing may vary based on region, volume, and negotiation. Edit defaults in Settings.
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Distribution? Distribution { get; set; }
+    [Parameter] public PlatformType? Platform { get; set; }
+    [Parameter] public int TotalNodes { get; set; }
+    [Parameter] public int MasterNodes { get; set; }
+    [Parameter] public int InfraNodes { get; set; }
+    [Parameter] public int WorkerNodes { get; set; }
+    [Parameter] public int TotalCores { get; set; }
+    [Parameter] public int TotalRamGB { get; set; }
+    [Parameter] public int TotalStorageTB { get; set; }
+    [Parameter] public bool HasProduction { get; set; } = true;
+    [Parameter] public bool IsManagedControlPlane { get; set; } = false;
+    [Parameter] public EventCallback<PricingStepResult> OnPricingConfigured { get; set; }
+    [Parameter] public EventCallback<Distribution> OnApplyAlternative { get; set; }
+    [Parameter] public EventCallback OnSaveScenario { get; set; }
+
+    // Mendix deployment parameters
+    [Parameter] public MendixDeploymentCategory? MendixCategory { get; set; }
+    [Parameter] public MendixCloudType MendixCloudType { get; set; } = MendixCloudType.SaaS;
+    [Parameter] public MendixPrivateCloudProvider? MendixPrivateProvider { get; set; }
+    [Parameter] public MendixOtherDeployment? MendixOtherType { get; set; }
+    [Parameter] public int MendixEnvironments { get; set; } = 3;
+    [Parameter] public int MendixInternalUsers { get; set; } = 100;
+    [Parameter] public int MendixExternalUsers { get; set; } = 0;
+
+    private string _activeTab = "onprem";
+    private string? _selectedCloud = null;
+    private string? _selectedAlternative = null; // Track selected cloud alternative card
+    private bool _includePricing = false;
+    private OnPremPricing _onPremDefaults = new();
+    private MendixPricingSettings _mendixPricing = new();
+
+    private bool IsLowCodePlatform => Platform == PlatformType.LowCode;
+
+    // Mendix Cloud deployment (SaaS or Dedicated)
+    private bool IsMendixCloudDeployment =>
+        IsLowCodePlatform &&
+        MendixCategory == MendixDeploymentCategory.Cloud;
+
+    // Managed cloud K8s (includes Private Cloud with managed providers)
+    private bool IsManagedCloudK8s =>
+        (Distribution.HasValue && (Distribution.Value == Models.Enums.Distribution.EKS ||
+                                    Distribution.Value == Models.Enums.Distribution.AKS ||
+                                    Distribution.Value == Models.Enums.Distribution.GKE)) ||
+        (IsLowCodePlatform && MendixCategory == MendixDeploymentCategory.PrivateCloud &&
+         MendixPrivateProvider is MendixPrivateCloudProvider.Azure or
+                                  MendixPrivateCloudProvider.EKS or
+                                  MendixPrivateCloudProvider.AKS or
+                                  MendixPrivateCloudProvider.GKE);
+
+    // On-prem K8s (OpenShift, Rancher, K3s, Generic K8s, or Private Cloud with OpenShift)
+    private bool IsOnPremK8s =>
+        (Distribution.HasValue && (Distribution.Value == Models.Enums.Distribution.OpenShift ||
+                                    Distribution.Value == Models.Enums.Distribution.Rancher ||
+                                    Distribution.Value == Models.Enums.Distribution.K3s ||
+                                    Distribution.Value == Models.Enums.Distribution.Kubernetes)) ||
+        (IsLowCodePlatform && MendixCategory == MendixDeploymentCategory.PrivateCloud &&
+         MendixPrivateProvider == MendixPrivateCloudProvider.OpenShift);
+
+    private string GetPricingStepTitle()
+    {
+        if (IsMendixCloudDeployment)
+            return "Mendix Cloud Pricing";
+        if (IsManagedCloudK8s && IsLowCodePlatform)
+            return "Infrastructure & Mendix Licensing";
+        if (IsLowCodePlatform)
+            return "Pricing Configuration";
+        return "Pricing Configuration";
+    }
+
+    private string GetPricingStepDescription()
+    {
+        if (IsMendixCloudDeployment)
+        {
+            var cloudType = MendixCloudType == MendixCloudType.Dedicated ? "Dedicated" : "SaaS";
+            return $"Configure Mendix Cloud {cloudType} resource packs and storage for your applications.";
+        }
+        if (IsManagedCloudK8s)
+        {
+            var provider = MendixPrivateProvider?.ToString() ?? Distribution?.ToString() ?? "cloud";
+            return $"Estimate cloud infrastructure costs for your {provider} deployment plus Mendix Private Cloud licensing.";
+        }
+        return $"Configure pricing estimates for your {GetDistributionName()} deployment.";
+    }
+
+    protected override void OnInitialized()
+    {
+        // Set default tab based on deployment type
+        if (IsMendixCloudDeployment)
+            _activeTab = "lowcode";
+        else if (IsManagedCloudK8s)
+            _activeTab = "cloud";
+        else
+            _activeTab = "onprem";
+
+        _includePricing = PricingSettingsService.IncludePricingInResults;
+        _onPremDefaults = PricingSettingsService.GetOnPremDefaults();
+        _mendixPricing = PricingSettingsService.GetMendixPricingSettings();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await NotifyPricingChange();
+        }
+    }
+
+    private void ToggleCloudDetails(string cloud)
+    {
+        _selectedCloud = _selectedCloud == cloud ? null : cloud;
+    }
+
+    private async Task NotifyPricingChange()
+    {
+        PricingSettingsService.IncludePricingInResults = _includePricing;
+
+        var result = new PricingStepResult
+        {
+            IncludePricing = _includePricing,
+            IsOnPrem = true,
+            OnPremCost = _includePricing ? new OnPremCostBreakdown
+            {
+                MonthlyHardware = GetMonthlyHardwareCost(),
+                MonthlyDataCenter = GetMonthlyDataCenterCost(),
+                MonthlyLabor = GetMonthlyLaborCost(),
+                MonthlyLicense = GetK8sLicenseMonthlyCost(),
+                IsCalculated = true
+            } : null,
+            MendixCost = IsLowCodePlatform ? CalculateMendixPricingResult() : null
+        };
+
+        await OnPricingConfigured.InvokeAsync(result);
+    }
+
+    private MendixPricingResult? CalculateMendixPricingResult()
+    {
+        if (!IsLowCodePlatform || MendixCategory == null)
+            return null;
+
+        var result = new MendixPricingResult
+        {
+            Category = MendixCategory.Value,
+            DeploymentTypeName = GetMendixDeploymentTypeName()
+        };
+
+        // Platform license is always required
+        result.PlatformLicenseCost = _mendixPricing.PlatformPremiumUnlimitedPerYear;
+
+        // Calculate deployment-specific costs
+        if (MendixCategory == MendixDeploymentCategory.Cloud)
+        {
+            if (MendixCloudType == MendixCloudType.Dedicated)
+            {
+                result.DeploymentFeeCost = _mendixPricing.CloudDedicatedPricePerYear;
+                result.EnvironmentDetails = "Mendix Cloud Dedicated - unlimited apps & environments";
+            }
+            else
+            {
+                // SaaS - calculate based on environments using cloud token pricing
+                // Base resource pack estimate: M size for each environment
+                var packPricePerYear = 2064m; // M size pack annual price
+                result.DeploymentFeeCost = packPricePerYear * Math.Max(1, MendixEnvironments);
+                result.EnvironmentDetails = $"{MendixEnvironments} resource pack(s) @ $2,064/year each";
+            }
+        }
+        else if (MendixCategory == MendixDeploymentCategory.PrivateCloud)
+        {
+            if (MendixPrivateProvider == MendixPrivateCloudProvider.Azure)
+            {
+                result.DeploymentFeeCost = _mendixPricing.AzureBasePricePerYear;
+                result.EnvironmentCost = MendixEnvironments > _mendixPricing.AzureBaseEnvironmentsIncluded
+                    ? (MendixEnvironments - _mendixPricing.AzureBaseEnvironmentsIncluded) * _mendixPricing.AzureAdditionalEnvironmentPrice
+                    : 0;
+                result.EnvironmentDetails = MendixEnvironments <= _mendixPricing.AzureBaseEnvironmentsIncluded
+                    ? $"{MendixEnvironments} environments (up to {_mendixPricing.AzureBaseEnvironmentsIncluded} included)"
+                    : $"{_mendixPricing.AzureBaseEnvironmentsIncluded} included + {MendixEnvironments - _mendixPricing.AzureBaseEnvironmentsIncluded} additional";
+            }
+            else
+            {
+                // K8s providers (EKS, AKS, GKE, OpenShift)
+                result.DeploymentFeeCost = _mendixPricing.K8sBasePricePerYear;
+                result.EnvironmentCost = _mendixPricing.CalculateK8sEnvironmentCost(MendixEnvironments);
+                result.EnvironmentDetails = BuildK8sEnvironmentDetails(MendixEnvironments);
+            }
+        }
+        else if (MendixCategory == MendixDeploymentCategory.Other)
+        {
+            if (MendixOtherType.HasValue)
+            {
+                var (perApp, unlimited) = GetOtherDeploymentPricing();
+                result.DeploymentFeeCost = unlimited; // Default to unlimited
+                result.EnvironmentDetails = "Unlimited applications";
+            }
+            else if (MendixPrivateProvider.HasValue)
+            {
+                // Unsupported K8s - use K8s pricing
+                result.DeploymentFeeCost = _mendixPricing.K8sBasePricePerYear;
+                result.EnvironmentCost = _mendixPricing.CalculateK8sEnvironmentCost(MendixEnvironments);
+                result.EnvironmentDetails = BuildK8sEnvironmentDetails(MendixEnvironments);
+            }
+        }
+
+        // Calculate user licensing cost
+        result.UserLicenseCost = CalculateUserLicensingCost();
+
+        return result;
+    }
+
+    private string BuildK8sEnvironmentDetails(int totalEnvironments)
+    {
+        if (totalEnvironments <= _mendixPricing.K8sBaseEnvironmentsIncluded)
+        {
+            return $"{totalEnvironments} environments ({_mendixPricing.K8sBaseEnvironmentsIncluded} included in base)";
+        }
+
+        var parts = new List<string>();
+        int additionalEnvs = totalEnvironments - _mendixPricing.K8sBaseEnvironmentsIncluded;
+        int remaining = additionalEnvs;
+
+        // Use tier pricing from settings
+        foreach (var tier in _mendixPricing.K8sEnvironmentTiers.OrderBy(t => t.MinEnvironments))
+        {
+            if (remaining <= 0) break;
+
+            int tierCapacity;
+            if (tier.MaxEnvironments == -1)
+                tierCapacity = remaining;
+            else if (tier.MinEnvironments == 1)
+                tierCapacity = Math.Min(50, remaining);
+            else
+                tierCapacity = Math.Min(50, remaining);
+
+            if (tierCapacity > 0)
+            {
+                if (tier.PricePerEnvironment == 0)
+                    parts.Add($"{tierCapacity} free");
+                else
+                    parts.Add($"{tierCapacity} @ {FormatCurrency(tier.PricePerEnvironment)}/env");
+                remaining -= tierCapacity;
+            }
+        }
+
+        return string.Join(" + ", parts);
+    }
+
+    private decimal CalculateUserLicensingCost()
+    {
+        return GetInternalUserCost() + GetExternalUserCost();
+    }
+
+    private decimal GetInternalUserCost()
+    {
+        if (MendixInternalUsers <= 0) return 0;
+        // Price per 100 users (rounded up)
+        int userBlocks = (int)Math.Ceiling(MendixInternalUsers / 100.0);
+        return userBlocks * _mendixPricing.InternalUsersPer100PerYear;
+    }
+
+    private decimal GetExternalUserCost()
+    {
+        if (MendixExternalUsers <= 0) return 0;
+        // Price per 250K users (rounded up)
+        int userBlocks = (int)Math.Ceiling(MendixExternalUsers / 250000.0);
+        return userBlocks * _mendixPricing.ExternalUsersPer250KPerYear;
+    }
+
+    private MendixPricingResult? GetMendixSummary() => CalculateMendixPricingResult();
+
+    private string GetMendixDeploymentTypeName()
+    {
+        if (MendixCategory == MendixDeploymentCategory.Cloud)
+            return MendixCloudType == MendixCloudType.Dedicated ? "Mendix Cloud Dedicated" : "Mendix Cloud SaaS";
+
+        if (MendixCategory == MendixDeploymentCategory.PrivateCloud)
+        {
+            return MendixPrivateProvider switch
+            {
+                MendixPrivateCloudProvider.Azure => "Mendix on Azure",
+                MendixPrivateCloudProvider.EKS => "Mendix on EKS",
+                MendixPrivateCloudProvider.AKS => "Mendix on AKS",
+                MendixPrivateCloudProvider.GKE => "Mendix on GKE",
+                MendixPrivateCloudProvider.OpenShift => "Mendix on OpenShift",
+                _ => "Mendix Private Cloud"
+            };
+        }
+
+        if (MendixCategory == MendixDeploymentCategory.Other)
+        {
+            if (MendixOtherType.HasValue)
+            {
+                return MendixOtherType switch
+                {
+                    MendixOtherDeployment.Server => "Mendix on Server",
+                    MendixOtherDeployment.StackIT => "Mendix on StackIT",
+                    MendixOtherDeployment.SapBtp => "Mendix on SAP BTP",
+                    _ => "Mendix Other"
+                };
+            }
+            return MendixPrivateProvider switch
+            {
+                MendixPrivateCloudProvider.Rancher => "Mendix on Rancher",
+                MendixPrivateCloudProvider.K3s => "Mendix on K3s",
+                MendixPrivateCloudProvider.GenericK8s => "Mendix on Generic K8s",
+                _ => "Mendix Other K8s"
+            };
+        }
+
+        return "Mendix";
+    }
+
+    private string GetDistributionName() => Distribution?.ToString() ?? "Selected Distribution";
+    private bool IsOpenShiftDistribution() => Distribution == Models.Enums.Distribution.OpenShift;
+    private bool IsRancherDistribution() => Distribution == Models.Enums.Distribution.Rancher ||
+                                            Distribution == Models.Enums.Distribution.RKE2;
+
+    private string GetCloudEquivalentName() => Distribution switch
+    {
+        Models.Enums.Distribution.OpenShift => "ROSA / ARO / OSD",
+        Models.Enums.Distribution.Rancher => "EKS/AKS/GKE + Rancher",
+        Models.Enums.Distribution.RKE2 => "EKS/AKS/GKE + Rancher",
+        Models.Enums.Distribution.K3s => "EKS / AKS / GKE",
+        Models.Enums.Distribution.Tanzu => "Tanzu on Cloud",
+        _ => "EKS / AKS / GKE"
+    };
+
+    private List<(string Key, string Label, decimal Cost)> GetCloudAlternatives()
+    {
+        var alternatives = GetDetailedCloudAlternatives();
+        return alternatives.Select(a => (a.Key, a.Label, a.TotalCost)).ToList();
+    }
+
+    private record CloudAlternativeDetail(
+        string Key,
+        string Label,
+        string Subtitle,
+        string ProviderClass,
+        bool IsManagedOpenShift,
+        string InstanceType,
+        decimal ControlPlaneCost,
+        string ControlPlaneLabel,
+        decimal InstanceCostPerWorker,
+        decimal StorageCostPerWorker,
+        decimal? ServiceFeePerWorkerHour,
+        decimal TotalCost
+    );
+
+    private List<CloudAlternativeDetail> GetDetailedCloudAlternatives()
+    {
+        var workers = GetCloudWorkerCount();
+        var alternatives = new List<CloudAlternativeDetail>();
+
+        // Helper to get generic K8s alternatives (EKS, AKS, GKE)
+        List<CloudAlternativeDetail> GetGenericAlternatives(string suffix = "")
+        {
+            return new List<CloudAlternativeDetail>
+            {
+                new CloudAlternativeDetail(
+                    Key: "eks",
+                    Label: "EKS" + suffix,
+                    Subtitle: "Amazon Elastic Kubernetes" + (string.IsNullOrEmpty(suffix) ? "" : " with Rancher"),
+                    ProviderClass: "aws",
+                    IsManagedOpenShift: false,
+                    InstanceType: "m5.xlarge",
+                    ControlPlaneCost: 73m,
+                    ControlPlaneLabel: "$73/mo",
+                    InstanceCostPerWorker: 140.16m,
+                    StorageCostPerWorker: 10m,
+                    ServiceFeePerWorkerHour: null,
+                    TotalCost: CalculateEKSMonthlyCost()
+                ),
+                new CloudAlternativeDetail(
+                    Key: "aks",
+                    Label: "AKS" + suffix,
+                    Subtitle: "Azure Kubernetes Service" + (string.IsNullOrEmpty(suffix) ? "" : " with Rancher"),
+                    ProviderClass: "azure",
+                    IsManagedOpenShift: false,
+                    InstanceType: "D4s_v3",
+                    ControlPlaneCost: 0m,
+                    ControlPlaneLabel: "Free",
+                    InstanceCostPerWorker: 140.16m,
+                    StorageCostPerWorker: 9.67m,
+                    ServiceFeePerWorkerHour: null,
+                    TotalCost: CalculateAKSMonthlyCost()
+                ),
+                new CloudAlternativeDetail(
+                    Key: "gke",
+                    Label: "GKE" + suffix,
+                    Subtitle: "Google Kubernetes Engine" + (string.IsNullOrEmpty(suffix) ? "" : " with Rancher"),
+                    ProviderClass: "gcp",
+                    IsManagedOpenShift: false,
+                    InstanceType: "e2-std-4",
+                    ControlPlaneCost: 73m,
+                    ControlPlaneLabel: "$73/mo",
+                    InstanceCostPerWorker: 97.09m,
+                    StorageCostPerWorker: 4m,
+                    ServiceFeePerWorkerHour: null,
+                    TotalCost: CalculateGKEMonthlyCost()
+                )
+            };
+        }
+
+        if (IsOpenShiftDistribution())
+        {
+            // OpenShift cloud alternatives (ROSA, ARO, OSD)
+            alternatives.Add(new CloudAlternativeDetail(
+                Key: "rosa",
+                Label: "ROSA",
+                Subtitle: "Red Hat OpenShift on AWS",
+                ProviderClass: "aws",
+                IsManagedOpenShift: true,
+                InstanceType: "m5.xlarge",
+                ControlPlaneCost: 0, // Included in service fee
+                ControlPlaneLabel: "Included",
+                InstanceCostPerWorker: 140.16m,
+                StorageCostPerWorker: 10m,
+                ServiceFeePerWorkerHour: 0.171m,
+                TotalCost: CalculateROSAMonthlyCost()
+            ));
+            alternatives.Add(new CloudAlternativeDetail(
+                Key: "aro",
+                Label: "ARO",
+                Subtitle: "Azure Red Hat OpenShift",
+                ProviderClass: "azure",
+                IsManagedOpenShift: true,
+                InstanceType: "D4s_v3",
+                ControlPlaneCost: 0, // Included in service fee
+                ControlPlaneLabel: "Included",
+                InstanceCostPerWorker: 140.16m,
+                StorageCostPerWorker: 9.67m,
+                ServiceFeePerWorkerHour: 0.35m,
+                TotalCost: CalculateAROMonthlyCost()
+            ));
+            alternatives.Add(new CloudAlternativeDetail(
+                Key: "osd",
+                Label: "OSD",
+                Subtitle: "OpenShift Dedicated on GCP",
+                ProviderClass: "gcp",
+                IsManagedOpenShift: true,
+                InstanceType: "e2-std-4",
+                ControlPlaneCost: 0, // Included in service fee
+                ControlPlaneLabel: "Included",
+                InstanceCostPerWorker: 97.09m,
+                StorageCostPerWorker: 4m,
+                ServiceFeePerWorkerHour: 0.171m,
+                TotalCost: CalculateOSDMonthlyCost()
+            ));
+
+            // Also add generic alternatives (lowest 3 by price) for comparison
+            var genericAlts = GetGenericAlternatives().OrderBy(a => a.TotalCost).Take(3);
+            alternatives.AddRange(genericAlts);
+        }
+        else
+        {
+            // Generic K8s cloud alternatives (EKS, AKS, GKE)
+            var suffix = IsRancherDistribution() ? " + Rancher" : "";
+            alternatives.AddRange(GetGenericAlternatives(suffix));
+        }
+
+        // Sort by price (lowest first)
+        return alternatives.OrderBy(a => a.TotalCost).ToList();
+    }
+
+    private RenderFragment RenderCloudCard(CloudAlternativeDetail alt, bool isLowest) => __builder =>
+    {
+        var isSelected = _selectedAlternative == alt.Key;
+        var cardClasses = $"cloud-card-detail{(isLowest ? " lowest" : "")}{(isSelected ? " selected" : "")}";
+
+        <div class="@cardClasses" @onclick="() => SelectAlternative(alt.Key)">
+            @if (isSelected)
+            {
+                <span class="selected-badge">✓ Selected</span>
+            }
+            <div class="card-head">
+                <span class="provider-dot @alt.ProviderClass"></span>
+                @alt.Label
+                <span class="card-total">@FormatCurrency(alt.TotalCost)/mo</span>
+            </div>
+            <div class="card-subtitle">@alt.Subtitle</div>
+            <div class="card-nodes">
+                @if (alt.IsManagedOpenShift)
+                {
+                    <span class="managed-tag">Masters + Infra: Managed</span>
+                }
+                else
+                {
+                    <span class="managed-tag">Control Plane: @alt.ControlPlaneLabel</span>
+                }
+                <span>Workers: @GetCloudWorkerCount() × @alt.InstanceType</span>
+            </div>
+            <div class="card-breakdown">
+                @if (alt.ServiceFeePerWorkerHour.HasValue)
+                {
+                    <div class="break-row">
+                        <span>@(alt.IsManagedOpenShift ? "OpenShift" : "Service") Fee (@GetCloudWorkerCount() workers)</span>
+                        <span>@FormatCurrency(GetCloudWorkerCount() * alt.ServiceFeePerWorkerHour.Value * 730)</span>
+                    </div>
+                }
+                else if (alt.ControlPlaneCost > 0)
+                {
+                    <div class="break-row">
+                        <span>Control Plane</span>
+                        <span>@FormatCurrency(alt.ControlPlaneCost)</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="break-row">
+                        <span>Control Plane</span>
+                        <span>Free</span>
+                    </div>
+                }
+                <div class="break-row">
+                    <span>@GetProviderInstanceLabel(alt.ProviderClass) (@GetCloudWorkerCount())</span>
+                    <span>@FormatCurrency(GetCloudWorkerCount() * alt.InstanceCostPerWorker)</span>
+                </div>
+                <div class="break-row">
+                    <span>@GetProviderStorageLabel(alt.ProviderClass)</span>
+                    <span>@FormatCurrency(GetCloudWorkerCount() * alt.StorageCostPerWorker)</span>
+                </div>
+            </div>
+        </div>
+    };
+
+    private void SelectAlternative(string key)
+    {
+        _selectedAlternative = _selectedAlternative == key ? null : key;
+    }
+
+    private async Task SaveCurrentScenario()
+    {
+        await OnSaveScenario.InvokeAsync();
+    }
+
+    private async Task ApplySelectedAlternative(CloudAlternativeDetail alt)
+    {
+        // Map the alternative key to a Distribution
+        var targetDistribution = alt.Key switch
+        {
+            "rosa" => Models.Enums.Distribution.OpenShiftROSA,
+            "aro" => Models.Enums.Distribution.OpenShiftARO,
+            "osd" => Models.Enums.Distribution.OpenShiftDedicated,
+            "eks" => Models.Enums.Distribution.EKS,
+            "aks" => Models.Enums.Distribution.AKS,
+            "gke" => Models.Enums.Distribution.GKE,
+            _ => Distribution ?? Models.Enums.Distribution.Kubernetes
+        };
+
+        // Invoke the callback to notify parent
+        await OnApplyAlternative.InvokeAsync(targetDistribution);
+    }
+
+    private string GetProviderInstanceLabel(string providerClass) => providerClass switch
+    {
+        "aws" => "EC2 Instances",
+        "azure" => "Azure VMs",
+        "gcp" => "GCE Instances",
+        _ => "Instances"
+    };
+
+    private string GetProviderStorageLabel(string providerClass) => providerClass switch
+    {
+        "aws" => "EBS Storage",
+        "azure" => "Managed Disks",
+        "gcp" => "Persistent Disk",
+        _ => "Storage"
+    };
+
+    // In cloud, Masters and Infra are managed - we only pay for workers
+    private int GetCloudWorkerCount()
+    {
+        // If WorkerNodes is explicitly passed, use it
+        if (WorkerNodes > 0) return WorkerNodes;
+        // Otherwise, estimate: assume ~60% of total nodes are workers
+        // (typical breakdown: 3 masters, 3 infra, rest workers)
+        return Math.Max(1, TotalNodes - MasterNodes - InfraNodes);
+    }
+
+    private decimal CalculateOSDMonthlyCost()
+    {
+        // OpenShift Dedicated on GCP - only workers charged
+        var workers = GetCloudWorkerCount();
+        var serviceFee = workers * 0.171m * 730;
+        var gcpInstances = workers * 97.09m;
+        var storage = workers * 4m;
+        return serviceFee + gcpInstances + storage;
+    }
+
+    // Cloud cost calculations - only workers, control plane is managed
+    private decimal CalculateEKSMonthlyCost()
+    {
+        var workers = GetCloudWorkerCount();
+        var controlPlane = 73m; // $0.10/hr × 730 hours (managed)
+        var workerNodes = workers * 140.16m; // m5.xlarge ~$0.192/hr
+        var storage = workers * 10m; // 100GB EBS per node
+        return controlPlane + workerNodes + storage;
+    }
+
+    private decimal CalculateAKSMonthlyCost()
+    {
+        var workers = GetCloudWorkerCount();
+        var controlPlane = 0m; // Free tier (managed)
+        var workerNodes = workers * 140.16m; // D4s_v3 ~$0.192/hr
+        var storage = workers * 9.67m; // 128GB managed disk
+        return controlPlane + workerNodes + storage;
+    }
+
+    private decimal CalculateGKEMonthlyCost()
+    {
+        var workers = GetCloudWorkerCount();
+        var controlPlane = 73m; // $0.10/hr standard cluster (managed)
+        var workerNodes = workers * 97.09m; // e2-standard-4 ~$0.133/hr
+        var storage = workers * 4m; // 100GB PD
+        return controlPlane + workerNodes + storage;
+    }
+
+    private decimal CalculateROSAMonthlyCost()
+    {
+        var workers = GetCloudWorkerCount();
+        var serviceFee = workers * 0.171m * 730; // $0.171/hr per worker
+        var ec2Instances = workers * 140.16m;
+        var storage = workers * 10m;
+        return serviceFee + ec2Instances + storage;
+    }
+
+    private decimal CalculateAROMonthlyCost()
+    {
+        var workers = GetCloudWorkerCount();
+        var serviceFee = workers * 0.35m * 730; // $0.35/hr per worker
+        var azureVMs = workers * 140.16m;
+        var storage = workers * 9.67m;
+        return serviceFee + azureVMs + storage;
+    }
+
+    private string GetComparisonText(decimal cloudCost)
+    {
+        if (!_includePricing) return "—";
+        var onPremCost = GetTotalMonthlyCost();
+        if (onPremCost == 0) return "—";
+        var diff = ((cloudCost - onPremCost) / onPremCost) * 100;
+        if (diff > 0) return $"+{diff:F0}%";
+        return $"{diff:F0}%";
+    }
+
+    private string GetComparisonClass(decimal cloudCost)
+    {
+        if (!_includePricing) return "";
+        var onPremCost = GetTotalMonthlyCost();
+        if (onPremCost == 0) return "";
+        return cloudCost < onPremCost ? "cheaper" : "expensive";
+    }
+
+    private bool IsLowestCost(string provider)
+    {
+        var alternatives = GetCloudAlternatives();
+        var lowest = alternatives.OrderBy(x => x.Cost).First().Key;
+        return provider == lowest;
+    }
+
+    // K8s License calculations
+    private decimal GetK8sLicenseAnnualCost()
+    {
+        return Distribution switch
+        {
+            Models.Enums.Distribution.OpenShift => TotalNodes * 2500m,
+            Models.Enums.Distribution.Tanzu => TotalCores * 1500m,
+            Models.Enums.Distribution.Rancher => TotalNodes * 1000m,
+            Models.Enums.Distribution.Charmed => TotalNodes * 500m,
+            _ => 0m
+        };
+    }
+
+    private decimal GetK8sLicenseMonthlyCost() => GetK8sLicenseAnnualCost() / 12;
+
+    private int GetServersNeeded() => (int)Math.Ceiling((decimal)TotalNodes / Math.Max(1, _onPremDefaults.Hardware.VMsPerServer));
+    private decimal GetTotalHardwareCost() => _onPremDefaults.Hardware.CalculateTotalCost(TotalCores, TotalRamGB, 0, 0);
+
+    private decimal GetMonthlyHardwareCost()
+    {
+        var amortized = GetTotalHardwareCost() / (_onPremDefaults.HardwareRefreshYears * 12);
+        var maintenance = (GetTotalHardwareCost() * (_onPremDefaults.HardwareMaintenancePercent / 100)) / 12;
+        return amortized + maintenance;
+    }
+
+    private decimal GetMonthlyDataCenterCost() => _onPremDefaults.DataCenter.CalculateMonthlyCost(GetServersNeeded());
+    private decimal GetMonthlyLaborCost() => _onPremDefaults.Labor.CalculateMonthlyCost(TotalNodes, HasProduction);
+    private decimal GetEngineersNeeded() => Math.Max(1, (decimal)TotalNodes / _onPremDefaults.Labor.NodesPerEngineer);
+    private decimal GetTotalMonthlyCost() => GetK8sLicenseMonthlyCost() + GetMonthlyHardwareCost() + GetMonthlyDataCenterCost() + GetMonthlyLaborCost();
+
+    private string FormatCurrency(decimal value)
+    {
+        if (value >= 1000000) return $"${value / 1000000:N1}M";
+        if (value >= 1000) return $"${value / 1000:N1}K";
+        return $"${value:N0}";
+    }
+
+    // ==================== Mendix Pricing Helpers ====================
+
+    private string GetMendixPrivateCloudTitle() => MendixPrivateProvider switch
+    {
+        MendixPrivateCloudProvider.Azure => "Mendix on Azure",
+        MendixPrivateCloudProvider.EKS => "Mendix for Private Cloud on EKS",
+        MendixPrivateCloudProvider.AKS => "Mendix for Private Cloud on AKS",
+        MendixPrivateCloudProvider.GKE => "Mendix for Private Cloud on GKE",
+        MendixPrivateCloudProvider.OpenShift => "Mendix for Private Cloud on OpenShift",
+        _ => "Mendix for Private Cloud"
+    };
+
+    private string GetMendixPrivateCloudSubtitle() => MendixPrivateProvider switch
+    {
+        MendixPrivateCloudProvider.Azure => "Managed Mendix deployment on Microsoft Azure",
+        MendixPrivateCloudProvider.EKS => "Self-managed on Amazon Elastic Kubernetes Service",
+        MendixPrivateCloudProvider.AKS => "Self-managed on Azure Kubernetes Service",
+        MendixPrivateCloudProvider.GKE => "Self-managed on Google Kubernetes Engine",
+        MendixPrivateCloudProvider.OpenShift => "Self-managed on Red Hat OpenShift",
+        _ => "Self-managed Kubernetes deployment"
+    };
+
+    private string GetMendixOtherDeploymentTitle() => MendixOtherType switch
+    {
+        MendixOtherDeployment.Server => "Mendix on Server (VMs/Docker)",
+        MendixOtherDeployment.StackIT => "Mendix on StackIT",
+        MendixOtherDeployment.SapBtp => "Mendix on SAP BTP",
+        _ => MendixPrivateProvider switch
+        {
+            MendixPrivateCloudProvider.Rancher => "Mendix on Rancher",
+            MendixPrivateCloudProvider.K3s => "Mendix on K3s",
+            MendixPrivateCloudProvider.Docker => "Mendix on Docker",
+            MendixPrivateCloudProvider.GenericK8s => "Mendix on Generic Kubernetes",
+            _ => "Mendix Other Deployment"
+        }
+    };
+
+    private string GetMendixOtherDeploymentSubtitle() => MendixOtherType switch
+    {
+        MendixOtherDeployment.Server => "Traditional VM or Docker container deployment",
+        MendixOtherDeployment.StackIT => "Schwarz IT cloud platform",
+        MendixOtherDeployment.SapBtp => "SAP Business Technology Platform",
+        _ => MendixPrivateProvider switch
+        {
+            MendixPrivateCloudProvider.Rancher => "SUSE Rancher - manual configuration required",
+            MendixPrivateCloudProvider.K3s => "Lightweight K8s - manual configuration required",
+            MendixPrivateCloudProvider.Docker => "Container deployment without K8s orchestration",
+            MendixPrivateCloudProvider.GenericK8s => "Any Kubernetes cluster - manual configuration required",
+            _ => "Manual setup required"
+        }
+    };
+
+    private (decimal perApp, decimal unlimited) GetOtherDeploymentPricing() => MendixOtherType switch
+    {
+        MendixOtherDeployment.Server => (_mendixPricing.ServerPerAppPricePerYear, _mendixPricing.ServerUnlimitedAppsPricePerYear),
+        MendixOtherDeployment.StackIT => (_mendixPricing.StackITPerAppPricePerYear, _mendixPricing.StackITUnlimitedAppsPricePerYear),
+        MendixOtherDeployment.SapBtp => (_mendixPricing.SapBtpPerAppPricePerYear, _mendixPricing.SapBtpUnlimitedAppsPricePerYear),
+        _ => (_mendixPricing.ServerPerAppPricePerYear, _mendixPricing.ServerUnlimitedAppsPricePerYear)
+    };
+
+    private decimal GetAzureTotalYearlyCost()
+    {
+        var envCost = MendixEnvironments > _mendixPricing.AzureBaseEnvironmentsIncluded
+            ? (MendixEnvironments - _mendixPricing.AzureBaseEnvironmentsIncluded) * _mendixPricing.AzureAdditionalEnvironmentPrice
+            : 0;
+        return _mendixPricing.AzureBasePricePerYear + envCost;
+    }
+
+    private decimal GetK8sTotalYearlyCost()
+    {
+        var envCost = _mendixPricing.CalculateK8sEnvironmentCost(MendixEnvironments);
+        return _mendixPricing.K8sBasePricePerYear + envCost;
+    }
+}
+
+<style>
+    .pricing-step { padding: 0; display: flex; flex-direction: column; height: auto; }
+    .step-header { margin-bottom: 1rem; flex-shrink: 0; }
+    .step-header h3 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+    .step-description { color: var(--text-secondary); margin: 0; font-size: 0.9rem; }
+
+    .pricing-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; flex-shrink: 0; }
+    .pricing-tab { display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; background: transparent; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--text-secondary); cursor: pointer; font-size: 0.85rem; }
+    .pricing-tab:hover { color: var(--text-primary); }
+    .pricing-tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+    .tab-icon { font-size: 1rem; }
+    .tab-note { font-size: 0.7rem; color: var(--text-secondary); font-style: italic; margin-left: 4px; }
+
+    .pricing-tab-content { flex: 0 0 auto; width: 100%; }
+    .onprem-panel, .lowcode-panel { max-width: 700px; }
+
+    /* Two-column cloud panel layout - compact like Results */
+    .cloud-panel-wide { display: flex; gap: 1rem; align-items: flex-start; width: 100%; }
+    .cloud-main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+    .cloud-sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        background: var(--surface-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-self: flex-start;
+    }
+    .sidebar-section { margin-bottom: 0; }
+    .sidebar-section:last-of-type { margin-bottom: 0; }
+    .sidebar-title { font-size: 0.75rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem; }
+    .comparison-compact { font-size: 0.75rem; background: var(--card-bg); padding: 0.5rem; border-radius: 4px; }
+    .cost-summary-compact { font-size: 0.75rem; }
+    .comp-row { display: flex; justify-content: space-between; padding: 0.3rem 0; gap: 0.4rem; border-bottom: 1px solid var(--border-color); }
+    .comp-row:last-child { border-bottom: none; }
+    .comp-label { color: var(--text-secondary); white-space: nowrap; font-weight: 500; font-size: 0.7rem; }
+    .comp-value { color: var(--text-primary); font-size: 0.7rem; text-align: right; }
+    .cost-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 0.3rem 0; }
+    .cost-row:last-child { border-bottom: none; }
+    .cost-row.lowest { background: rgba(34, 197, 94, 0.1); margin: 0 -0.4rem; padding: 0.3rem 0.4rem; border-radius: 3px; }
+    .cost-val { font-weight: 600; color: var(--accent-color); font-size: 0.75rem; }
+    .sidebar-actions { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+    .btn-save-full, .btn-apply-full {
+        width: 100%;
+        padding: 0.35rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-save-full { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); }
+    .btn-save-full:hover { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+    .btn-apply-full { background: var(--accent-color); border: none; color: white; }
+    .btn-apply-full:hover { background: var(--accent-hover); }
+
+    .toggle-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+    .toggle-row { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+    .toggle-row input[type="checkbox"] { width: 40px; height: 20px; appearance: none; background: var(--border-color); border-radius: 10px; position: relative; cursor: pointer; }
+    .toggle-row input[type="checkbox"]:checked { background: var(--accent-color); }
+    .toggle-row input[type="checkbox"]::before { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+    .toggle-row input[type="checkbox"]:checked::before { transform: translateX(20px); }
+    .toggle-text { display: flex; flex-direction: column; }
+    .toggle-text strong { font-size: 0.9rem; }
+    .toggle-text small { color: var(--text-secondary); font-size: 0.8rem; }
+
+    .cost-sections { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+    .cost-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--border-color); }
+    .cost-row:last-of-type { border-bottom: none; }
+    .cost-icon { font-size: 1rem; }
+    .cost-name { flex: 1; font-size: 0.85rem; }
+    .cost-value { font-weight: 600; color: var(--accent-color); font-size: 0.85rem; }
+    .cost-total { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--accent-color); color: white; padding: 0.75rem; }
+    .total-item { text-align: center; }
+    .total-item .label { display: block; font-size: 0.7rem; opacity: 0.8; }
+    .total-item .value { font-weight: 700; font-size: 1rem; }
+
+    .no-pricing-note { display: flex; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--card-bg); border: 1px dashed var(--border-color); border-radius: 6px; color: var(--text-secondary); font-size: 0.85rem; }
+
+    .panel-desc { color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; }
+
+    /* Node Comparison Header */
+    .node-comparison-header { display: flex; align-items: center; gap: 0.5rem; background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; }
+    .node-side { flex: 1; }
+    .side-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .onprem-side .side-title { color: var(--text-primary); }
+    .cloud-side .side-title { color: var(--accent-color); }
+    .comparison-arrow { font-size: 1.2rem; color: var(--text-secondary); padding: 0 0.5rem; }
+    .node-specs { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+    .node-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+    .node-badge.master { background: #ef4444; color: white; }
+    .node-badge.infra { background: #f59e0b; color: white; }
+    .node-badge.worker { background: #3b82f6; color: white; }
+    .node-badge.managed { background: #22c55e; color: white; }
+    .node-total { font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; }
+    .card-nodes { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.35rem; display: flex; flex-direction: column; gap: 0.15rem; }
+    .managed-tag { color: var(--success-color); font-weight: 500; }
+
+    /* Section Labels */
+    .section-label { display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0; margin-bottom: 0.35rem; font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .section-label.secondary { margin-top: 0.5rem; color: var(--text-secondary); }
+    .section-label .label-icon { font-size: 0.9rem; }
+    .section-label .label-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .section-label .label-badge.recommended { background: var(--success-color); color: white; }
+    .section-label .label-note { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary); font-style: italic; }
+
+    /* Detailed Cloud Grid - Compact cards */
+    .cloud-grid-detailed { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.4rem; }
+    .cloud-card-detail { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.4rem 0.5rem; transition: all 0.15s ease; position: relative; cursor: pointer; }
+    .cloud-card-detail:hover { border-color: var(--accent-color); }
+    .cloud-card-detail.lowest { border-color: var(--success-color); background: rgba(var(--success-rgb, 34, 197, 94), 0.06); }
+    .cloud-card-detail.lowest::before { content: '✓'; position: absolute; top: 2px; right: 4px; background: var(--success-color); color: white; font-size: 0.6rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .cloud-card-detail.selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15); background: rgba(59, 130, 246, 0.06); }
+    .cloud-card-detail.selected.lowest { border-color: var(--accent-color); }
+    .card-head { display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 600; }
+    .card-total { margin-left: auto; color: var(--accent-color); font-size: 0.85rem; font-weight: 700; }
+    .card-subtitle { font-size: 0.65rem; color: var(--text-secondary); margin-top: 0.1rem; }
+    .card-breakdown { display: none; padding-top: 0.35rem; margin-top: 0.35rem; border-top: 1px solid var(--border-color); }
+    .cloud-card-detail.selected .card-breakdown { display: block; } /* Show breakdown when selected */
+    .break-row { display: flex; justify-content: space-between; padding: 0.15rem 0; font-size: 0.65rem; color: var(--text-secondary); }
+    .break-row span:last-child { color: var(--text-primary); font-weight: 500; }
+
+    .provider-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .provider-dot.aws { background: #FF9900; }
+    .provider-dot.azure { background: #0078D4; }
+    .provider-dot.gcp { background: #4285F4; }
+
+    /* Summary Row */
+    .summary-row { display: flex; gap: 0.5rem; background: var(--surface-bg); border-radius: 6px; padding: 0.5rem; margin-top: 0.5rem; }
+    .summary-item { flex: 1; text-align: center; padding: 0.35rem; border-radius: 4px; }
+    .summary-item.onprem { background: var(--card-bg); }
+    .summary-item.lowest { background: rgba(var(--success-rgb, 34, 197, 94), 0.15); }
+    .sum-label { display: block; font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.15rem; }
+    .sum-value { display: block; font-size: 0.8rem; font-weight: 600; }
+    .sum-diff { display: block; font-size: 0.65rem; margin-top: 0.1rem; }
+    .cheaper { color: var(--success-color); }
+    .expensive { color: var(--warning-color); }
+
+    .platform-section { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; }
+    .platform-section.muted { opacity: 0.6; }
+    .platform-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .platform-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700; font-size: 1rem; }
+    .platform-icon.mendix { background: #0CABF8; color: white; }
+    .platform-icon.mendix-private { background: #0a8fd4; color: white; }
+    .platform-icon.outsystems { background: #E94E32; color: white; }
+    .platform-header strong { font-size: 0.95rem; }
+    .platform-header small { display: block; color: var(--text-secondary); font-size: 0.75rem; }
+
+    .tiers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+    .tier-card { background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; text-align: center; }
+    .tier-card.featured { border-color: var(--accent-color); }
+    .tier-name { font-weight: 600; font-size: 0.75rem; }
+    .tier-price { color: var(--accent-color); font-weight: 600; font-size: 0.8rem; }
+    .tier-features { color: var(--text-secondary); font-size: 0.65rem; }
+
+    .license-factors { font-size: 0.75rem; color: var(--text-secondary); }
+    .license-factors strong { color: var(--text-primary); }
+
+    .private-cloud-info p { font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 0.75rem 0; }
+    .license-components { display: flex; flex-direction: column; gap: 0.5rem; }
+    .component { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--surface-bg); border-radius: 4px; font-size: 0.8rem; }
+    .component strong { min-width: 120px; }
+    .component span:nth-child(2) { flex: 1; color: var(--text-secondary); }
+    .component-price { color: var(--accent-color); font-weight: 600; }
+
+    .license-note { margin-top: 0.75rem; padding: 0.75rem; background: rgba(var(--accent-rgb), 0.1); border-radius: 4px; font-size: 0.8rem; color: var(--text-secondary); }
+    .license-note.warning { background: rgba(217, 119, 6, 0.15); border: 1px solid rgba(217, 119, 6, 0.3); color: var(--text-primary); }
+
+    /* Pricing Actions Row */
+    .pricing-actions-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: var(--surface-bg);
+        border-radius: 8px;
+    }
+    .btn-save-current {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-save-current:hover {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+
+    /* Apply Alternative Section (inline) */
+    .apply-alternative-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(34, 197, 94, 0.08));
+        border: 1px solid var(--accent-color);
+        border-radius: 6px;
+    }
+    .info-text { font-size: 0.85rem; color: var(--text-primary); flex: 1; }
+    .info-text strong { color: var(--accent-color); }
+    .btn-apply-alternative {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .btn-apply-alternative:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Mendix Pricing Styles */
+    .mendix-pricing-detail { padding: 0.5rem 0; }
+    .pricing-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+    .pricing-row:last-child { border-bottom: none; }
+    .pricing-row.highlight { background: rgba(88, 166, 255, 0.08); margin: 0 -0.5rem; padding: 0.5rem; border-radius: 4px; border-bottom: none; }
+    .pricing-row.tier-row { font-size: 0.85rem; padding: 0.35rem 0; }
+    .pricing-label { color: var(--text-primary); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+    .pricing-value { color: var(--accent-color); font-weight: 600; font-size: 0.9rem; }
+    .pricing-section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin: 0.75rem 0 0.5rem 0; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+    .pricing-note { font-size: 0.8rem; color: var(--text-secondary); padding: 0.5rem 0; }
+    .pricing-note.warning { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 0.75rem; border-radius: 4px; margin: 0.5rem 0; display: flex; flex-direction: column; gap: 0.25rem; }
+    .pricing-total { margin-top: 0.75rem; padding: 0.75rem; background: var(--accent-color); color: white; border-radius: 6px; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+    .total-label { font-size: 0.75rem; opacity: 0.9; }
+    .total-value { font-size: 1.2rem; font-weight: 700; }
+    .total-note { font-size: 0.7rem; opacity: 0.8; }
+
+    .resource-pack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .resource-pack-item { background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .resource-pack-item .pack-name { font-weight: 600; font-size: 0.85rem; }
+    .resource-pack-item .pack-price { color: var(--accent-color); font-weight: 600; font-size: 0.8rem; }
+    .resource-pack-item .pack-specs { color: var(--text-secondary); font-size: 0.7rem; }
+
+    .no-selection-note { display: flex; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--surface-bg); border: 1px dashed var(--border-color); border-radius: 6px; color: var(--text-secondary); font-size: 0.9rem; }
+
+    .platform-icon.mendix-other { background: #f59e0b; color: white; }
+    .platform-icon.users { background: #8b5cf6; color: white; }
+
+    .user-licensing { border-top: 2px solid var(--border-color); margin-top: 1rem; padding-top: 0.5rem; }
+
+    /* Mendix Cost Summary */
+    .mendix-cost-summary {
+        background: linear-gradient(135deg, rgba(12, 171, 249, 0.08), rgba(59, 130, 246, 0.08));
+        border: 1px solid rgba(12, 171, 249, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    .mendix-cost-summary .summary-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .mendix-cost-summary .summary-icon { font-size: 1.1rem; }
+    .mendix-cost-summary .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .mendix-cost-summary .summary-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 0.75rem;
+        text-align: center;
+    }
+    .mendix-cost-summary .summary-item.highlight {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: white;
+    }
+    .mendix-cost-summary .summary-label {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+    .mendix-cost-summary .summary-item.highlight .summary-label { color: rgba(255,255,255,0.8); }
+    .mendix-cost-summary .summary-value {
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .mendix-cost-summary .summary-item.highlight .summary-value { color: white; }
+    .mendix-cost-summary .summary-breakdown {
+        border-top: 1px solid var(--border-color);
+        padding-top: 0.75rem;
+    }
+    .mendix-cost-summary .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.35rem 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .mendix-cost-summary .breakdown-row span:last-child {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .pricing-note.rate-info {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.5rem;
+        background: var(--surface-bg);
+        border-radius: 4px;
+    }
+
+    .badge-supported {
+        background: var(--success-color);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-left: auto;
+    }
+    .badge-manual {
+        background: var(--warning-color);
+        color: #000;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-left: auto;
+    }
+</style>

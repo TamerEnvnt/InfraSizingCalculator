@@ -1,0 +1,538 @@
+@namespace InfraSizingCalculator.Components.Results
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Configuration
+
+<!-- Cost Analysis View with Progressive Disclosure -->
+<!-- Uses <details> elements instead of tabs for better UX -->
+
+<div class="cost-analysis-view">
+    @if (CostEstimate != null)
+    {
+        <!-- Cost Summary Cards (always visible, compact) -->
+        <div class="cost-summary-row">
+            <div class="cost-card primary">
+                <span class="cost-label">Monthly</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.MonthlyTotal)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-label">Yearly</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.YearlyTotal)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-label">3-Year TCO</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.ThreeYearTCO)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-label">5-Year TCO</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.FiveYearTCO)</span>
+            </div>
+        </div>
+
+        <!-- Pricing Info -->
+        @if (!string.IsNullOrEmpty(CostEstimate.PricingSource))
+        {
+            <div class="pricing-info">
+                <span class="pricing-source">@CostEstimate.Provider - @CostEstimate.Region</span>
+                <span class="pricing-date">Calculated: @CostEstimate.CalculatedAt.ToString("MMM d, yyyy HH:mm")</span>
+            </div>
+        }
+
+        <!-- Pricing Options (collapsed by default) -->
+        <details class="cost-section">
+            <summary class="section-summary">
+                <span class="section-icon">⚙️</span>
+                <span class="section-title">Pricing Options</span>
+                <span class="section-hint">Recalculate with different settings</span>
+            </summary>
+            <div class="section-content">
+                <PricingSelector Options="@Options"
+                                 Distribution="@Distribution"
+                                 OnCalculate="OnRecalculate" />
+            </div>
+        </details>
+
+        <!-- Cost Breakdown by Category (collapsed by default) -->
+        @if (CostEstimate.Breakdown.Any())
+        {
+            <details class="cost-section" open>
+                <summary class="section-summary">
+                    <span class="section-icon">📊</span>
+                    <span class="section-title">Cost Breakdown</span>
+                    <span class="section-hint">@CostEstimate.Breakdown.Count categories</span>
+                </summary>
+                <div class="section-content">
+                    <div class="breakdown-cards">
+                        @foreach (var category in CostEstimate.Breakdown.Values.OrderByDescending(b => b.Monthly))
+                        {
+                            <div class="breakdown-card">
+                                <div class="breakdown-header">
+                                    <span class="category-icon">@GetCostCategoryIcon(category.Category)</span>
+                                    <span class="category-name">@category.Description</span>
+                                </div>
+                                <div class="breakdown-value">@FormatCurrency(category.Monthly)</div>
+                                <div class="breakdown-bar">
+                                    <div class="bar-fill" style="width: @category.Percentage%"></div>
+                                </div>
+                                <div class="breakdown-percent">@category.Percentage.ToString("F1")% of total</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </details>
+        }
+
+        <!-- Cost by Environment (collapsed by default) -->
+        @if (CostEstimate.EnvironmentCosts.Any())
+        {
+            <details class="cost-section">
+                <summary class="section-summary">
+                    <span class="section-icon">🏢</span>
+                    <span class="section-title">Cost by Environment</span>
+                    <span class="section-hint">@CostEstimate.EnvironmentCosts.Count environments</span>
+                </summary>
+                <div class="section-content">
+                    <div class="env-cost-cards">
+                        @foreach (var env in CostEstimate.EnvironmentCosts.Values.OrderByDescending(e => e.MonthlyCost))
+                        {
+                            <div class="env-cost-card env-@env.EnvironmentName.ToLower()">
+                                <div class="env-cost-header">
+                                    <span class="env-indicator"></span>
+                                    <span class="env-name">@env.EnvironmentName</span>
+                                </div>
+                                <div class="env-cost-value">@FormatCurrency(env.MonthlyCost)</div>
+                                <div class="env-cost-details">
+                                    <span>@env.Nodes nodes</span>
+                                    <span>@env.TotalCpu vCPU</span>
+                                    <span>@env.TotalRamGB GB RAM</span>
+                                </div>
+                                <div class="env-cost-percent">@env.Percentage.ToString("F1")%</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </details>
+        }
+
+        <!-- Notes (collapsed by default) -->
+        @if (CostEstimate.Notes.Any())
+        {
+            <details class="cost-section">
+                <summary class="section-summary">
+                    <span class="section-icon">📝</span>
+                    <span class="section-title">Notes & Assumptions</span>
+                    <span class="section-hint">@CostEstimate.Notes.Count items</span>
+                </summary>
+                <div class="section-content">
+                    <ul class="notes-list">
+                        @foreach (var note in CostEstimate.Notes)
+                        {
+                            <li>@note</li>
+                        }
+                    </ul>
+                </div>
+            </details>
+        }
+    }
+    else if (ShowPricingSelector)
+    {
+        <!-- Show pricing selector when no estimate exists -->
+        <div class="no-estimate">
+            <div class="no-estimate-message">
+                <span class="no-estimate-icon">💰</span>
+                <p>Configure pricing options and calculate costs</p>
+            </div>
+            <PricingSelector Options="@Options"
+                             Distribution="@Distribution"
+                             OnCalculate="OnRecalculate" />
+        </div>
+    }
+    else
+    {
+        <div class="no-results">
+            <span class="no-results-icon">💰</span>
+            <p>Run a sizing calculation first to see cost estimates</p>
+        </div>
+    }
+
+    @if (IsLoading)
+    {
+        <div class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <span>Calculating costs...</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public CostEstimate? CostEstimate { get; set; }
+    [Parameter] public CostEstimationOptions Options { get; set; } = new();
+    [Parameter] public string? Distribution { get; set; }
+    [Parameter] public bool ShowPricingSelector { get; set; } = true;
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public EventCallback<(CloudProvider, string, CostEstimationOptions)> OnRecalculate { get; set; }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+
+    private string GetCostCategoryIcon(CostCategory category)
+    {
+        return category switch
+        {
+            CostCategory.Compute => "💻",
+            CostCategory.Storage => "💾",
+            CostCategory.Network => "🌐",
+            CostCategory.License => "📜",
+            CostCategory.Support => "🛟",
+            CostCategory.DataCenter => "🏢",
+            _ => "💰"
+        };
+    }
+}
+
+<style>
+    .cost-analysis-view {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        position: relative;
+    }
+
+    /* Cost Summary Row */
+    .cost-summary-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .cost-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .cost-card.primary {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark, #0052a3));
+        color: white;
+        border: none;
+    }
+
+    .cost-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+    }
+
+    .cost-card.primary .cost-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .cost-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .cost-card.primary .cost-value {
+        color: white;
+    }
+
+    /* Pricing Info */
+    .pricing-info {
+        display: flex;
+        gap: 16px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        padding: 8px 12px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+    }
+
+    /* Cost Sections (Progressive Disclosure) */
+    .cost-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .cost-section[open] {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        list-style: none;
+    }
+
+    .section-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .section-summary::after {
+        content: '▶';
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-left: auto;
+        transition: transform 0.2s ease;
+    }
+
+    .cost-section[open] .section-summary::after {
+        transform: rotate(90deg);
+    }
+
+    .section-summary:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .section-icon {
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-hint {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .section-content {
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-primary);
+    }
+
+    /* Breakdown Cards */
+    .breakdown-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .breakdown-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px;
+    }
+
+    .breakdown-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .category-icon {
+        font-size: 1.1rem;
+    }
+
+    .category-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .breakdown-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .breakdown-bar {
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 6px;
+    }
+
+    .bar-fill {
+        height: 100%;
+        background: var(--accent-color);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .breakdown-percent {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    /* Environment Cost Cards */
+    .env-cost-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+
+    .env-cost-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px;
+        position: relative;
+    }
+
+    .env-cost-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .env-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--text-secondary);
+    }
+
+    .env-cost-card.env-prod .env-indicator {
+        background: var(--error-color);
+    }
+
+    .env-cost-card.env-dr .env-indicator {
+        background: var(--warning-color);
+    }
+
+    .env-cost-card.env-stage .env-indicator {
+        background: var(--accent-color);
+    }
+
+    .env-cost-card.env-test .env-indicator {
+        background: var(--success-color);
+    }
+
+    .env-cost-card.env-dev .env-indicator {
+        background: #9ca3af;
+    }
+
+    .env-name {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .env-cost-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .env-cost-details {
+        display: flex;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+    }
+
+    .env-cost-percent {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        background: var(--bg-tertiary);
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    /* Notes List */
+    .notes-list {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .notes-list li {
+        margin-bottom: 8px;
+    }
+
+    /* No Estimate State */
+    .no-estimate {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .no-estimate-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .no-estimate-icon {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    /* No Results State */
+    .no-results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .no-results-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(var(--bg-primary-rgb, 0, 0, 0), 0.8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--text-primary);
+        border-radius: 8px;
+    }
+
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--accent-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>

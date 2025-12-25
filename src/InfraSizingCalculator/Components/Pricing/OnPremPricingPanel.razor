@@ -1,0 +1,452 @@
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="onprem-pricing-panel">
+    <!-- Toggle: Include Pricing in Results -->
+    <div class="pricing-toggle-section">
+        <label class="toggle-container">
+            <input type="checkbox"
+                   checked="@IncludePricing"
+                   @onchange="HandleToggleChange" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Include Pricing in Results</span>
+        </label>
+        <p class="toggle-hint">
+            @if (IncludePricing)
+            {
+                <text>Costs will be calculated and shown in results.</text>
+            }
+            else
+            {
+                <text>Costs will show as "N/A" in results. Toggle on to estimate on-premises costs.</text>
+            }
+        </p>
+    </div>
+
+    @if (IncludePricing)
+    {
+        <!-- License Costs Section -->
+        <details class="pricing-section" open="@HasLicenseCost">
+            <summary>
+                <span class="section-icon">📜</span>
+                <span class="section-title">License Costs</span>
+                <span class="section-value">@FormatCurrency(MonthlyLicenseCost)/mo</span>
+            </summary>
+            <div class="section-content">
+                @if (HasLicenseCost)
+                {
+                    <div class="license-info">
+                        <p class="license-description">@GetLicenseDescription()</p>
+                        <div class="license-breakdown">
+                            <div class="breakdown-row">
+                                <span class="label">@Distribution License</span>
+                                <span class="value">@FormatCurrency(OnPremDefaults.Licensing.GetAnnualLicenseCost(Distribution?.ToString() ?? "", NodeCount, TotalCores))/year</span>
+                            </div>
+                            <div class="breakdown-row">
+                                <span class="label">Nodes</span>
+                                <span class="value">@NodeCount nodes</span>
+                            </div>
+                            <div class="breakdown-row total">
+                                <span class="label">Monthly License Cost</span>
+                                <span class="value">@FormatCurrency(MonthlyLicenseCost)</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="no-license">@Distribution is open source with no license fees.</p>
+                }
+            </div>
+        </details>
+
+        <!-- Infrastructure Costs Section -->
+        <details class="pricing-section">
+            <summary>
+                <span class="section-icon">🖥️</span>
+                <span class="section-title">Infrastructure Costs</span>
+                <span class="section-value">@FormatCurrency(MonthlyHardwareCost)/mo</span>
+            </summary>
+            <div class="section-content">
+                <p class="section-description">Hardware costs amortized over @OnPremDefaults.HardwareRefreshYears-year refresh cycle.</p>
+                <div class="cost-breakdown">
+                    <div class="breakdown-row">
+                        <span class="label">Servers (@ServersNeeded physical)</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.Hardware.ServerCost * ServersNeeded)</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">CPU (@TotalCores cores)</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.Hardware.PerCpuCore * TotalCores)</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">RAM (@TotalRamGB GB)</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.Hardware.PerGBRam * TotalRamGB)</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Maintenance (@OnPremDefaults.HardwareMaintenancePercent%)</span>
+                        <span class="value">@FormatCurrency(MaintenanceMonthly)/mo</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span class="label">Monthly Hardware</span>
+                        <span class="value">@FormatCurrency(MonthlyHardwareCost)</span>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <!-- Data Center Costs Section -->
+        <details class="pricing-section">
+            <summary>
+                <span class="section-icon">🏭</span>
+                <span class="section-title">Data Center Costs</span>
+                <span class="section-value">@FormatCurrency(MonthlyDataCenterCost)/mo</span>
+            </summary>
+            <div class="section-content">
+                <p class="section-description">Colocation, power, and cooling costs.</p>
+                <div class="cost-breakdown">
+                    <div class="breakdown-row">
+                        <span class="label">Rack Space (@(ServersNeeded * 2)U)</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.DataCenter.RackUnitPerMonth * ServersNeeded * 2)/mo</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Power (PUE @OnPremDefaults.DataCenter.PUE)</span>
+                        <span class="value">@FormatCurrency(PowerCostMonthly)/mo</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">Cooling (@OnPremDefaults.DataCenter.CoolingPercent%)</span>
+                        <span class="value">@FormatCurrency(CoolingCostMonthly)/mo</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span class="label">Monthly Data Center</span>
+                        <span class="value">@FormatCurrency(MonthlyDataCenterCost)</span>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <!-- Labor Costs Section -->
+        <details class="pricing-section">
+            <summary>
+                <span class="section-icon">👷</span>
+                <span class="section-title">Labor Costs</span>
+                <span class="section-value">@FormatCurrency(MonthlyLaborCost)/mo</span>
+            </summary>
+            <div class="section-content">
+                <p class="section-description">Staff required to manage @NodeCount nodes.</p>
+                <div class="cost-breakdown">
+                    <div class="breakdown-row">
+                        <span class="label">DevOps Engineers (@EngineersNeeded.ToString("F1"))</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.Labor.DevOpsEngineerMonthly * EngineersNeeded)/mo</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="label">SysAdmin (0.5 per engineer)</span>
+                        <span class="value">@FormatCurrency(OnPremDefaults.Labor.SysAdminMonthly * Math.Max(1, EngineersNeeded * 0.5m))/mo</span>
+                    </div>
+                    @if (OnPremDefaults.Labor.IncludeDBA)
+                    {
+                        <div class="breakdown-row">
+                            <span class="label">DBA (Production)</span>
+                            <span class="value">@FormatCurrency(OnPremDefaults.Labor.DBAMonthly)/mo</span>
+                        </div>
+                    }
+                    <div class="breakdown-row total">
+                        <span class="label">Monthly Labor</span>
+                        <span class="value">@FormatCurrency(MonthlyLaborCost)</span>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <!-- Total Summary -->
+        <div class="cost-summary">
+            <div class="summary-header">Total On-Premises Cost</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="label">Monthly</span>
+                    <span class="value">@FormatCurrency(TotalMonthlyCost)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Yearly</span>
+                    <span class="value">@FormatCurrency(TotalMonthlyCost * 12)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">3-Year TCO</span>
+                    <span class="value">@FormatCurrency(TotalMonthlyCost * 36)</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Distribution? Distribution { get; set; }
+    [Parameter] public bool IncludePricing { get; set; }
+    [Parameter] public EventCallback<bool> IncludePricingChanged { get; set; }
+    [Parameter] public OnPremPricing OnPremDefaults { get; set; } = new();
+    [Parameter] public int NodeCount { get; set; }
+    [Parameter] public int TotalCores { get; set; }
+    [Parameter] public int TotalRamGB { get; set; }
+    [Parameter] public EventCallback<OnPremCostBreakdown> OnCostCalculated { get; set; }
+
+    // Computed values
+    private bool HasLicenseCost => OnPremDefaults.Licensing.HasLicenseCost(Distribution?.ToString() ?? "");
+    private decimal MonthlyLicenseCost => OnPremDefaults.Licensing.GetMonthlyLicenseCost(Distribution?.ToString() ?? "", NodeCount, TotalCores);
+    private int ServersNeeded => (int)Math.Ceiling((decimal)NodeCount / OnPremDefaults.Hardware.VMsPerServer);
+    private decimal TotalHardwareCost => OnPremDefaults.Hardware.CalculateTotalCost(TotalCores, TotalRamGB, 0, 0);
+    private decimal AmortizedMonthly => TotalHardwareCost / (OnPremDefaults.HardwareRefreshYears * 12);
+    private decimal MaintenanceMonthly => (TotalHardwareCost * (OnPremDefaults.HardwareMaintenancePercent / 100)) / 12;
+    private decimal MonthlyHardwareCost => AmortizedMonthly + MaintenanceMonthly;
+    private decimal MonthlyDataCenterCost => OnPremDefaults.DataCenter.CalculateMonthlyCost(ServersNeeded);
+    private decimal PowerCostMonthly => ServersNeeded * OnPremDefaults.DataCenter.WattsPerServer * 730 / 1000 * OnPremDefaults.DataCenter.PowerPerKWh * OnPremDefaults.DataCenter.PUE;
+    private decimal CoolingCostMonthly => PowerCostMonthly * (OnPremDefaults.DataCenter.CoolingPercent / 100);
+    private decimal MonthlyLaborCost => OnPremDefaults.Labor.CalculateMonthlyCost(NodeCount, true);
+    private decimal EngineersNeeded => Math.Max(1, (decimal)NodeCount / OnPremDefaults.Labor.NodesPerEngineer);
+    private decimal TotalMonthlyCost => MonthlyLicenseCost + MonthlyHardwareCost + MonthlyDataCenterCost + MonthlyLaborCost;
+
+    private async Task HandleToggleChange(ChangeEventArgs e)
+    {
+        var newValue = (bool)(e.Value ?? false);
+        IncludePricing = newValue;
+        await IncludePricingChanged.InvokeAsync(newValue);
+
+        if (newValue)
+        {
+            // Calculate and emit costs
+            var breakdown = new OnPremCostBreakdown
+            {
+                MonthlyHardware = MonthlyHardwareCost,
+                MonthlyDataCenter = MonthlyDataCenterCost,
+                MonthlyLabor = MonthlyLaborCost,
+                MonthlyLicense = MonthlyLicenseCost,
+                IsCalculated = true
+            };
+            await OnCostCalculated.InvokeAsync(breakdown);
+        }
+    }
+
+    private string GetLicenseDescription()
+    {
+        return Distribution switch
+        {
+            Models.Enums.Distribution.OpenShift => "Red Hat OpenShift Container Platform subscription required for each node.",
+            Models.Enums.Distribution.Tanzu => "VMware Tanzu license required per CPU core.",
+            Models.Enums.Distribution.Rancher => "SUSE Rancher Enterprise support subscription (Rancher itself is open source).",
+            Models.Enums.Distribution.Charmed => "Canonical Charmed Kubernetes support subscription.",
+            _ => "No commercial license required."
+        };
+    }
+
+    private string FormatCurrency(decimal value)
+    {
+        return value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+    }
+}
+
+<style>
+    .onprem-pricing-panel {
+        max-width: 800px;
+    }
+
+    .pricing-toggle-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .toggle-container input[type="checkbox"] {
+        width: 48px;
+        height: 24px;
+        appearance: none;
+        background: var(--border-color);
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .toggle-container input[type="checkbox"]:checked {
+        background: var(--accent-color);
+    }
+
+    .toggle-container input[type="checkbox"]::before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s ease;
+    }
+
+    .toggle-container input[type="checkbox"]:checked::before {
+        transform: translateX(24px);
+    }
+
+    .toggle-label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .toggle-hint {
+        margin: 0.75rem 0 0 0;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .pricing-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+    }
+
+    .pricing-section summary {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .pricing-section summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .pricing-section summary::after {
+        content: '▶';
+        margin-left: auto;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        transition: transform 0.2s ease;
+    }
+
+    .pricing-section[open] summary::after {
+        transform: rotate(90deg);
+    }
+
+    .section-icon {
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        flex: 1;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .section-value {
+        font-weight: 600;
+        color: var(--accent-color);
+    }
+
+    .section-content {
+        padding: 0 1.25rem 1.25rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .section-description {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 1rem 0;
+    }
+
+    .cost-breakdown, .license-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .breakdown-row.total {
+        border-bottom: none;
+        border-top: 1px solid var(--border-color);
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        font-weight: 600;
+    }
+
+    .breakdown-row .label {
+        color: var(--text-secondary);
+    }
+
+    .breakdown-row .value {
+        color: var(--text-primary);
+    }
+
+    .breakdown-row.total .value {
+        color: var(--accent-color);
+    }
+
+    .license-info {
+        margin-top: 1rem;
+    }
+
+    .license-description {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .no-license {
+        color: var(--success-color);
+        font-style: italic;
+        margin: 1rem 0;
+    }
+
+    .cost-summary {
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark, #1565C0) 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        color: white;
+    }
+
+    .summary-header {
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .summary-item {
+        text-align: center;
+    }
+
+    .summary-item .label {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .summary-item .value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+</style>

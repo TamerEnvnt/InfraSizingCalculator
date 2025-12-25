@@ -1,0 +1,10 @@
+@* Reusable info button component *@
+
+<button class="info-btn @Size @AdditionalClass" @onclick="OnClick" title="@Title">?</button>
+
+@code {
+    [Parameter] public string Title { get; set; } = "More information";
+    [Parameter] public string Size { get; set; } = ""; // empty for normal, "small" for smaller
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

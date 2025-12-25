@@ -1,0 +1,100 @@
+@using InfraSizingCalculator.Models
+
+@* Results table showing environment breakdown *@
+
+<div class="results-table-container @AdditionalClass">
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Environment</th>
+                @if (ShowClusterInfo)
+                {
+                    <th>Cluster</th>
+                }
+                <th>Apps</th>
+                <th>Pods</th>
+                @if (ShowMasters)
+                {
+                    <th>Masters</th>
+                }
+                @if (ShowInfra)
+                {
+                    <th>Infra</th>
+                }
+                <th>Workers</th>
+                <th>Total Nodes</th>
+                <th>CPU</th>
+                <th>RAM</th>
+                <th>Disk</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var env in Environments)
+            {
+                <tr class="@(env.IsProd ? "prod-row" : "nonprod-row")">
+                    <td>
+                        <span class="env-badge @(env.IsProd ? "prod" : "nonprod")">
+                            @env.EnvironmentName
+                        </span>
+                    </td>
+                    @if (ShowClusterInfo)
+                    {
+                        <td>@GetClusterName(env)</td>
+                    }
+                    <td>@env.Apps</td>
+                    <td>@env.Pods</td>
+                    @if (ShowMasters)
+                    {
+                        <td>@env.Masters</td>
+                    }
+                    @if (ShowInfra)
+                    {
+                        <td>@env.Infra</td>
+                    }
+                    <td>@env.Workers</td>
+                    <td class="total-cell">@env.TotalNodes</td>
+                    <td>@env.TotalCpu</td>
+                    <td>@env.TotalRam GB</td>
+                    <td>@env.TotalDisk GB</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="@GetColspan()"><strong>GRAND TOTAL</strong></td>
+                <td class="total-cell"><strong>@GrandTotal.TotalNodes</strong></td>
+                <td><strong>@GrandTotal.TotalCpu</strong></td>
+                <td><strong>@GrandTotal.TotalRam GB</strong></td>
+                <td><strong>@GrandTotal.TotalDisk GB</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+@code {
+    [Parameter] public List<EnvironmentResult> Environments { get; set; } = new();
+    [Parameter] public GrandTotal GrandTotal { get; set; } = new();
+    [Parameter] public bool ShowClusterInfo { get; set; } = false;
+    [Parameter] public bool ShowMasters { get; set; } = true;
+    [Parameter] public bool ShowInfra { get; set; } = true;
+    [Parameter] public bool IsSharedCluster { get; set; } = false;
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private string GetClusterName(EnvironmentResult env)
+    {
+        if (IsSharedCluster)
+        {
+            return "shared-cluster";
+        }
+        return $"{env.EnvironmentName.ToLower()}-cluster";
+    }
+
+    private int GetColspan()
+    {
+        var cols = 4; // Base columns before totals
+        if (ShowClusterInfo) cols++;
+        if (ShowMasters) cols++;
+        if (ShowInfra) cols++;
+        return cols;
+    }
+}

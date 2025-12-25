@@ -1,0 +1,48 @@
+@* Reusable selection card component for wizard steps *@
+
+<div class="selection-card @(IsSelected ? "selected" : "") @AdditionalClass"
+     style="@(BrandColor != null ? $"--brand-color: {BrandColor}" : "")"
+     @onclick="OnClick">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <span class="card-icon">@Icon</span>
+    }
+    <div class="card-content">
+        <span class="card-title">@Title</span>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <span class="card-subtitle">@Subtitle</span>
+        }
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <span class="card-desc">@Description</span>
+        }
+        @if (Tags != null && Tags.Any())
+        {
+            <div class="card-tags">
+                @foreach (var tag in Tags)
+                {
+                    <span class="tag @tag.CssClass">@tag.Label</span>
+                }
+            </div>
+        }
+    </div>
+    @if (IsSelected)
+    {
+        <span class="check-mark icon icon-check"></span>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public string? BrandColor { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public IEnumerable<TagInfo>? Tags { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    public record TagInfo(string CssClass, string Label);
+}

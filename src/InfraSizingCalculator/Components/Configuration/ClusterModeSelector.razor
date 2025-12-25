@@ -1,0 +1,71 @@
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Shared
+
+@* Cluster mode selection sidebar *@
+
+<div class="cluster-mode-sidebar @AdditionalClass">
+    <div class="sidebar-header">
+        <span>Cluster Mode</span>
+        <InfoButton Size="small" OnClick="@OnInfoClick" />
+    </div>
+    <div class="cluster-mode-options">
+        <div class="mode-option @(SelectedMode == ClusterMode.MultiCluster ? "selected" : "")"
+             @onclick="() => SelectMode(ClusterMode.MultiCluster)">
+            <span class="mode-icon">🌐</span>
+            <div class="mode-text">
+                <span class="mode-name">Multi-Cluster</span>
+                <span class="mode-desc">One cluster per env</span>
+            </div>
+        </div>
+        <div class="mode-option @(IsSingleClusterMode ? "selected" : "")"
+             @onclick="() => SelectMode(ClusterMode.SharedCluster)">
+            <span class="mode-icon">🎯</span>
+            <div class="mode-text">
+                <span class="mode-name">Single Cluster</span>
+                <span class="mode-desc">One cluster total</span>
+            </div>
+        </div>
+    </div>
+
+    @if (IsSingleClusterMode)
+    {
+        <div class="single-cluster-selector">
+            <label>Cluster Scope:</label>
+            <select value="@SingleClusterScope" @onchange="OnScopeChange">
+                <option value="Shared">🔗 Shared (All Environments)</option>
+                <option value="Dev">🔧 Dev Only</option>
+                <option value="Test">🧪 Test Only</option>
+                <option value="Stage">📦 Stage Only</option>
+                <option value="Prod">🔴 Prod Only</option>
+                <option value="DR">🛡️ DR Only</option>
+            </select>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ClusterMode SelectedMode { get; set; } = ClusterMode.MultiCluster;
+    [Parameter] public string SingleClusterScope { get; set; } = "Shared";
+    [Parameter] public EventCallback<ClusterMode> OnModeChanged { get; set; }
+    [Parameter] public EventCallback<string> OnScopeChanged { get; set; }
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private bool IsSingleClusterMode => SelectedMode == ClusterMode.SharedCluster || SelectedMode == ClusterMode.PerEnvironment;
+
+    private async Task SelectMode(ClusterMode mode)
+    {
+        if (OnModeChanged.HasDelegate)
+        {
+            await OnModeChanged.InvokeAsync(mode);
+        }
+    }
+
+    private async Task OnScopeChange(ChangeEventArgs e)
+    {
+        if (OnScopeChanged.HasDelegate && e.Value != null)
+        {
+            await OnScopeChanged.InvokeAsync(e.Value.ToString());
+        }
+    }
+}

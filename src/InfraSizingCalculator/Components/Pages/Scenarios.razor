@@ -1,0 +1,393 @@
+@page "/scenarios"
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services
+@using InfraSizingCalculator.Services.Interfaces
+@inject IScenarioService ScenarioService
+@inject ConfigurationSharingService SharingService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Scenarios - Infrastructure Sizing Calculator</PageTitle>
+
+<div class="scenarios-page">
+    <div class="page-header">
+        <div class="header-left">
+            <button class="back-link" @onclick="NavigateBack" type="button">← Back to Calculator</button>
+            <h1>Saved Scenarios</h1>
+            <p class="subtitle">Compare and manage your sizing scenarios</p>
+        </div>
+        <div class="header-actions">
+            @if (selectedScenarios.Count >= 2)
+            {
+                <button class="btn-primary" @onclick="CompareSelected">
+                    Compare (@selectedScenarios.Count)
+                </button>
+            }
+            @if (selectedScenarios.Any())
+            {
+                <button class="btn-secondary btn-danger" @onclick="DeleteSelected">
+                    Delete (@selectedScenarios.Count)
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">Loading scenarios...</div>
+    }
+    else if (!scenarios.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>No saved scenarios</h3>
+            <p>Run a sizing calculation and save it as a scenario to compare different configurations.</p>
+            <a href="/" class="btn-primary">Go to Calculator</a>
+        </div>
+    }
+    else
+    {
+        <!-- Scenario Type Tabs -->
+        <div class="scenario-tabs">
+            <button class="scenario-tab @(scenarioTab == "saved" ? "active" : "")"
+                    @onclick='() => { scenarioTab = "saved"; selectedScenarios.Clear(); }'>
+                📁 Saved Scenarios
+                @if (SavedCount > 0)
+                {
+                    <span class="tab-count">@SavedCount</span>
+                }
+            </button>
+            <button class="scenario-tab @(scenarioTab == "drafts" ? "active" : "")"
+                    @onclick='() => { scenarioTab = "drafts"; selectedScenarios.Clear(); }'>
+                📝 Draft Scenarios
+                @if (DraftCount > 0)
+                {
+                    <span class="tab-count">@DraftCount</span>
+                }
+            </button>
+        </div>
+
+        <!-- View Mode Toggle -->
+        <div class="view-controls">
+            <div class="view-toggle">
+                <button class="view-btn @(viewMode == "list" ? "active" : "")" @onclick='() => viewMode = "list"'>
+                    List
+                </button>
+                <button class="view-btn @(viewMode == "compare" ? "active" : "")" @onclick='() => viewMode = "compare"' disabled="@(selectedScenarios.Count < 2)">
+                    Compare
+                </button>
+            </div>
+            <div class="filter-controls">
+                <select @bind="filterType" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="k8s">Kubernetes</option>
+                    <option value="vm">Virtual Machines</option>
+                </select>
+            </div>
+        </div>
+
+        @if (viewMode == "list")
+        {
+            <!-- Scenarios List -->
+            <div class="scenarios-list">
+                @foreach (var scenario in FilteredScenarios)
+                {
+                    <div class="scenario-card @(selectedScenarios.Contains(scenario.Id) ? "selected" : "")">
+                        <div class="scenario-select">
+                            <input type="checkbox"
+                                   checked="@selectedScenarios.Contains(scenario.Id)"
+                                   @onchange="e => ToggleSelection(scenario.Id)" />
+                        </div>
+                        <div class="scenario-info" @onclick="async () => await ViewScenario(scenario.Id)">
+                            <div class="scenario-header">
+                                <span class="scenario-type-badge @scenario.Type">@(scenario.Type == "k8s" ? "K8s" : "VM")</span>
+                                <h3>@scenario.Name</h3>
+                                @if (scenario.IsFavorite)
+                                {
+                                    <span class="favorite-badge">★</span>
+                                }
+                            </div>
+                            <div class="scenario-meta">
+                                <span class="meta-item">@scenario.DistributionOrTechnology</span>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-item">@scenario.TotalNodes @(scenario.Type == "k8s" ? "nodes" : "VMs")</span>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-item">@scenario.TotalCpu vCPU</span>
+                                @if (scenario.MonthlyEstimate > 0)
+                                {
+                                    <span class="meta-separator">•</span>
+                                    <span class="meta-item cost">@FormatCurrency(scenario.MonthlyEstimate)/mo</span>
+                                }
+                            </div>
+                            <div class="scenario-footer">
+                                <span class="created-date">@scenario.CreatedAt.ToString("MMM d, yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)</span>
+                                @if (scenario.Tags.Any())
+                                {
+                                    <div class="tags">
+                                        @foreach (var tag in scenario.Tags.Take(3))
+                                        {
+                                            <span class="tag">@tag</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="scenario-actions">
+                            <button class="action-btn" @onclick="async () => await ToggleFavorite(scenario.Id)" title="Toggle favorite">
+                                @(scenario.IsFavorite ? "★" : "☆")
+                            </button>
+                            <button class="action-btn" @onclick="async () => await DuplicateScenario(scenario.Id)" title="Duplicate">
+                                📋
+                            </button>
+                            <button class="action-btn danger" @onclick="async () => await DeleteScenario(scenario.Id)" title="Delete">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (viewMode == "compare" && comparison != null)
+        {
+            <!-- Comparison View -->
+            <div class="comparison-view">
+                <div class="comparison-header">
+                    <h2>Scenario Comparison</h2>
+                    @if (comparison.RecommendedScenarioId.HasValue)
+                    {
+                        var recommended = comparison.Scenarios.FirstOrDefault(s => s.Id == comparison.RecommendedScenarioId);
+                        @if (recommended != null)
+                        {
+                            <div class="recommendation-banner">
+                                <span class="rec-icon">💡</span>
+                                <span>Recommended: <strong>@recommended.Name</strong> - @comparison.RecommendationReason</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="comparison-table-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th class="metric-header">Metric</th>
+                                @foreach (var scenario in comparison.Scenarios)
+                                {
+                                    <th class="scenario-header">
+                                        <span class="scenario-type-badge @scenario.Type">@(scenario.Type == "k8s" ? "K8s" : "VM")</span>
+                                        @scenario.Name
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var metricGroup in comparison.Metrics.GroupBy(m => m.Category))
+                            {
+                                <tr class="category-row">
+                                    <td colspan="@(comparison.Scenarios.Length + 1)">@metricGroup.Key</td>
+                                </tr>
+                                @foreach (var metric in metricGroup)
+                                {
+                                    <tr>
+                                        <td class="metric-name">@metric.Name</td>
+                                        @foreach (var scenario in comparison.Scenarios)
+                                        {
+                                            var value = metric.Values.GetValueOrDefault(scenario.Id);
+                                            var isWinner = metric.WinnerId == scenario.Id;
+                                            <td class="metric-value @(isWinner ? "winner" : "")">
+                                                @if (metric.Unit == "$")
+                                                {
+                                                    @FormatCurrency(value)
+                                                }
+                                                else if (metric.Unit == "$/node")
+                                                {
+                                                    @FormatCurrency(value)
+                                                }
+                                                else
+                                                {
+                                                    @value.ToString("N0") @metric.Unit
+                                                }
+                                                @if (isWinner)
+                                                {
+                                                    <span class="winner-badge">Best</span>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Insights -->
+                @if (comparison.Insights.Any())
+                {
+                    <div class="comparison-insights">
+                        <h3>Insights</h3>
+                        <ul>
+                            @foreach (var insight in comparison.Insights)
+                            {
+                                <li>@insight</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<ScenarioSummary> scenarios = new();
+    private HashSet<Guid> selectedScenarios = new();
+    private ScenarioComparison? comparison;
+    private bool isLoading = true;
+    private string viewMode = "list";
+    private string filterType = "";
+    private string scenarioTab = "saved"; // "saved" or "drafts"
+
+    private IEnumerable<ScenarioSummary> FilteredScenarios
+    {
+        get
+        {
+            var filtered = scenarios.Where(s => s.IsDraft == (scenarioTab == "drafts"));
+            if (!string.IsNullOrEmpty(filterType))
+            {
+                filtered = filtered.Where(s => s.Type == filterType);
+            }
+            return filtered;
+        }
+    }
+
+    private int SavedCount => scenarios.Count(s => !s.IsDraft);
+    private int DraftCount => scenarios.Count(s => s.IsDraft);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadScenarios();
+    }
+
+    private async Task LoadScenarios()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            scenarios = await ScenarioService.GetScenarioSummariesAsync();
+            scenarios = scenarios.OrderByDescending(s => s.IsFavorite).ThenByDescending(s => s.CreatedAt).ToList();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleSelection(Guid id)
+    {
+        if (selectedScenarios.Contains(id))
+            selectedScenarios.Remove(id);
+        else if (selectedScenarios.Count < 4) // Max 4 for comparison
+            selectedScenarios.Add(id);
+    }
+
+    private async Task CompareSelected()
+    {
+        if (selectedScenarios.Count < 2) return;
+
+        comparison = await ScenarioService.CompareByIdsAsync(selectedScenarios.ToArray());
+        viewMode = "compare";
+    }
+
+    private async Task DeleteSelected()
+    {
+        if (!selectedScenarios.Any()) return;
+
+        foreach (var id in selectedScenarios.ToList())
+        {
+            await ScenarioService.DeleteScenarioAsync(id);
+        }
+
+        selectedScenarios.Clear();
+        await LoadScenarios();
+    }
+
+    private async Task ToggleFavorite(Guid id)
+    {
+        await ScenarioService.ToggleFavoriteAsync(id);
+        await LoadScenarios();
+    }
+
+    private async Task DuplicateScenario(Guid id)
+    {
+        var original = scenarios.FirstOrDefault(s => s.Id == id);
+        if (original != null)
+        {
+            await ScenarioService.DuplicateScenarioAsync(id, $"{original.Name} (Copy)");
+            await LoadScenarios();
+        }
+    }
+
+    private async Task DeleteScenario(Guid id)
+    {
+        await ScenarioService.DeleteScenarioAsync(id);
+        selectedScenarios.Remove(id);
+        await LoadScenarios();
+    }
+
+    private async Task ViewScenario(Guid id)
+    {
+        try
+        {
+            // Load the full scenario and navigate to the calculator
+            var scenario = await ScenarioService.GetScenarioAsync(id);
+            if (scenario == null)
+            {
+                NavigationManager.NavigateTo("/");
+                return;
+            }
+
+            string configParam;
+            if (scenario.Type == "k8s" && scenario.K8sInput != null)
+            {
+                configParam = await SharingService.GenerateConfigParamAsync(scenario.K8sInput);
+            }
+            else if (scenario.Type == "vm" && scenario.VMInput != null)
+            {
+                configParam = await SharingService.GenerateConfigParamAsync(scenario.VMInput);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/");
+                return;
+            }
+
+            // Navigate to home page with config parameter
+            NavigationManager.NavigateTo($"/?config={configParam}", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ViewScenario error: {ex.Message}");
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+}

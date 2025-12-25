@@ -1,0 +1,397 @@
+/* Forms CSS - Consistent Input Alignment */
+/* Grid-based form layout with proper alignment */
+
+/* ========================================
+   FORM GRID LAYOUT
+   ======================================== */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: var(--space-sm) var(--space-md);
+    align-items: center;
+}
+
+.form-grid.wide-labels {
+    grid-template-columns: 200px 1fr;
+}
+
+.form-grid.narrow-labels {
+    grid-template-columns: 120px 1fr;
+}
+
+/* Form Row - spans full width */
+.form-row {
+    grid-column: 1 / -1;
+}
+
+/* Form Group - label + input pair */
+.form-group {
+    display: contents;
+}
+
+/* ========================================
+   LABELS
+   ======================================== */
+
+.form-grid label,
+.form-label {
+    text-align: right;
+    font-weight: 500;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    padding-right: var(--space-sm);
+    white-space: nowrap;
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--error-color);
+}
+
+/* ========================================
+   INPUTS
+   ======================================== */
+
+.form-grid input[type="text"],
+.form-grid input[type="number"],
+.form-grid input[type="email"],
+.form-grid input[type="password"],
+.form-grid input[type="date"],
+.form-grid select,
+.form-grid textarea,
+.form-input {
+    height: 36px;
+    padding: 0 var(--space-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: var(--font-md);
+    transition: all var(--transition-fast);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-grid textarea {
+    height: auto;
+    min-height: 80px;
+    padding: var(--space-sm);
+    resize: vertical;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus,
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.form-grid input:disabled,
+.form-grid select:disabled,
+.form-grid textarea:disabled,
+.form-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-secondary);
+}
+
+/* Invalid state */
+.form-grid input.invalid,
+.form-grid select.invalid,
+.form-input.invalid {
+    border-color: var(--error-color);
+}
+
+.form-grid input.invalid:focus,
+.form-grid select.invalid:focus,
+.form-input.invalid:focus {
+    box-shadow: 0 0 0 3px var(--error-bg);
+}
+
+/* Placeholder */
+.form-grid input::placeholder,
+.form-grid textarea::placeholder {
+    color: var(--text-muted);
+}
+
+/* Number input - hide spinners */
+.form-grid input[type="number"]::-webkit-inner-spin-button,
+.form-grid input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-grid input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ========================================
+   SELECT
+   ======================================== */
+
+.form-grid select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+    cursor: pointer;
+}
+
+[data-theme="dark"] .form-grid select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* ========================================
+   CHECKBOX & RADIO
+   ======================================== */
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+}
+
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.form-check label {
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+/* Checkbox/Radio Group */
+.form-check-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.form-check-group.inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+/* ========================================
+   RANGE SLIDER
+   ======================================== */
+
+.form-grid input[type="range"] {
+    height: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+.form-grid input[type="range"]::-webkit-slider-track {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+}
+
+.form-grid input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -6px;
+}
+
+.form-grid input[type="range"]::-moz-range-track {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+}
+
+.form-grid input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* ========================================
+   HELP TEXT & ERRORS
+   ======================================== */
+
+.form-help {
+    grid-column: 2;
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    margin-top: -4px;
+}
+
+.form-error {
+    grid-column: 2;
+    font-size: var(--font-xs);
+    color: var(--error-color);
+    margin-top: -4px;
+}
+
+/* ========================================
+   INPUT GROUPS
+   ======================================== */
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group input {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    flex: 1;
+}
+
+.input-group .input-group-addon {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-sm);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+}
+
+.input-group button {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ========================================
+   FORM SECTIONS
+   ======================================== */
+
+.form-section {
+    margin-bottom: var(--space-lg);
+}
+
+.form-section-title {
+    grid-column: 1 / -1;
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-section-subtitle {
+    grid-column: 1 / -1;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+/* ========================================
+   FORM ACTIONS
+   ======================================== */
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: var(--space-sm);
+    padding-top: var(--space-md);
+    margin-top: var(--space-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.form-actions.end {
+    justify-content: flex-end;
+}
+
+.form-actions.center {
+    justify-content: center;
+}
+
+.form-actions.between {
+    justify-content: space-between;
+}
+
+/* ========================================
+   INLINE FORM
+   ======================================== */
+
+.form-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.form-inline label {
+    text-align: left;
+    padding: 0;
+}
+
+.form-inline input,
+.form-inline select {
+    width: auto;
+    min-width: 150px;
+}
+
+/* ========================================
+   COMPACT FORM
+   ======================================== */
+
+.form-compact .form-grid {
+    gap: var(--space-xs) var(--space-sm);
+}
+
+.form-compact input,
+.form-compact select {
+    height: 32px;
+    font-size: var(--font-sm);
+}
+
+.form-compact label {
+    font-size: var(--font-xs);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+    }
+
+    .form-grid label,
+    .form-label {
+        text-align: left;
+        padding: 0;
+        margin-bottom: 2px;
+    }
+
+    .form-help,
+    .form-error {
+        grid-column: 1;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}

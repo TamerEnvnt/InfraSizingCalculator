@@ -1,0 +1,496 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+@inject IPricingService PricingService
+@inject ICostEstimationService CostEstimationService
+
+<div class="cloud-pricing-panel">
+    <div class="panel-header">
+        <h4>@GetProviderDisplayName() Pricing</h4>
+        <p class="header-description">Configure pricing options for your @Distribution deployment.</p>
+    </div>
+
+    <div class="pricing-controls">
+        <div class="control-row">
+            <div class="control-group">
+                <label>Region</label>
+                <select @bind="SelectedRegion" @bind:after="RecalculateCost">
+                    @foreach (var region in AvailableRegions)
+                    {
+                        <option value="@region.Code">@region.DisplayName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Pricing Type</label>
+                <select @bind="SelectedPricingType" @bind:after="RecalculateCost">
+                    <option value="@PricingType.OnDemand">On-Demand</option>
+                    <option value="@PricingType.Reserved1Year">1-Year Reserved</option>
+                    <option value="@PricingType.Reserved3Year">3-Year Reserved</option>
+                    <option value="@PricingType.Spot">Spot/Preemptible</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Support Tier</label>
+                <select @bind="SelectedSupportTier" @bind:after="RecalculateCost">
+                    <option value="@SupportTier.None">None</option>
+                    <option value="@SupportTier.Basic">Basic</option>
+                    <option value="@SupportTier.Developer">Developer</option>
+                    <option value="@SupportTier.Business">Business</option>
+                    <option value="@SupportTier.Enterprise">Enterprise</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="pricing-toggles">
+            <label class="toggle-item">
+                <input type="checkbox" @bind="IncludeStorage" @bind:after="RecalculateCost" />
+                <span>Include Storage</span>
+            </label>
+            <label class="toggle-item">
+                <input type="checkbox" @bind="IncludeNetwork" @bind:after="RecalculateCost" />
+                <span>Include Network</span>
+            </label>
+            <label class="toggle-item">
+                <input type="checkbox" @bind="IncludeSupport" @bind:after="RecalculateCost" />
+                <span>Include Support</span>
+            </label>
+            <label class="toggle-item">
+                <input type="checkbox" @bind="IncludeManagedControlPlane" @bind:after="RecalculateCost" />
+                <span>Include Managed Control Plane</span>
+            </label>
+        </div>
+    </div>
+
+    @if (IsCalculating)
+    {
+        <div class="calculating">
+            <span class="spinner"></span>
+            <span>Calculating costs...</span>
+        </div>
+    }
+    else if (CostEstimate != null)
+    {
+        <div class="cost-results">
+            <div class="cost-summary-bar">
+                <div class="summary-item">
+                    <span class="label">Monthly</span>
+                    <span class="value">@FormatCurrency(CostEstimate.MonthlyTotal)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Yearly</span>
+                    <span class="value">@FormatCurrency(CostEstimate.YearlyTotal)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">3-Year TCO</span>
+                    <span class="value">@FormatCurrency(CostEstimate.ThreeYearTCO)</span>
+                </div>
+            </div>
+
+            <div class="cost-breakdown">
+                <h5>Cost Breakdown</h5>
+                <div class="breakdown-grid">
+                    @foreach (var item in CostEstimate.Breakdown)
+                    {
+                        <div class="breakdown-item">
+                            <span class="category">@item.Key</span>
+                            <span class="amount">@FormatCurrency(item.Value.Monthly)/mo</span>
+                            <div class="bar" style="width: @GetPercentage(item.Value.Monthly)%"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="pricing-notes">
+                <p class="note">
+                    <span class="note-icon">i</span>
+                    Pricing based on @SelectedPricingType pricing in @SelectedRegion. Actual costs may vary.
+                </p>
+                @if (SelectedPricingType == PricingType.Spot)
+                {
+                    <p class="note warning">
+                        <span class="note-icon">!</span>
+                        Spot/Preemptible instances can be terminated with short notice. Not recommended for production workloads.
+                    </p>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="no-estimate">
+            <p>Configure options above and costs will be calculated automatically.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public CloudProvider Provider { get; set; }
+    [Parameter] public Distribution? Distribution { get; set; }
+    [Parameter] public int NodeCount { get; set; }
+    [Parameter] public int TotalCores { get; set; }
+    [Parameter] public int TotalRamGB { get; set; }
+    [Parameter] public EventCallback<CostEstimate> OnPricingCalculated { get; set; }
+
+    private string SelectedRegion { get; set; } = "";
+    private PricingType SelectedPricingType { get; set; } = PricingType.OnDemand;
+    private SupportTier SelectedSupportTier { get; set; } = SupportTier.None;
+    private bool IncludeStorage { get; set; } = true;
+    private bool IncludeNetwork { get; set; } = true;
+    private bool IncludeSupport { get; set; } = false;
+    private bool IncludeManagedControlPlane { get; set; } = true;
+
+    private List<RegionInfo> AvailableRegions { get; set; } = new();
+    private CostEstimate? CostEstimate { get; set; }
+    private bool IsCalculating { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadRegions();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RecalculateCost();
+        }
+    }
+
+    private void LoadRegions()
+    {
+        AvailableRegions = PricingService.GetRegions(Provider);
+        var preferred = AvailableRegions.FirstOrDefault(r => r.IsPreferred);
+        SelectedRegion = preferred?.Code ?? AvailableRegions.FirstOrDefault()?.Code ?? "us-east-1";
+    }
+
+    private async Task RecalculateCost()
+    {
+        IsCalculating = true;
+        StateHasChanged();
+
+        try
+        {
+            var options = new CostEstimationOptions
+            {
+                PricingType = SelectedPricingType,
+                SupportTier = SelectedSupportTier,
+                IncludeStorage = IncludeStorage,
+                IncludeNetwork = IncludeNetwork,
+                IncludeSupport = IncludeSupport,
+                IncludeManagedControlPlane = IncludeManagedControlPlane,
+                Distribution = Distribution?.ToString()
+            };
+
+            // Use the pricing service to estimate costs based on node count
+            var pricing = PricingService.GetDefaultPricing(Provider);
+
+            // Calculate compute cost based on cores and RAM
+            var computeHourly = (TotalCores * pricing.Compute.CpuPerHour) + (TotalRamGB * pricing.Compute.RamGBPerHour);
+            var monthlyCompute = computeHourly * 730; // 730 hours per month
+
+            // Apply pricing type discounts
+            var discount = SelectedPricingType switch
+            {
+                PricingType.Reserved1Year => 0.7m,  // 30% discount
+                PricingType.Reserved3Year => 0.5m,  // 50% discount
+                PricingType.Spot => 0.3m,            // 70% discount
+                _ => 1.0m
+            };
+
+            var discountedCompute = monthlyCompute * discount;
+
+            // Create cost estimate
+            CostEstimate = new CostEstimate
+            {
+                Provider = Provider,
+                Region = SelectedRegion,
+                PricingType = SelectedPricingType,
+                MonthlyTotal = discountedCompute,
+                Breakdown = new Dictionary<CostCategory, CostBreakdown>
+                {
+                    [CostCategory.Compute] = new CostBreakdown
+                    {
+                        Category = CostCategory.Compute,
+                        Monthly = discountedCompute,
+                        Percentage = 100
+                    }
+                },
+                PricingSource = "Default pricing data",
+                Notes = new List<string>
+                {
+                    $"Based on {NodeCount} nodes with {TotalCores} total cores and {TotalRamGB} GB total RAM"
+                }
+            };
+
+            // Add control plane cost if included
+            if (IncludeManagedControlPlane && pricing.Compute.ManagedControlPlanePerHour > 0)
+            {
+                var controlPlaneCost = pricing.Compute.ManagedControlPlanePerHour * 730;
+                CostEstimate.MonthlyTotal += controlPlaneCost;
+                CostEstimate.Breakdown[CostCategory.Compute].Monthly += controlPlaneCost;
+            }
+
+            await OnPricingCalculated.InvokeAsync(CostEstimate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calculating cost: {ex.Message}");
+        }
+        finally
+        {
+            IsCalculating = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetProviderDisplayName()
+    {
+        return Provider switch
+        {
+            CloudProvider.AWS => "AWS",
+            CloudProvider.Azure => "Azure",
+            CloudProvider.GCP => "Google Cloud",
+            CloudProvider.OCI => "Oracle Cloud",
+            CloudProvider.IBM => "IBM Cloud",
+            CloudProvider.Alibaba => "Alibaba Cloud",
+            CloudProvider.Tencent => "Tencent Cloud",
+            CloudProvider.Huawei => "Huawei Cloud",
+            CloudProvider.DigitalOcean => "DigitalOcean",
+            CloudProvider.Linode => "Linode",
+            CloudProvider.Vultr => "Vultr",
+            CloudProvider.Hetzner => "Hetzner",
+            CloudProvider.OVH => "OVHcloud",
+            CloudProvider.Scaleway => "Scaleway",
+            _ => Provider.ToString()
+        };
+    }
+
+    private string FormatCurrency(decimal value)
+    {
+        return value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+    }
+
+    private decimal GetPercentage(decimal amount)
+    {
+        if (CostEstimate == null || CostEstimate.MonthlyTotal == 0) return 0;
+        return (amount / CostEstimate.MonthlyTotal) * 100;
+    }
+}
+
+<style>
+    .cloud-pricing-panel {
+        max-width: 800px;
+    }
+
+    .panel-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .panel-header h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+    }
+
+    .header-description {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .pricing-controls {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .control-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .control-group label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .control-group select {
+        padding: 0.5rem 0.75rem;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .control-group select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    .pricing-toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .toggle-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .toggle-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent-color);
+    }
+
+    .calculating {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border-color);
+        border-top-color: var(--accent-color);
+        border-radius: 50%;
+        animation: spin-animation 0.8s linear infinite;
+    }
+
+    .cost-results {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .cost-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark, #1565C0) 100%);
+        padding: 1.25rem;
+        color: white;
+    }
+
+    .summary-item {
+        text-align: center;
+    }
+
+    .summary-item .label {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .summary-item .value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .cost-breakdown {
+        padding: 1.25rem;
+    }
+
+    .cost-breakdown h5 {
+        margin: 0 0 1rem 0;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .breakdown-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .breakdown-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .breakdown-item .category {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .breakdown-item .amount {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .breakdown-item .bar {
+        grid-column: 1 / -1;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+        opacity: 0.6;
+    }
+
+    .pricing-notes {
+        padding: 1rem 1.25rem;
+        background: var(--surface-bg);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .note {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .note + .note {
+        margin-top: 0.5rem;
+    }
+
+    .note.warning {
+        color: var(--warning-color);
+    }
+
+    .note-icon {
+        font-size: 0.9rem;
+    }
+
+    .no-estimate {
+        padding: 2rem;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .no-estimate p {
+        margin: 0;
+    }
+</style>

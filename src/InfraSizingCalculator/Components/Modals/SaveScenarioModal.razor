@@ -1,0 +1,249 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="modal-overlay @(IsVisible ? "visible" : "")" @onclick="HandleOverlayClick">
+    <div class="modal-content save-scenario-modal" @onclick:stopPropagation>
+        <div class="modal-header">
+            <h2>Save Scenario</h2>
+            <button class="modal-close" @onclick="Close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="scenarioName">Name *</label>
+                <input type="text"
+                       id="scenarioName"
+                       @bind="scenarioName"
+                       @bind:event="oninput"
+                       placeholder="e.g., Production OpenShift - 100 Apps"
+                       maxlength="100" />
+                @if (string.IsNullOrWhiteSpace(scenarioName))
+                {
+                    <span class="field-error">Name is required</span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="scenarioDescription">Description (optional)</label>
+                <textarea id="scenarioDescription"
+                          @bind="scenarioDescription"
+                          placeholder="Add notes about this scenario..."
+                          rows="3"
+                          maxlength="500"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="scenarioTags">Tags (optional)</label>
+                <input type="text"
+                       id="scenarioTags"
+                       @bind="tagsInput"
+                       placeholder="e.g., production, enterprise, openshift (comma-separated)" />
+                <span class="field-hint">Separate tags with commas</span>
+            </div>
+
+            <!-- Scenario Summary Preview -->
+            <div class="scenario-preview">
+                <h4>Scenario Summary</h4>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <span class="preview-label">Type</span>
+                        <span class="preview-value">@(IsK8s ? "Kubernetes" : "Virtual Machines")</span>
+                    </div>
+                    @if (IsK8s && K8sResult != null)
+                    {
+                        <div class="preview-item">
+                            <span class="preview-label">Distribution</span>
+                            <span class="preview-value">@K8sInput?.Distribution</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Total Nodes</span>
+                            <span class="preview-value">@K8sResult.GrandTotal.TotalNodes</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Total vCPU</span>
+                            <span class="preview-value">@K8sResult.GrandTotal.TotalCpu</span>
+                        </div>
+                    }
+                    else if (VMResult != null)
+                    {
+                        <div class="preview-item">
+                            <span class="preview-label">Technology</span>
+                            <span class="preview-value">@VMInput?.Technology</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Total VMs</span>
+                            <span class="preview-value">@VMResult.GrandTotal.TotalVMs</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">Total vCPU</span>
+                            <span class="preview-value">@VMResult.GrandTotal.TotalCpu</span>
+                        </div>
+                    }
+                    @if (CostEstimate != null)
+                    {
+                        <div class="preview-item highlight">
+                            <span class="preview-label">Est. Monthly</span>
+                            <span class="preview-value">@FormatCurrency(CostEstimate.MonthlyTotal)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <div class="footer-left">
+                <label class="checkbox-label">
+                    <input type="checkbox" @bind="saveAsDraft" />
+                    <span>Save as Draft</span>
+                </label>
+            </div>
+            <div class="footer-actions">
+                <button class="btn-secondary" @onclick="Close">Cancel</button>
+                <button class="btn-primary" @onclick="SaveScenario" disabled="@(!CanSave || isSaving)">
+                    @if (isSaving)
+                    {
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>@(saveAsDraft ? "Save Draft" : "Save Scenario")</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    [Parameter] public K8sSizingInput? K8sInput { get; set; }
+    [Parameter] public K8sSizingResult? K8sResult { get; set; }
+    [Parameter] public VMSizingInput? VMInput { get; set; }
+    [Parameter] public VMSizingResult? VMResult { get; set; }
+    [Parameter] public CostEstimate? CostEstimate { get; set; }
+
+    [Parameter] public EventCallback<Scenario> OnSaved { get; set; }
+
+    [Inject] private IScenarioService ScenarioService { get; set; } = default!;
+
+    private string scenarioName = string.Empty;
+    private string scenarioDescription = string.Empty;
+    private string tagsInput = string.Empty;
+    private bool isSaving = false;
+    private bool saveAsDraft = false;
+
+    private bool IsK8s => K8sResult != null;
+    private bool CanSave => !string.IsNullOrWhiteSpace(scenarioName) && (K8sResult != null || VMResult != null);
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && string.IsNullOrEmpty(scenarioName))
+        {
+            // Generate default name based on configuration
+            scenarioName = GenerateDefaultName();
+        }
+    }
+
+    private string GenerateDefaultName()
+    {
+        var timestamp = DateTime.Now.ToString("MMM dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+        if (IsK8s && K8sInput != null)
+        {
+            return $"{K8sInput.Distribution} - {K8sInput.Technology} - {timestamp}";
+        }
+        else if (VMInput != null)
+        {
+            return $"VM - {VMInput.Technology} - {timestamp}";
+        }
+        return $"Scenario - {timestamp}";
+    }
+
+    private async Task SaveScenario()
+    {
+        if (!CanSave || isSaving) return;
+
+        isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var tags = ParseTags(tagsInput);
+            Scenario saved;
+
+            if (IsK8s && K8sInput != null && K8sResult != null)
+            {
+                saved = await ScenarioService.SaveK8sScenarioAsync(
+                    scenarioName,
+                    K8sInput,
+                    K8sResult,
+                    CostEstimate,
+                    scenarioDescription,
+                    tags,
+                    saveAsDraft);
+            }
+            else if (VMInput != null && VMResult != null)
+            {
+                saved = await ScenarioService.SaveVMScenarioAsync(
+                    scenarioName,
+                    VMInput,
+                    VMResult,
+                    CostEstimate,
+                    scenarioDescription,
+                    tags,
+                    saveAsDraft);
+            }
+            else
+            {
+                return;
+            }
+
+            await OnSaved.InvokeAsync(saved);
+            await Close();
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private List<string> ParseTags(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return new List<string>();
+
+        return input
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Select(t => t.ToLowerInvariant())
+            .Distinct()
+            .Take(10) // Limit tags
+            .ToList();
+    }
+
+    private async Task Close()
+    {
+        scenarioName = string.Empty;
+        scenarioDescription = string.Empty;
+        tagsInput = string.Empty;
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private void HandleOverlayClick()
+    {
+        _ = Close();
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+}

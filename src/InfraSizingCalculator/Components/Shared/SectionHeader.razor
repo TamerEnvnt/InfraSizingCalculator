@@ -1,0 +1,18 @@
+@* Reusable section header with optional info button *@
+
+<div class="section-header @AdditionalClass">
+    <span class="section-title">@Title</span>
+    @if (ShowInfoButton)
+    {
+        <button class="info-btn" @onclick="OnInfoClick">?</button>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public bool ShowInfoButton { get; set; } = false;
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

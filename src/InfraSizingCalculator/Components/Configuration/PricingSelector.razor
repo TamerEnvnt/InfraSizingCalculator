@@ -1,0 +1,410 @@
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="pricing-selector @AdditionalClass">
+    <h4>@GetCostSectionTitle()</h4>
+
+    <div class="cloud-alternatives-note">
+        <span class="note-icon">💡</span>
+        <span class="note-text">
+            Compare costs across all cloud providers and on-premises to find the best option for your workload.
+        </span>
+    </div>
+
+    <div class="pricing-options">
+        <div class="option-group">
+            <label>Cloud Provider / Deployment</label>
+            <select @bind="SelectedProvider" @bind:after="OnProviderChanged">
+                @if (IsOpenShiftDistribution)
+                {
+                    <optgroup label="Managed OpenShift Services">
+                        <option value="@CloudProvider.ROSA">ROSA (Red Hat OpenShift on AWS)</option>
+                        <option value="@CloudProvider.ARO">ARO (Azure Red Hat OpenShift)</option>
+                        <option value="@CloudProvider.OSD">OSD (OpenShift Dedicated on GCP)</option>
+                        <option value="@CloudProvider.ROKS">ROKS (Red Hat OpenShift on IBM)</option>
+                    </optgroup>
+                }
+                <optgroup label="Major Cloud Providers">
+                    <option value="@CloudProvider.AWS">AWS (EKS / EC2)</option>
+                    <option value="@CloudProvider.Azure">Azure (AKS / VMs)</option>
+                    <option value="@CloudProvider.GCP">Google Cloud (GKE / GCE)</option>
+                    <option value="@CloudProvider.OCI">Oracle Cloud (OKE / VMs)</option>
+                    <option value="@CloudProvider.IBM">IBM Cloud (IKS)</option>
+                    <option value="@CloudProvider.Alibaba">Alibaba Cloud (ACK)</option>
+                    <option value="@CloudProvider.Tencent">Tencent Cloud (TKE)</option>
+                    <option value="@CloudProvider.Huawei">Huawei Cloud (CCE)</option>
+                </optgroup>
+                <optgroup label="Developer-Friendly Clouds">
+                    <option value="@CloudProvider.DigitalOcean">DigitalOcean (DOKS)</option>
+                    <option value="@CloudProvider.Linode">Linode / Akamai (LKE)</option>
+                    <option value="@CloudProvider.Vultr">Vultr (VKE)</option>
+                    <option value="@CloudProvider.Hetzner">Hetzner Cloud</option>
+                    <option value="@CloudProvider.OVH">OVHcloud</option>
+                    <option value="@CloudProvider.Scaleway">Scaleway (Kapsule)</option>
+                    <option value="@CloudProvider.Civo">Civo Cloud</option>
+                    <option value="@CloudProvider.Exoscale">Exoscale (SKS)</option>
+                </optgroup>
+                @if (!IsCloudAlternativeMode)
+                {
+                    <optgroup label="On-Premises">
+                        <option value="@CloudProvider.OnPrem">On-Premises (Self-Managed)</option>
+                    </optgroup>
+                }
+            </select>
+        </div>
+
+        @if (SelectedProvider != CloudProvider.OnPrem)
+        {
+            <div class="option-group">
+                <label>Region</label>
+                <select @bind="SelectedRegion">
+                    @foreach (var region in AvailableRegions)
+                    {
+                        <option value="@region.Code">@region.DisplayName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label>Pricing Type</label>
+                <select @bind="Options.PricingType">
+                    <option value="@PricingType.OnDemand">On-Demand</option>
+                    <option value="@PricingType.Reserved1Year">1-Year Reserved</option>
+                    <option value="@PricingType.Reserved3Year">3-Year Reserved</option>
+                    <option value="@PricingType.Spot">Spot/Preemptible</option>
+                </select>
+            </div>
+        }
+
+        <div class="option-group">
+            <label>Support Tier</label>
+            <select @bind="Options.SupportTier">
+                <option value="@SupportTier.None">None</option>
+                <option value="@SupportTier.Basic">Basic</option>
+                <option value="@SupportTier.Developer">Developer</option>
+                <option value="@SupportTier.Business">Business</option>
+                <option value="@SupportTier.Enterprise">Enterprise</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="pricing-toggles">
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Options.IncludeLicenses" />
+                Include Licenses
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Options.IncludeSupport" />
+                Include Support
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Options.IncludeStorage" />
+                Include Storage
+            </label>
+        </div>
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Options.IncludeNetwork" />
+                Include Network
+            </label>
+        </div>
+        @if (SelectedProvider != CloudProvider.OnPrem)
+        {
+            <div class="toggle-group">
+                <label>
+                    <input type="checkbox" @bind="Options.IncludeManagedControlPlane" />
+                    Include Managed Control Plane
+                </label>
+            </div>
+        }
+    </div>
+
+    <div class="pricing-advanced">
+        <details>
+            <summary>Advanced Options</summary>
+            <div class="advanced-options">
+                <div class="option-group">
+                    <label>Storage GB per Node</label>
+                    <input type="number" @bind="Options.StorageGBPerNode" min="10" max="10000" />
+                </div>
+                <div class="option-group">
+                    <label>Monthly Egress (GB)</label>
+                    <input type="number" @bind="Options.MonthlyEgressGB" min="0" max="100000" />
+                </div>
+                <div class="option-group">
+                    <label>Load Balancers</label>
+                    <input type="number" @bind="Options.LoadBalancers" min="0" max="100" />
+                </div>
+                <div class="option-group">
+                    <label>Headroom %</label>
+                    <input type="number" @bind="Options.HeadroomPercent" min="0" max="100" />
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="pricing-actions">
+        <button class="btn btn-primary" @onclick="CalculateCosts" disabled="@IsCalculating">
+            @if (IsCalculating)
+            {
+                <span>Calculating...</span>
+            }
+            else
+            {
+                <span>Calculate Costs</span>
+            }
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CostEstimationOptions Options { get; set; } = new();
+    [Parameter] public EventCallback<(CloudProvider, string, CostEstimationOptions)> OnCalculate { get; set; }
+    [Parameter] public string? Distribution { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    [Inject] private IPricingService PricingService { get; set; } = default!;
+
+    private CloudProvider SelectedProvider { get; set; } = CloudProvider.AWS;
+    private string SelectedRegion { get; set; } = "us-east-1";
+    private List<RegionInfo> AvailableRegions { get; set; } = new();
+    private bool IsCalculating { get; set; }
+    private string? _lastDistribution; // Track distribution changes
+    private bool _initialized = false;
+
+    // Cloud alternatives for on-prem distributions
+    private static readonly Dictionary<string, List<(CloudProvider Provider, string Name, string ServiceName)>> CloudAlternativesMap = new()
+    {
+        ["OPENSHIFT"] = new() {
+            (CloudProvider.AWS, "ROSA (AWS)", "Red Hat OpenShift on AWS"),
+            (CloudProvider.Azure, "ARO (Azure)", "Azure Red Hat OpenShift"),
+            (CloudProvider.GCP, "OpenShift on GCP", "OpenShift Dedicated on GCP")
+        },
+        ["RANCHER"] = new() {
+            (CloudProvider.AWS, "EKS + Rancher", "Amazon EKS with Rancher"),
+            (CloudProvider.Azure, "AKS + Rancher", "Azure AKS with Rancher"),
+            (CloudProvider.GCP, "GKE + Rancher", "Google GKE with Rancher")
+        },
+        ["RKE2"] = new() {
+            (CloudProvider.AWS, "EKS (AWS)", "Amazon EKS - Managed K8s"),
+            (CloudProvider.Azure, "AKS (Azure)", "Azure Kubernetes Service"),
+            (CloudProvider.GCP, "GKE (GCP)", "Google Kubernetes Engine")
+        },
+        ["K3S"] = new() {
+            (CloudProvider.AWS, "EKS (AWS)", "Amazon EKS - Managed K8s"),
+            (CloudProvider.Azure, "AKS (Azure)", "Azure Kubernetes Service"),
+            (CloudProvider.GCP, "GKE (GCP)", "Google Kubernetes Engine")
+        },
+        ["KUBERNETES"] = new() {
+            (CloudProvider.AWS, "EKS (AWS)", "Amazon EKS - Managed K8s"),
+            (CloudProvider.Azure, "AKS (Azure)", "Azure Kubernetes Service"),
+            (CloudProvider.GCP, "GKE (GCP)", "Google Kubernetes Engine"),
+            (CloudProvider.OCI, "OKE (Oracle)", "Oracle Container Engine")
+        },
+        ["TANZU"] = new() {
+            (CloudProvider.AWS, "Tanzu on AWS", "VMware Tanzu on AWS"),
+            (CloudProvider.Azure, "Tanzu on Azure", "VMware Tanzu on Azure")
+        },
+        ["CHARMED"] = new() {
+            (CloudProvider.AWS, "EKS (AWS)", "Amazon EKS - Managed K8s"),
+            (CloudProvider.Azure, "AKS (Azure)", "Azure Kubernetes Service"),
+            (CloudProvider.GCP, "GKE (GCP)", "Google Kubernetes Engine")
+        },
+        ["MICROK8S"] = new() {
+            (CloudProvider.AWS, "EKS (AWS)", "Amazon EKS - Managed K8s"),
+            (CloudProvider.Azure, "AKS (Azure)", "Azure Kubernetes Service"),
+            (CloudProvider.GCP, "GKE (GCP)", "Google Kubernetes Engine")
+        }
+    };
+
+    private bool IsOnPremDistribution => !string.IsNullOrEmpty(Distribution) &&
+        new[] { "OPENSHIFT", "RANCHER", "RKE2", "K3S", "TANZU", "CHARMED", "KUBERNETES", "MICROK8S" }
+            .Contains(Distribution.ToUpperInvariant());
+
+    private bool IsOpenShiftDistribution => !string.IsNullOrEmpty(Distribution) &&
+        Distribution.ToUpperInvariant().Contains("OPENSHIFT");
+
+    private bool HasCloudAlternatives => !string.IsNullOrEmpty(Distribution) &&
+        CloudAlternativesMap.ContainsKey(Distribution.ToUpperInvariant());
+
+    private bool IsCloudAlternativeMode => AdditionalClass?.Contains("cloud-alternative") == true;
+
+    protected override void OnInitialized()
+    {
+        Options.Distribution = Distribution;
+        _lastDistribution = Distribution;
+
+        // For cloud alternative selector, always default to AWS (not OnPrem)
+        if (AdditionalClass?.Contains("cloud-alternative") == true)
+        {
+            SelectedProvider = CloudProvider.AWS;
+        }
+        else
+        {
+            AutoSelectProviderFromDistribution();
+        }
+
+        LoadRegions();
+        _initialized = true;
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Only reset provider/region when distribution actually changes
+        // This preserves user selections during re-renders
+        if (_initialized && Distribution != _lastDistribution)
+        {
+            _lastDistribution = Distribution;
+            Options.Distribution = Distribution;
+            AutoSelectProviderFromDistribution();
+            LoadRegions();
+        }
+    }
+
+    private string GetCostSectionTitle()
+    {
+        return SelectedProvider == CloudProvider.OnPrem
+            ? "On-Premises Cost Estimation"
+            : $"{GetProviderDisplayName(SelectedProvider)} Cost Estimation";
+    }
+
+    private static string GetProviderDisplayName(CloudProvider provider)
+    {
+        return provider switch
+        {
+            CloudProvider.AWS => "AWS",
+            CloudProvider.Azure => "Azure",
+            CloudProvider.GCP => "Google Cloud",
+            CloudProvider.OCI => "Oracle Cloud",
+            CloudProvider.IBM => "IBM Cloud",
+            CloudProvider.Alibaba => "Alibaba Cloud",
+            CloudProvider.Tencent => "Tencent Cloud",
+            CloudProvider.Huawei => "Huawei Cloud",
+            CloudProvider.DigitalOcean => "DigitalOcean",
+            CloudProvider.Linode => "Linode",
+            CloudProvider.Vultr => "Vultr",
+            CloudProvider.Hetzner => "Hetzner",
+            CloudProvider.OVH => "OVHcloud",
+            CloudProvider.Scaleway => "Scaleway",
+            CloudProvider.OnPrem => "On-Premises",
+            _ => provider.ToString()
+        };
+    }
+
+    private List<(CloudProvider Provider, string Name)> GetCloudAlternatives()
+    {
+        var distUpper = Distribution?.ToUpperInvariant() ?? "";
+        if (CloudAlternativesMap.TryGetValue(distUpper, out var alternatives))
+        {
+            return alternatives.Select(a => (a.Provider, a.Name)).ToList();
+        }
+        // Default cloud options for any on-prem distribution
+        return new List<(CloudProvider, string)>
+        {
+            (CloudProvider.AWS, "AWS"),
+            (CloudProvider.Azure, "Azure"),
+            (CloudProvider.GCP, "GCP")
+        };
+    }
+
+    private void AutoSelectProviderFromDistribution()
+    {
+        if (string.IsNullOrEmpty(Distribution)) return;
+
+        // Map distribution/technology to cloud provider
+        var distUpper = Distribution.ToUpperInvariant();
+
+        SelectedProvider = distUpper switch
+        {
+            // Major cloud managed K8s
+            "EKS" => CloudProvider.AWS,
+            "AKS" => CloudProvider.Azure,
+            "GKE" => CloudProvider.GCP,
+            "OKE" => CloudProvider.OCI,
+            "IKS" => CloudProvider.IBM,
+            "ACK" => CloudProvider.Alibaba,
+            "TKE" => CloudProvider.Tencent,
+            "CCE" => CloudProvider.Huawei,
+
+            // Developer-friendly cloud managed K8s
+            "DOKS" => CloudProvider.DigitalOcean,
+            "LKE" => CloudProvider.Linode,
+            "VKE" => CloudProvider.Vultr,
+            "HETZNERK8S" => CloudProvider.Hetzner,
+            "OVHKUBERNETES" => CloudProvider.OVH,
+            "SCALEWAYKAPSULE" => CloudProvider.Scaleway,
+
+            // OpenShift cloud variants
+            "OPENSHIFTROSA" => CloudProvider.AWS,
+            "OPENSHIFTARO" => CloudProvider.Azure,
+            "OPENSHIFTDEDICATED" => CloudProvider.GCP,
+            "OPENSHIFTIBM" => CloudProvider.IBM,
+
+            // Rancher cloud variants
+            "RANCHEREKS" => CloudProvider.AWS,
+            "RANCHERAKS" => CloudProvider.Azure,
+            "RANCHERGKE" => CloudProvider.GCP,
+            "RANCHERHOSTED" => CloudProvider.AWS, // Default to AWS
+
+            // Tanzu cloud variants
+            "TANZUAWS" => CloudProvider.AWS,
+            "TANZUAZURE" => CloudProvider.Azure,
+            "TANZUGCP" => CloudProvider.GCP,
+
+            // On-prem distributions - default to OnPrem
+            "OPENSHIFT" => CloudProvider.OnPrem,
+            "RANCHER" => CloudProvider.OnPrem,
+            "RKE2" => CloudProvider.OnPrem,
+            "K3S" => CloudProvider.OnPrem,
+            "TANZU" => CloudProvider.OnPrem,
+            "CHARMED" => CloudProvider.OnPrem,
+            "KUBERNETES" => CloudProvider.OnPrem,
+            "MICROK8S" => CloudProvider.OnPrem,
+
+            // Low-code platforms - use AWS as default
+            "MENDIX" => CloudProvider.AWS,
+            "OUTSYSTEMS" => CloudProvider.AWS,
+
+            // Default to AWS for unknown
+            _ => CloudProvider.AWS
+        };
+    }
+
+    private void OnProviderChanged()
+    {
+        LoadRegions();
+    }
+
+    private void LoadRegions()
+    {
+        if (SelectedProvider == CloudProvider.OnPrem)
+        {
+            AvailableRegions = new List<RegionInfo>();
+            SelectedRegion = "on-prem";
+        }
+        else
+        {
+            AvailableRegions = PricingService.GetRegions(SelectedProvider);
+            var preferred = AvailableRegions.FirstOrDefault(r => r.IsPreferred);
+            SelectedRegion = preferred?.Code ?? AvailableRegions.FirstOrDefault()?.Code ?? "";
+        }
+    }
+
+    private async Task CalculateCosts()
+    {
+        IsCalculating = true;
+        try
+        {
+            await OnCalculate.InvokeAsync((SelectedProvider, SelectedRegion, Options));
+        }
+        finally
+        {
+            IsCalculating = false;
+        }
+    }
+}

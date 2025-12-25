@@ -1,0 +1,268 @@
+@using InfraSizingCalculator.Models.Growth
+
+<div class="growth-settings-panel @AdditionalClass">
+    <h4>Growth Planning Settings</h4>
+
+    <div class="growth-options">
+        <div class="option-group">
+            <label>Projection Period</label>
+            <select @bind="Settings.ProjectionYears" @bind:after="OnSettingsChanged">
+                <option value="1">1 Year</option>
+                <option value="3">3 Years</option>
+                <option value="5">5 Years</option>
+            </select>
+        </div>
+
+        <div class="option-group">
+            <label>Annual Growth Rate (%)</label>
+            <div class="slider-input">
+                <input type="range" min="0" max="100" step="5" @bind="Settings.AnnualGrowthRate" @bind:after="OnSettingsChanged" />
+                <input type="number" min="0" max="200" @bind="Settings.AnnualGrowthRate" @bind:after="OnSettingsChanged" class="slider-value" />
+            </div>
+        </div>
+
+        <div class="option-group">
+            <label>Growth Pattern</label>
+            <select @bind="Settings.Pattern" @bind:after="OnSettingsChanged">
+                <option value="@GrowthPattern.Linear">Linear</option>
+                <option value="@GrowthPattern.Exponential">Exponential (Compound)</option>
+                <option value="@GrowthPattern.SCurve">S-Curve</option>
+            </select>
+            <span class="pattern-hint">@GetPatternHint()</span>
+        </div>
+    </div>
+
+    <div class="growth-toggles">
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Settings.IncludeCostProjections" @bind:after="OnSettingsChanged" />
+                Include Cost Projections
+            </label>
+        </div>
+        @if (Settings.IncludeCostProjections)
+        {
+            <div class="option-group nested">
+                <label>Annual Cost Inflation (%)</label>
+                <input type="number" min="0" max="20" step="0.5" @bind="Settings.AnnualCostInflation" @bind:after="OnSettingsChanged" />
+            </div>
+        }
+        <div class="toggle-group">
+            <label>
+                <input type="checkbox" @bind="Settings.ShowClusterLimitWarnings" @bind:after="OnSettingsChanged" />
+                Show Cluster Limit Warnings
+            </label>
+        </div>
+    </div>
+
+    <div class="growth-actions">
+        <button class="btn btn-primary" @onclick="Calculate" disabled="@IsCalculating">
+            @if (IsCalculating)
+            {
+                <span>Calculating...</span>
+            }
+            else
+            {
+                <span>Calculate Projection</span>
+            }
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public GrowthSettings Settings { get; set; } = new();
+    [Parameter] public EventCallback<GrowthSettings> OnCalculate { get; set; }
+    [Parameter] public EventCallback<GrowthSettings> SettingsChanged { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private bool IsCalculating { get; set; }
+
+    private string GetPatternHint()
+    {
+        return Settings.Pattern switch
+        {
+            GrowthPattern.Linear => "Same absolute increase each year",
+            GrowthPattern.Exponential => "Percentage-based compound growth",
+            GrowthPattern.SCurve => "Slow start, rapid middle, plateau end",
+            GrowthPattern.Custom => "Define rates for each year",
+            _ => ""
+        };
+    }
+
+    private async Task OnSettingsChanged()
+    {
+        await SettingsChanged.InvokeAsync(Settings);
+    }
+
+    private async Task Calculate()
+    {
+        IsCalculating = true;
+        try
+        {
+            await OnCalculate.InvokeAsync(Settings);
+        }
+        finally
+        {
+            IsCalculating = false;
+        }
+    }
+}
+
+<style>
+    .growth-settings-panel {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .growth-settings-panel h4 {
+        margin: 0 0 1.5rem 0;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .growth-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .option-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 180px;
+        flex: 1;
+    }
+
+    .option-group.nested {
+        margin-left: 1.5rem;
+        padding-left: 1rem;
+        border-left: 2px solid var(--border-color);
+    }
+
+    .option-group label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .option-group select,
+    .option-group input[type="number"] {
+        padding: 0.6rem 0.75rem;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-tertiary, #13151a);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .option-group select:focus,
+    .option-group input:focus {
+        outline: none;
+        border-color: var(--accent-blue, #3b82f6);
+    }
+
+    .slider-input {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .slider-input input[type="range"] {
+        flex: 1;
+        height: 6px;
+        appearance: none;
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .slider-input input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent-blue, #3b82f6);
+        cursor: pointer;
+    }
+
+    .slider-value {
+        width: 70px;
+        text-align: center;
+    }
+
+    .pattern-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .growth-toggles {
+        border-top: 1px solid var(--border-color);
+        padding-top: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .toggle-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .toggle-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .toggle-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--accent-blue, #3b82f6);
+    }
+
+    .growth-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--accent-blue, #3b82f6);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--accent-blue-hover, #2563eb);
+        filter: brightness(1.1);
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Light theme adjustments */
+    [data-theme="light"] .growth-settings-panel {
+        background: #fff;
+        border: 1px solid var(--border-color);
+    }
+</style>

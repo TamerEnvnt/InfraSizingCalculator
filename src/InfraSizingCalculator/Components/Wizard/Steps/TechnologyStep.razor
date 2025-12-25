@@ -1,0 +1,45 @@
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+@* Step 3: Technology Selection *@
+
+<SectionHeader Title="Select Technology" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
+
+<div class="tech-grid">
+    @foreach (var tech in Technologies)
+    {
+        <div class="tech-card @(SelectedTechnology == tech.Technology ? "selected" : "")"
+             style="--brand-color: @tech.BrandColor"
+             @onclick="() => OnTechnologySelected(tech.Technology)">
+            <div class="tech-header">
+                <div class="tech-logo" style="color: @tech.BrandColor">@tech.Icon</div>
+                <div>
+                    <div class="tech-name">@tech.Name</div>
+                    <div class="tech-vendor">@tech.Vendor</div>
+                </div>
+            </div>
+            <div class="tech-desc">@tech.Description</div>
+            <div class="tech-tags">
+                <span class="tech-tag @(tech.IsLowCode ? "lowcode" : "native")">
+                    @(tech.IsLowCode ? "Low-Code" : "Native")
+                </span>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Technology? SelectedTechnology { get; set; }
+    [Parameter] public IEnumerable<TechnologyConfig> Technologies { get; set; } = Enumerable.Empty<TechnologyConfig>();
+    [Parameter] public EventCallback<Technology> OnTechnologyChange { get; set; }
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+
+    private async Task OnTechnologySelected(Technology technology)
+    {
+        if (OnTechnologyChange.HasDelegate)
+        {
+            await OnTechnologyChange.InvokeAsync(technology);
+        }
+    }
+}

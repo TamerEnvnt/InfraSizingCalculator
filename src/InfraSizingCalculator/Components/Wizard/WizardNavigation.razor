@@ -1,0 +1,48 @@
+@* Wizard navigation buttons (Back/Next/Calculate) *@
+
+<div class="wizard-navigation @AdditionalClass">
+    @if (ShowBackButton)
+    {
+        <button class="wizard-btn back" @onclick="OnBack" disabled="@(!CanGoBack)">
+            ← Back
+        </button>
+    }
+    else
+    {
+        <div></div>
+    }
+
+    @if (IsLastStep)
+    {
+        <button class="wizard-btn primary" @onclick="OnCalculate" disabled="@(!CanProceed)">
+            @if (IsCalculating)
+            {
+                <span class="btn-spinner"></span>
+                <span>Calculating...</span>
+            }
+            else
+            {
+                <span>@CalculateButtonText</span>
+            }
+        </button>
+    }
+    else
+    {
+        <button class="wizard-btn primary" @onclick="OnNext" disabled="@(!CanProceed)">
+            Next →
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public bool ShowBackButton { get; set; } = true;
+    [Parameter] public bool CanGoBack { get; set; } = true;
+    [Parameter] public bool CanProceed { get; set; } = false;
+    [Parameter] public bool IsLastStep { get; set; } = false;
+    [Parameter] public bool IsCalculating { get; set; } = false;
+    [Parameter] public string CalculateButtonText { get; set; } = "Calculate Sizing";
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnCalculate { get; set; }
+}

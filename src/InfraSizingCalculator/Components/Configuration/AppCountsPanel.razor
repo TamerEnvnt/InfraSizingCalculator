@@ -1,0 +1,202 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+@* Application counts input panel for K8s configuration *@
+
+<div class="app-counts-panel @AdditionalClass">
+    <!-- Mode Description Banner -->
+    <div class="mode-description-banner @BannerClass">
+        <span class="banner-icon">@ModeIcon</span>
+        <div class="banner-content">
+            <strong>@ModeTitle</strong>
+            <span>@ModeDescription</span>
+        </div>
+    </div>
+
+    @if (ClusterMode == ClusterMode.MultiCluster)
+    {
+        <!-- Multi-Cluster Mode -->
+        <div class="multi-cluster-config">
+            <div class="apps-table-header">
+                <div class="env-col">Cluster</div>
+                <div class="tier-col">Small</div>
+                <div class="tier-col">Medium</div>
+                <div class="tier-col">Large</div>
+                <div class="tier-col">XLarge</div>
+            </div>
+
+            <!-- Production Clusters -->
+            <div class="cluster-group prod">
+                <div class="group-label">🔒 Production Clusters</div>
+                @foreach (var env in new[] { EnvironmentType.Prod, EnvironmentType.DR })
+                {
+                    <div class="cluster-row @(IsEnvironmentEnabled(env) ? "" : "disabled")">
+                        <div class="env-col">
+                            <label class="env-checkbox">
+                                <input type="checkbox" checked="@IsEnvironmentEnabled(env)"
+                                       disabled="@(env == EnvironmentType.Prod)"
+                                       @onchange="e => ToggleEnvironment(env, (bool)e.Value!)" />
+                                <span class="cluster-name">@env Cluster</span>
+                            </label>
+                        </div>
+                        @foreach (var tier in new[] { AppTier.Small, AppTier.Medium, AppTier.Large, AppTier.XLarge })
+                        {
+                            <div class="tier-col">
+                                <input type="number" min="0"
+                                       value="@GetEnvApps(env, tier)"
+                                       disabled="@(!IsEnvironmentEnabled(env))"
+                                       @onchange="e => SetEnvApps(env, tier, ParseInt(e.Value))" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Non-Production Clusters -->
+            <div class="cluster-group nonprod">
+                <div class="group-label">📊 Non-Production Clusters</div>
+                @foreach (var env in new[] { EnvironmentType.Dev, EnvironmentType.Test, EnvironmentType.Stage })
+                {
+                    <div class="cluster-row @(IsEnvironmentEnabled(env) ? "" : "disabled")">
+                        <div class="env-col">
+                            <label class="env-checkbox">
+                                <input type="checkbox" checked="@IsEnvironmentEnabled(env)"
+                                       @onchange="e => ToggleEnvironment(env, (bool)e.Value!)" />
+                                <span class="cluster-name">@env Cluster</span>
+                            </label>
+                        </div>
+                        @foreach (var tier in new[] { AppTier.Small, AppTier.Medium, AppTier.Large, AppTier.XLarge })
+                        {
+                            <div class="tier-col">
+                                <input type="number" min="0"
+                                       value="@GetEnvApps(env, tier)"
+                                       disabled="@(!IsEnvironmentEnabled(env))"
+                                       @onchange="e => SetEnvApps(env, tier, ParseInt(e.Value))" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Single Cluster / Shared Mode -->
+        <div class="shared-cluster-config">
+            <div class="shared-cluster-header">
+                <span class="cluster-icon">☸️</span>
+                <span class="cluster-title">@(IsSharedCluster ? "Single Shared Cluster" : $"{SingleEnvironment} Cluster")</span>
+                @if (IsSharedCluster)
+                {
+                    <span class="cluster-subtitle">All environments as namespaces</span>
+                }
+            </div>
+
+            <div class="namespaces-table">
+                <div class="apps-table-header">
+                    <div class="env-col">@(IsSharedCluster ? "Namespace" : "Environment")</div>
+                    <div class="tier-col">Small</div>
+                    <div class="tier-col">Medium</div>
+                    <div class="tier-col">Large</div>
+                    <div class="tier-col">XLarge</div>
+                </div>
+
+                @foreach (var env in GetVisibleEnvironments())
+                {
+                    <div class="namespace-row @(IsEnvironmentEnabled(env) ? "" : "disabled") @(IsProdEnvironment(env) ? "prod-ns" : "nonprod-ns")">
+                        <div class="env-col">
+                            <label class="env-checkbox">
+                                <input type="checkbox" checked="@IsEnvironmentEnabled(env)"
+                                       disabled="@(env == EnvironmentType.Prod)"
+                                       @onchange="e => ToggleEnvironment(env, (bool)e.Value!)" />
+                                <span class="namespace-name">@(IsSharedCluster ? $"ns-{env.ToString().ToLower()}" : env.ToString())</span>
+                            </label>
+                        </div>
+                        @foreach (var tier in new[] { AppTier.Small, AppTier.Medium, AppTier.Large, AppTier.XLarge })
+                        {
+                            <div class="tier-col">
+                                <input type="number" min="0"
+                                       value="@GetEnvApps(env, tier)"
+                                       disabled="@(!IsEnvironmentEnabled(env))"
+                                       @onchange="e => SetEnvApps(env, tier, ParseInt(e.Value))" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ClusterMode ClusterMode { get; set; } = ClusterMode.MultiCluster;
+    [Parameter] public string SingleClusterScope { get; set; } = "Shared";
+    [Parameter] public Dictionary<EnvironmentType, AppConfig> EnvApps { get; set; } = new();
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public EventCallback<(EnvironmentType env, bool enabled)> OnEnvironmentToggled { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType env, AppTier tier, int count)> OnAppCountChanged { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private bool IsSharedCluster => SingleClusterScope == "Shared";
+    private EnvironmentType SingleEnvironment => SingleClusterScope switch
+    {
+        "Dev" => EnvironmentType.Dev,
+        "Test" => EnvironmentType.Test,
+        "Stage" => EnvironmentType.Stage,
+        "Prod" => EnvironmentType.Prod,
+        "DR" => EnvironmentType.DR,
+        _ => EnvironmentType.Prod
+    };
+
+    private string BannerClass => ClusterMode == ClusterMode.MultiCluster ? "multi" : (IsSharedCluster ? "shared" : "single");
+    private string ModeIcon => ClusterMode == ClusterMode.MultiCluster ? "🌐" : (IsSharedCluster ? "🔗" : "🎯");
+    private string ModeTitle => ClusterMode == ClusterMode.MultiCluster ? "Multi-Cluster Mode" : (IsSharedCluster ? "Shared Cluster" : $"{SingleClusterScope} Cluster Only");
+    private string ModeDescription => ClusterMode == ClusterMode.MultiCluster
+        ? "Each environment gets its own dedicated cluster with separate control plane and workers."
+        : (IsSharedCluster
+            ? "One cluster hosting all environments, isolated by namespaces. Shared control plane and infrastructure."
+            : $"Sizing for a single {SingleClusterScope} environment cluster.");
+
+    private bool IsEnvironmentEnabled(EnvironmentType env) => EnabledEnvironments.Contains(env);
+    private bool IsProdEnvironment(EnvironmentType env) => env == EnvironmentType.Prod || env == EnvironmentType.DR;
+
+    private IEnumerable<EnvironmentType> GetVisibleEnvironments()
+    {
+        if (IsSharedCluster)
+        {
+            return new[] { EnvironmentType.Dev, EnvironmentType.Test, EnvironmentType.Stage, EnvironmentType.Prod, EnvironmentType.DR };
+        }
+        return new[] { SingleEnvironment };
+    }
+
+    private int GetEnvApps(EnvironmentType env, AppTier tier)
+    {
+        if (!EnvApps.TryGetValue(env, out var config)) return 0;
+        return tier switch
+        {
+            AppTier.Small => config.Small,
+            AppTier.Medium => config.Medium,
+            AppTier.Large => config.Large,
+            AppTier.XLarge => config.XLarge,
+            _ => 0
+        };
+    }
+
+    private async Task ToggleEnvironment(EnvironmentType env, bool enabled)
+    {
+        if (OnEnvironmentToggled.HasDelegate)
+        {
+            await OnEnvironmentToggled.InvokeAsync((env, enabled));
+        }
+    }
+
+    private async Task SetEnvApps(EnvironmentType env, AppTier tier, int count)
+    {
+        if (OnAppCountChanged.HasDelegate)
+        {
+            await OnAppCountChanged.InvokeAsync((env, tier, count));
+        }
+    }
+
+    private static int ParseInt(object? value) => int.TryParse(value?.ToString(), out var result) ? result : 0;
+}

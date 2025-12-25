@@ -1,0 +1,15 @@
+@* Reusable loading spinner component *@
+
+<div class="loading-container @AdditionalClass">
+    <div class="loading-spinner @Size"></div>
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <span class="loading-message">@Message</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string Size { get; set; } = "medium"; // small, medium, large
+    [Parameter] public string? AdditionalClass { get; set; }
+}

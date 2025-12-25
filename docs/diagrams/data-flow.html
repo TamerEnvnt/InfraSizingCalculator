@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Flow Diagram - Infrastructure Sizing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: #fff;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #667eea, #764ba2, #48bb78);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 50px;
+        }
+        .flow-section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        .k8s-flow .section-icon { background: linear-gradient(135deg, #326CE5, #4285F4); }
+        .vm-flow .section-icon { background: linear-gradient(135deg, #ed8936, #f6ad55); }
+
+        .flow-diagram {
+            display: flex;
+            align-items: stretch;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        .flow-step {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            min-width: 280px;
+            max-width: 320px;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            flex-shrink: 0;
+        }
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #667eea;
+        }
+        .flow-step:last-child::after {
+            display: none;
+        }
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .step-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .step-subtitle {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .step-content {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .data-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .data-item {
+            background: rgba(255,255,255,0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .data-item-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+        .highlight-box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .highlight-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        .business-rules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .rule-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .rule-id {
+            font-size: 0.75rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .rule-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Export Section */
+        .export-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .export-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .export-formats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .format-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .format-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+        .format-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        .format-icon svg {
+            width: 30px;
+            height: 30px;
+        }
+        .format-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .format-ext {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Flow Diagram</h1>
+        <p class="subtitle">Complete data flow from user input to export for Kubernetes and VM sizing calculations</p>
+
+        <!-- Kubernetes Flow -->
+        <div class="flow-section k8s-flow">
+            <div class="section-title">
+                <div class="section-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 0L1 6v12l11 6 11-6V6L12 0zm0 2.18l8 4.37v8.9l-8 4.37-8-4.37v-8.9l8-4.37z"/></svg>
+                </div>
+                Kubernetes Sizing Flow
+            </div>
+
+            <div class="flow-diagram">
+                <!-- Step 1: User Input -->
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#667eea"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">User Input</div>
+                            <div class="step-subtitle">Wizard Interface</div>
+                        </div>
+                    </div>
+                    <div class="step-content">User provides sizing parameters through the wizard:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><circle cx="12" cy="12" r="10"/></svg>
+                            Distribution (11 options)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            Technology (6 options)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5z"/></svg>
+                            Cluster Mode
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                            Applications per Tier
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Build K8sSizingInput -->
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#764ba2"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Build Input Model</div>
+                            <div class="step-subtitle">K8sSizingInput</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Construct the input object with all parameters:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#326CE5"><circle cx="12" cy="12" r="10"/></svg>
+                            DistributionConfig
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            TechnologyConfig + TierSpecs
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                            AppConfig per Environment
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                            NodeSpecs overrides
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: K8sSizingService -->
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#326CE5"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.18l6 3.27v6.09l-6 3.27-6-3.27V7.45l6-3.27z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Calculate Sizing</div>
+                            <div class="step-subtitle">K8sSizingService</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Apply business rules to calculate node requirements:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            BR-M001-M004: Master nodes
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            BR-I001-I006: Infra nodes
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            BR-W001-W006: Worker nodes
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            BR-H001-H003: Headroom
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Generate Result -->
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#48bb78"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Generate Result</div>
+                            <div class="step-subtitle">K8sSizingResult</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Build comprehensive result object:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            EnvironmentResult per env
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                            Node counts & specs
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                            Total resources (CPU/RAM)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            Warnings & validations
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Display & Export -->
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#764ba2"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Display & Export</div>
+                            <div class="step-subtitle">ExportService</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Present results and enable export:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+                            Summary cards
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg>
+                            Detailed tables
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            CSV / JSON / Excel
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                            HTML Diagram
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VM Flow -->
+        <div class="flow-section vm-flow">
+            <div class="section-title">
+                <div class="section-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                Virtual Machine Sizing Flow
+            </div>
+
+            <div class="flow-diagram">
+                <!-- Step 1: User Input -->
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#ed8936"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">User Input</div>
+                            <div class="step-subtitle">Wizard Interface</div>
+                        </div>
+                    </div>
+                    <div class="step-content">User provides VM sizing parameters:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            Technology (5 + OutSystems)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
+                            Environment(s)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                            Server roles per env
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99z"/></svg>
+                            HA pattern selection
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Build VMSizingInput -->
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#f6ad55"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Build Input Model</div>
+                            <div class="step-subtitle">VMSizingInput</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Construct the VM input object:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            TechnologyConfig + VMRoles
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
+                            EnvironmentConfig[]
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                            Role counts per env
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            Spec overrides
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: VMSizingService -->
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#ed8936"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Calculate Sizing</div>
+                            <div class="step-subtitle">VMSizingService</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Apply technology-specific rules:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            Standard roles (App, DB, Web)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#FF4F1F"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            OutSystems roles
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            HA pattern (Active-Passive/Active)
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+                            MaxInstances constraints
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Generate Result -->
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#48bb78"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Generate Result</div>
+                            <div class="step-subtitle">VMSizingResult</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Build VM sizing result:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+                            ServerResult per role
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
+                            Per-environment breakdown
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                            Total VM count & specs
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#f56565"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            Constraint warnings
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Display & Export -->
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-header">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="#f6ad55"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        </div>
+                        <div>
+                            <div class="step-title">Display & Export</div>
+                            <div class="step-subtitle">ExportService</div>
+                        </div>
+                    </div>
+                    <div class="step-content">Present VM results and enable export:</div>
+                    <div class="data-items">
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#48bb78"><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+                            VM summary cards
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#667eea"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg>
+                            Role breakdown tables
+                        </div>
+                        <div class="data-item">
+                            <svg class="data-item-icon" viewBox="0 0 24 24" fill="#ed8936"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Export formats
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Rules Highlight -->
+        <div class="highlight-box">
+            <div class="highlight-title">Key Business Rules Applied</div>
+            <div class="business-rules">
+                <div class="rule-card">
+                    <div class="rule-id">BR-M001</div>
+                    <div class="rule-desc">Managed K8s (EKS, AKS, GKE, OKE) = 0 master nodes</div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-id">BR-M002</div>
+                    <div class="rule-desc">Self-managed with HA = 3 master nodes</div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-id">BR-I001</div>
+                    <div class="rule-desc">OpenShift only gets infrastructure nodes</div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-id">BR-W003</div>
+                    <div class="rule-desc">Min replicas: Prod=3, Stage=2, Others=1</div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-id">BR-H003-07</div>
+                    <div class="rule-desc">Default headroom: Prod/DR=37.5%, Dev/Test=33%, Stage=0%</div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-id">VM-001</div>
+                    <div class="rule-desc">OutSystems Controller MaxInstances = 1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Formats -->
+        <div class="export-section">
+            <div class="export-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#667eea"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Export Formats
+            </div>
+            <div class="export-formats">
+                <div class="format-card">
+                    <div class="format-icon">
+                        <svg viewBox="0 0 24 24" fill="#48bb78"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/></svg>
+                    </div>
+                    <div class="format-name">CSV</div>
+                    <div class="format-ext">Comma-separated values</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-icon">
+                        <svg viewBox="0 0 24 24" fill="#667eea"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 9h-2V9.5L9.5 11 8 9.5 11 6.5l3 3L12.5 11 11 9.5V11zm0 3H8v2h5v-2zm0 3H8v2h5v-2z"/></svg>
+                    </div>
+                    <div class="format-name">JSON</div>
+                    <div class="format-ext">Structured data format</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-icon">
+                        <svg viewBox="0 0 24 24" fill="#217346"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 17h3v-2h2v2h3v-4h-8v4zm0-6h8V9H8v2z"/></svg>
+                    </div>
+                    <div class="format-name">Excel</div>
+                    <div class="format-ext">.xlsx with ClosedXML</div>
+                </div>
+                <div class="format-card">
+                    <div class="format-icon">
+                        <svg viewBox="0 0 24 24" fill="#E34F26"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 9h-2V9.5L9.5 11 8 9.5l3-3 3 3-1.5 1.5-1.5-1.5V11zm0 3H8v2h5v-2zm0 3H8v2h5v-2z"/></svg>
+                    </div>
+                    <div class="format-name">HTML</div>
+                    <div class="format-ext">Visual diagram export</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

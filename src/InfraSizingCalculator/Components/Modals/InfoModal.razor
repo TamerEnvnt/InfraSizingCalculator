@@ -1,0 +1,20 @@
+@* Info/Help modal for contextual information *@
+
+<ModalBase IsOpen="@IsOpen"
+           Title="@Title"
+           BodyClass="info-content"
+           OnClose="@OnClose">
+    <ChildContent>
+        @((MarkupString)Content)
+    </ChildContent>
+    <FooterContent>
+        <button class="modal-btn primary" @onclick="OnClose">Close</button>
+    </FooterContent>
+</ModalBase>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Content { get; set; } = "";
+    [Parameter] public EventCallback OnClose { get; set; }
+}

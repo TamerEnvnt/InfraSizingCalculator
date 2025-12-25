@@ -1,0 +1,74 @@
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+@* Step 4: Kubernetes Distribution Selection *@
+
+<SectionHeader Title="Select Kubernetes Distribution" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
+
+<FilterButtons Label="Filter:"
+               SelectedValue="@SelectedFilter"
+               Options="@FilterOptions"
+               OnValueChanged="@OnFilterChange" />
+
+<div class="distro-grid">
+    @foreach (var distro in FilteredDistributions)
+    {
+        <div class="distro-card @(SelectedDistribution == distro.Distribution ? "selected" : "")"
+             style="--brand-color: @distro.BrandColor"
+             @onclick="() => OnDistributionSelected(distro.Distribution)">
+            <div class="distro-header">
+                <div class="distro-logo" style="color: @distro.BrandColor">@distro.Icon</div>
+                <div>
+                    <div class="distro-name">@distro.Name</div>
+                    <div class="distro-vendor">@distro.Vendor</div>
+                </div>
+            </div>
+            <div class="distro-tags">
+                @foreach (var tag in distro.Tags)
+                {
+                    <span class="distro-tag">@tag</span>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Distribution? SelectedDistribution { get; set; }
+    [Parameter] public string SelectedFilter { get; set; } = "all";
+    [Parameter] public IEnumerable<DistributionConfig> Distributions { get; set; } = Enumerable.Empty<DistributionConfig>();
+    [Parameter] public EventCallback<Distribution> OnDistributionChange { get; set; }
+    [Parameter] public EventCallback<string> OnFilterChanged { get; set; }
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+
+    private static readonly IReadOnlyList<FilterButtons.FilterOption> FilterOptions = new[]
+    {
+        new FilterButtons.FilterOption("all", "All"),
+        new FilterButtons.FilterOption("on-prem", "On-Premises"),
+        new FilterButtons.FilterOption("cloud", "Cloud Managed")
+    };
+
+    private IEnumerable<DistributionConfig> FilteredDistributions => SelectedFilter switch
+    {
+        "on-prem" => Distributions.Where(d => !d.HasManagedControlPlane),
+        "cloud" => Distributions.Where(d => d.HasManagedControlPlane),
+        _ => Distributions
+    };
+
+    private async Task OnDistributionSelected(Distribution distribution)
+    {
+        if (OnDistributionChange.HasDelegate)
+        {
+            await OnDistributionChange.InvokeAsync(distribution);
+        }
+    }
+
+    private async Task OnFilterChange(string filter)
+    {
+        if (OnFilterChanged.HasDelegate)
+        {
+            await OnFilterChanged.InvokeAsync(filter);
+        }
+    }
+}

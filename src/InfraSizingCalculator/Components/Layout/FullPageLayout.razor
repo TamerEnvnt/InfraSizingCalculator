@@ -1,0 +1,18 @@
+@inherits LayoutComponentBase
+
+<div class="full-page-shell">
+    @Body
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">&#10005;</span>
+</div>
+
+<script suppress-error="BL9992">
+    // Dismiss error UI
+    document.querySelector('#blazor-error-ui .dismiss')?.addEventListener('click', function() {
+        document.getElementById('blazor-error-ui').style.display = 'none';
+    });
+</script>

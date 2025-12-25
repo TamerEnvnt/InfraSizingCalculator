@@ -1,0 +1,508 @@
+@namespace InfraSizingCalculator.Components.Results
+@using InfraSizingCalculator.Models.Growth
+@using InfraSizingCalculator.Components.Configuration
+
+<!-- Growth Planning View with Inline Settings -->
+<!-- Settings always visible, projections shown when calculated -->
+
+<div class="growth-planning-view">
+    <!-- Compact Settings Row (always visible) -->
+    <div class="growth-settings-compact">
+        <div class="settings-row">
+            <div class="setting-item">
+                <label>Growth Rate</label>
+                <div class="slider-compact">
+                    <input type="range" min="0" max="100" step="5" @bind="Settings.AnnualGrowthRate" @bind:after="OnSettingsChanged" />
+                    <span class="slider-value">@Settings.AnnualGrowthRate%</span>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>Years</label>
+                <select @bind="Settings.ProjectionYears" @bind:after="OnSettingsChanged">
+                    <option value="1">1 Year</option>
+                    <option value="3">3 Years</option>
+                    <option value="5">5 Years</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>Pattern</label>
+                <select @bind="Settings.Pattern" @bind:after="OnSettingsChanged">
+                    <option value="@GrowthPattern.Linear">Linear</option>
+                    <option value="@GrowthPattern.Exponential">Exponential</option>
+                    <option value="@GrowthPattern.SCurve">S-Curve</option>
+                </select>
+            </div>
+            <div class="setting-item toggle">
+                <label>
+                    <input type="checkbox" @bind="Settings.IncludeCostProjections" @bind:after="OnSettingsChanged" />
+                    Include Costs
+                </label>
+            </div>
+            <button class="btn-calculate" @onclick="Calculate" disabled="@IsCalculating">
+                @if (IsCalculating)
+                {
+                    <span>...</span>
+                }
+                else
+                {
+                    <span>Calculate</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    @if (Projection != null)
+    {
+        <!-- Growth Summary Cards -->
+        <div class="growth-summary-row">
+            <div class="summary-card">
+                <span class="summary-icon">📈</span>
+                <div class="summary-content">
+                    <span class="summary-value">+@Projection.Summary.TotalAppGrowth</span>
+                    <span class="summary-label">Apps</span>
+                    <span class="summary-pct">+@Projection.Summary.PercentageAppGrowth.ToString("F0")%</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <span class="summary-icon">🖥️</span>
+                <div class="summary-content">
+                    <span class="summary-value">+@Projection.Summary.TotalNodeGrowth</span>
+                    <span class="summary-label">Nodes</span>
+                    <span class="summary-pct">+@Projection.Summary.PercentageNodeGrowth.ToString("F0")%</span>
+                </div>
+            </div>
+            @if (Projection.Settings.IncludeCostProjections)
+            {
+                <div class="summary-card highlight">
+                    <span class="summary-icon">💰</span>
+                    <div class="summary-content">
+                        <span class="summary-value">@FormatCurrency(Projection.Summary.CostIncrease)</span>
+                        <span class="summary-label">Cost Increase</span>
+                        <span class="summary-pct">+@Projection.Summary.PercentageCostIncrease.ToString("F0")%</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Year-by-Year Projection Cards -->
+        <div class="projection-cards">
+            @foreach (var point in Projection.Points)
+            {
+                var hasWarning = Projection.Warnings.Any(w => w.YearTriggered == point.Year);
+                <div class="projection-card @(hasWarning ? "warning" : "") @(point.Year == 0 ? "current" : "")">
+                    <div class="card-header">
+                        <span class="year-label">@(point.Year == 0 ? "Current" : $"Year {point.Year}")</span>
+                        @if (hasWarning)
+                        {
+                            <span class="warning-icon" title="@(Projection.Warnings.FirstOrDefault(w => w.YearTriggered == point.Year)?.Message)">⚠️</span>
+                        }
+                    </div>
+                    <div class="card-metrics">
+                        <div class="metric">
+                            <span class="metric-value">@point.ProjectedApps</span>
+                            <span class="metric-label">Apps</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">@point.ProjectedNodes</span>
+                            <span class="metric-label">Nodes</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">@point.ProjectedCpu</span>
+                            <span class="metric-label">vCPU</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">@point.ProjectedRamGB</span>
+                            <span class="metric-label">RAM (GB)</span>
+                        </div>
+                    </div>
+                    @if (Projection.Settings.IncludeCostProjections && point.ProjectedMonthlyCost > 0)
+                    {
+                        <div class="card-cost">
+                            <span class="cost-value">@FormatCurrency(point.ProjectedMonthlyCost)</span>
+                            <span class="cost-label">/month</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Warnings Section (if any) -->
+        @if (Projection.Warnings.Any())
+        {
+            <details class="warnings-section" open>
+                <summary class="warnings-header">
+                    <span class="warning-icon">⚠️</span>
+                    <span>@Projection.Warnings.Count Warning(s)</span>
+                </summary>
+                <div class="warnings-list">
+                    @foreach (var warning in Projection.Warnings)
+                    {
+                        <div class="warning-item @warning.Severity.ToString().ToLower()">
+                            <span class="warning-year">Year @warning.YearTriggered</span>
+                            <span class="warning-message">@warning.Message</span>
+                        </div>
+                    }
+                </div>
+            </details>
+        }
+    }
+    else
+    {
+        <div class="no-projection">
+            <span class="no-projection-icon">📈</span>
+            <p>Configure growth settings and click Calculate to see projections</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public GrowthSettings Settings { get; set; } = new();
+    [Parameter] public GrowthProjection? Projection { get; set; }
+    [Parameter] public EventCallback<GrowthSettings> OnCalculate { get; set; }
+    [Parameter] public EventCallback<GrowthSettings> SettingsChanged { get; set; }
+
+    private bool IsCalculating { get; set; }
+
+    private async Task OnSettingsChanged()
+    {
+        await SettingsChanged.InvokeAsync(Settings);
+    }
+
+    private async Task Calculate()
+    {
+        IsCalculating = true;
+        try
+        {
+            await OnCalculate.InvokeAsync(Settings);
+        }
+        finally
+        {
+            IsCalculating = false;
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+}
+
+<style>
+    .growth-planning-view {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Compact Settings Row */
+    .growth-settings-compact {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+
+    .settings-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 16px;
+    }
+
+    .setting-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .setting-item label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    .setting-item.toggle label {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        text-transform: none;
+        cursor: pointer;
+    }
+
+    .setting-item select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    .slider-compact {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .slider-compact input[type="range"] {
+        width: 100px;
+        height: 6px;
+        appearance: none;
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .slider-compact input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        cursor: pointer;
+    }
+
+    .slider-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 40px;
+    }
+
+    .btn-calculate {
+        padding: 8px 16px;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: auto;
+    }
+
+    .btn-calculate:hover:not(:disabled) {
+        filter: brightness(1.1);
+    }
+
+    .btn-calculate:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Summary Row */
+    .growth-summary-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+
+    .summary-card.highlight {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark, #0052a3));
+        color: white;
+        border: none;
+    }
+
+    .summary-icon {
+        font-size: 1.5rem;
+    }
+
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .summary-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .summary-card.highlight .summary-value {
+        color: white;
+    }
+
+    .summary-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .summary-card.highlight .summary-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .summary-pct {
+        font-size: 0.7rem;
+        color: var(--success-color);
+    }
+
+    .summary-card.highlight .summary-pct {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Projection Cards */
+    .projection-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .projection-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .projection-card.current {
+        border-color: var(--accent-color);
+        background: rgba(var(--accent-rgb, 0, 122, 255), 0.05);
+    }
+
+    .projection-card.warning {
+        border-color: var(--warning-color);
+        background: rgba(var(--warning-rgb, 251, 191, 36), 0.05);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .year-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .warning-icon {
+        cursor: help;
+    }
+
+    .card-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .metric {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .metric-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+
+    .card-cost {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .cost-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .cost-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    /* Warnings Section */
+    .warnings-section {
+        background: rgba(var(--warning-rgb, 251, 191, 36), 0.1);
+        border: 1px solid var(--warning-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .warnings-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .warnings-header::-webkit-details-marker {
+        display: none;
+    }
+
+    .warnings-list {
+        padding: 0 16px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .warning-item {
+        display: flex;
+        gap: 12px;
+        padding: 10px 12px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+
+    .warning-year {
+        font-weight: 600;
+        color: var(--warning-color);
+        white-space: nowrap;
+    }
+
+    .warning-message {
+        color: var(--text-secondary);
+    }
+
+    /* No Projection State */
+    .no-projection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .no-projection-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+</style>

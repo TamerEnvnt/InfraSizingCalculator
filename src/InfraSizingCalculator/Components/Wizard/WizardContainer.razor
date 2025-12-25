@@ -1,0 +1,57 @@
+@* Main wizard container with header, stepper, and content area *@
+
+<div class="wizard-container @AdditionalClass">
+    <!-- Wizard Header -->
+    <div class="wizard-header">
+        <h1>@Title</h1>
+        @if (HeaderActions != null)
+        {
+            <div class="header-actions">
+                @HeaderActions
+            </div>
+        }
+    </div>
+
+    <!-- Stepper -->
+    <WizardStepper CurrentStep="@CurrentStep"
+                   TotalSteps="@TotalSteps"
+                   StepLabels="@StepLabels"
+                   OnStepSelected="@OnStepSelected" />
+
+    <!-- Content -->
+    <div class="wizard-content">
+        @ChildContent
+    </div>
+
+    <!-- Navigation -->
+    @if (ShowNavigation)
+    {
+        <WizardNavigation ShowBackButton="@(CurrentStep > 1)"
+                          CanGoBack="@(CurrentStep > 1)"
+                          CanProceed="@CanProceed"
+                          IsLastStep="@(CurrentStep == TotalSteps)"
+                          IsCalculating="@IsCalculating"
+                          CalculateButtonText="@CalculateButtonText"
+                          OnBack="@OnBack"
+                          OnNext="@OnNext"
+                          OnCalculate="@OnCalculate" />
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Infrastructure Sizing Calculator";
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    [Parameter] public int TotalSteps { get; set; } = 5;
+    [Parameter] public IReadOnlyList<string> StepLabels { get; set; } = Array.Empty<string>();
+    [Parameter] public bool CanProceed { get; set; } = false;
+    [Parameter] public bool ShowNavigation { get; set; } = true;
+    [Parameter] public bool IsCalculating { get; set; } = false;
+    [Parameter] public string CalculateButtonText { get; set; } = "Calculate Sizing";
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<int> OnStepSelected { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnCalculate { get; set; }
+}

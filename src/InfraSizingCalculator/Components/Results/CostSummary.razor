@@ -1,0 +1,132 @@
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+@if (CostEstimate != null)
+{
+    <div class="cost-summary @AdditionalClass">
+        <h3>Cost Estimate</h3>
+
+        <div class="cost-overview">
+            <div class="cost-card cost-card-primary">
+                <span class="cost-icon">$</span>
+                <span class="cost-label">Monthly</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.MonthlyTotal)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-icon">$</span>
+                <span class="cost-label">Yearly</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.YearlyTotal)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-icon">$</span>
+                <span class="cost-label">3-Year TCO</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.ThreeYearTCO)</span>
+            </div>
+            <div class="cost-card">
+                <span class="cost-icon">$</span>
+                <span class="cost-label">5-Year TCO</span>
+                <span class="cost-value">@FormatCurrency(CostEstimate.FiveYearTCO)</span>
+            </div>
+        </div>
+
+        <div class="cost-details">
+            <h4>Cost Breakdown</h4>
+            <div class="cost-breakdown">
+                @foreach (var category in CostEstimate.Breakdown.Values.OrderByDescending(b => b.Monthly))
+                {
+                    <div class="breakdown-row">
+                        <div class="breakdown-category">
+                            <span class="category-icon">@GetCategoryIcon(category.Category)</span>
+                            <span class="category-name">@category.Description</span>
+                        </div>
+                        <div class="breakdown-values">
+                            <span class="breakdown-monthly">@FormatCurrency(category.Monthly)/mo</span>
+                            <span class="breakdown-percent">@category.Percentage.ToString("F1")%</span>
+                        </div>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-bar-fill" style="width: @category.Percentage%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (CostEstimate.EnvironmentCosts.Any())
+        {
+            <div class="cost-by-environment">
+                <h4>Cost by Environment</h4>
+                <table class="env-cost-table">
+                    <thead>
+                        <tr>
+                            <th>Environment</th>
+                            <th>Monthly</th>
+                            <th>% of Total</th>
+                            <th>Resources</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var env in CostEstimate.EnvironmentCosts.Values.OrderByDescending(e => e.MonthlyCost))
+                        {
+                            <tr>
+                                <td>@env.EnvironmentName</td>
+                                <td>@FormatCurrency(env.MonthlyCost)</td>
+                                <td>@env.Percentage.ToString("F1")%</td>
+                                <td>@env.Nodes nodes, @env.TotalCpu CPU, @env.TotalRamGB GB RAM</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(CostEstimate.PricingSource))
+        {
+            <div class="pricing-info">
+                <span class="pricing-source">Source: @CostEstimate.PricingSource</span>
+                <span class="pricing-date">Calculated: @CostEstimate.CalculatedAt.ToString("MMM d, yyyy HH:mm")</span>
+            </div>
+        }
+
+        @if (CostEstimate.Notes.Any())
+        {
+            <div class="cost-notes">
+                <h4>Notes</h4>
+                <ul>
+                    @foreach (var note in CostEstimate.Notes)
+                    {
+                        <li>@note</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public CostEstimate? CostEstimate { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000)
+            return $"${amount / 1_000_000:F2}M";
+        if (amount >= 1_000)
+            return $"${amount / 1_000:F1}K";
+        return $"${amount:F2}";
+    }
+
+    private string GetCategoryIcon(CostCategory category)
+    {
+        return category switch
+        {
+            CostCategory.Compute => "CPU",
+            CostCategory.Storage => "HDD",
+            CostCategory.Network => "NET",
+            CostCategory.License => "LIC",
+            CostCategory.Support => "SUP",
+            CostCategory.DataCenter => "DC",
+            CostCategory.Labor => "OPS",
+            _ => ""
+        };
+    }
+}

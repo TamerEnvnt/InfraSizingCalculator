@@ -1,0 +1,413 @@
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+
+<div class="cloud-alternatives-panel">
+    <div class="panel-intro">
+        <p class="intro-text">
+            Compare your on-premises @Distribution deployment with managed cloud alternatives.
+            Cloud providers handle infrastructure, updates, and often provide better SLAs.
+        </p>
+    </div>
+
+    @if (DistributionSpecificAlternatives.Any())
+    {
+        <!-- Distribution-Specific Alternatives -->
+        <div class="alternatives-section primary">
+            <h4 class="section-header">
+                <span class="header-icon">⭐</span>
+                Recommended for @Distribution
+            </h4>
+            <p class="section-description">
+                These managed services are designed specifically for @Distribution workloads.
+            </p>
+            <div class="alternatives-grid">
+                @foreach (var alt in DistributionSpecificAlternatives)
+                {
+                    <div class="alternative-card @(SelectedAlternative == alt ? "selected" : "") @(alt.IsRecommended ? "recommended" : "")"
+                         @onclick="() => SelectAlternative(alt)">
+                        @if (alt.IsRecommended)
+                        {
+                            <div class="recommended-badge">Recommended</div>
+                        }
+                        <div class="card-header">
+                            <span class="provider-icon">@GetProviderIcon(alt.Provider)</span>
+                            <div class="card-titles">
+                                <span class="card-name">@alt.Name</span>
+                                <span class="card-service">@alt.ServiceName</span>
+                            </div>
+                        </div>
+                        <p class="card-description">@alt.Description</p>
+                        @if (alt.Features.Any())
+                        {
+                            <ul class="card-features">
+                                @foreach (var feature in alt.Features.Take(3))
+                                {
+                                    <li>@feature</li>
+                                }
+                            </ul>
+                        }
+                        <div class="card-actions">
+                            <button class="btn-compare" @onclick:stopPropagation="true" @onclick="() => CompareAlternative(alt)">
+                                Compare Costs
+                            </button>
+                            @if (!string.IsNullOrEmpty(alt.DocumentationUrl))
+                            {
+                                <a href="@alt.DocumentationUrl" target="_blank" class="btn-docs" @onclick:stopPropagation="true">
+                                    Docs ↗
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Generic Cloud Options -->
+    <div class="alternatives-section secondary">
+        <h4 class="section-header">
+            <span class="header-icon">☁️</span>
+            Other Cloud Options
+        </h4>
+        <p class="section-description">
+            Standard managed Kubernetes services on major cloud providers.
+        </p>
+        <div class="alternatives-grid">
+            @foreach (var alt in GenericAlternatives)
+            {
+                <div class="alternative-card @(SelectedAlternative == alt ? "selected" : "")"
+                     @onclick="() => SelectAlternative(alt)">
+                    <div class="card-header">
+                        <span class="provider-icon">@GetProviderIcon(alt.Provider)</span>
+                        <div class="card-titles">
+                            <span class="card-name">@alt.Name</span>
+                            <span class="card-service">@alt.ServiceName</span>
+                        </div>
+                    </div>
+                    <p class="card-description">@alt.Description</p>
+                    @if (alt.Features.Any())
+                    {
+                        <ul class="card-features">
+                            @foreach (var feature in alt.Features.Take(3))
+                            {
+                                <li>@feature</li>
+                            }
+                        </ul>
+                    }
+                    <div class="card-actions">
+                        <button class="btn-compare" @onclick:stopPropagation="true" @onclick="() => CompareAlternative(alt)">
+                            Compare Costs
+                        </button>
+                        @if (!string.IsNullOrEmpty(alt.DocumentationUrl))
+                        {
+                            <a href="@alt.DocumentationUrl" target="_blank" class="btn-docs" @onclick:stopPropagation="true">
+                                Docs ↗
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (SelectedAlternative != null && ShowComparisonPanel)
+    {
+        <div class="comparison-panel">
+            <div class="comparison-header">
+                <h4>Cost Comparison: @SelectedAlternative.Name</h4>
+                <button class="close-btn" @onclick="CloseComparison">×</button>
+            </div>
+            <div class="comparison-content">
+                <p>Select region and pricing options to compare costs with your on-premises deployment.</p>
+                <!-- Simplified pricing selector would go here -->
+                <div class="comparison-note">
+                    <span class="note-icon">💡</span>
+                    <span>Full cost comparison will be available after configuring pricing options.</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Distribution? Distribution { get; set; }
+    [Parameter] public List<CloudAlternative> Alternatives { get; set; } = new();
+    [Parameter] public EventCallback<CloudAlternative> OnAlternativeSelected { get; set; }
+
+    private CloudAlternative? SelectedAlternative { get; set; }
+    private bool ShowComparisonPanel { get; set; }
+
+    private IEnumerable<CloudAlternative> DistributionSpecificAlternatives =>
+        Alternatives.Where(a => a.IsDistributionSpecific);
+
+    private IEnumerable<CloudAlternative> GenericAlternatives =>
+        Alternatives.Where(a => !a.IsDistributionSpecific);
+
+    private async Task SelectAlternative(CloudAlternative alt)
+    {
+        SelectedAlternative = alt;
+        await OnAlternativeSelected.InvokeAsync(alt);
+    }
+
+    private void CompareAlternative(CloudAlternative alt)
+    {
+        SelectedAlternative = alt;
+        ShowComparisonPanel = true;
+    }
+
+    private void CloseComparison()
+    {
+        ShowComparisonPanel = false;
+    }
+
+    private string GetProviderIcon(CloudProvider provider)
+    {
+        return provider switch
+        {
+            CloudProvider.AWS => "🟠",
+            CloudProvider.Azure => "🔵",
+            CloudProvider.GCP => "🔴",
+            CloudProvider.OCI => "🟣",
+            CloudProvider.IBM => "🔷",
+            CloudProvider.Alibaba => "🟡",
+            CloudProvider.DigitalOcean => "🐳",
+            CloudProvider.Linode => "💚",
+            CloudProvider.Vultr => "🦅",
+            CloudProvider.Hetzner => "🔶",
+            _ => "☁️"
+        };
+    }
+}
+
+<style>
+    .cloud-alternatives-panel {
+        max-width: 1000px;
+    }
+
+    .panel-intro {
+        margin-bottom: 1.5rem;
+    }
+
+    .intro-text {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .alternatives-section {
+        margin-bottom: 2rem;
+    }
+
+    .alternatives-section.primary {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.05) 0%, rgba(var(--accent-rgb), 0.02) 100%);
+        border: 1px solid rgba(var(--accent-rgb), 0.2);
+        border-radius: 12px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+    }
+
+    .header-icon {
+        font-size: 1.25rem;
+    }
+
+    .section-description {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0 0 1rem 0;
+    }
+
+    .alternatives-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .alternative-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .alternative-card:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .alternative-card.selected {
+        border-color: var(--accent-color);
+        background: rgba(var(--accent-rgb), 0.05);
+    }
+
+    .alternative-card.recommended {
+        border-color: var(--success-color);
+    }
+
+    .recommended-badge {
+        position: absolute;
+        top: -8px;
+        right: 12px;
+        background: var(--success-color);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .provider-icon {
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    .card-titles {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .card-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .card-service {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .card-description {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0 0 0.75rem 0;
+        line-height: 1.4;
+    }
+
+    .card-features {
+        margin: 0 0 1rem 0;
+        padding-left: 1.25rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .card-features li {
+        margin-bottom: 0.25rem;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto;
+    }
+
+    .btn-compare {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-compare:hover {
+        background: var(--accent-color-dark, #1565C0);
+    }
+
+    .btn-docs {
+        padding: 0.5rem 0.75rem;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-docs:hover {
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    .comparison-panel {
+        background: var(--card-bg);
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+        margin-top: 1.5rem;
+    }
+
+    .comparison-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .comparison-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .close-btn:hover {
+        color: var(--text-primary);
+    }
+
+    .comparison-content {
+        padding: 1.25rem;
+    }
+
+    .comparison-content p {
+        color: var(--text-secondary);
+        margin: 0 0 1rem 0;
+    }
+
+    .comparison-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(var(--accent-rgb), 0.1);
+        border-radius: 6px;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .note-icon {
+        font-size: 1rem;
+    }
+</style>

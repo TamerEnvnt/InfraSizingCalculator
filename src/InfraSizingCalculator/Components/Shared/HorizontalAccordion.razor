@@ -1,0 +1,44 @@
+@* Horizontal Accordion Component - Expands panels left/right for widescreen *@
+
+<CascadingValue Value="this">
+    <div class="h-accordion @(SingleExpand ? "single-expand" : "") @AdditionalClass">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// When true, only one panel can be expanded at a time
+    /// </summary>
+    [Parameter] public bool SingleExpand { get; set; } = true;
+
+    /// <summary>
+    /// Additional CSS class
+    /// </summary>
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    /// <summary>
+    /// Currently expanded panel key (for single expand mode)
+    /// </summary>
+    [Parameter] public string? ExpandedPanel { get; set; }
+
+    [Parameter] public EventCallback<string?> ExpandedPanelChanged { get; set; }
+
+    public bool IsPanelExpanded(string panelKey)
+    {
+        return ExpandedPanel == panelKey;
+    }
+
+    public async Task TogglePanel(string panelKey)
+    {
+        if (SingleExpand)
+        {
+            var newValue = ExpandedPanel == panelKey ? null : panelKey;
+            ExpandedPanel = newValue;
+            await ExpandedPanelChanged.InvokeAsync(newValue);
+            StateHasChanged();
+        }
+    }
+}

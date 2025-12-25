@@ -1,0 +1,320 @@
+@using InfraSizingCalculator.Models
+
+<div class="results-warnings compact">
+    @if (Warnings?.Any() == true)
+    {
+        <!-- Summary Bar with Severity Counts -->
+        <div class="warnings-summary-bar">
+            @{
+                var criticalCount = Warnings.Count(w => w.Severity == WarningSeverity.Critical && !DismissedWarnings.Contains(w.Id));
+                var warningCount = Warnings.Count(w => w.Severity == WarningSeverity.Warning && !DismissedWarnings.Contains(w.Id));
+                var infoCount = Warnings.Count(w => w.Severity == WarningSeverity.Info && !DismissedWarnings.Contains(w.Id));
+                var successCount = Warnings.Count(w => w.Severity == WarningSeverity.Success && !DismissedWarnings.Contains(w.Id));
+            }
+            @if (criticalCount > 0)
+            {
+                <span class="severity-badge critical">@criticalCount Critical</span>
+            }
+            @if (warningCount > 0)
+            {
+                <span class="severity-badge warning">@warningCount Warnings</span>
+            }
+            @if (infoCount > 0)
+            {
+                <span class="severity-badge info">@infoCount Tips</span>
+            }
+            @if (successCount > 0)
+            {
+                <span class="severity-badge success">@successCount OK</span>
+            }
+        </div>
+
+        <!-- Severity Tabs -->
+        <div class="severity-tabs">
+            <button class="severity-tab @(selectedSeverity == null ? "active" : "")"
+                    @onclick="() => selectedSeverity = null">
+                All (@GetFilteredCount(null))
+            </button>
+            @if (criticalCount > 0)
+            {
+                <button class="severity-tab critical @(selectedSeverity == "Critical" ? "active" : "")"
+                        @onclick='() => selectedSeverity = "Critical"'>
+                    🚨 Critical (@criticalCount)
+                </button>
+            }
+            @if (warningCount > 0)
+            {
+                <button class="severity-tab warning @(selectedSeverity == "Warning" ? "active" : "")"
+                        @onclick='() => selectedSeverity = "Warning"'>
+                    ⚠️ Warnings (@warningCount)
+                </button>
+            }
+            @if (infoCount > 0)
+            {
+                <button class="severity-tab info @(selectedSeverity == "Info" ? "active" : "")"
+                        @onclick='() => selectedSeverity = "Info"'>
+                    💡 Tips (@infoCount)
+                </button>
+            }
+        </div>
+
+        <!-- Warnings List - Compact Cards -->
+        <div class="warnings-compact-list">
+            @foreach (var warning in GetVisibleWarnings())
+            {
+                <div class="warning-compact-card severity-@warning.Severity.ToString().ToLower() @(expandedWarningId == warning.Id ? "expanded" : "")">
+                    <div class="warning-compact-header" @onclick="() => ToggleWarningExpand(warning.Id)">
+                        <span class="warning-icon">@warning.Icon</span>
+                        <span class="warning-title">@warning.Title</span>
+                        <span class="expand-icon">@(expandedWarningId == warning.Id ? "▼" : "▶")</span>
+                    </div>
+                    @if (expandedWarningId == warning.Id)
+                    {
+                        <div class="warning-compact-body">
+                            <div class="warning-message">@warning.Message</div>
+                            @if (!string.IsNullOrEmpty(warning.Suggestion))
+                            {
+                                <div class="warning-suggestion">
+                                    <strong>💡 Suggestion:</strong> @warning.Suggestion
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            @{
+                var remainingCount = GetRemainingCount();
+            }
+            @if (remainingCount > 0)
+            {
+                <button class="show-more-btn" @onclick="ShowMore">
+                    Show @remainingCount more...
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<ValidationWarning>? Warnings { get; set; }
+
+    private string? selectedSeverity = null;
+    private string? expandedWarningId = null;
+    private int visibleCount = 3;
+    private HashSet<string> DismissedWarnings { get; set; } = new();
+
+    private IEnumerable<ValidationWarning> GetVisibleWarnings()
+    {
+        var filtered = Warnings?
+            .Where(w => !DismissedWarnings.Contains(w.Id))
+            .Where(w => selectedSeverity == null || w.Severity.ToString() == selectedSeverity)
+            .ToList() ?? new List<ValidationWarning>();
+
+        return filtered.Take(visibleCount);
+    }
+
+    private int GetFilteredCount(string? severity)
+    {
+        if (Warnings == null) return 0;
+
+        return Warnings
+            .Count(w => !DismissedWarnings.Contains(w.Id) &&
+                       (severity == null || w.Severity.ToString() == severity));
+    }
+
+    private int GetRemainingCount()
+    {
+        var totalFiltered = GetFilteredCount(selectedSeverity);
+        return Math.Max(0, totalFiltered - visibleCount);
+    }
+
+    private void ShowMore()
+    {
+        visibleCount += 5;
+    }
+
+    private void ToggleWarningExpand(string id)
+    {
+        expandedWarningId = expandedWarningId == id ? null : id;
+    }
+}
+
+<style>
+    .results-warnings.compact {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Summary Bar */
+    .warnings-summary-bar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .severity-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .severity-badge.critical {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+
+    .severity-badge.warning {
+        background: rgba(243, 156, 18, 0.2);
+        color: #f39c12;
+    }
+
+    .severity-badge.info {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+
+    .severity-badge.success {
+        background: rgba(39, 174, 96, 0.2);
+        color: #27ae60;
+    }
+
+    /* Severity Tabs */
+    .severity-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--bg-tertiary);
+        padding: 4px;
+        border-radius: 8px;
+        flex-wrap: wrap;
+    }
+
+    .severity-tab {
+        flex: 1;
+        min-width: 70px;
+        padding: 6px 10px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .severity-tab:hover {
+        background: var(--bg-secondary);
+    }
+
+    .severity-tab.active {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .severity-tab.critical.active { color: #e74c3c; }
+    .severity-tab.warning.active { color: #f39c12; }
+    .severity-tab.info.active { color: #3498db; }
+
+    /* Compact Warnings List */
+    .warnings-compact-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .warning-compact-card {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border-left: 3px solid;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .warning-compact-card.severity-critical { border-left-color: #e74c3c; }
+    .warning-compact-card.severity-warning { border-left-color: #f39c12; }
+    .warning-compact-card.severity-info { border-left-color: #3498db; }
+    .warning-compact-card.severity-success { border-left-color: #27ae60; }
+
+    .warning-compact-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .warning-compact-header:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .warning-compact-header .warning-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .warning-compact-header .warning-title {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .warning-compact-header .expand-icon {
+        font-size: 10px;
+        color: var(--text-muted);
+    }
+
+    .warning-compact-body {
+        padding: 0 12px 12px 34px;
+    }
+
+    .warning-compact-body .warning-message {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+
+    .warning-compact-body .warning-suggestion {
+        font-size: 11px;
+        color: var(--text-muted);
+        padding: 8px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+    }
+
+    .warning-compact-body .warning-suggestion strong {
+        color: var(--accent-primary);
+    }
+
+    .show-more-btn {
+        padding: 8px 16px;
+        background: var(--bg-tertiary);
+        border: 1px dashed var(--border-color);
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .show-more-btn:hover {
+        background: var(--bg-secondary);
+        border-style: solid;
+        color: var(--text-primary);
+    }
+
+    /* Light theme */
+    [data-theme="light"] .warning-compact-card {
+        background: var(--bg-secondary);
+    }
+
+    [data-theme="light"] .warning-compact-header:hover {
+        background: var(--bg-tertiary);
+    }
+</style>

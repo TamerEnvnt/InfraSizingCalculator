@@ -1,0 +1,34 @@
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Models.Enums
+
+@* Step 1: Platform Type Selection *@
+
+<SectionHeader Title="Select Platform Type" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
+
+<div class="selection-grid">
+    <SelectionCard Icon="⚙️"
+                   Title="Native Applications"
+                   Description=".NET, Java, Node.js, Python, Go"
+                   IsSelected="@(SelectedPlatform == PlatformType.Native)"
+                   OnClick="@(() => OnPlatformSelected(PlatformType.Native))" />
+
+    <SelectionCard Icon="🔷"
+                   Title="Low-Code Platform"
+                   Description="Mendix, OutSystems"
+                   IsSelected="@(SelectedPlatform == PlatformType.LowCode)"
+                   OnClick="@(() => OnPlatformSelected(PlatformType.LowCode))" />
+</div>
+
+@code {
+    [Parameter] public PlatformType? SelectedPlatform { get; set; }
+    [Parameter] public EventCallback<PlatformType> OnPlatformChange { get; set; }
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+
+    private async Task OnPlatformSelected(PlatformType platform)
+    {
+        if (OnPlatformChange.HasDelegate)
+        {
+            await OnPlatformChange.InvokeAsync(platform);
+        }
+    }
+}

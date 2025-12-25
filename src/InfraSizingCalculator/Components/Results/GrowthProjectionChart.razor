@@ -1,0 +1,595 @@
+@using InfraSizingCalculator.Models.Growth
+
+<div class="growth-chart-container @AdditionalClass">
+    @if (Projection != null && Projection.Points.Any())
+    {
+        <!-- Summary Cards -->
+        <div class="growth-summary-cards">
+            <div class="growth-summary-card">
+                <span class="summary-icon">📈</span>
+                <div class="summary-content">
+                    <span class="summary-label">Total App Growth</span>
+                    <span class="summary-value">+@Projection.Summary.TotalAppGrowth</span>
+                    <span class="summary-pct">(@Projection.Summary.PercentageAppGrowth.ToString("F0")%)</span>
+                </div>
+            </div>
+            <div class="growth-summary-card">
+                <span class="summary-icon">🖥️</span>
+                <div class="summary-content">
+                    <span class="summary-label">Total Node Growth</span>
+                    <span class="summary-value">+@Projection.Summary.TotalNodeGrowth</span>
+                    <span class="summary-pct">(@Projection.Summary.PercentageNodeGrowth.ToString("F0")%)</span>
+                </div>
+            </div>
+            @if (Projection.Settings.IncludeCostProjections)
+            {
+                <div class="growth-summary-card">
+                    <span class="summary-icon">💰</span>
+                    <div class="summary-content">
+                        <span class="summary-label">Cost Increase</span>
+                        <span class="summary-value">@FormatCurrency(Projection.Summary.CostIncrease)</span>
+                        <span class="summary-pct">(@Projection.Summary.PercentageCostIncrease.ToString("F0")%)</span>
+                    </div>
+                </div>
+                <div class="growth-summary-card">
+                    <span class="summary-icon">📊</span>
+                    <div class="summary-content">
+                        <span class="summary-label">Avg Yearly Cost</span>
+                        <span class="summary-value">@FormatCurrency(Projection.Summary.AverageYearlyCost)</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- View Toggle -->
+        <div class="chart-view-toggle">
+            <button class="view-btn @(chartView == "resources" ? "active" : "")" @onclick='() => chartView = "resources"'>
+                Resources
+            </button>
+            @if (Projection.Settings.IncludeCostProjections)
+            {
+                <button class="view-btn @(chartView == "cost" ? "active" : "")" @onclick='() => chartView = "cost"'>
+                    Cost
+                </button>
+            }
+            <button class="view-btn @(chartView == "table" ? "active" : "")" @onclick='() => chartView = "table"'>
+                Table
+            </button>
+        </div>
+
+        <!-- Resource View -->
+        @if (chartView == "resources")
+        {
+            <div class="chart-wrapper">
+                <div class="bar-chart">
+                    @foreach (var point in GetAllPoints())
+                    {
+                        var maxNodes = GetMaxNodes();
+                        var heightPct = maxNodes > 0 ? (point.ProjectedNodes * 100.0 / maxNodes) : 0;
+                        <div class="bar-group">
+                            <div class="bar-container">
+                                <div class="bar" style="height: @heightPct%">
+                                    <span class="bar-value">@point.ProjectedNodes</span>
+                                </div>
+                            </div>
+                            <span class="bar-label">@point.Label</span>
+                            @if (point.Year > 0)
+                            {
+                                <span class="bar-growth">+@point.GrowthFromPrevious.ToString("F0")%</span>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-color nodes"></span> Total Nodes</span>
+                </div>
+            </div>
+
+            <!-- Resource Details -->
+            <div class="resource-breakdown">
+                <div class="breakdown-header">
+                    <span>Resource Projection Details</span>
+                </div>
+                <div class="breakdown-grid">
+                    @foreach (var point in GetAllPoints())
+                    {
+                        <div class="breakdown-card @(point.Year == 0 ? "baseline" : "")">
+                            <span class="breakdown-year">@point.Label</span>
+                            <div class="breakdown-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Apps</span>
+                                    <span class="metric-value">@point.ProjectedApps</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Nodes</span>
+                                    <span class="metric-value">@point.ProjectedNodes</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Workers</span>
+                                    <span class="metric-value">@point.ProjectedWorkerNodes</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">CPU</span>
+                                    <span class="metric-value">@point.ProjectedCpu</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">RAM (GB)</span>
+                                    <span class="metric-value">@point.ProjectedRamGB.ToString("N0")</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Storage (GB)</span>
+                                    <span class="metric-value">@point.ProjectedStorageGB.ToString("N0")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Cost View -->
+        @if (chartView == "cost" && Projection.Settings.IncludeCostProjections)
+        {
+            <div class="chart-wrapper">
+                <div class="bar-chart">
+                    @foreach (var point in GetAllPoints())
+                    {
+                        var maxCost = GetMaxYearlyCost();
+                        var heightPct = maxCost > 0 ? ((double)point.ProjectedYearlyCost * 100.0 / (double)maxCost) : 0;
+                        <div class="bar-group">
+                            <div class="bar-container">
+                                <div class="bar cost-bar" style="height: @heightPct%">
+                                    <span class="bar-value">@FormatCurrencyShort(point.ProjectedYearlyCost)</span>
+                                </div>
+                            </div>
+                            <span class="bar-label">@point.Label</span>
+                            @if (point.Year > 0)
+                            {
+                                <span class="bar-growth">+@point.GrowthFromPrevious.ToString("F0")%</span>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-color cost"></span> Yearly Cost</span>
+                </div>
+            </div>
+
+            <!-- Cost Totals -->
+            <div class="cost-totals">
+                <div class="cost-total-card">
+                    <span class="total-label">Total Cost Over Period</span>
+                    <span class="total-value">@FormatCurrency(Projection.Summary.TotalCostOverPeriod)</span>
+                </div>
+            </div>
+        }
+
+        <!-- Table View -->
+        @if (chartView == "table")
+        {
+            <div class="projection-table-container">
+                <table class="projection-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Apps</th>
+                            <th>Nodes</th>
+                            <th>Workers</th>
+                            <th>CPU</th>
+                            <th>RAM (GB)</th>
+                            <th>Storage (GB)</th>
+                            @if (Projection.Settings.IncludeCostProjections)
+                            {
+                                <th>Monthly Cost</th>
+                                <th>Yearly Cost</th>
+                            }
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var point in GetAllPoints())
+                        {
+                            <tr class="@(point.Year == 0 ? "baseline-row" : "")">
+                                <td>@point.Label</td>
+                                <td>@point.ProjectedApps</td>
+                                <td>@point.ProjectedNodes</td>
+                                <td>@point.ProjectedWorkerNodes</td>
+                                <td>@point.ProjectedCpu</td>
+                                <td>@point.ProjectedRamGB.ToString("N0")</td>
+                                <td>@point.ProjectedStorageGB.ToString("N0")</td>
+                                @if (Projection.Settings.IncludeCostProjections)
+                                {
+                                    <td>@FormatCurrency(point.ProjectedMonthlyCost)</td>
+                                    <td>@FormatCurrency(point.ProjectedYearlyCost)</td>
+                                }
+                                <td>@(point.Year == 0 ? "—" : $"+{point.CumulativeGrowth:F0}%")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="no-projection">
+            <span class="no-projection-icon">📊</span>
+            <p>Configure growth settings and click "Calculate Projection" to see growth projections.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public GrowthProjection? Projection { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private string chartView = "resources";
+
+    private List<ProjectionPoint> GetAllPoints()
+    {
+        if (Projection == null) return new List<ProjectionPoint>();
+        var points = new List<ProjectionPoint> { Projection.Baseline };
+        points.AddRange(Projection.Points);
+        return points;
+    }
+
+    private int GetMaxNodes()
+    {
+        return GetAllPoints().Max(p => p.ProjectedNodes);
+    }
+
+    private decimal GetMaxYearlyCost()
+    {
+        return GetAllPoints().Max(p => p.ProjectedYearlyCost);
+    }
+
+    private string FormatCurrency(decimal value)
+    {
+        if (value >= 1_000_000)
+            return $"${value / 1_000_000:F2}M";
+        if (value >= 1_000)
+            return $"${value / 1_000:F1}K";
+        return $"${value:F0}";
+    }
+
+    private string FormatCurrencyShort(decimal value)
+    {
+        if (value >= 1_000_000)
+            return $"${value / 1_000_000:F1}M";
+        if (value >= 1_000)
+            return $"${value / 1_000:F0}K";
+        return $"${value:F0}";
+    }
+}
+
+<style>
+    .growth-chart-container {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Summary Cards */
+    .growth-summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .growth-summary-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--bg-tertiary, #13151a);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .summary-icon {
+        font-size: 1.5rem;
+    }
+
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .summary-pct {
+        font-size: 0.8rem;
+        color: var(--accent-blue, #3b82f6);
+    }
+
+    /* View Toggle */
+    .chart-view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding: 0.25rem;
+        background: var(--bg-tertiary, #13151a);
+        border-radius: 6px;
+        width: fit-content;
+    }
+
+    .view-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .view-btn:hover {
+        color: var(--text-primary);
+    }
+
+    .view-btn.active {
+        background: var(--accent-blue, #3b82f6);
+        color: white;
+    }
+
+    /* Bar Chart */
+    .chart-wrapper {
+        margin-bottom: 1.5rem;
+    }
+
+    .bar-chart {
+        display: flex;
+        gap: 1.5rem;
+        height: 200px;
+        padding: 1rem 0;
+        align-items: flex-end;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .bar-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 60px;
+    }
+
+    .bar-container {
+        height: 100%;
+        width: 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .bar {
+        width: 100%;
+        background: linear-gradient(to top, var(--accent-blue, #3b82f6), #2563eb);
+        border-radius: 4px 4px 0 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 0.5rem;
+        min-height: 20px;
+        transition: height 0.3s ease;
+    }
+
+    .bar.cost-bar {
+        background: linear-gradient(to top, #27ae60, #2ecc71);
+    }
+
+    .bar-value {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .bar-label {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    .bar-growth {
+        font-size: 0.7rem;
+        color: var(--accent-blue, #3b82f6);
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+
+    .legend-color.nodes {
+        background: var(--accent-blue, #3b82f6);
+    }
+
+    .legend-color.cost {
+        background: #27ae60;
+    }
+
+    /* Resource Breakdown */
+    .resource-breakdown {
+        margin-top: 1.5rem;
+    }
+
+    .breakdown-header {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .breakdown-card {
+        padding: 1rem;
+        background: var(--bg-tertiary, #13151a);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+
+    .breakdown-card.baseline {
+        border-color: var(--accent-blue, #3b82f6);
+        border-width: 2px;
+    }
+
+    .breakdown-year {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .breakdown-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .metric {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+
+    .metric-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* Cost Totals */
+    .cost-totals {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .cost-total-card {
+        padding: 1.5rem 3rem;
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.1), rgba(46, 204, 113, 0.1));
+        border: 2px solid #27ae60;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .total-label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .total-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #27ae60;
+    }
+
+    /* Table View */
+    .projection-table-container {
+        overflow-x: auto;
+    }
+
+    .projection-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .projection-table th,
+    .projection-table td {
+        padding: 0.75rem 1rem;
+        text-align: right;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .projection-table th {
+        background: var(--bg-tertiary, #13151a);
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .projection-table th:first-child,
+    .projection-table td:first-child {
+        text-align: left;
+    }
+
+    .projection-table td {
+        color: var(--text-primary);
+    }
+
+    .projection-table .baseline-row {
+        background: rgba(52, 152, 219, 0.1);
+        font-weight: 600;
+    }
+
+    /* No Projection State */
+    .no-projection {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .no-projection-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Light theme */
+    [data-theme="light"] .growth-chart-container {
+        background: #fff;
+        border: 1px solid var(--border-color);
+    }
+
+    [data-theme="light"] .growth-summary-card,
+    [data-theme="light"] .breakdown-card {
+        background: #f8f9fa;
+    }
+</style>

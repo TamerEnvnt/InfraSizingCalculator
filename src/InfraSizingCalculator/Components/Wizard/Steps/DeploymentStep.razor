@@ -1,0 +1,34 @@
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Models.Enums
+
+@* Step 2: Deployment Model Selection *@
+
+<SectionHeader Title="Select Deployment Model" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
+
+<div class="selection-grid">
+    <SelectionCard Icon="☸️"
+                   Title="Kubernetes"
+                   Description="Container orchestration with auto-scaling and self-healing"
+                   IsSelected="@(SelectedDeployment == DeploymentModel.Kubernetes)"
+                   OnClick="@(() => OnDeploymentSelected(DeploymentModel.Kubernetes))" />
+
+    <SelectionCard Icon="🖥️"
+                   Title="Virtual Machines"
+                   Description="Traditional VM deployment with dedicated servers"
+                   IsSelected="@(SelectedDeployment == DeploymentModel.VMs)"
+                   OnClick="@(() => OnDeploymentSelected(DeploymentModel.VMs))" />
+</div>
+
+@code {
+    [Parameter] public DeploymentModel? SelectedDeployment { get; set; }
+    [Parameter] public EventCallback<DeploymentModel> OnDeploymentChange { get; set; }
+    [Parameter] public EventCallback OnInfoClick { get; set; }
+
+    private async Task OnDeploymentSelected(DeploymentModel deployment)
+    {
+        if (OnDeploymentChange.HasDelegate)
+        {
+            await OnDeploymentChange.InvokeAsync(deployment);
+        }
+    }
+}

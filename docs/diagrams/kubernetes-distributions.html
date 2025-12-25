@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supported Kubernetes Distributions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: #fff;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #326CE5, #48bb78);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 40px;
+        }
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        @media (max-width: 1200px) {
+            .categories {
+                grid-template-columns: 1fr;
+            }
+        }
+        .category {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .enterprise .category-title { border-color: #EE0000; color: #EE0000; }
+        .managed .category-title { border-color: #FF9900; color: #FF9900; }
+        .opensource .category-title { border-color: #326CE5; color: #326CE5; }
+        .lightweight .category-title { border-color: #FFC61C; color: #FFC61C; }
+
+        .distros {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .distro {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .distro:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .distro-logo {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .distro-logo img, .distro-logo svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .distro-info {
+            flex: 1;
+        }
+        .distro-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .distro-vendor {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+        }
+        .distro-features {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .feature-badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+        }
+        .badge-managed { background: rgba(72, 187, 120, 0.2); color: #48bb78; }
+        .badge-infra { background: rgba(237, 137, 54, 0.2); color: #ed8936; }
+        .badge-ha { background: rgba(102, 126, 234, 0.2); color: #667eea; }
+
+        .distro-specs {
+            display: flex;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+        .spec {
+            text-align: center;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .spec-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .spec-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .legend {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        .legend h3 {
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.7);
+        }
+        .legend-items {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Supported Kubernetes Distributions</h1>
+        <p class="subtitle">11 distributions across 4 categories - Enterprise, Managed Cloud, Open Source, and Lightweight</p>
+
+        <div class="categories">
+            <!-- Enterprise -->
+            <div class="category enterprise">
+                <div class="category-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                    </svg>
+                    Enterprise Distributions
+                </div>
+                <div class="distros">
+                    <!-- OpenShift -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#EE0000">
+                                <path d="M21.665 11.812c-.092-.746-.334-1.479-.713-2.155L14.837 13.6a.762.762 0 0 1-.386.103.76.76 0 0 1-.66-.38.763.763 0 0 1 .277-1.043l6.101-3.937a8.212 8.212 0 0 0-4.153-4.178l-1.791 5.47a.763.763 0 0 1-.967.485.763.763 0 0 1-.485-.967l1.786-5.455A8.162 8.162 0 0 0 12 3.239c-.922 0-1.81.156-2.635.44l1.786 5.454a.762.762 0 0 1-1.452.482L7.908 4.16a8.212 8.212 0 0 0-4.153 4.178l6.1 3.937a.763.763 0 0 1-.382 1.423.76.76 0 0 1-.386-.103L2.973 9.652a8.172 8.172 0 0 0-.713 2.155A8.133 8.133 0 0 0 2.121 12c0 .108.005.215.01.321l5.705-.04a.762.762 0 0 1 .772.753.762.762 0 0 1-.753.772l-5.673.04c.168 1.043.521 2.024 1.025 2.907l4.954-3.278a.762.762 0 0 1 1.056.214.763.763 0 0 1-.214 1.056l-4.923 3.257a8.217 8.217 0 0 0 3.515 2.898l2.159-5.145a.762.762 0 0 1 1.412.592l-2.146 5.114c.6.137 1.222.21 1.86.21.54 0 1.069-.052 1.582-.15l-2.05-5.172a.762.762 0 0 1 .435-.985.762.762 0 0 1 .985.435l2.062 5.2a8.213 8.213 0 0 0 3.512-2.897l-4.923-3.257a.763.763 0 0 1 .842-1.27l4.954 3.277a8.139 8.139 0 0 0 1.025-2.907l-5.673-.04a.762.762 0 0 1-.753-.772.762.762 0 0 1 .772-.753l5.705.04c.005-.106.01-.213.01-.321a8.132 8.132 0 0 0-.139-.188z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Red Hat OpenShift</div>
+                            <div class="distro-vendor">Red Hat (IBM)</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-infra">Infra Nodes</span>
+                                <span class="feature-badge badge-ha">Built-in HA</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">8</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">32</div>
+                                <div class="spec-label">CP RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tanzu -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#1D428A">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.066 14.023c-.22.7-.607 1.35-1.12 1.878a5.584 5.584 0 0 1-1.794 1.237c-.685.301-1.43.454-2.209.454H7.69v-2.65h5.253c.426 0 .82-.084 1.178-.253.357-.168.656-.406.897-.712.24-.306.418-.67.533-1.09.114-.42.143-.88.084-1.38H7.69V8.858h5.253c-.06-.5-.114-.96-.253-1.38-.14-.42-.333-.784-.58-1.09a2.717 2.717 0 0 0-.897-.712 2.583 2.583 0 0 0-1.178-.253H7.69V2.773h5.253c.78 0 1.524.153 2.209.454a5.584 5.584 0 0 1 1.794 1.237c.513.528.9 1.178 1.12 1.878.22.7.304 1.453.254 2.23v3.221c.05.777-.034 1.53-.254 2.23z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">VMware Tanzu</div>
+                            <div class="distro-vendor">Broadcom (VMware)</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-ha">Built-in HA</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">4</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">16</div>
+                                <div class="spec-label">CP RAM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Managed Cloud -->
+            <div class="category managed">
+                <div class="category-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+                    </svg>
+                    Managed Cloud Services
+                </div>
+                <div class="distros">
+                    <!-- EKS -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#FF9900">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm6.518 17.235H5.482V6.765h13.036v10.47zm-1.33-7.952H6.812v5.434h10.376V9.283zm-3.74 3.974H8.271v-2.514h5.177v2.514z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Amazon EKS</div>
+                            <div class="distro-vendor">Amazon Web Services</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-managed">Managed CP</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">0</div>
+                                <div class="spec-label">CP Nodes</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">$0.10</div>
+                                <div class="spec-label">/hour</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AKS -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#0078D4">
+                                <path d="M22.379 23.343a1.62 1.62 0 0 1-1.242.657c-.168 0-.333-.024-.494-.076L12.02 20.8l-8.65 3.124a1.62 1.62 0 0 1-2.095-1.166 1.62 1.62 0 0 1 .35-1.318L8.79 13.51.632 5.756a1.62 1.62 0 0 1 1.095-2.825c.168 0 .333.024.494.076l8.623 3.124 8.65-3.124a1.62 1.62 0 0 1 2.095 1.166 1.62 1.62 0 0 1-.35 1.318l-7.165 7.93 8.158 7.754a1.62 1.62 0 0 1 .147 2.168z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Azure AKS</div>
+                            <div class="distro-vendor">Microsoft Azure</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-managed">Managed CP</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">0</div>
+                                <div class="spec-label">CP Nodes</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">Free</div>
+                                <div class="spec-label">CP Tier</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GKE -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#4285F4">
+                                <path d="M12.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L9.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l-.01-.006.3-2.602a5.19 5.19 0 0 0-2.895 1.63l1.9 1.322.006-.007zm2.097-.268a.44.44 0 0 0 .615.468l.007.004 2.06-1.57a5.185 5.185 0 0 0-3.033-1.143l.344 2.245.007-.004zm1.86 1.156a.44.44 0 0 0-.044.748l.007.01 1.9 1.322a5.18 5.18 0 0 0 .474-3.268l-2.33.181-.007.007zm.456 2.362l-.014.006a.44.44 0 0 0-.574.504l-.004.011.867 2.443a5.15 5.15 0 0 0 1.752-2.64l-2.027-.324z"/>
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Google GKE</div>
+                            <div class="distro-vendor">Google Cloud Platform</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-managed">Managed CP</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">0</div>
+                                <div class="spec-label">CP Nodes</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">$0.10</div>
+                                <div class="spec-label">/hour</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OKE -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#F80000">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.6c-5.302 0-9.6-4.298-9.6-9.6S6.698 2.4 12 2.4s9.6 4.298 9.6 9.6-4.298 9.6-9.6 9.6zm0-16.8c-3.974 0-7.2 3.226-7.2 7.2s3.226 7.2 7.2 7.2 7.2-3.226 7.2-7.2-3.226-7.2-7.2-7.2z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Oracle OKE</div>
+                            <div class="distro-vendor">Oracle Cloud Infrastructure</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-managed">Managed CP</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">0</div>
+                                <div class="spec-label">CP Nodes</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">Free</div>
+                                <div class="spec-label">CP Tier</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Open Source -->
+            <div class="category opensource">
+                <div class="category-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M12 0L1 6v12l11 6 11-6V6L12 0zm0 2.18l8 4.37v8.9l-8 4.37-8-4.37v-8.9l8-4.37z"/>
+                    </svg>
+                    Open Source / Standard
+                </div>
+                <div class="distros">
+                    <!-- Vanilla K8s -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#326CE5">
+                                <path d="M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L7.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l-.01-.006.3-2.602a5.19 5.19 0 0 0-2.895 1.63l1.9 1.322.006-.007zm2.097-.268a.44.44 0 0 0 .615.468l.007.004 2.06-1.57a5.185 5.185 0 0 0-3.033-1.143l.344 2.245.007-.004zm1.86 1.156a.44.44 0 0 0-.044.748l.007.01 1.9 1.322a5.18 5.18 0 0 0 .474-3.268l-2.33.181-.007.007zm.456 2.362l-.014.006a.44.44 0 0 0-.574.504l-.004.011.867 2.443a5.15 5.15 0 0 0 1.752-2.64l-2.027-.324z"/>
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Kubernetes (Vanilla)</div>
+                            <div class="distro-vendor">CNCF</div>
+                            <div class="distro-features">
+                                <span class="feature-badge">Self-Managed</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">2+</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">2+</div>
+                                <div class="spec-label">CP RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rancher -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#0075A8">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.5 16.5h-9v-9h9v9z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Rancher (RKE2)</div>
+                            <div class="distro-vendor">SUSE</div>
+                            <div class="distro-features">
+                                <span class="feature-badge badge-ha">Multi-cluster Mgmt</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">2</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">4</div>
+                                <div class="spec-label">CP RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charmed -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#E95420">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4a9.6 9.6 0 1 1 0 19.2 9.6 9.6 0 0 1 0-19.2z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">Charmed Kubernetes</div>
+                            <div class="distro-vendor">Canonical</div>
+                            <div class="distro-features">
+                                <span class="feature-badge">Juju Managed</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">4</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">8</div>
+                                <div class="spec-label">CP RAM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lightweight -->
+            <div class="category lightweight">
+                <div class="category-title">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    Lightweight / Edge
+                </div>
+                <div class="distros">
+                    <!-- K3s -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#FFC61C">
+                                <path d="M12 0L1 6v12l11 6 11-6V6L12 0zm0 3l8 4.4v8.8l-8 4.4-8-4.4V7.4L12 3z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">K3s</div>
+                            <div class="distro-vendor">SUSE</div>
+                            <div class="distro-features">
+                                <span class="feature-badge">< 100MB Binary</span>
+                                <span class="feature-badge">Edge/IoT</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">1</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">512</div>
+                                <div class="spec-label">MB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MicroK8s -->
+                    <div class="distro">
+                        <div class="distro-logo">
+                            <svg viewBox="0 0 24 24" fill="#E95420">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.5 16.5c-3.03 0-5.5-2.47-5.5-5.5s2.47-5.5 5.5-5.5S17.5 7.97 17.5 11s-2.47 5.5-5.5 5.5z"/>
+                            </svg>
+                        </div>
+                        <div class="distro-info">
+                            <div class="distro-name">MicroK8s</div>
+                            <div class="distro-vendor">Canonical</div>
+                            <div class="distro-features">
+                                <span class="feature-badge">Snap Package</span>
+                                <span class="feature-badge">Dev/Edge</span>
+                            </div>
+                        </div>
+                        <div class="distro-specs">
+                            <div class="spec">
+                                <div class="spec-value">1</div>
+                                <div class="spec-label">CP vCPU</div>
+                            </div>
+                            <div class="spec">
+                                <div class="spec-value">1</div>
+                                <div class="spec-label">GB RAM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="feature-badge badge-managed">Managed CP</span>
+                    <span>Control Plane managed by cloud provider (0 nodes)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="feature-badge badge-infra">Infra Nodes</span>
+                    <span>Dedicated infrastructure nodes (OpenShift only)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="feature-badge badge-ha">Built-in HA</span>
+                    <span>High availability features included</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,121 @@
+@using InfraSizingCalculator.Models.Enums
+
+@* Settings panel for headroom, replicas, and overcommit ratios *@
+
+<div class="settings-panel @AdditionalClass">
+    <!-- Overcommit Settings -->
+    <div class="settings-section">
+        <h4>📊 Overcommit Ratios</h4>
+        <p class="settings-desc">Resource overcommitment ratios for better node utilization</p>
+        <div class="settings-grid two-col">
+            <div class="settings-group">
+                <label class="group-label">Production</label>
+                <div class="inline-settings">
+                    <div class="setting-item">
+                        <label>CPU</label>
+                        <input type="number" step="0.1" value="@ProdCpuOvercommit"
+                               @onchange="e => OnOvercommitChange(true, true, ParseDouble(e.Value))" />
+                    </div>
+                    <div class="setting-item">
+                        <label>Memory</label>
+                        <input type="number" step="0.1" value="@ProdMemoryOvercommit"
+                               @onchange="e => OnOvercommitChange(true, false, ParseDouble(e.Value))" />
+                    </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <label class="group-label">Non-Production</label>
+                <div class="inline-settings">
+                    <div class="setting-item">
+                        <label>CPU</label>
+                        <input type="number" step="0.1" value="@NonProdCpuOvercommit"
+                               @onchange="e => OnOvercommitChange(false, true, ParseDouble(e.Value))" />
+                    </div>
+                    <div class="setting-item">
+                        <label>Memory</label>
+                        <input type="number" step="0.1" value="@NonProdMemoryOvercommit"
+                               @onchange="e => OnOvercommitChange(false, false, ParseDouble(e.Value))" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Headroom Settings -->
+    <div class="settings-section">
+        <h4>📈 Headroom Percentages</h4>
+        <p class="settings-desc">Extra capacity for scaling and burst traffic</p>
+        <div class="settings-grid">
+            @foreach (var env in AllEnvironments)
+            {
+                <div class="setting-item">
+                    <label>@env (%)</label>
+                    <input type="number" min="0" max="100" value="@GetHeadroom(env)"
+                           @onchange="e => SetHeadroom(env, ParseDouble(e.Value))" />
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Replica Settings -->
+    <div class="settings-section">
+        <h4>🔄 Default Replicas</h4>
+        <p class="settings-desc">Application instances per environment</p>
+        <div class="settings-grid">
+            @foreach (var env in AllEnvironments)
+            {
+                <div class="setting-item">
+                    <label>@env</label>
+                    <input type="number" min="1" max="10" value="@GetReplicas(env)"
+                           @onchange="e => SetReplicas(env, ParseInt(e.Value))" />
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public double ProdCpuOvercommit { get; set; } = 1.0;
+    [Parameter] public double ProdMemoryOvercommit { get; set; } = 1.0;
+    [Parameter] public double NonProdCpuOvercommit { get; set; } = 1.0;
+    [Parameter] public double NonProdMemoryOvercommit { get; set; } = 1.0;
+    [Parameter] public Dictionary<EnvironmentType, double> Headroom { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, int> Replicas { get; set; } = new();
+    [Parameter] public EventCallback<(bool isProd, bool isCpu, double value)> OnOvercommitChanged { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType env, double value)> OnHeadroomChanged { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType env, int value)> OnReplicasChanged { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private static readonly EnvironmentType[] AllEnvironments =
+        { EnvironmentType.Dev, EnvironmentType.Test, EnvironmentType.Stage, EnvironmentType.Prod, EnvironmentType.DR };
+
+    private double GetHeadroom(EnvironmentType env) => Headroom.TryGetValue(env, out var v) ? v : 20;
+    private int GetReplicas(EnvironmentType env) => Replicas.TryGetValue(env, out var v) ? v : 1;
+
+    private async Task OnOvercommitChange(bool isProd, bool isCpu, double value)
+    {
+        if (OnOvercommitChanged.HasDelegate)
+        {
+            await OnOvercommitChanged.InvokeAsync((isProd, isCpu, value));
+        }
+    }
+
+    private async Task SetHeadroom(EnvironmentType env, double value)
+    {
+        if (OnHeadroomChanged.HasDelegate)
+        {
+            await OnHeadroomChanged.InvokeAsync((env, value));
+        }
+    }
+
+    private async Task SetReplicas(EnvironmentType env, int value)
+    {
+        if (OnReplicasChanged.HasDelegate)
+        {
+            await OnReplicasChanged.InvokeAsync((env, value));
+        }
+    }
+
+    private static double ParseDouble(object? value) => double.TryParse(value?.ToString(), out var result) ? result : 0;
+    private static int ParseInt(object? value) => int.TryParse(value?.ToString(), out var result) ? result : 0;
+}

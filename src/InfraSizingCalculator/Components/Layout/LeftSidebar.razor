@@ -1,0 +1,194 @@
+@namespace InfraSizingCalculator.Components.Layout
+
+<nav class="left-sidebar">
+    <!-- Wizard Steps as Navigation -->
+    <div class="nav-section">
+        <h3 class="nav-section-title">Configuration</h3>
+        @for (int i = 1; i <= TotalSteps; i++)
+        {
+            var step = i;
+            var isClickable = step <= CurrentStep;
+            var stepLabel = GetStepLabel(step);
+            var stepSelection = GetStepSelection(step);
+            var isCompleted = step < CurrentStep;
+            var isCurrent = step == CurrentStep;
+            var stepClass = isCompleted ? "completed" : (isCurrent ? "current" : "upcoming");
+
+            <button class="nav-step @stepClass @(isClickable ? "clickable" : "")"
+                    @onclick="() => OnStepClicked(step)"
+                    disabled="@(!isClickable)">
+                <span class="step-number">
+                    @if (isCompleted)
+                    {
+                        <span class="check icon icon-check"></span>
+                    }
+                    else
+                    {
+                        @step
+                    }
+                </span>
+                <span class="step-content">
+                    <span class="step-label">@stepLabel</span>
+                    @if (!string.IsNullOrEmpty(stepSelection) && isCompleted)
+                    {
+                        <span class="step-selection">@stepSelection</span>
+                    }
+                </span>
+            </button>
+        }
+    </div>
+
+    <!-- Results Navigation (only when results exist) -->
+    @if (ShowResultsSection)
+    {
+        <div class="nav-section">
+            <h3 class="nav-section-title">Results</h3>
+            <button class="nav-item @(ActiveResultTab == "sizing" ? "active" : "")" @onclick='() => OnResultTabClicked("sizing")'>
+                <span class="icon">📊</span>
+                <span class="label">Sizing Details</span>
+            </button>
+            <button class="nav-item @(ActiveResultTab == "cost" ? "active" : "")" @onclick='() => OnResultTabClicked("cost")'>
+                <span class="icon">💰</span>
+                <span class="label">Cost Breakdown</span>
+            </button>
+            <button class="nav-item @(ActiveResultTab == "growth" ? "active" : "")" @onclick='() => OnResultTabClicked("growth")'>
+                <span class="icon">📈</span>
+                <span class="label">Growth Planning</span>
+            </button>
+            @if (InsightsCount > 0)
+            {
+                <button class="nav-item @(ActiveResultTab == "insights" ? "active" : "")" @onclick='() => OnResultTabClicked("insights")'>
+                    <span class="icon">💡</span>
+                    <span class="label">Insights</span>
+                    <span class="badge @(CriticalCount > 0 ? "critical" : "")">@InsightsCount</span>
+                </button>
+            }
+        </div>
+    }
+</nav>
+
+@code {
+    [Parameter] public int CurrentStep { get; set; } = 1;
+    [Parameter] public int TotalSteps { get; set; } = 5;
+    [Parameter] public EventCallback<int> OnStepSelected { get; set; }
+    [Parameter] public Func<int, string>? StepLabelProvider { get; set; }
+    [Parameter] public Func<int, string?>? StepSelectionProvider { get; set; }
+    [Parameter] public bool ShowResultsSection { get; set; } = false;
+    [Parameter] public string ActiveResultTab { get; set; } = "sizing";
+    [Parameter] public EventCallback<string> OnResultTabSelected { get; set; }
+    [Parameter] public int InsightsCount { get; set; } = 0;
+    [Parameter] public int CriticalCount { get; set; } = 0;
+
+    private string GetStepLabel(int step)
+    {
+        return StepLabelProvider?.Invoke(step) ?? $"Step {step}";
+    }
+
+    private string? GetStepSelection(int step)
+    {
+        return StepSelectionProvider?.Invoke(step);
+    }
+
+    private async Task OnStepClicked(int step)
+    {
+        if (step <= CurrentStep)
+        {
+            await OnStepSelected.InvokeAsync(step);
+        }
+    }
+
+    private async Task OnResultTabClicked(string tab)
+    {
+        await OnResultTabSelected.InvokeAsync(tab);
+    }
+}
+
+<style>
+    /* Step Navigation */
+    .nav-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 16px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        cursor: default;
+        transition: all 0.2s ease;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-size: 0.85rem;
+        opacity: 0.5;
+    }
+
+    .nav-step.clickable {
+        cursor: pointer;
+        opacity: 1;
+    }
+
+    .nav-step.clickable:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .nav-step.current {
+        background: var(--accent-color);
+        color: white;
+        opacity: 1;
+    }
+
+    .nav-step.completed {
+        color: var(--text-primary);
+    }
+
+    .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .nav-step.current .step-number {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    .nav-step.completed .step-number {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .step-number .check {
+        font-size: 0.7rem;
+    }
+
+    .step-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .step-label {
+        font-weight: 500;
+    }
+
+    .step-selection {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nav-step.current .step-selection {
+        color: rgba(255,255,255,0.7);
+    }
+</style>

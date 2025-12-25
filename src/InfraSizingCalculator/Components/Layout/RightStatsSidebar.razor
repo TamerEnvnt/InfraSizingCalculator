@@ -1,0 +1,269 @@
+@namespace InfraSizingCalculator.Components.Layout
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Pricing
+
+<aside class="right-stats">
+    <h4 class="stats-title">Summary</h4>
+
+    @if (HasResults)
+    {
+        <div class="stats-card">
+            <div class="stats-label">Total Nodes</div>
+            <div class="stats-value">@TotalNodes</div>
+            @if (TotalNodesDelta != 0)
+            {
+                <div class="stats-delta">@FormatDelta(TotalNodesDelta) from baseline</div>
+            }
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-label">Total vCPU</div>
+            <div class="stats-value">@TotalCPU.ToString("N0")</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-label">Total RAM</div>
+            <div class="stats-value">@TotalRAM.ToString("N0") GB</div>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-label">Total Disk</div>
+            <div class="stats-value">@FormatDisk(TotalDisk)</div>
+        </div>
+
+        @if (ShowPricingNotAvailable)
+        {
+            <div class="stats-card muted">
+                <div class="stats-label">Monthly Cost</div>
+                <div class="stats-value na">N/A</div>
+                <div class="stats-delta">On-prem pricing not configured</div>
+            </div>
+        }
+        else if (MonthlyEstimate > 0)
+        {
+            <div class="stats-card highlight">
+                <div class="stats-label">Monthly Cost</div>
+                <div class="stats-value">@FormatCurrency(MonthlyEstimate)</div>
+                @if (!string.IsNullOrEmpty(CostProvider))
+                {
+                    <div class="stats-delta">@CostProvider pricing</div>
+                }
+            </div>
+        }
+
+        @if (WarningsCount > 0 || RecommendationsCount > 0)
+        {
+            <div class="stats-warnings">
+                @if (CriticalCount > 0)
+                {
+                    <span class="warning-badge critical">@CriticalCount Critical</span>
+                }
+                @if (WarningsCount > 0)
+                {
+                    <span class="warning-badge warning">@WarningsCount Warnings</span>
+                }
+                @if (RecommendationsCount > 0)
+                {
+                    <span class="warning-badge info">@RecommendationsCount Tips</span>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="stats-empty">
+            <div class="empty-icon">&#128202;</div>
+            <div class="empty-text">Configure your sizing to see statistics</div>
+        </div>
+    }
+
+    <div class="quick-actions">
+        <!-- Export Dropdown -->
+        <div class="export-dropdown">
+            <button class="btn-primary" @onclick="ToggleExportMenu" disabled="@(!HasResults)">
+                <span>&#128229;</span> Export <span class="dropdown-arrow">▼</span>
+            </button>
+            @if (_showExportMenu)
+            {
+                <div class="export-menu">
+                    <button @onclick="() => ExportAs(ExportFormat.CSV)">📄 CSV</button>
+                    <button @onclick="() => ExportAs(ExportFormat.JSON)">📋 JSON</button>
+                    <button @onclick="() => ExportAs(ExportFormat.Excel)">📊 Excel</button>
+                    <button @onclick="() => ExportAs(ExportFormat.PDF)">📑 PDF</button>
+                    <button @onclick="() => ExportAs(ExportFormat.Diagram)">🖼️ Diagram</button>
+                </div>
+            }
+        </div>
+        <button class="btn-secondary" @onclick="OnShareClick" disabled="@(!HasResults)">
+            <span>&#128279;</span> Share
+        </button>
+        <button class="btn-secondary" @onclick="OnSaveClick" disabled="@(!HasResults)">
+            <span>&#128190;</span> Save Scenario
+        </button>
+    </div>
+</aside>
+
+@code {
+    // Sizing Summary
+    [Parameter] public bool HasResults { get; set; }
+    [Parameter] public int TotalNodes { get; set; }
+    [Parameter] public double TotalCPU { get; set; }
+    [Parameter] public double TotalRAM { get; set; }
+    [Parameter] public double TotalDisk { get; set; }
+    [Parameter] public double TotalNodesDelta { get; set; }
+
+    // Cost Summary
+    [Parameter] public decimal MonthlyEstimate { get; set; }
+    [Parameter] public string? CostProvider { get; set; }
+    [Parameter] public bool ShowPricingNotAvailable { get; set; }
+
+    // Warnings/Recommendations
+    [Parameter] public int WarningsCount { get; set; }
+    [Parameter] public int CriticalCount { get; set; }
+    [Parameter] public int RecommendationsCount { get; set; }
+
+    // Action Callbacks
+    [Parameter] public EventCallback<ExportFormat> OnExport { get; set; }
+    [Parameter] public EventCallback OnShare { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    // Export dropdown state
+    private bool _showExportMenu = false;
+
+    public enum ExportFormat { CSV, JSON, Excel, PDF, Diagram }
+
+    private void ToggleExportMenu()
+    {
+        _showExportMenu = !_showExportMenu;
+    }
+
+    private async Task ExportAs(ExportFormat format)
+    {
+        _showExportMenu = false;
+        await OnExport.InvokeAsync(format);
+    }
+
+    private async Task OnShareClick()
+    {
+        await OnShare.InvokeAsync();
+    }
+
+    private async Task OnSaveClick()
+    {
+        await OnSave.InvokeAsync();
+    }
+
+    private string FormatDelta(double delta)
+    {
+        var prefix = delta > 0 ? "+" : "";
+        return $"{prefix}{delta:P0}";
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1000000)
+            return $"${amount / 1000000:N1}M";
+        if (amount >= 1000)
+            return $"${amount / 1000:N1}K";
+        return $"${amount:N0}";
+    }
+
+    private string FormatDisk(double diskGB)
+    {
+        if (diskGB >= 1000)
+            return $"{diskGB / 1000:N1} TB";
+        return $"{diskGB:N0} GB";
+    }
+}
+
+<style>
+    .stats-card.muted {
+        background: var(--bg-tertiary);
+        opacity: 0.75;
+    }
+
+    .stats-value.na {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .stats-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-xl) var(--space-md);
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .stats-empty .empty-icon {
+        font-size: 2.5rem;
+        margin-bottom: var(--space-sm);
+        opacity: 0.5;
+    }
+
+    .stats-empty .empty-text {
+        font-size: var(--font-sm);
+    }
+
+    .quick-actions button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-sm);
+    }
+
+    .quick-actions button span {
+        font-size: 1rem;
+    }
+
+    /* Export Dropdown */
+    .export-dropdown {
+        position: relative;
+        width: 100%;
+    }
+
+    .export-dropdown > button {
+        width: 100%;
+    }
+
+    .dropdown-arrow {
+        font-size: 0.7rem;
+        margin-left: 4px;
+    }
+
+    .export-menu {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        margin-bottom: 4px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+        z-index: 100;
+        overflow: hidden;
+    }
+
+    .export-menu button {
+        width: 100%;
+        padding: 10px 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .export-menu button:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .export-menu button:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+</style>

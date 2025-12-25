@@ -1,0 +1,36 @@
+@* Export action buttons *@
+
+<div class="export-buttons @AdditionalClass">
+    @if (ShowSaveProfile)
+    {
+        <button class="export-btn profile" @onclick="OnSaveProfile">
+            💾 Save Profile
+        </button>
+    }
+    <button class="export-btn csv" @onclick="OnExportCsv">
+        📄 Export CSV
+    </button>
+    <button class="export-btn json" @onclick="OnExportJson">
+        📋 Export JSON
+    </button>
+    <button class="export-btn excel" @onclick="OnExportExcel">
+        📊 Export Excel
+    </button>
+    @if (ShowDiagram)
+    {
+        <button class="export-btn diagram" @onclick="OnExportDiagram">
+            🎨 Export Diagram
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public bool ShowSaveProfile { get; set; } = true;
+    [Parameter] public bool ShowDiagram { get; set; } = true;
+    [Parameter] public string? AdditionalClass { get; set; }
+    [Parameter] public EventCallback OnSaveProfile { get; set; }
+    [Parameter] public EventCallback OnExportCsv { get; set; }
+    [Parameter] public EventCallback OnExportJson { get; set; }
+    [Parameter] public EventCallback OnExportExcel { get; set; }
+    [Parameter] public EventCallback OnExportDiagram { get; set; }
+}

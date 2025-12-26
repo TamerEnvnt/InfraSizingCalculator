@@ -57,4 +57,5 @@ Thumbs.db
 publish/
 
 # Claude
-.claude/
+.claude/*
+!.claude/CLAUDE.md

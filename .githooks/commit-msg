@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Git commit-msg hook to enforce phase tags
+# Install: git config core.hooksPath .githooks
+#
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip merge commits
+if echo "$COMMIT_MSG" | grep -q "^Merge"; then
+    exit 0
+fi
+
+# Check for phase tag
+if ! echo "$COMMIT_MSG" | grep -qE '^\[(SPEC|IMPL|SYNC|TEST)\]'; then
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "❌ COMMIT BLOCKED: Missing phase tag"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "Your commit message must start with a phase tag:"
+    echo ""
+    echo "  [SPEC] - Writing specifications/requirements"
+    echo "  [IMPL] - Writing implementation code"
+    echo "  [SYNC] - Syncing documentation to match code"
+    echo "  [TEST] - Writing or updating tests"
+    echo ""
+    echo "Example:"
+    echo "  [IMPL] feat: add new distribution support"
+    echo ""
+    echo "Your message was:"
+    echo "  $(head -1 "$COMMIT_MSG_FILE")"
+    echo ""
+    echo "See CONTRIBUTING.md for full commit format."
+    echo "═══════════════════════════════════════════════════════════════"
+    exit 1
+fi
+
+# Extract phase
+PHASE=$(echo "$COMMIT_MSG" | grep -oE '^\[(SPEC|IMPL|SYNC|TEST)\]' | tr -d '[]')
+
+# Phase-specific warnings
+case $PHASE in
+    IMPL)
+        echo "📝 [IMPL] commit - Remember: Documentation sync needed before testing"
+        ;;
+    SYNC)
+        echo "📚 [SYNC] commit - Updating documentation to match code"
+        ;;
+    TEST)
+        echo "🧪 [TEST] commit - Ensure [SYNC] was completed first"
+        ;;
+    SPEC)
+        echo "📋 [SPEC] commit - Defining requirements"
+        ;;
+esac
+
+exit 0

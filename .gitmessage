@@ -1,0 +1,41 @@
+# [PHASE] type: short description (50 chars max)
+# │       │
+# │       └── feat, fix, docs, refactor, test, chore
+# │
+# └── SPEC, IMPL, SYNC, or TEST
+
+# Body: Explain WHAT and WHY (wrap at 72 chars)
+
+
+# === REQUIRED METADATA (do not delete) ===
+Phase:
+Feature:
+Docs-Updated:
+Tests-Updated:
+
+# === PHASE GUIDE ===
+# SPEC  - Writing requirements/specs (BA)
+# IMPL  - Writing code (Developer)
+# SYNC  - Updating docs to match code (BA/Tech Writer)
+# TEST  - Writing/running tests (Tester)
+
+# === RULES ===
+# - IMPL commits: Docs-Updated should be "no" (SYNC phase handles this)
+# - SYNC commits: Must update ALL affected docs
+# - TEST commits: Must be after SYNC phase
+
+# === DOCS-UPDATED VALUES ===
+# yes - Documentation was updated in this commit
+# no  - Documentation not updated (will be updated in SYNC phase)
+# n/a - Not applicable for this phase/change
+
+# === EXAMPLE ===
+# [IMPL] feat: add ACK distribution support
+#
+# Implemented ACK distribution in DistributionService.
+# Added enum value and configuration for managed control plane.
+#
+# Phase: IMPL
+# Feature: ack-distribution
+# Docs-Updated: no
+# Tests-Updated: no

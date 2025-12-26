@@ -1,0 +1,167 @@
+name: Commit & PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-commits:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Commit Messages Have Phase Tags
+        shell: bash
+        run: |
+          echo "🔍 Validating commit messages..."
+
+          # Get commit hashes only (safe - hashes are hex strings)
+          COMMIT_HASHES=$(git rev-list origin/${{ github.base_ref }}..${{ github.sha }})
+
+          FAILED=0
+
+          for HASH in $COMMIT_HASHES; do
+            # Get subject line safely using %s format
+            MSG=$(git log --format=%s -n 1 "$HASH")
+
+            # Check for phase tag using grep with fixed patterns
+            if echo "$MSG" | grep -qE '^\[(SPEC|IMPL|SYNC|TEST)\]'; then
+              echo "✅ OK: Commit $HASH has valid phase tag"
+            else
+              echo "❌ FAILED: Commit $HASH missing phase tag"
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            echo "❌ COMMIT VALIDATION FAILED"
+            echo "═══════════════════════════════════════════════════════════"
+            echo ""
+            echo "All commits must start with a phase tag:"
+            echo "  [SPEC] - Specification/requirements"
+            echo "  [IMPL] - Implementation/code"
+            echo "  [SYNC] - Documentation sync"
+            echo "  [TEST] - Tests"
+            echo ""
+            echo "Example: [IMPL] feat: add new distribution"
+            echo ""
+            echo "See CONTRIBUTING.md for full commit format."
+            echo "═══════════════════════════════════════════════════════════"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ All commit messages have valid phase tags"
+
+  check-sync-gate:
+    name: Check SYNC Gate Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify SYNC Gate
+        shell: bash
+        run: |
+          echo "🔍 Checking sync gate compliance..."
+
+          # Get commit hashes (safe)
+          COMMIT_HASHES=$(git rev-list origin/${{ github.base_ref }}..${{ github.sha }})
+
+          HAS_IMPL=0
+          HAS_SYNC=0
+          HAS_TEST=0
+
+          for HASH in $COMMIT_HASHES; do
+            MSG=$(git log --format=%s -n 1 "$HASH")
+
+            # Check phase tags
+            if echo "$MSG" | grep -q '^\[IMPL\]'; then
+              HAS_IMPL=1
+            fi
+            if echo "$MSG" | grep -q '^\[SYNC\]'; then
+              HAS_SYNC=1
+            fi
+            if echo "$MSG" | grep -q '^\[TEST\]'; then
+              HAS_TEST=1
+            fi
+          done
+
+          # Validation rules
+          FAILED=0
+
+          if [ $HAS_IMPL -eq 1 ] && [ $HAS_SYNC -eq 0 ]; then
+            echo "⚠️  WARNING: PR has [IMPL] commits but no [SYNC] commit"
+            echo "   Documentation may need updating"
+          fi
+
+          if [ $HAS_TEST -eq 1 ] && [ $HAS_SYNC -eq 0 ] && [ $HAS_IMPL -eq 1 ]; then
+            echo "❌ FAILED: PR has [TEST] without [SYNC] after [IMPL]"
+            echo "   Tests should verify synced documentation"
+            FAILED=1
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            echo "❌ SYNC GATE VIOLATION"
+            echo "═══════════════════════════════════════════════════════════"
+            echo ""
+            echo "Required order: [SPEC] → [IMPL] → [SYNC] → [TEST]"
+            echo ""
+            echo "See docs/process/TEAM_WORKFLOW.md"
+            echo "═══════════════════════════════════════════════════════════"
+            exit 1
+          fi
+
+          echo "✅ Sync gate check passed"
+
+  check-docs-updated:
+    name: Check Documentation Updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Doc Updates
+        shell: bash
+        run: |
+          echo "🔍 Checking documentation updates..."
+
+          # Get changed files (safe - file paths from git)
+          SRC_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | grep -c "^src/" || echo "0")
+          DOCS_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | grep -c "^docs/" || echo "0")
+
+          # Check for SYNC commits
+          COMMIT_HASHES=$(git rev-list origin/${{ github.base_ref }}..${{ github.sha }})
+          HAS_SYNC=0
+
+          for HASH in $COMMIT_HASHES; do
+            MSG=$(git log --format=%s -n 1 "$HASH")
+            if echo "$MSG" | grep -q '^\[SYNC\]'; then
+              HAS_SYNC=1
+              break
+            fi
+          done
+
+          if [ "$SRC_CHANGED" -gt 0 ] && [ "$DOCS_CHANGED" -eq 0 ]; then
+            echo "⚠️  WARNING: Source files changed but no docs updated"
+            echo "   Consider if documentation needs updating"
+          fi
+
+          if [ $HAS_SYNC -eq 1 ] && [ "$DOCS_CHANGED" -eq 0 ]; then
+            echo "❌ FAILED: [SYNC] commit found but no docs/ files changed"
+            exit 1
+          fi
+
+          echo "✅ Documentation check passed"

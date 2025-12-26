@@ -39,6 +39,7 @@ Not in a follow-up commit. Not "when you have time." In the SAME commit.
 | [TEAM_WORKFLOW.md](./TEAM_WORKFLOW.md) | **Team coordination & sync gates** | When multiple people work on same feature |
 | [SYNC_WORKFLOW.md](./SYNC_WORKFLOW.md) | Individual step-by-step workflow | Before starting any feature |
 | [CHANGE_IMPACT_MATRIX.md](./CHANGE_IMPACT_MATRIX.md) | What changes require what updates | Before every commit |
+| [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) | Git branching and merge guidelines | When creating branches or PRs |
 
 ---
 

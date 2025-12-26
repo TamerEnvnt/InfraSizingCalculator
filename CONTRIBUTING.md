@@ -30,6 +30,94 @@ This configures:
 
 ---
 
+## Git Branching Strategy
+
+This project uses **Simplified Git Flow** with the following branches:
+
+### Branch Structure
+
+```
+main ─────────────────────────────────────────────► (stable/production)
+  │                                      ▲
+  │                                      │ (release merges)
+  ▼                                      │
+develop ──┬──────────────────────────────┴───────► (integration)
+          │         ▲         ▲         ▲
+          ▼         │         │         │
+     feature/*   feature/*  bugfix/*  hotfix/*
+```
+
+### Branch Types
+
+| Branch | Purpose | Created From | Merges To |
+|--------|---------|--------------|-----------|
+| `main` | Production-ready, stable code | - | - |
+| `develop` | Integration and testing | `main` | `main` |
+| `feature/*` | New features | `develop` | `develop` |
+| `bugfix/*` | Bug fixes | `develop` | `develop` |
+| `hotfix/*` | Urgent production fixes | `main` | `main` + `develop` |
+| `release/*` | Release preparation | `develop` | `main` + `develop` |
+
+### Branch Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Feature | `feature/short-description` | `feature/growth-planning` |
+| Bugfix | `bugfix/issue-description` | `bugfix/calculation-error` |
+| Hotfix | `hotfix/critical-fix` | `hotfix/security-patch` |
+| Release | `release/version` | `release/1.2.0` |
+
+### Starting New Work
+
+```bash
+# Always start from develop
+git checkout develop
+git pull origin develop
+
+# Create your feature branch
+git checkout -b feature/your-feature-name
+
+# Work through phases on your branch
+# [SPEC] → [IMPL] → [SYNC] → [TEST]
+
+# Push your branch
+git push -u origin feature/your-feature-name
+
+# Create PR to develop when ready
+```
+
+### Branch Rules
+
+| Branch | Direct Push | Merge Method | Requirements |
+|--------|-------------|--------------|--------------|
+| `main` | No | Squash merge | PR + Review + Tests pass |
+| `develop` | No | Merge commit | PR + Review |
+| `feature/*` | Yes | - | Assigned dev only |
+| `bugfix/*` | Yes | - | Assigned dev only |
+
+### Feature Branch Lifecycle
+
+```
+1. Create branch from develop
+   └── git checkout -b feature/new-feature
+
+2. Complete all phases on branch
+   ├── [SPEC] commits
+   ├── [IMPL] commits
+   ├── [SYNC] commits
+   └── [TEST] commits
+
+3. Create PR to develop
+   └── Request review
+   └── Address feedback
+   └── Merge when approved
+
+4. Delete branch after merge
+   └── git branch -d feature/new-feature
+```
+
+---
+
 ## Quick Start
 
 ### 1. Understand the Phase System

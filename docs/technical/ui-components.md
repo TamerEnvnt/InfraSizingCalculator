@@ -19,19 +19,35 @@ App.razor
     │   │   ├── Step 4a: Distribution (K8s)
     │   │   ├── Step 4b: VM Configuration (VMs)
     │   │   ├── Step 5: Configuration
-    │   │   └── Step 6: Results
-    │   ├── Results Views (Progressive Disclosure)
+    │   │   ├── Step 6: Pricing
+    │   │   └── Step 7: Results
+    │   ├── K8s Configuration (Components/K8s/)
+    │   │   ├── K8sAppsConfig.razor
+    │   │   └── K8sNodeSpecsConfig.razor
+    │   ├── VM Configuration (Components/VM/)
+    │   │   ├── VMServerRolesConfig.razor
+    │   │   └── VMHADRConfig.razor
+    │   ├── Pricing (Components/Pricing/)
+    │   │   ├── CloudAlternativesPanel.razor
+    │   │   └── OnPremPricingPanel.razor
+    │   ├── Results Views (Components/Results/)
     │   │   ├── SizingResultsView.razor
     │   │   ├── CostAnalysisView.razor
-    │   │   └── GrowthPlanningView.razor
-    │   ├── Modals
+    │   │   ├── CostEstimationPanel.razor
+    │   │   ├── GrowthPlanningView.razor
+    │   │   ├── GrowthProjectionChart.razor
+    │   │   └── GrowthTimeline.razor
+    │   ├── Modals (Components/Modals/)
     │   │   ├── Info Modal
-    │   │   ├── Profiles Modal
-    │   │   └── Save Profile Modal
-    │   └── Configuration Tabs
-    │       ├── Applications Tab
-    │       ├── Node Specs Tab
-    │       └── Settings Tab
+    │   │   └── Save Scenario Modal
+    │   └── Configuration (Components/Configuration/)
+    │       ├── AppCountsPanel.razor
+    │       ├── NodeSpecsPanel.razor
+    │       ├── SettingsPanel.razor
+    │       ├── ClusterModeSelector.razor
+    │       └── PricingSelector.razor
+    ├── Scenarios.razor (Scenario Management Page)
+    ├── Settings.razor (User Settings Page)
     └── RightStatsSidebar.razor (Summary Stats Only)
 ```
 

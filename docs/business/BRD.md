@@ -14,7 +14,7 @@
 
 The Infrastructure Sizing Calculator is a tool designed to help organizations estimate infrastructure requirements for deploying applications. It supports two deployment models:
 
-1. **Kubernetes Clusters** - Containerized deployments across 11 distribution options
+1. **Kubernetes Clusters** - Containerized deployments across 46 distribution options
 2. **Virtual Machines** - Traditional VM-based deployments with technology-specific server roles
 
 The tool provides accurate sizing recommendations based on application counts, technology choices, and organizational requirements for high availability and disaster recovery.
@@ -48,16 +48,17 @@ The tool provides accurate sizing recommendations based on application counts, t
 | Category | Items |
 |----------|-------|
 | Deployment Models | Kubernetes, Virtual Machines |
-| K8s Distributions | OpenShift, Kubernetes, Rancher, K3s, MicroK8s, Charmed, Tanzu, EKS, AKS, GKE, OKE |
+| K8s Distributions | 46 distributions including on-premises (OpenShift, Kubernetes, Rancher, K3s, MicroK8s, Charmed, Tanzu, RKE2), major cloud (EKS, AKS, GKE, OKE, IKS, ACK, TKE, CCE), OpenShift variants (ROSA, ARO), cloud variants, and developer platforms |
 | Technologies | .NET, Java, Node.js, Python, Go, Mendix, OutSystems |
 | Environments | Development, Test, Staging, Production, DR |
-| Cluster Modes | Multi-Cluster, Single Cluster |
+| Cluster Modes | Multi-Cluster, Shared Cluster, Per-Environment |
 | Export Formats | CSV, JSON, Excel, HTML Diagram |
+| Cost Estimation | On-premises hardware costs, cloud provider pricing (AWS, Azure, GCP, Oracle, IBM), Mendix platform licensing, growth projections |
+| Scenario Management | Save, load, compare sizing scenarios with SQLite persistence |
 
 ### 3.2 Out of Scope
 
 - Automated provisioning of infrastructure
-- Cost estimation and billing calculations
 - Network topology planning
 - Storage performance optimization
 - Security configuration recommendations
@@ -98,12 +99,17 @@ The system shall calculate:
 **Multi-Cluster Mode:**
 - Checkbox selection for each environment (Dev, Test, Stage, Prod, DR)
 - Independent node configuration per checked cluster
-- Each cluster calculated separately
+- Each cluster calculated separately with dedicated control plane
 
-**Single Cluster Mode:**
-- Dropdown selection: Shared, Dev, Test, Stage, Prod, DR
-- Each option has its own specific configuration
-- Resources calculated for selected scope
+**Shared Cluster Mode:**
+- All enabled environments share a single cluster
+- Namespace isolation between environments
+- Single control plane with combined worker pool
+
+**Per-Environment Mode:**
+- Dropdown selection for specific environment (Dev, Test, Stage, Prod, DR)
+- Calculate resources for single environment only
+- Used for focused sizing analysis
 
 ### 5.4 VM Sizing (FR-004)
 
@@ -205,10 +211,12 @@ See [Business Rules](./business-rules.md) for complete rule documentation.
 ## 11. Success Criteria
 
 1. Calculator produces sizing estimates within 15% of actual deployments
-2. All 11 K8s distributions have accurate specifications
+2. All 46 K8s distributions have accurate specifications
 3. All 7 technologies have accurate resource profiles
 4. Export functionality works for all supported formats
 5. UI wizard completes in under 2 minutes for typical use cases
+6. Cost estimation provides accurate pricing for on-premises and cloud deployments
+7. Scenario save/load functionality works reliably with SQLite persistence
 
 ---
 

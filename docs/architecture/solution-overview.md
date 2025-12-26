@@ -3,7 +3,7 @@
 ## Purpose
 
 The Infrastructure Sizing Calculator helps organizations estimate infrastructure requirements for deploying applications on:
-- **Kubernetes clusters** (11 distributions supported)
+- **Kubernetes clusters** (46 distributions supported including cloud variants)
 - **Virtual Machines** (technology-specific server roles)
 
 ## Architecture Layers
@@ -18,10 +18,12 @@ The Infrastructure Sizing Calculator helps organizations estimate infrastructure
 ├─────────────────────────────────────────────────────────────┤
 │                      Business Logic Layer                    │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │                     Services                          │   │
-│  │  K8sSizingService  │  VMSizingService                │   │
-│  │  TechnologyService │  DistributionService            │   │
-│  │  ExportService     │  WizardStateService             │   │
+│  │                     Services (16 total)               │   │
+│  │  K8sSizingService    │  VMSizingService              │   │
+│  │  TechnologyService   │  DistributionService          │   │
+│  │  ExportService       │  WizardStateService           │   │
+│  │  CostEstimationService│ GrowthPlanningService        │   │
+│  │  ScenarioService     │  PricingService               │   │
 │  └──────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                        Data Layer                            │
@@ -85,21 +87,36 @@ InfraSizingCalculator/
 | Mendix | Low-Code | Siemens |
 | OutSystems | Low-Code | OutSystems |
 
-### Supported K8s Distributions (11)
+### Supported K8s Distributions (46)
+
+**On-Premises (8):**
 
 | Distribution | Type | Vendor |
 |-------------|------|--------|
 | OpenShift | Enterprise | Red Hat |
 | Kubernetes | Open Source | CNCF |
-| Rancher | Open Source | SUSE |
+| Rancher/RKE2 | Enterprise | SUSE |
 | K3s | Lightweight | SUSE |
 | MicroK8s | Lightweight | Canonical |
 | Charmed | Enterprise | Canonical |
 | Tanzu | Enterprise | VMware/Broadcom |
-| EKS | Managed | AWS |
-| AKS | Managed | Microsoft Azure |
-| GKE | Managed | Google Cloud |
-| OKE | Managed | Oracle Cloud |
+
+**Cloud Managed (8 major + variants):**
+
+| Distribution | Provider |
+|-------------|----------|
+| EKS | AWS |
+| AKS | Microsoft Azure |
+| GKE | Google Cloud |
+| OKE | Oracle Cloud |
+| IKS | IBM Cloud |
+| ACK | Alibaba Cloud |
+| TKE | Tencent Cloud |
+| CCE | Huawei Cloud |
+
+**Plus 30+ cloud variants** including ROSA, ARO, Rancher on EKS/AKS/GKE, Tanzu on AWS/Azure/GCP, and developer-focused options (DOKS, LKE, VKE, Hetzner, OVH, Scaleway).
+
+See [System Inventory](../technical/SYSTEM_INVENTORY.md) for complete distribution list.
 
 ## Technology Stack
 

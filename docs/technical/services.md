@@ -11,12 +11,19 @@ This document describes all services in the Infrastructure Sizing Calculator.
 | K8sSizingService | IK8sSizingService | Kubernetes cluster sizing calculations |
 | VMSizingService | IVMSizingService | Virtual machine sizing calculations |
 | TechnologyService | ITechnologyService | Technology configurations and specs |
-| DistributionService | IDistributionService | K8s distribution configurations |
+| DistributionService | IDistributionService | K8s distribution configurations (46 distributions) |
 | ExportService | IExportService | Result export to various formats |
 | WizardStateService | IWizardStateService | UI wizard state management |
 | AppStateService | IAppStateService | Centralized application state management |
 | PricingService | IPricingService | Cloud pricing and cost estimation |
-| GrowthService | IGrowthService | Growth projection calculations |
+| PricingSettingsService | IPricingSettingsService | Pricing configuration and Mendix pricing |
+| DatabasePricingSettingsService | IPricingSettingsService | SQLite-backed pricing settings |
+| GrowthPlanningService | IGrowthPlanningService | Growth projection calculations |
+| CostEstimationService | ICostEstimationService | Cost estimation for K8s and VM deployments |
+| ScenarioService | IScenarioService | Scenario management (save/load/compare) |
+| SettingsPersistenceService | ISettingsPersistenceService | Settings persistence to localStorage |
+| ConfigurationSharingService | - | Configuration sharing via URL encoding |
+| ValidationRecommendationService | - | Input validation and recommendations |
 
 ---
 
@@ -572,3 +579,155 @@ External: ceil(users / 250,000) × $60,000/year
 - `MendixResourcePackSpec` - Resource pack specifications
 
 See [Mendix Pricing Guide](../guides/mendix-pricing.md) for detailed pricing information.
+
+---
+
+## CostEstimationService
+
+**File:** `Services/CostEstimationService.cs`
+**Interface:** `Services/Interfaces/ICostEstimationService.cs`
+
+### Purpose
+Provides comprehensive cost estimation for both K8s and VM deployments, including cloud provider pricing and on-premises hardware costs.
+
+### Methods
+
+#### EstimateK8sCost
+```csharp
+CostEstimate EstimateK8sCost(K8sSizingResult result, CostEstimationOptions options)
+```
+Estimate costs for Kubernetes deployment.
+
+#### EstimateVMCost
+```csharp
+CostEstimate EstimateVMCost(VMSizingResult result, CostEstimationOptions options)
+```
+Estimate costs for VM deployment.
+
+---
+
+## ScenarioService
+
+**File:** `Services/ScenarioService.cs`
+**Interface:** `Services/Interfaces/IScenarioService.cs`
+
+### Purpose
+Manages scenario persistence including save, load, update, delete, and comparison operations.
+
+### Methods
+
+#### SaveScenarioAsync
+```csharp
+Task<Scenario> SaveScenarioAsync(string name, string? description, ConfigurationState config)
+```
+Save a new scenario to the database.
+
+#### GetAllScenariosAsync
+```csharp
+Task<IEnumerable<Scenario>> GetAllScenariosAsync()
+```
+Retrieve all saved scenarios.
+
+#### DeleteScenarioAsync
+```csharp
+Task<bool> DeleteScenarioAsync(Guid id)
+```
+Delete a scenario by ID.
+
+---
+
+## SettingsPersistenceService
+
+**File:** `Services/SettingsPersistenceService.cs`
+**Interface:** `Services/Interfaces/ISettingsPersistenceService.cs`
+
+### Purpose
+Persists user settings and preferences to browser localStorage using JavaScript interop.
+
+### Methods
+
+#### SaveSettingsAsync
+```csharp
+Task SaveSettingsAsync(UserSettings settings)
+```
+Save settings to localStorage.
+
+#### LoadSettingsAsync
+```csharp
+Task<UserSettings?> LoadSettingsAsync()
+```
+Load settings from localStorage.
+
+---
+
+## GrowthPlanningService
+
+**File:** `Services/GrowthPlanningService.cs`
+**Interface:** `Services/Interfaces/IGrowthPlanningService.cs`
+
+### Purpose
+Calculates growth projections over time based on configurable growth patterns.
+
+### Methods
+
+#### ProjectGrowth
+```csharp
+GrowthProjection ProjectGrowth(GrowthSettings settings, K8sSizingResult baselineResult)
+GrowthProjection ProjectGrowth(GrowthSettings settings, VMSizingResult baselineResult)
+```
+Project resource requirements over specified years.
+
+### Growth Patterns
+
+| Pattern | Formula | Use Case |
+|---------|---------|----------|
+| Linear | base × (1 + rate × year) | Steady, predictable growth |
+| Exponential | base × (1 + rate)^year | Rapid scaling startups |
+| S-Curve | Logistic function | Growth with market saturation |
+
+---
+
+## ConfigurationSharingService
+
+**File:** `Services/ConfigurationSharingService.cs`
+
+### Purpose
+Enables sharing configurations via URL-encoded links.
+
+### Methods
+
+#### GenerateShareUrl
+```csharp
+string GenerateShareUrl(ConfigurationState config)
+```
+Generate a shareable URL containing the encoded configuration.
+
+#### ParseShareUrl
+```csharp
+ConfigurationState? ParseShareUrl(string url)
+```
+Parse a shared URL and restore the configuration.
+
+---
+
+## ValidationRecommendationService
+
+**File:** `Services/ValidationRecommendationService.cs`
+
+### Purpose
+Provides input validation and sizing recommendations based on best practices.
+
+### Methods
+
+#### ValidateInput
+```csharp
+ValidationResult ValidateInput(K8sSizingInput input)
+ValidationResult ValidateInput(VMSizingInput input)
+```
+Validate sizing inputs against business rules.
+
+#### GetRecommendations
+```csharp
+IEnumerable<Recommendation> GetRecommendations(K8sSizingResult result)
+```
+Generate optimization recommendations based on results.

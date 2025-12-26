@@ -20,6 +20,9 @@ Rules follow the pattern: `BR-{Category}{Number}`
 | BR-E | Environment Settings |
 | BR-V | Validation Rules |
 | BR-RC | Resource Calculations |
+| BR-C | Cost Estimation |
+| BR-S | Scenario Management |
+| BR-G | Growth Planning |
 
 ---
 
@@ -173,25 +176,41 @@ Note: OutSystems is VM-only (no Kubernetes deployment on-premises)
 
 ## Distribution Rules (BR-D)
 
-Kubernetes distribution configurations.
+Kubernetes distribution configurations (46 distributions total).
 
 | Rule ID | Distribution | Type | Control Plane | Infra Nodes |
 |---------|--------------|------|---------------|-------------|
 | BR-D001 | Base distribution config | All | Per-distribution | Per-distribution |
-| BR-D002 | OpenShift | Enterprise | Self-managed | Yes |
-| BR-D003 | Kubernetes | Open Source | Self-managed | No |
-| BR-D004 | K3s | Lightweight | Self-managed | No |
-| BR-D005 | Cloud distributions | Managed | Depends | No |
-| BR-D006 | EKS, AKS, GKE, OKE | Managed | Managed (0 nodes) | No |
-| BR-D007 | OpenShift infra requirement | OpenShift | N/A | Required |
+| BR-D002 | OpenShift (OCP, ROSA, ARO, Dedicated) | Enterprise | Self-managed or Managed | Yes |
+| BR-D003 | Kubernetes (vanilla) | Open Source | Self-managed | No |
+| BR-D004 | Lightweight (K3s, MicroK8s, Minikube, Kind) | Dev/Edge | Self-managed | No |
+| BR-D005 | Enterprise on-prem (Rancher, RKE2, Tanzu, Charmed) | Enterprise | Self-managed | No |
+| BR-D006 | Major cloud (EKS, AKS, GKE, OKE, IKS, ACK, TKE, CCE) | Managed | Managed (0 nodes) | No |
+| BR-D007 | OpenShift infra requirement | OpenShift variants | N/A | Required |
 | BR-D008 | Distribution node specs | All | CPU/RAM/Disk per type | N/A |
+| BR-D009 | Cloud variants (EKS Anywhere, AKS Arc, GKE Autopilot/Anthos) | Hybrid | Varies | No |
+| BR-D010 | Developer platforms (DOKS, LKE, VKE, Civo, Hetzner, etc.) | Managed | Managed (0 nodes) | No |
 
-### Managed Control Plane Distributions
+### Managed Control Plane Distributions (20+)
 ```
-EKS (AWS)      - HasManagedControlPlane = true
-AKS (Azure)    - HasManagedControlPlane = true
-GKE (Google)   - HasManagedControlPlane = true
-OKE (Oracle)   - HasManagedControlPlane = true
+Major Cloud:
+  EKS, AKS, GKE, OKE, IKS, ACK, TKE, CCE
+
+Developer Platforms:
+  DOKS, LKE, VKE, CivoK8s, HetznerK8s, OVHKubernetes,
+  ScalewayKapsule, UpcloudKubernetes, ExoscaleSKS, IonosK8s
+
+OpenShift Managed:
+  ROSA, ARO, OpenShiftDedicated, OpenShiftOnline
+```
+
+### Infrastructure Node Requirement (OpenShift only)
+```
+Distributions with HasInfraNodes = true:
+  OpenShift, ROSA, ARO, OpenShiftDedicated
+
+Minimum infra nodes: 3
+Scale: 1 per 25 applications
 ```
 
 ---
@@ -273,6 +292,66 @@ NPlus2 = 1 + (2 / instances)
 
 ---
 
+## Cost Estimation Rules (BR-C)
+
+Rules for infrastructure cost calculations.
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-C001 | Support on-premises hardware pricing | `CostEstimationService.CalculateOnPremCosts()` |
+| BR-C002 | Support cloud provider pricing (AWS, Azure, GCP, Oracle, IBM) | `CostEstimationService.CalculateCloudCosts()` |
+| BR-C003 | Mendix platform licensing costs based on app tier and count | `PricingService.GetMendixPricing()` |
+| BR-C004 | Monthly costs from VM/container requirements | Hours × Hourly Rate |
+| BR-C005 | Annual costs = Monthly × 12 | Standard annual projection |
+| BR-C006 | Reserved Instance discounts (1-year, 3-year) | Per cloud provider rates |
+| BR-C007 | Pricing data from database settings | SQLite persistence |
+
+### Cloud Pricing Sources
+```
+AWS       - EC2 and EKS pricing
+Azure     - VMs and AKS pricing
+GCP       - Compute Engine and GKE pricing
+Oracle    - OCI and OKE pricing
+IBM       - IBM Cloud Kubernetes pricing
+```
+
+---
+
+## Scenario Management Rules (BR-S)
+
+Rules for saving and comparing sizing scenarios.
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-S001 | Scenarios persist to SQLite database | `ScenarioService` |
+| BR-S002 | Scenario includes sizing input and results | Full configuration saved |
+| BR-S003 | Scenarios support naming and description | User-defined metadata |
+| BR-S004 | Scenario comparison side-by-side | Up to 4 scenarios |
+| BR-S005 | Scenario export to JSON format | Portable sharing |
+| BR-S006 | Scenario import from JSON | Configuration restore |
+
+---
+
+## Growth Planning Rules (BR-G)
+
+Rules for capacity growth projections.
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-G001 | Support linear growth projections | `GrowthPlanningService.CalculateLinearGrowth()` |
+| BR-G002 | Support percentage-based growth | Compound growth formula |
+| BR-G003 | Projection periods: 1-5 years | Configurable timeframe |
+| BR-G004 | Show when scaling events required | Capacity threshold alerts |
+| BR-G005 | Growth affects node counts and costs | Cascading calculations |
+
+### Growth Projection Formula
+```
+Linear: resources_year_n = base + (growth_per_year × n)
+Compound: resources_year_n = base × (1 + growth_rate)^n
+```
+
+---
+
 ## Implementation Files
 
 | Rule Category | Primary File |
@@ -288,3 +367,6 @@ NPlus2 = 1 + (2 / instances)
 | BR-V* | `Models/AppConfig.cs`, `Models/OvercommitSettings.cs` |
 | BR-RC* | `Services/K8sSizingService.cs` |
 | BR-VM* | `Services/VMSizingService.cs` |
+| BR-C* | `Services/CostEstimationService.cs`, `Services/PricingService.cs` |
+| BR-S* | `Services/ScenarioService.cs` |
+| BR-G* | `Services/GrowthPlanningService.cs` |

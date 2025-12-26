@@ -14,7 +14,7 @@ Primary input model for Kubernetes cluster sizing calculations.
 |----------|------|-------------|---------|
 | Distribution | Distribution | K8s distribution | Required |
 | Technology | Technology | Application technology | Required |
-| ClusterMode | ClusterMode | Multi-Cluster or Single | MultiCluster |
+| ClusterMode | ClusterMode | Multi-Cluster, Shared, or Per-Environment | MultiCluster |
 | EnabledEnvironments | HashSet\<EnvironmentType\> | Active environments | {Prod} |
 | EnvironmentApps | Dictionary\<EnvironmentType, AppConfig\> | App counts per env | {} |
 | ProdApps | AppConfig | Production app counts | Empty |
@@ -362,19 +362,68 @@ Mendix,     // Mendix Low-Code
 OutSystems  // OutSystems Low-Code (VM only)
 ```
 
-### Distribution
+### Distribution (46 total)
+
+**On-Premises (8):**
 ```csharp
-OpenShift,  // Red Hat OpenShift
-Kubernetes, // Vanilla K8s
-Rancher,    // SUSE Rancher (RKE2)
-K3s,        // Lightweight K3s
-MicroK8s,   // Canonical MicroK8s
-Charmed,    // Charmed Kubernetes
-Tanzu,      // VMware Tanzu
-EKS,        // Amazon EKS
-AKS,        // Azure AKS
-GKE,        // Google GKE
-OKE         // Oracle OKE
+OpenShift,      // Red Hat OpenShift Container Platform
+Kubernetes,     // Vanilla Kubernetes (CNCF)
+Rancher,        // SUSE Rancher
+RKE2,           // SUSE RKE2 (Rancher Kubernetes Engine 2)
+K3s,            // Lightweight K3s
+MicroK8s,       // Canonical MicroK8s
+Charmed,        // Charmed Kubernetes
+Tanzu           // VMware Tanzu
+```
+
+**OpenShift Variants (4):**
+```csharp
+ROSA,               // Red Hat OpenShift on AWS
+ARO,                // Azure Red Hat OpenShift
+OpenShiftDedicated, // OpenShift Dedicated (managed)
+OpenShiftOnline     // OpenShift Online (SaaS)
+```
+
+**Major Cloud Managed (8):**
+```csharp
+EKS,    // Amazon EKS
+AKS,    // Azure AKS
+GKE,    // Google GKE
+OKE,    // Oracle OKE
+IKS,    // IBM Cloud Kubernetes
+ACK,    // Alibaba Cloud ACK
+TKE,    // Tencent TKE
+CCE     // Huawei CCE
+```
+
+**Cloud Variants (12):**
+```csharp
+// Rancher on Cloud
+RancherEKS, RancherAKS, RancherGKE,
+// Tanzu on Cloud
+TanzuAWS, TanzuAzure, TanzuGCP,
+// EKS Variants
+EKSAnywhere, EKSDistro, EKSOutposts,
+// Other
+AKSArc, GKEAutopilot, GKEAnthos
+```
+
+**Developer-Focused (14):**
+```csharp
+DOKS,               // DigitalOcean Kubernetes
+LKE,                // Linode/Akamai LKE
+VKE,                // Vultr Kubernetes
+CivoK8s,            // Civo Kubernetes
+HetznerK8s,         // Hetzner Kubernetes
+OVHKubernetes,      // OVH Managed Kubernetes
+ScalewayKapsule,    // Scaleway Kapsule
+UpcloudKubernetes,  // UpCloud Kubernetes
+ExoscaleSKS,        // Exoscale SKS
+IonosK8s,           // IONOS Kubernetes
+NaverCloudKubernetes, // Naver Cloud
+KakaoiCloud,        // Kakao i Cloud
+Minikube,           // Local development
+Kind                // Kubernetes in Docker
 ```
 
 ### EnvironmentType
@@ -388,8 +437,9 @@ DR          // Disaster Recovery
 
 ### ClusterMode
 ```csharp
-MultiCluster,   // Separate cluster per environment
-SingleCluster   // Shared cluster with namespaces
+MultiCluster,     // Separate cluster per environment (default)
+SharedCluster,    // Shared cluster with namespace isolation
+PerEnvironment    // Calculate for specific environment only
 ```
 
 ### AppTier

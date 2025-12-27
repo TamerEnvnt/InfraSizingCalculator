@@ -70,3 +70,6 @@ reports/
 # SQLite temp files
 *.db-shm
 *.db-wal
+
+# Test screenshots
+tests/screenshoots/

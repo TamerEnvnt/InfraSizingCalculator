@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 5: Functional Requirements</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 5: Functional Requirements
+    </div>
+
+    <h1>5. Functional Requirements</h1>
+    <p>This section defines the detailed functional requirements derived from the use cases.</p>
+
+    <!-- 5.1 Sizing Requirements -->
+    <div class="category-header">
+        <h2>5.1 Sizing Requirements</h2>
+        <p>Core infrastructure sizing calculation requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Use Cases</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-001</span></td>
+            <td>System shall calculate K8s master node count based on distribution and cluster size</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-002</span></td>
+            <td>System shall calculate infrastructure node count for OpenShift distributions</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-003</span></td>
+            <td>System shall calculate worker node count based on CPU and RAM requirements</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-004</span></td>
+            <td>System shall support 38+ Kubernetes distributions</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-004</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-005</span></td>
+            <td>System shall calculate VM requirements for 7 technology platforms</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-013</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-006</span></td>
+            <td>System shall apply headroom percentages to sizing calculations</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-009</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-007</span></td>
+            <td>System shall apply overcommit ratios to resource calculations</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-010</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-008</span></td>
+            <td>System shall calculate replica-based resource requirements</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-008</span></td>
+        </tr>
+    </table>
+
+    <!-- 5.2 Pricing Requirements -->
+    <div class="category-header">
+        <h2>5.2 Pricing Requirements</h2>
+        <p>Cost calculation and pricing model requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Use Cases</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-010</span></td>
+            <td>System shall calculate costs for 5+ cloud providers (AWS, Azure, GCP, OCI, IBM)</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-025</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-011</span></td>
+            <td>System shall calculate on-premises infrastructure costs</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-032</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-012</span></td>
+            <td>System shall support multiple pricing models (Pay-As-You-Go, Reserved Instances)</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-027</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-013</span></td>
+            <td>System shall calculate Mendix platform licensing costs</td>
+            <td><span class="priority-p1">P1</span></td>
+            <td><span class="uc-tag">UC-030</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-014</span></td>
+            <td>System shall calculate support tier costs</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-028</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-015</span></td>
+            <td>System shall project growth-based cost increases</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-033</span>, <span class="uc-tag">UC-036</span></td>
+        </tr>
+    </table>
+
+    <!-- 5.3 Data Management Requirements -->
+    <div class="category-header">
+        <h2>5.3 Data Management Requirements</h2>
+        <p>Scenario persistence and data management requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Use Cases</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-020</span></td>
+            <td>System shall save scenarios to persistent storage (SQLite)</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-037</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-021</span></td>
+            <td>System shall load and restore saved scenarios</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-038</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-022</span></td>
+            <td>System shall support scenario comparison (2-4 scenarios side-by-side)</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-040</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-023</span></td>
+            <td>System shall store user preferences locally</td>
+            <td><span class="priority-p3">P3</span></td>
+            <td><span class="uc-tag">UC-050</span></td>
+        </tr>
+    </table>
+
+    <!-- 5.4 Export Requirements -->
+    <div class="category-header">
+        <h2>5.4 Export Requirements</h2>
+        <p>Data export and report generation requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Use Cases</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-030</span></td>
+            <td>System shall export results to CSV format for spreadsheet analysis</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-045</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-031</span></td>
+            <td>System shall export results to JSON format for programmatic use</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-046</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-032</span></td>
+            <td>System shall export results to Excel format with multiple worksheets (Summary, Sizing, Costs, Growth, Configuration)</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-047</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-FR-033</span></td>
+            <td>System shall export results to PDF format for presentations</td>
+            <td><span class="priority-p2">P2</span></td>
+            <td><span class="uc-tag">UC-048</span></td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <strong>Traceability:</strong> All functional requirements are traced to specific use cases. See <a href="10-traceability.html">Section 10: Traceability Matrix</a> for complete mapping.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04j-uc-navigation.html" class="nav-button">&larr; Previous: Navigation Use Cases</a>
+        <a href="06-external-interfaces.html" class="nav-button">Next: External Interface Requirements &rarr;</a>
+    </div>
+</body>
+</html>

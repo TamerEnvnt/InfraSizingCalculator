@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 11: Appendices</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 11: Appendices
+    </div>
+
+    <h1>11. Appendices</h1>
+    <p>Supplementary reference materials and data tables.</p>
+
+    <!-- Appendix A: Kubernetes Distributions -->
+    <div class="category-header">
+        <h2>Appendix A: Kubernetes Distributions</h2>
+        <p>Complete list of 38+ supported Kubernetes distributions</p>
+    </div>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>A.1 Distribution Categories</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Managed Kubernetes Services</div>
+                <table>
+                    <tr><th>Distribution</th><th>Provider</th><th>Requires Infra Nodes</th></tr>
+                    <tr><td>Amazon EKS</td><td>AWS</td><td>No</td></tr>
+                    <tr><td>Azure AKS</td><td>Microsoft</td><td>No</td></tr>
+                    <tr><td>Google GKE</td><td>Google Cloud</td><td>No</td></tr>
+                    <tr><td>Oracle OKE</td><td>Oracle Cloud</td><td>No</td></tr>
+                    <tr><td>IBM Cloud Kubernetes</td><td>IBM</td><td>No</td></tr>
+                    <tr><td>DigitalOcean DOKS</td><td>DigitalOcean</td><td>No</td></tr>
+                    <tr><td>Linode LKE</td><td>Akamai/Linode</td><td>No</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">OpenShift Distributions</div>
+                <table>
+                    <tr><th>Distribution</th><th>Deployment</th><th>Requires Infra Nodes</th></tr>
+                    <tr><td>OpenShift Container Platform</td><td>Self-managed</td><td>Yes (3+)</td></tr>
+                    <tr><td>OpenShift Dedicated</td><td>Managed (AWS/GCP)</td><td>Yes (3+)</td></tr>
+                    <tr><td>Azure Red Hat OpenShift (ARO)</td><td>Managed (Azure)</td><td>Yes (3+)</td></tr>
+                    <tr><td>Red Hat OpenShift on AWS (ROSA)</td><td>Managed (AWS)</td><td>Yes (3+)</td></tr>
+                    <tr><td>OpenShift Online</td><td>Shared SaaS</td><td>N/A</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Self-Managed Distributions</div>
+                <table>
+                    <tr><th>Distribution</th><th>Focus</th><th>Master Nodes</th></tr>
+                    <tr><td>Vanilla Kubernetes</td><td>Standard</td><td>1-7 (HA: 3+)</td></tr>
+                    <tr><td>Rancher RKE/RKE2</td><td>Enterprise</td><td>1-7 (HA: 3+)</td></tr>
+                    <tr><td>VMware Tanzu</td><td>Enterprise</td><td>1-7 (HA: 3+)</td></tr>
+                    <tr><td>K3s</td><td>Lightweight/Edge</td><td>1-3</td></tr>
+                    <tr><td>MicroK8s</td><td>Developer/Edge</td><td>1-3</td></tr>
+                    <tr><td>minikube</td><td>Development</td><td>1</td></tr>
+                    <tr><td>kind</td><td>Testing</td><td>1</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Implementation Reference:</strong> See <code>src/InfraSizingCalculator/Services/DistributionService.cs</code> for the complete distribution list with capabilities matrix.
+    </div>
+
+    <!-- Appendix B: Technology Resource Profiles -->
+    <div class="category-header">
+        <h2>Appendix B: Technology Resource Profiles</h2>
+        <p>Resource requirements by technology platform and application tier</p>
+    </div>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>B.1 Low-Code Platforms</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Mendix Resource Requirements</div>
+                <table>
+                    <tr><th>App Tier</th><th>CPU (cores)</th><th>RAM (GB)</th><th>Storage (GB)</th></tr>
+                    <tr><td>Small</td><td>0.5</td><td>1</td><td>10</td></tr>
+                    <tr><td>Medium</td><td>1</td><td>2</td><td>25</td></tr>
+                    <tr><td>Large</td><td>2</td><td>4</td><td>50</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">OutSystems Resource Requirements</div>
+                <table>
+                    <tr><th>App Tier</th><th>CPU (cores)</th><th>RAM (GB)</th><th>Storage (GB)</th></tr>
+                    <tr><td>Small</td><td>0.5</td><td>1.5</td><td>15</td></tr>
+                    <tr><td>Medium</td><td>1</td><td>3</td><td>30</td></tr>
+                    <tr><td>Large</td><td>2</td><td>6</td><td>60</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Implementation Reference:</strong> See <code>src/InfraSizingCalculator/Services/TechnologyService.cs</code> for complete resource profiles for all 7 supported technology platforms.
+    </div>
+
+    <!-- Appendix C: Cloud Pricing Reference -->
+    <div class="category-header">
+        <h2>Appendix C: Cloud Pricing Tables</h2>
+        <p>Reference pricing data for supported cloud providers</p>
+    </div>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>C.1 Pricing Update Schedule</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <table>
+                    <tr><th>Provider</th><th>Regions</th><th>Update Frequency</th><th>Data Source</th></tr>
+                    <tr><td>AWS</td><td>20+</td><td>Quarterly</td><td>AWS Pricing API</td></tr>
+                    <tr><td>Azure</td><td>30+</td><td>Quarterly</td><td>Azure Pricing Calculator</td></tr>
+                    <tr><td>Google Cloud</td><td>25+</td><td>Quarterly</td><td>GCP Pricing Calculator</td></tr>
+                    <tr><td>Oracle Cloud</td><td>15+</td><td>Quarterly</td><td>OCI Cost Estimator</td></tr>
+                    <tr><td>IBM Cloud</td><td>10+</td><td>Quarterly</td><td>IBM Cloud Pricing</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Disclaimer:</strong> Cloud pricing data is indicative and subject to change. Always verify current pricing with the cloud provider's official pricing calculator for accurate cost estimates.
+    </div>
+
+    <!-- Appendix D: Glossary -->
+    <div class="category-header">
+        <h2>Appendix D: Glossary</h2>
+        <p>Definitions of terms used throughout this document</p>
+    </div>
+
+    <table>
+        <tr><th>Term</th><th>Definition</th></tr>
+        <tr><td><strong>Blazor Server</strong></td><td>A web framework by Microsoft that runs Razor components on the server, sending UI updates over SignalR WebSocket connection.</td></tr>
+        <tr><td><strong>Cluster Mode</strong></td><td>Kubernetes deployment topology: Multi-Environment (all envs in one cluster), Shared Cluster (some envs share), or Per-Environment (dedicated clusters).</td></tr>
+        <tr><td><strong>DR (Disaster Recovery)</strong></td><td>Strategies for recovering from catastrophic failures, including Cold, Warm, and Hot standby patterns.</td></tr>
+        <tr><td><strong>HA (High Availability)</strong></td><td>System design approach to ensure continuous operation, typically using redundant components (Active-Passive, Active-Active, N+1).</td></tr>
+        <tr><td><strong>Headroom</strong></td><td>Additional resource capacity (expressed as percentage) reserved for workload spikes and operational overhead.</td></tr>
+        <tr><td><strong>Infrastructure Nodes</strong></td><td>Kubernetes nodes dedicated to platform services (ingress, monitoring, logging) rather than application workloads. Required by OpenShift.</td></tr>
+        <tr><td><strong>K8s</strong></td><td>Abbreviation for Kubernetes, an open-source container orchestration platform.</td></tr>
+        <tr><td><strong>Low-Code Platform</strong></td><td>Development platforms that enable rapid application development with minimal hand-coding (e.g., Mendix, OutSystems).</td></tr>
+        <tr><td><strong>Master Nodes</strong></td><td>Kubernetes control plane nodes that manage cluster state, scheduling, and API operations.</td></tr>
+        <tr><td><strong>Overcommit Ratio</strong></td><td>The ratio of allocated resources to physical capacity, allowing more workloads than physical resources by assuming not all will peak simultaneously.</td></tr>
+        <tr><td><strong>PAYG</strong></td><td>Pay-As-You-Go pricing model where charges are based on actual usage without upfront commitment.</td></tr>
+        <tr><td><strong>Replica</strong></td><td>A copy of an application instance running simultaneously for availability and load distribution.</td></tr>
+        <tr><td><strong>Reserved Instances</strong></td><td>Cloud pricing model with discounted rates in exchange for commitment to use resources for 1-3 years.</td></tr>
+        <tr><td><strong>SignalR</strong></td><td>Microsoft library for adding real-time web functionality, used by Blazor Server for server-client communication.</td></tr>
+        <tr><td><strong>SQLite</strong></td><td>Lightweight, serverless, embedded SQL database engine used for local data persistence.</td></tr>
+        <tr><td><strong>VM (Virtual Machine)</strong></td><td>Traditional virtualized server deployment model as opposed to containerized Kubernetes deployment.</td></tr>
+        <tr><td><strong>Worker Nodes</strong></td><td>Kubernetes nodes that run application workloads (pods).</td></tr>
+    </table>
+
+    <!-- Appendix E: Document History -->
+    <div class="category-header">
+        <h2>Appendix E: Document History</h2>
+        <p>Version history and change log</p>
+    </div>
+
+    <table>
+        <tr><th>Version</th><th>Date</th><th>Author</th><th>Changes</th></tr>
+        <tr><td>1.0</td><td>2025-12-25</td><td>Tamer &amp; Claude Opus 4.5</td><td>Initial SRS document creation with 55 use cases</td></tr>
+        <tr><td>1.1</td><td>2025-12-25</td><td>Tamer &amp; Claude Opus 4.5</td><td>Split into book-style modular HTML structure</td></tr>
+    </table>
+
+    <!-- Signature Block -->
+    <div class="category-header">
+        <h2>Approval Signatures</h2>
+    </div>
+
+    <table>
+        <tr><th style="width: 25%;">Role</th><th style="width: 35%;">Name</th><th style="width: 20%;">Signature</th><th style="width: 20%;">Date</th></tr>
+        <tr><td>Document Author</td><td>Tamer &amp; Claude Opus 4.5</td><td></td><td>2025-12-25</td></tr>
+        <tr><td>Technical Reviewer</td><td></td><td></td><td></td></tr>
+        <tr><td>Project Manager</td><td></td><td></td><td></td></tr>
+        <tr><td>Business Owner</td><td></td><td></td><td></td></tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="10-traceability.html" class="nav-button">&larr; Previous: Traceability Matrix</a>
+        <a href="../index.html" class="nav-button">Back to SRS Index &rarr;</a>
+    </div>
+</body>
+</html>

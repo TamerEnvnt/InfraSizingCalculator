@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 10: Traceability Matrix</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 10: Traceability Matrix
+    </div>
+
+    <h1>10. Traceability Matrix</h1>
+    <p>This section provides bidirectional traceability between requirements, use cases, and business rules.</p>
+
+    <!-- 10.1 Use Case to Requirement Mapping -->
+    <div class="category-header">
+        <h2>10.1 Use Case to Requirement Mapping</h2>
+        <p>Complete mapping of use cases to functional requirements</p>
+    </div>
+
+    <table>
+        <tr><th>Use Case</th><th>Name</th><th>Requirements</th></tr>
+        <tr><td><span class="uc-tag">UC-001</span></td><td>Select Platform Type</td><td><span class="req-tag">REQ-FR-001</span>, <span class="req-tag">REQ-IR-001</span></td></tr>
+        <tr><td><span class="uc-tag">UC-002</span></td><td>Select Deployment Model</td><td><span class="req-tag">REQ-FR-001</span>, <span class="req-tag">REQ-FR-002</span></td></tr>
+        <tr><td><span class="uc-tag">UC-003</span></td><td>Select Technology</td><td><span class="req-tag">REQ-FR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-004</span></td><td>Select K8s Distribution</td><td><span class="req-tag">REQ-FR-004</span></td></tr>
+        <tr><td><span class="uc-tag">UC-005</span></td><td>Select Cluster Mode</td><td><span class="req-tag">REQ-FR-005</span></td></tr>
+        <tr><td><span class="uc-tag">UC-006</span></td><td>Configure App Counts</td><td><span class="req-tag">REQ-FR-006</span></td></tr>
+        <tr><td><span class="uc-tag">UC-007</span></td><td>Configure Environments</td><td><span class="req-tag">REQ-FR-007</span></td></tr>
+        <tr><td><span class="uc-tag">UC-008</span></td><td>Configure Replicas</td><td><span class="req-tag">REQ-FR-008</span></td></tr>
+        <tr><td><span class="uc-tag">UC-009</span></td><td>Configure Headroom</td><td><span class="req-tag">REQ-FR-006</span></td></tr>
+        <tr><td><span class="uc-tag">UC-010</span></td><td>Configure Overcommit</td><td><span class="req-tag">REQ-FR-007</span></td></tr>
+        <tr><td><span class="uc-tag">UC-011</span></td><td>Configure Node Specs</td><td><span class="req-tag">REQ-FR-004</span></td></tr>
+        <tr><td><span class="uc-tag">UC-012</span></td><td>Calculate K8s Sizing</td><td><span class="req-tag">REQ-FR-001</span>, <span class="req-tag">REQ-FR-002</span>, <span class="req-tag">REQ-FR-003</span>, <span class="req-tag">REQ-NFR-001</span></td></tr>
+        <tr><td><span class="uc-tag">UC-013</span></td><td>Configure Server Roles</td><td><span class="req-tag">REQ-FR-005</span></td></tr>
+        <tr><td><span class="uc-tag">UC-014</span></td><td>Configure HA Pattern</td><td><span class="req-tag">REQ-FR-005</span></td></tr>
+        <tr><td><span class="uc-tag">UC-015</span></td><td>Configure DR Pattern</td><td><span class="req-tag">REQ-FR-005</span></td></tr>
+        <tr><td><span class="uc-tag">UC-016</span></td><td>Configure Load Balancer</td><td><span class="req-tag">REQ-FR-005</span></td></tr>
+        <tr><td><span class="uc-tag">UC-017</span></td><td>View Summary Cards</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-018</span></td><td>View Detailed Results</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-019</span></td><td>View Warnings</td><td><span class="req-tag">REQ-IR-004</span></td></tr>
+        <tr><td><span class="uc-tag">UC-020</span></td><td>View Resource Breakdown</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-021</span></td><td>Compare Environments</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-022</span></td><td>View Node Distribution</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-023</span></td><td>View Utilization</td><td><span class="req-tag">REQ-IR-003</span></td></tr>
+        <tr><td><span class="uc-tag">UC-024</span></td><td>View Cost Analysis</td><td><span class="req-tag">REQ-FR-010</span></td></tr>
+        <tr><td><span class="uc-tag">UC-025</span></td><td>Select Pricing Provider</td><td><span class="req-tag">REQ-FR-010</span></td></tr>
+        <tr><td><span class="uc-tag">UC-026</span></td><td>Select Region</td><td><span class="req-tag">REQ-FR-010</span></td></tr>
+        <tr><td><span class="uc-tag">UC-027</span></td><td>Select Pricing Type</td><td><span class="req-tag">REQ-FR-012</span></td></tr>
+        <tr><td><span class="uc-tag">UC-028</span></td><td>Select Support Level</td><td><span class="req-tag">REQ-FR-014</span></td></tr>
+        <tr><td><span class="uc-tag">UC-029</span></td><td>View Cost Breakdown</td><td><span class="req-tag">REQ-FR-010</span></td></tr>
+        <tr><td><span class="uc-tag">UC-030</span></td><td>Configure Mendix Pricing</td><td><span class="req-tag">REQ-FR-013</span></td></tr>
+        <tr><td><span class="uc-tag">UC-031</span></td><td>Configure Storage Pricing</td><td><span class="req-tag">REQ-FR-010</span></td></tr>
+        <tr><td><span class="uc-tag">UC-032</span></td><td>Configure On-Prem Pricing</td><td><span class="req-tag">REQ-FR-011</span></td></tr>
+        <tr><td><span class="uc-tag">UC-033</span></td><td>Set Growth Rate</td><td><span class="req-tag">REQ-FR-015</span></td></tr>
+        <tr><td><span class="uc-tag">UC-034</span></td><td>Select Growth Pattern</td><td><span class="req-tag">REQ-FR-015</span></td></tr>
+        <tr><td><span class="uc-tag">UC-035</span></td><td>View Growth Timeline</td><td><span class="req-tag">REQ-FR-015</span></td></tr>
+        <tr><td><span class="uc-tag">UC-036</span></td><td>View Projections Chart</td><td><span class="req-tag">REQ-FR-015</span></td></tr>
+        <tr><td><span class="uc-tag">UC-037</span></td><td>Save Scenario</td><td><span class="req-tag">REQ-FR-020</span></td></tr>
+        <tr><td><span class="uc-tag">UC-038</span></td><td>Load Scenario</td><td><span class="req-tag">REQ-FR-021</span></td></tr>
+        <tr><td><span class="uc-tag">UC-039</span></td><td>Delete Scenario</td><td><span class="req-tag">REQ-FR-020</span></td></tr>
+        <tr><td><span class="uc-tag">UC-040</span></td><td>Compare Scenarios</td><td><span class="req-tag">REQ-FR-022</span></td></tr>
+        <tr><td><span class="uc-tag">UC-041</span></td><td>Tag Scenario</td><td><span class="req-tag">REQ-FR-020</span></td></tr>
+        <tr><td><span class="uc-tag">UC-042</span></td><td>Filter Scenarios</td><td><span class="req-tag">REQ-FR-021</span></td></tr>
+        <tr><td><span class="uc-tag">UC-043</span></td><td>Duplicate Scenario</td><td><span class="req-tag">REQ-FR-020</span></td></tr>
+        <tr><td><span class="uc-tag">UC-044</span></td><td>Share Scenario</td><td><span class="req-tag">REQ-FR-020</span></td></tr>
+        <tr><td><span class="uc-tag">UC-045</span></td><td>Export CSV</td><td><span class="req-tag">REQ-FR-030</span></td></tr>
+        <tr><td><span class="uc-tag">UC-046</span></td><td>Export JSON</td><td><span class="req-tag">REQ-FR-031</span></td></tr>
+        <tr><td><span class="uc-tag">UC-047</span></td><td>Export Excel</td><td><span class="req-tag">REQ-FR-032</span></td></tr>
+        <tr><td><span class="uc-tag">UC-048</span></td><td>Export PDF</td><td><span class="req-tag">REQ-FR-033</span></td></tr>
+        <tr><td><span class="uc-tag">UC-049</span></td><td>Custom Node Specs</td><td><span class="req-tag">REQ-FR-023</span></td></tr>
+        <tr><td><span class="uc-tag">UC-050</span></td><td>Default Values</td><td><span class="req-tag">REQ-FR-023</span></td></tr>
+        <tr><td><span class="uc-tag">UC-051</span></td><td>Configure Theme</td><td><span class="req-tag">REQ-IR-001</span></td></tr>
+        <tr><td><span class="uc-tag">UC-052</span></td><td>Reset Configuration</td><td><span class="req-tag">REQ-FR-023</span></td></tr>
+        <tr><td><span class="uc-tag">UC-053</span></td><td>Wizard Navigation</td><td><span class="req-tag">REQ-IR-002</span></td></tr>
+        <tr><td><span class="uc-tag">UC-054</span></td><td>Tab Navigation</td><td><span class="req-tag">REQ-IR-002</span></td></tr>
+        <tr><td><span class="uc-tag">UC-055</span></td><td>Breadcrumb Navigation</td><td><span class="req-tag">REQ-IR-002</span></td></tr>
+    </table>
+
+    <!-- 10.2 Business Rule to Use Case Mapping -->
+    <div class="category-header">
+        <h2>10.2 Business Rule to Use Case Mapping</h2>
+        <p>Mapping of business rules to related use cases</p>
+    </div>
+
+    <table>
+        <tr><th>Business Rule Category</th><th>Rule IDs</th><th>Related Use Cases</th></tr>
+        <tr>
+            <td>Master Node Rules</td>
+            <td><span class="br-tag">BR-M001</span> to <span class="br-tag">BR-M004</span></td>
+            <td><span class="uc-tag">UC-004</span>, <span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td>Infrastructure Node Rules</td>
+            <td><span class="br-tag">BR-I001</span> to <span class="br-tag">BR-I005</span></td>
+            <td><span class="uc-tag">UC-004</span>, <span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td>Worker Node Rules</td>
+            <td><span class="br-tag">BR-W001</span> to <span class="br-tag">BR-W006</span></td>
+            <td><span class="uc-tag">UC-006</span>, <span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td>Headroom Rules</td>
+            <td><span class="br-tag">BR-H001</span> to <span class="br-tag">BR-H007</span></td>
+            <td><span class="uc-tag">UC-009</span>, <span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td>Replica Rules</td>
+            <td><span class="br-tag">BR-R001</span> to <span class="br-tag">BR-R005</span></td>
+            <td><span class="uc-tag">UC-008</span>, <span class="uc-tag">UC-012</span></td>
+        </tr>
+        <tr>
+            <td>VM Sizing Rules</td>
+            <td><span class="br-tag">BR-VM001</span> to <span class="br-tag">BR-VM006</span></td>
+            <td><span class="uc-tag">UC-013</span>, <span class="uc-tag">UC-014</span>, <span class="uc-tag">UC-015</span>, <span class="uc-tag">UC-016</span></td>
+        </tr>
+        <tr>
+            <td>Pricing Rules</td>
+            <td><span class="br-tag">BR-P001</span> to <span class="br-tag">BR-P006</span></td>
+            <td><span class="uc-tag">UC-025</span> to <span class="uc-tag">UC-032</span></td>
+        </tr>
+        <tr>
+            <td>Validation Rules</td>
+            <td><span class="br-tag">BR-V001</span> to <span class="br-tag">BR-V009</span></td>
+            <td><span class="uc-tag">UC-006</span>, <span class="uc-tag">UC-008</span>, <span class="uc-tag">UC-009</span>, <span class="uc-tag">UC-010</span>, <span class="uc-tag">UC-033</span>, <span class="uc-tag">UC-037</span></td>
+        </tr>
+    </table>
+
+    <!-- 10.3 Component to Use Case Mapping -->
+    <div class="category-header">
+        <h2>10.3 Component to Use Case Mapping</h2>
+        <p>Mapping of Blazor components to use cases they implement</p>
+    </div>
+
+    <table>
+        <tr><th>Component</th><th>Use Cases</th><th>Category</th></tr>
+        <tr><td>PlatformStep.razor</td><td>UC-001</td><td>Wizard</td></tr>
+        <tr><td>DeploymentStep.razor</td><td>UC-002</td><td>Wizard</td></tr>
+        <tr><td>TechnologySelector.razor</td><td>UC-003</td><td>Wizard</td></tr>
+        <tr><td>DistributionSelector.razor</td><td>UC-004</td><td>Wizard</td></tr>
+        <tr><td>ClusterModeSelector.razor</td><td>UC-005</td><td>Configuration</td></tr>
+        <tr><td>AppCountsPanel.razor</td><td>UC-006, UC-007</td><td>Configuration</td></tr>
+        <tr><td>ReplicaSettings.razor</td><td>UC-008</td><td>Configuration</td></tr>
+        <tr><td>HeadroomSettings.razor</td><td>UC-009</td><td>Configuration</td></tr>
+        <tr><td>OvercommitSettings.razor</td><td>UC-010</td><td>Configuration</td></tr>
+        <tr><td>NodeSpecsPanel.razor</td><td>UC-011</td><td>Configuration</td></tr>
+        <tr><td>SizingEngine.cs</td><td>UC-012</td><td>Service</td></tr>
+        <tr><td>ServerRolesPanel.razor</td><td>UC-013</td><td>VM</td></tr>
+        <tr><td>HAPatternSelector.razor</td><td>UC-014</td><td>VM</td></tr>
+        <tr><td>DRPatternSelector.razor</td><td>UC-015</td><td>VM</td></tr>
+        <tr><td>LoadBalancerConfig.razor</td><td>UC-016</td><td>VM</td></tr>
+        <tr><td>SummaryCards.razor</td><td>UC-017</td><td>Results</td></tr>
+        <tr><td>SizingResultsView.razor</td><td>UC-018</td><td>Results</td></tr>
+        <tr><td>ResultsWarnings.razor</td><td>UC-019</td><td>Results</td></tr>
+        <tr><td>ResourceBreakdown.razor</td><td>UC-020</td><td>Results</td></tr>
+        <tr><td>EnvironmentComparison.razor</td><td>UC-021</td><td>Results</td></tr>
+        <tr><td>NodeDistributionChart.razor</td><td>UC-022</td><td>Results</td></tr>
+        <tr><td>UtilizationView.razor</td><td>UC-023</td><td>Results</td></tr>
+        <tr><td>CostAnalysisView.razor</td><td>UC-024</td><td>Results</td></tr>
+        <tr><td>PricingSelector.razor</td><td>UC-025, UC-026, UC-027</td><td>Pricing</td></tr>
+        <tr><td>CloudAlternativesPanel.razor</td><td>UC-025, UC-029</td><td>Pricing</td></tr>
+        <tr><td>OnPremPricingPanel.razor</td><td>UC-032</td><td>Pricing</td></tr>
+        <tr><td>GrowthPlanningView.razor</td><td>UC-033, UC-034</td><td>Growth</td></tr>
+        <tr><td>GrowthTimeline.razor</td><td>UC-035</td><td>Growth</td></tr>
+        <tr><td>GrowthProjectionChart.razor</td><td>UC-036</td><td>Growth</td></tr>
+        <tr><td>SaveScenarioModal.razor</td><td>UC-037</td><td>Scenarios</td></tr>
+        <tr><td>Scenarios.razor</td><td>UC-038, UC-039, UC-040</td><td>Scenarios</td></tr>
+        <tr><td>ExportButtons.razor</td><td>UC-045, UC-046, UC-047, UC-048</td><td>Export</td></tr>
+        <tr><td>SettingsPanel.razor</td><td>UC-049, UC-050, UC-051, UC-052</td><td>Settings</td></tr>
+        <tr><td>WizardNavigation.razor</td><td>UC-053</td><td>Navigation</td></tr>
+        <tr><td>MainLayout.razor</td><td>UC-054</td><td>Navigation</td></tr>
+        <tr><td>Breadcrumb.razor</td><td>UC-055</td><td>Navigation</td></tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="09-verification.html" class="nav-button">&larr; Previous: Verification &amp; Validation</a>
+        <a href="11-appendices.html" class="nav-button">Next: Appendices &rarr;</a>
+    </div>
+</body>
+</html>

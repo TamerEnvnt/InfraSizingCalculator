@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Software Requirements Specification - Complete Template</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.54cm;
+        }
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+            max-width: 21cm;
+            margin: 0 auto;
+            padding: 2cm;
+        }
+        h1 {
+            font-size: 24pt;
+            color: #1a365d;
+            border-bottom: 3px solid #1a365d;
+            padding-bottom: 10px;
+            page-break-before: always;
+        }
+        h1:first-of-type {
+            page-break-before: avoid;
+        }
+        h2 {
+            font-size: 16pt;
+            color: #2c5282;
+            border-bottom: 1px solid #2c5282;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        h3 {
+            font-size: 13pt;
+            color: #2d3748;
+            margin-top: 20px;
+        }
+        h4 {
+            font-size: 11pt;
+            color: #4a5568;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 8px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #e2e8f0;
+            font-weight: bold;
+            color: #1a365d;
+        }
+        tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        .cover-page {
+            text-align: center;
+            padding-top: 150px;
+            page-break-after: always;
+        }
+        .cover-title {
+            font-size: 36pt;
+            color: #1a365d;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #4a5568;
+            margin-bottom: 50px;
+        }
+        .cover-info {
+            font-size: 12pt;
+            margin-top: 100px;
+        }
+        .toc {
+            page-break-after: always;
+        }
+        .toc h2 {
+            border: none;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #2c5282;
+        }
+        .toc .level2 {
+            padding-left: 20px;
+        }
+        .toc .level3 {
+            padding-left: 40px;
+        }
+        /* Requirement Box Styles */
+        .req-box {
+            border: 2px solid #2c5282;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+            page-break-inside: avoid;
+        }
+        .req-header {
+            background-color: #2c5282;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+        .req-meta {
+            background-color: #e2e8f0;
+            padding: 10px 15px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .req-meta span {
+            font-size: 10pt;
+        }
+        .req-body {
+            padding: 15px;
+        }
+        .req-section {
+            margin-bottom: 15px;
+        }
+        .req-section-title {
+            font-weight: bold;
+            color: #2c5282;
+            margin-bottom: 5px;
+        }
+        /* Use Case Box Styles */
+        .uc-box {
+            border: 2px solid #2c5282;
+            border-radius: 8px;
+            margin: 25px 0;
+            overflow: hidden;
+            page-break-inside: avoid;
+        }
+        .uc-header {
+            background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+            color: white;
+            padding: 15px 20px;
+        }
+        .uc-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 14pt;
+        }
+        .uc-header .uc-id {
+            font-size: 10pt;
+            opacity: 0.9;
+        }
+        .uc-body {
+            padding: 20px;
+        }
+        .uc-section {
+            margin-bottom: 20px;
+        }
+        .uc-section-title {
+            font-weight: bold;
+            color: #2c5282;
+            font-size: 11pt;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #cbd5e0;
+            padding-bottom: 5px;
+        }
+        /* Flow Step Styles */
+        .flow-step {
+            display: flex;
+            margin: 10px 0;
+            align-items: flex-start;
+        }
+        .step-number {
+            background-color: #2c5282;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12pt;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-actor {
+            font-weight: bold;
+            color: #2c5282;
+        }
+        .step-system {
+            font-weight: bold;
+            color: #38a169;
+        }
+        .step-action {
+            margin-top: 3px;
+        }
+        .step-details {
+            font-size: 10pt;
+            color: #718096;
+            margin-top: 5px;
+            padding-left: 15px;
+            border-left: 2px solid #e2e8f0;
+        }
+        /* Alternative/Exception Flow Styles */
+        .alt-flow {
+            background-color: #fffaf0;
+            border: 1px solid #ed8936;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .alt-flow-title {
+            font-weight: bold;
+            color: #c05621;
+            margin-bottom: 10px;
+        }
+        .exception-flow {
+            background-color: #fff5f5;
+            border: 1px solid #fc8181;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .exception-flow-title {
+            font-weight: bold;
+            color: #c53030;
+            margin-bottom: 10px;
+        }
+        /* Tag Styles */
+        .br-tag {
+            display: inline-block;
+            background-color: #805ad5;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .req-tag {
+            display: inline-block;
+            background-color: #3182ce;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .uc-tag {
+            display: inline-block;
+            background-color: #38a169;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        /* Priority Styles */
+        .priority-p1, .priority-critical { color: #c53030; font-weight: bold; }
+        .priority-p2, .priority-high { color: #d69e2e; font-weight: bold; }
+        .priority-p3, .priority-medium { color: #3182ce; font-weight: bold; }
+        .priority-p4, .priority-low { color: #718096; font-weight: bold; }
+        .status-approved { color: #38a169; }
+        .status-proposed { color: #d69e2e; }
+        /* Data Tables */
+        .data-table {
+            background-color: #f7fafc;
+        }
+        .data-table th {
+            background-color: #edf2f7;
+            font-size: 9pt;
+        }
+        /* Validation Rules */
+        .validation-rule {
+            background-color: #ebf8ff;
+            border-left: 3px solid #3182ce;
+            padding: 10px 15px;
+            margin: 5px 0;
+            font-size: 10pt;
+        }
+        /* UI Mockup Placeholder */
+        .ui-mockup {
+            background-color: #f7fafc;
+            border: 1px dashed #cbd5e0;
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            margin: 15px 0;
+        }
+        /* Sequence Diagram */
+        .sequence-diagram {
+            font-family: 'Consolas', monospace;
+            font-size: 9pt;
+            background-color: #f7fafc;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        /* Code Block */
+        .code-block {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 10pt;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        /* Diagram */
+        .diagram {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 9pt;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        /* Notes and Warnings */
+        .note {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 12px 15px;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        .warning {
+            background-color: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 12px 15px;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        .critical {
+            background-color: #fff5f5;
+            border-left: 4px solid #c53030;
+            padding: 12px 15px;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .signature-table td {
+            height: 50px;
+            vertical-align: bottom;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        /* Traceability Links */
+        .trace-link {
+            font-size: 9pt;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- COVER PAGE -->
+<!-- ============================================================ -->
+<div class="cover-page">
+    <div class="cover-title">Software Requirements Specification</div>
+    <div class="cover-subtitle">for [Project Name]</div>
+    <div style="font-size: 14pt; color: #4a5568;">Version [X.Y.Z]</div>
+
+    <div class="cover-info">
+        <table style="width: 60%; margin: 0 auto; border: none;">
+            <tr><td style="border: none; text-align: right; width: 40%;"><strong>Prepared by:</strong></td><td style="border: none;">[Author Name]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Organization:</strong></td><td style="border: none;">[Company/Team Name]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Date:</strong></td><td style="border: none;">[YYYY-MM-DD]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Status:</strong></td><td style="border: none;">[Draft / In Review / Approved]</td></tr>
+        </table>
+    </div>
+
+    <div style="position: absolute; bottom: 100px; width: 100%; text-align: center;">
+        <p style="font-size: 10pt; color: #718096;">
+            Based on IEEE 830-1998 and ISO/IEC/IEEE 29148:2018 Standards
+        </p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DOCUMENT CONTROL -->
+<!-- ============================================================ -->
+<h2>Document Control</h2>
+
+<table>
+    <tr><th style="width: 30%;">Field</th><th>Value</th></tr>
+    <tr><td><strong>Document Title</strong></td><td>Software Requirements Specification for [Project Name]</td></tr>
+    <tr><td><strong>Document ID</strong></td><td>[DOC-SRS-001]</td></tr>
+    <tr><td><strong>Version</strong></td><td>[X.Y.Z]</td></tr>
+    <tr><td><strong>Status</strong></td><td>[Draft / In Review / Approved / Released]</td></tr>
+    <tr><td><strong>Author(s)</strong></td><td>[Names]</td></tr>
+    <tr><td><strong>Organization</strong></td><td>[Company/Team Name]</td></tr>
+    <tr><td><strong>Created Date</strong></td><td>[YYYY-MM-DD]</td></tr>
+    <tr><td><strong>Last Updated</strong></td><td>[YYYY-MM-DD]</td></tr>
+    <tr><td><strong>Approved By</strong></td><td>[Name, Role]</td></tr>
+    <tr><td><strong>Approval Date</strong></td><td>[YYYY-MM-DD]</td></tr>
+</table>
+
+<h3>Revision History</h3>
+<table>
+    <tr><th>Version</th><th>Date</th><th>Author</th><th>Description</th></tr>
+    <tr><td>0.1</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Initial draft</td></tr>
+    <tr><td>0.2</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Added functional requirements and use cases</td></tr>
+    <tr><td>1.0</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Approved for development</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<div class="page-break toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><strong>1. Introduction</strong></li>
+    <li class="level2">1.1 Purpose</li>
+    <li class="level2">1.2 Scope</li>
+    <li class="level2">1.3 Definitions, Acronyms, and Abbreviations</li>
+    <li class="level2">1.4 References</li>
+    <li class="level2">1.5 Document Conventions</li>
+    <li class="level2">1.6 Intended Audience and Reading Suggestions</li>
+    <li><strong>2. Overall Description</strong></li>
+    <li class="level2">2.1 Product Perspective</li>
+    <li class="level2">2.2 Product Functions</li>
+    <li class="level2">2.3 User Classes and Characteristics</li>
+    <li class="level2">2.4 Operating Environment</li>
+    <li class="level2">2.5 Design and Implementation Constraints</li>
+    <li class="level2">2.6 User Documentation</li>
+    <li class="level2">2.7 Assumptions and Dependencies</li>
+    <li><strong>3. Business Rules</strong></li>
+    <li class="level2">3.1 Business Rules Catalog</li>
+    <li class="level2">3.2 Business Rules by Category</li>
+    <li><strong>4. Use Case Specifications</strong></li>
+    <li class="level2">4.1 Use Case Model Overview</li>
+    <li class="level2">4.2 Use Case: [UC-001]</li>
+    <li class="level2">4.3 Use Case: [UC-002]</li>
+    <li><strong>5. Functional Requirements</strong></li>
+    <li class="level2">5.1 Requirement Format</li>
+    <li class="level2">5.2 Feature: [Feature Name]</li>
+    <li><strong>6. External Interface Requirements</strong></li>
+    <li class="level2">6.1 User Interfaces</li>
+    <li class="level2">6.2 Hardware Interfaces</li>
+    <li class="level2">6.3 Software Interfaces</li>
+    <li class="level2">6.4 Communications Interfaces</li>
+    <li><strong>7. Non-Functional Requirements</strong></li>
+    <li class="level2">7.1 Performance Requirements</li>
+    <li class="level2">7.2 Safety Requirements</li>
+    <li class="level2">7.3 Security Requirements</li>
+    <li class="level2">7.4 Software Quality Attributes</li>
+    <li><strong>8. Data Requirements</strong></li>
+    <li class="level2">8.1 Data Dictionary</li>
+    <li class="level2">8.2 Data Validation Rules</li>
+    <li><strong>9. Other Requirements</strong></li>
+    <li><strong>10. Verification & Validation</strong></li>
+    <li><strong>11. Traceability</strong></li>
+    <li><strong>12. Appendices</strong></li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: INTRODUCTION -->
+<!-- ============================================================ -->
+<h1>1. Introduction</h1>
+
+<h2>1.1 Purpose</h2>
+<p>Describe the purpose of this SRS document. Identify the software product(s) to be produced by name and version number.</p>
+
+<div class="code-block">Example:
+This Software Requirements Specification (SRS) document describes the functional and
+non-functional requirements for the [Project Name] v[X.Y]. This document is intended
+for the development team, QA team, project managers, and stakeholders involved in the
+development and approval of this software.
+
+This document serves as:
+- The contract between stakeholders and the development team
+- The basis for system design and architecture
+- The foundation for test planning and validation
+- A reference for project planning and estimation</div>
+
+<h2>1.2 Scope</h2>
+<p>Provide a brief description of the software being specified and its purpose.</p>
+
+<table>
+    <tr><th style="width: 25%;">Aspect</th><th>Description</th></tr>
+    <tr><td><strong>Product Name</strong></td><td>[Full product name]</td></tr>
+    <tr><td><strong>Product Version</strong></td><td>[X.Y.Z]</td></tr>
+    <tr><td><strong>Product Type</strong></td><td>[Web Application / Desktop / Mobile / API / etc.]</td></tr>
+    <tr><td><strong>Domain</strong></td><td>[Business domain/industry]</td></tr>
+</table>
+
+<h4>In Scope</h4>
+<ul>
+    <li>[Feature/capability 1]</li>
+    <li>[Feature/capability 2]</li>
+    <li>[Feature/capability 3]</li>
+</ul>
+
+<h4>Out of Scope</h4>
+<ul>
+    <li>[Explicitly excluded feature 1]</li>
+    <li>[Explicitly excluded feature 2]</li>
+</ul>
+
+<h2>1.3 Definitions, Acronyms, and Abbreviations</h2>
+<table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td>SRS</td><td>Software Requirements Specification</td></tr>
+    <tr><td>UC</td><td>Use Case</td></tr>
+    <tr><td>BR</td><td>Business Rule</td></tr>
+    <tr><td>FR</td><td>Functional Requirement</td></tr>
+    <tr><td>NFR</td><td>Non-Functional Requirement</td></tr>
+    <tr><td>UI</td><td>User Interface</td></tr>
+    <tr><td>API</td><td>Application Programming Interface</td></tr>
+    <tr><td>[Add more...]</td><td>[Definition]</td></tr>
+</table>
+
+<h2>1.4 References</h2>
+<table>
+    <tr><th>Reference ID</th><th>Document Title</th><th>Version</th><th>Date</th><th>Source</th></tr>
+    <tr><td>REF-001</td><td>IEEE 830-1998</td><td>1998</td><td>1998-10-20</td><td>IEEE</td></tr>
+    <tr><td>REF-002</td><td>ISO/IEC/IEEE 29148:2018</td><td>2018</td><td>2018-11-30</td><td>ISO</td></tr>
+    <tr><td>REF-003</td><td>[Business Requirements Document]</td><td>1.0</td><td>YYYY-MM-DD</td><td>Internal</td></tr>
+    <tr><td>REF-004</td><td>[Technical Architecture Document]</td><td>1.0</td><td>YYYY-MM-DD</td><td>Internal</td></tr>
+</table>
+
+<h2>1.5 Document Conventions</h2>
+
+<div class="code-block"><strong>Requirement IDs:</strong>
+  REQ-FR-XXX   : Functional Requirement
+  REQ-NFR-XXX  : Non-Functional Requirement
+  REQ-IR-XXX   : Interface Requirement
+  REQ-DR-XXX   : Data Requirement
+
+<strong>Use Case IDs:</strong>
+  UC-XXX       : Use Case Specification
+
+<strong>Business Rule IDs:</strong>
+  BR-[CAT]-XXX : Business Rule (CAT = category code)
+
+<strong>Priority Levels:</strong>
+  P1 (Critical) : Must have for MVP - system cannot function without
+  P2 (High)     : Should have for release - significant business value
+  P3 (Medium)   : Nice to have - can be deferred
+  P4 (Low)      : Future consideration
+
+<strong>Requirement Keywords (RFC 2119):</strong>
+  SHALL  : Mandatory requirement
+  SHOULD : Recommended requirement
+  MAY    : Optional requirement</div>
+
+<h2>1.6 Intended Audience and Reading Suggestions</h2>
+<table>
+    <tr><th>Audience</th><th>Primary Sections</th><th>Purpose</th></tr>
+    <tr><td>Project Managers</td><td>1, 2, 10</td><td>Planning, scope, and verification</td></tr>
+    <tr><td>Business Analysts</td><td>1, 2, 3, 4</td><td>Requirements and business rules validation</td></tr>
+    <tr><td>Developers</td><td>3, 4, 5, 6, 8</td><td>Implementation details</td></tr>
+    <tr><td>QA Engineers</td><td>4, 5, 7, 8, 10</td><td>Test planning and validation</td></tr>
+    <tr><td>UI/UX Designers</td><td>2.3, 4, 6.1</td><td>User experience and interface design</td></tr>
+    <tr><td>Database Admins</td><td>6.3, 8</td><td>Data requirements</td></tr>
+    <tr><td>Stakeholders</td><td>1, 2, 4</td><td>High-level understanding</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: OVERALL DESCRIPTION -->
+<!-- ============================================================ -->
+<h1>2. Overall Description</h1>
+
+<h2>2.1 Product Perspective</h2>
+
+<h3>2.1.1 System Context Diagram</h3>
+<div class="diagram">
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                    External Systems                      │
+                    ├─────────────────┬─────────────────┬─────────────────────┤
+                    │  [External 1]   │  [External 2]   │  [External 3]       │
+                    └────────┬────────┴────────┬────────┴───────────┬─────────┘
+                             │                 │                    │
+                             ▼                 ▼                    ▼
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                    [System Name]                         │
+                    ├─────────────────────────────────────────────────────────┤
+                    │  • Module 1                                             │
+                    │  • Module 2                                             │
+                    │  • Module 3                                             │
+                    └────────┬────────────────────────────────────────────────┘
+                             │
+                             ▼
+                    ┌─────────────────────────────────────────────────────────┐
+                    │                      Data Storage                        │
+                    ├─────────────────┬─────────────────┬─────────────────────┤
+                    │  Database       │  Cache          │  File Storage       │
+                    └─────────────────┴─────────────────┴─────────────────────┘
+</div>
+
+<h3>2.1.2 System Interfaces</h3>
+<table>
+    <tr><th>Interface</th><th>Type</th><th>Description</th></tr>
+    <tr><td>Web Browser</td><td>User Interface</td><td>Primary user access via modern browsers</td></tr>
+    <tr><td>REST API</td><td>System Interface</td><td>Programmatic access to functionality</td></tr>
+    <tr><td>Database</td><td>Data Interface</td><td>Persistent storage</td></tr>
+</table>
+
+<h2>2.2 Product Functions</h2>
+<table>
+    <tr><th>Function ID</th><th>Function Name</th><th>Description</th><th>Related Use Cases</th></tr>
+    <tr><td>F-001</td><td>[Function 1]</td><td>[Description]</td><td><span class="uc-tag">UC-001</span></td></tr>
+    <tr><td>F-002</td><td>[Function 2]</td><td>[Description]</td><td><span class="uc-tag">UC-002</span> <span class="uc-tag">UC-003</span></td></tr>
+    <tr><td>F-003</td><td>[Function 3]</td><td>[Description]</td><td><span class="uc-tag">UC-004</span></td></tr>
+</table>
+
+<h2>2.3 User Classes and Characteristics</h2>
+<table>
+    <tr><th>User Class</th><th>Description</th><th>Technical Level</th><th>Frequency</th><th>Key Use Cases</th></tr>
+    <tr><td>[User Type 1]</td><td>[Description]</td><td>Expert</td><td>Daily</td><td><span class="uc-tag">UC-001</span></td></tr>
+    <tr><td>[User Type 2]</td><td>[Description]</td><td>Intermediate</td><td>Weekly</td><td><span class="uc-tag">UC-002</span></td></tr>
+    <tr><td>[User Type 3]</td><td>[Description]</td><td>Basic</td><td>Monthly</td><td><span class="uc-tag">UC-003</span></td></tr>
+</table>
+
+<h2>2.4 Operating Environment</h2>
+
+<h3>2.4.1 Client Environment</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Browser</td><td>Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</td></tr>
+    <tr><td>JavaScript</td><td>Enabled</td></tr>
+    <tr><td>Screen Resolution</td><td>Minimum 1280x720, Recommended 1920x1080</td></tr>
+</table>
+
+<h3>2.4.2 Server Environment</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Operating System</td><td>[Supported OS versions]</td></tr>
+    <tr><td>Runtime</td><td>[Runtime requirements]</td></tr>
+    <tr><td>Memory</td><td>Minimum [X]GB, Recommended [Y]GB</td></tr>
+    <tr><td>Storage</td><td>Minimum [X]GB for application + data</td></tr>
+</table>
+
+<h2>2.5 Design and Implementation Constraints</h2>
+<table>
+    <tr><th>ID</th><th>Constraint</th><th>Rationale</th></tr>
+    <tr><td>CON-001</td><td>[Constraint description]</td><td>[Rationale]</td></tr>
+    <tr><td>CON-002</td><td>[Constraint description]</td><td>[Rationale]</td></tr>
+</table>
+
+<h2>2.6 User Documentation</h2>
+<table>
+    <tr><th>Document</th><th>Format</th><th>Delivery</th></tr>
+    <tr><td>User Guide</td><td>HTML/PDF</td><td>In-app help and downloadable</td></tr>
+    <tr><td>API Reference</td><td>OpenAPI/Swagger</td><td>In-app and online</td></tr>
+    <tr><td>Quick Start Guide</td><td>HTML</td><td>In-app</td></tr>
+</table>
+
+<h2>2.7 Assumptions and Dependencies</h2>
+
+<h3>Assumptions</h3>
+<table>
+    <tr><th>ID</th><th>Assumption</th><th>Impact if False</th></tr>
+    <tr><td>ASM-001</td><td>[Assumption]</td><td>[Impact]</td></tr>
+    <tr><td>ASM-002</td><td>[Assumption]</td><td>[Impact]</td></tr>
+</table>
+
+<h3>Dependencies</h3>
+<table>
+    <tr><th>ID</th><th>Dependency</th><th>Type</th><th>Impact</th></tr>
+    <tr><td>DEP-001</td><td>[Dependency]</td><td>Technical</td><td>[Impact]</td></tr>
+    <tr><td>DEP-002</td><td>[Dependency]</td><td>Data</td><td>[Impact]</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: BUSINESS RULES -->
+<!-- ============================================================ -->
+<h1>3. Business Rules</h1>
+
+<div class="note">
+    <strong>Purpose:</strong> Business rules define the policies, constraints, and logic that govern business operations.
+    They are referenced throughout use cases and requirements using <span class="br-tag">BR-XXX</span> tags.
+</div>
+
+<h2>3.1 Business Rules Catalog</h2>
+
+<table>
+    <tr>
+        <th style="width: 12%;">Rule ID</th>
+        <th style="width: 15%;">Category</th>
+        <th style="width: 35%;">Rule Description</th>
+        <th style="width: 25%;">Implementation</th>
+        <th style="width: 13%;">Source</th>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-001</span></td>
+        <td>Validation</td>
+        <td>[Plain language description of the business rule]</td>
+        <td>[How this rule is implemented technically]</td>
+        <td>[SME/Document]</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-002</span></td>
+        <td>Calculation</td>
+        <td>[Business rule description]</td>
+        <td>[Technical implementation]</td>
+        <td>[Source]</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-003</span></td>
+        <td>Authorization</td>
+        <td>[Business rule description]</td>
+        <td>[Technical implementation]</td>
+        <td>[Source]</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-004</span></td>
+        <td>Workflow</td>
+        <td>[Business rule description]</td>
+        <td>[Technical implementation]</td>
+        <td>[Source]</td>
+    </tr>
+</table>
+
+<h2>3.2 Business Rules by Category</h2>
+
+<h3>3.2.1 Validation Rules</h3>
+<table>
+    <tr><th>Rule ID</th><th>Description</th><th>Error Message</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-V001</span></td>
+        <td>[Validation rule description]</td>
+        <td>"[Exact error message to display]"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V002</span></td>
+        <td>[Validation rule description]</td>
+        <td>"[Exact error message to display]"</td>
+    </tr>
+</table>
+
+<h3>3.2.2 Calculation Rules</h3>
+<table>
+    <tr><th>Rule ID</th><th>Description</th><th>Formula</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-C001</span></td>
+        <td>[Calculation rule description]</td>
+        <td><code>[formula or algorithm]</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-C002</span></td>
+        <td>[Calculation rule description]</td>
+        <td><code>[formula or algorithm]</code></td>
+    </tr>
+</table>
+
+<h3>3.2.3 Authorization Rules</h3>
+<table>
+    <tr><th>Rule ID</th><th>Description</th><th>Roles</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-A001</span></td>
+        <td>[Authorization rule description]</td>
+        <td>[Applicable roles]</td>
+    </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: USE CASE SPECIFICATIONS -->
+<!-- ============================================================ -->
+<h1>4. Use Case Specifications</h1>
+
+<div class="note">
+    <strong>About This Section:</strong> Use cases describe how users interact with the system to achieve specific goals.
+    Each use case provides developers with complete information including business rules, flows, data requirements,
+    validation rules, UI guidance, and test scenarios.
+</div>
+
+<h2>4.1 Use Case Model Overview</h2>
+
+<h3>4.1.1 Use Case Diagram</h3>
+<div class="diagram">
+                                    ┌─────────────────────────────────────┐
+                                    │          [System Name]              │
+                                    │                                     │
+     ┌──────────┐                   │   ┌─────────────────────────┐      │
+     │  Actor 1 │──────────────────►│   │       UC-001            │      │
+     └──────────┘                   │   │  [Use Case Name]        │      │
+           │                        │   └─────────────────────────┘      │
+           │                        │              │                      │
+           │                        │              │ <<includes>>         │
+           ▼                        │              ▼                      │
+     ┌──────────┐                   │   ┌─────────────────────────┐      │
+     │  Actor 2 │──────────────────►│   │       UC-002            │      │
+     └──────────┘                   │   │  [Use Case Name]        │      │
+                                    │   └─────────────────────────┘      │
+                                    │                                     │
+                                    └─────────────────────────────────────┘
+</div>
+
+<h3>4.1.2 Use Case Summary</h3>
+<table>
+    <tr><th>Use Case ID</th><th>Name</th><th>Primary Actor</th><th>Priority</th><th>Status</th></tr>
+    <tr>
+        <td><span class="uc-tag">UC-001</span></td>
+        <td>[Use Case Name]</td>
+        <td>[Actor]</td>
+        <td><span class="priority-critical">P1</span></td>
+        <td>Approved</td>
+    </tr>
+    <tr>
+        <td><span class="uc-tag">UC-002</span></td>
+        <td>[Use Case Name]</td>
+        <td>[Actor]</td>
+        <td><span class="priority-high">P2</span></td>
+        <td>Approved</td>
+    </tr>
+    <tr>
+        <td><span class="uc-tag">UC-003</span></td>
+        <td>[Use Case Name]</td>
+        <td>[Actor]</td>
+        <td><span class="priority-medium">P3</span></td>
+        <td>Draft</td>
+    </tr>
+</table>
+
+<!-- USE CASE TEMPLATE -->
+<h2>4.2 Use Case: [UC-001] [Use Case Name]</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-001</div>
+        <h3>[Use Case Name]</h3>
+    </div>
+    <div class="uc-body">
+
+        <!-- IDENTIFICATION -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.1 Identification</div>
+            <table>
+                <tr><th style="width: 25%;">Use Case ID</th><td>UC-001</td></tr>
+                <tr><th>Use Case Name</th><td>[Descriptive name using verb-noun format]</td></tr>
+                <tr><th>Version</th><td>1.0</td></tr>
+                <tr><th>Created Date</th><td>[YYYY-MM-DD]</td></tr>
+                <tr><th>Last Modified</th><td>[YYYY-MM-DD]</td></tr>
+                <tr><th>Author</th><td>[Name]</td></tr>
+                <tr><th>Status</th><td>[Draft / Reviewed / Approved]</td></tr>
+            </table>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.2 Overview</div>
+            <table>
+                <tr>
+                    <th style="width: 25%;">Brief Description</th>
+                    <td>[1-2 sentence summary of what this use case accomplishes and its business value]</td>
+                </tr>
+                <tr>
+                    <th>Priority</th>
+                    <td><span class="priority-critical">P1 (Critical)</span></td>
+                </tr>
+                <tr>
+                    <th>Complexity</th>
+                    <td>[Low / Medium / High]</td>
+                </tr>
+                <tr>
+                    <th>Estimated Effort</th>
+                    <td>[Story Points or T-Shirt Size: S/M/L/XL]</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- ACTORS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.3 Actors</div>
+            <table>
+                <tr>
+                    <th style="width: 25%;">Primary Actor</th>
+                    <td>
+                        <strong>[Actor Name]</strong><br>
+                        <em>Description:</em> [Who is this user and what is their role]<br>
+                        <em>Skills:</em> [Technical level and expected knowledge]
+                    </td>
+                </tr>
+                <tr>
+                    <th>Secondary Actors</th>
+                    <td>
+                        <strong>[Actor Name]</strong> - [Role description]<br>
+                        <strong>[System Name]</strong> - [External system interaction]
+                    </td>
+                </tr>
+                <tr>
+                    <th>Stakeholders</th>
+                    <td>
+                        <strong>[Stakeholder]</strong> - [Interest in this use case]
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- PRECONDITIONS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.4 Preconditions</div>
+            <table>
+                <tr><th style="width: 10%;">#</th><th style="width: 60%;">Precondition</th><th>Verification</th></tr>
+                <tr><td>PRE-1</td><td>[What must be true before this use case can begin]</td><td>[How to verify]</td></tr>
+                <tr><td>PRE-2</td><td>[Required system state]</td><td>[How to verify]</td></tr>
+                <tr><td>PRE-3</td><td>[Required user permissions or authentication]</td><td>[How to verify]</td></tr>
+            </table>
+        </div>
+
+        <!-- POSTCONDITIONS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.5 Postconditions</div>
+            <h4>Success Postconditions</h4>
+            <table>
+                <tr><th style="width: 10%;">#</th><th style="width: 60%;">Postcondition</th><th>Verification</th></tr>
+                <tr><td>POST-S1</td><td>[What is true after successful completion]</td><td>[How to verify]</td></tr>
+                <tr><td>POST-S2</td><td>[Data changes made]</td><td>[How to verify]</td></tr>
+            </table>
+            <h4>Failure Postconditions</h4>
+            <table>
+                <tr><th style="width: 10%;">#</th><th>Postcondition</th></tr>
+                <tr><td>POST-F1</td><td>[What is true after failure - typically no changes made]</td></tr>
+            </table>
+        </div>
+
+        <!-- TRIGGERS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.6 Triggers</div>
+            <table>
+                <tr>
+                    <th style="width: 25%;">Primary Trigger</th>
+                    <td>[What initiates this use case - user action, system event, scheduled task, etc.]</td>
+                </tr>
+                <tr>
+                    <th>Trigger Source</th>
+                    <td>[UI element, API call, timer, external system, etc.]</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- BUSINESS RULES -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.7 Applicable Business Rules</div>
+            <p>The following business rules apply to this use case:</p>
+            <table>
+                <tr><th style="width: 12%;">Rule ID</th><th style="width: 45%;">Rule Description</th><th>Implementation Notes</th></tr>
+                <tr>
+                    <td><span class="br-tag">BR-001</span></td>
+                    <td>[Business rule description - copy from Section 3]</td>
+                    <td>[How this rule affects this use case]</td>
+                </tr>
+                <tr>
+                    <td><span class="br-tag">BR-002</span></td>
+                    <td>[Business rule]</td>
+                    <td>[Implementation notes]</td>
+                </tr>
+                <tr>
+                    <td><span class="br-tag">BR-003</span></td>
+                    <td>[Business rule]</td>
+                    <td>[Implementation notes]</td>
+                </tr>
+            </table>
+            <div class="warning">
+                <strong>Developer Note:</strong> All business rules must be implemented as described.
+                If a rule conflicts with technical constraints, escalate to the Business Analyst before implementing alternatives.
+            </div>
+        </div>
+
+        <!-- MAIN FLOW -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.8 Main Success Scenario (Basic Flow)</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> [Action the actor takes]</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> [Button, link, form field, etc.]<br>
+                        <strong>Input Data:</strong> [What data is provided]<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-001</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> [System response/action]</div>
+                    <div class="step-details">
+                        <strong>Processing:</strong> [What happens internally]<br>
+                        <strong>Service/Method:</strong> [Technical reference: ClassName.MethodName()]<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-002</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> [Validation step]</div>
+                    <div class="step-details">
+                        <strong>Validation Rules:</strong> See Section 4.2.12<br>
+                        <strong>On Failure:</strong> Go to Exception Flow E1
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> [Next user action]</div>
+                    <div class="step-details">
+                        <strong>UI Feedback:</strong> [What the user sees]
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> [Processing and data persistence]</div>
+                    <div class="step-details">
+                        <strong>Database:</strong> [Tables affected]<br>
+                        <strong>Transaction:</strong> [Commit/Rollback behavior]
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> [Display results to user]</div>
+                    <div class="step-details">
+                        <strong>Output:</strong> [What is displayed]<br>
+                        <strong>Navigation:</strong> [Where user goes next]
+                    </div>
+                </div>
+            </div>
+
+            <p><em>[Continue numbering for all steps...]</em></p>
+        </div>
+
+        <!-- ALTERNATIVE FLOWS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.9 Alternative Flows</div>
+
+            <div class="alt-flow">
+                <div class="alt-flow-title">A1: [Alternative Flow Name] (branches from Step 3)</div>
+                <p><strong>Condition:</strong> [When this alternative is triggered]</p>
+                <div class="flow-step">
+                    <div class="step-number">A1.1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> [Alternative action]</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> [Alternative user action]</div>
+                    </div>
+                </div>
+                <p><strong>Rejoins Main Flow:</strong> Step [X] / Ends Use Case</p>
+            </div>
+
+            <div class="alt-flow">
+                <div class="alt-flow-title">A2: [Alternative Flow Name] (branches from Step X)</div>
+                <p><strong>Condition:</strong> [When this alternative is triggered]</p>
+                <div class="flow-step">
+                    <div class="step-number">A2.1</div>
+                    <div class="step-content">
+                        <div>[Steps...]</div>
+                    </div>
+                </div>
+                <p><strong>Rejoins Main Flow:</strong> Step [X] / Ends Use Case</p>
+            </div>
+        </div>
+
+        <!-- EXCEPTION FLOWS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.10 Exception Flows (Error Handling)</div>
+
+            <div class="exception-flow">
+                <div class="exception-flow-title">E1: Validation Error (Step 3)</div>
+                <p><strong>Trigger:</strong> Input data fails validation</p>
+                <div class="flow-step">
+                    <div class="step-number">E1.1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Highlight invalid fields with red border</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">E1.2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Display inline error messages</div>
+                        <div class="step-details">
+                            <strong>Error Message:</strong> "[Exact error message text]"
+                        </div>
+                    </div>
+                </div>
+                <p><strong>Recovery:</strong> User corrects input and resubmits (returns to Step 1)</p>
+            </div>
+
+            <div class="exception-flow">
+                <div class="exception-flow-title">E2: System Error (any step)</div>
+                <p><strong>Trigger:</strong> Unexpected system error occurs</p>
+                <div class="flow-step">
+                    <div class="step-number">E2.1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Log error with full stack trace and context</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">E2.2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Display user-friendly error message</div>
+                        <div class="step-details">
+                            <strong>Error Message:</strong> "An unexpected error occurred. Please try again."<br>
+                            <strong>Error Code:</strong> [ERR-XXX]
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">E2.3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Rollback any partial changes</div>
+                    </div>
+                </div>
+                <p><strong>Recovery:</strong> User can retry or contact support with error code</p>
+            </div>
+        </div>
+
+        <!-- DATA REQUIREMENTS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.11 Data Requirements</div>
+
+            <h4>Input Data</h4>
+            <table class="data-table">
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Required</th>
+                    <th>Constraints</th>
+                    <th>Default</th>
+                    <th>Source</th>
+                </tr>
+                <tr>
+                    <td>[field_name]</td>
+                    <td>String</td>
+                    <td>Yes</td>
+                    <td>Max 100 chars, alphanumeric</td>
+                    <td>-</td>
+                    <td>User input</td>
+                </tr>
+                <tr>
+                    <td>[field_name]</td>
+                    <td>Integer</td>
+                    <td>Yes</td>
+                    <td>Range: 0-999</td>
+                    <td>0</td>
+                    <td>User input</td>
+                </tr>
+                <tr>
+                    <td>[field_name]</td>
+                    <td>Enum</td>
+                    <td>Yes</td>
+                    <td>Values: [Option1, Option2, Option3]</td>
+                    <td>Option1</td>
+                    <td>User selection</td>
+                </tr>
+            </table>
+
+            <h4>Output Data</h4>
+            <table class="data-table">
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Description</th>
+                    <th>Format</th>
+                </tr>
+                <tr>
+                    <td>[field_name]</td>
+                    <td>Integer</td>
+                    <td>[Description]</td>
+                    <td>Whole number</td>
+                </tr>
+                <tr>
+                    <td>[field_name]</td>
+                    <td>Decimal</td>
+                    <td>[Description]</td>
+                    <td>Currency ($X,XXX.XX)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- VALIDATION RULES -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.12 Validation Rules</div>
+
+            <div class="validation-rule">
+                <strong>VR-001:</strong> [Field Name] must be [validation rule]<br>
+                <em>Error Message:</em> "[Exact error message to display]"
+            </div>
+
+            <div class="validation-rule">
+                <strong>VR-002:</strong> [Field Name] must be greater than zero when [condition]<br>
+                <em>Error Message:</em> "[Error message]"
+            </div>
+
+            <div class="validation-rule">
+                <strong>VR-003:</strong> If [Field A] is selected, then [Field B] is required<br>
+                <em>Error Message:</em> "[Error message]"
+            </div>
+
+            <div class="validation-rule">
+                <strong>VR-004:</strong> [Cross-field validation: Field A + Field B must not exceed X]<br>
+                <em>Error Message:</em> "[Error message]"
+            </div>
+        </div>
+
+        <!-- UI REQUIREMENTS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.13 User Interface Requirements</div>
+
+            <table>
+                <tr>
+                    <th style="width: 25%;">Screen/Component</th>
+                    <td>[Screen name or component file path]</td>
+                </tr>
+                <tr>
+                    <th>Layout</th>
+                    <td>[Description of layout - wizard, form, table, modal, etc.]</td>
+                </tr>
+                <tr>
+                    <th>Key UI Elements</th>
+                    <td>
+                        <ul>
+                            <li><strong>[Element]:</strong> [Description and behavior]</li>
+                            <li><strong>[Element]:</strong> [Description and behavior]</li>
+                            <li><strong>[Element]:</strong> [Description and behavior]</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Accessibility</th>
+                    <td>
+                        <ul>
+                            <li>All form fields must have labels</li>
+                            <li>Error messages must be announced to screen readers</li>
+                            <li>Keyboard navigation must be supported</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="ui-mockup">
+                [Insert wireframe/mockup reference or embed image]<br>
+                <em>See: Figma Link / Wireframe Document / Image File</em>
+            </div>
+        </div>
+
+        <!-- SEQUENCE DIAGRAM -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.14 Sequence Diagram</div>
+            <div class="sequence-diagram">
+Actor           UI Component        Service             Database
+  |                  |                  |                   |
+  |--[1] Click btn-->|                  |                   |
+  |                  |--[2] Validate--->|                   |
+  |                  |<--[3] Valid------|                   |
+  |                  |--[4] Process---->|                   |
+  |                  |                  |--[5] Query------->|
+  |                  |                  |<--[6] Data--------|
+  |                  |                  |--[7] Calculate--->|
+  |                  |<--[8] Result-----|                   |
+  |<--[9] Display----|                  |                   |
+  |                  |                  |                   |
+            </div>
+            <p><em>Or reference: "[Link to full sequence diagram in design documentation]"</em></p>
+        </div>
+
+        <!-- TECHNICAL NOTES -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.15 Technical Implementation Notes</div>
+            <table>
+                <tr>
+                    <th style="width: 25%;">Component/Service</th>
+                    <td>[Service name or file path, e.g., Services/CalculationService.cs]</td>
+                </tr>
+                <tr>
+                    <th>Key Methods</th>
+                    <td>
+                        <code>CalculateSizing()</code> - Main calculation logic<br>
+                        <code>ValidateInput()</code> - Input validation
+                    </td>
+                </tr>
+                <tr>
+                    <th>API Endpoint</th>
+                    <td><code>POST /api/[resource]/[action]</code></td>
+                </tr>
+                <tr>
+                    <th>Database Tables</th>
+                    <td>[Table1], [Table2]</td>
+                </tr>
+                <tr>
+                    <th>External Dependencies</th>
+                    <td>[List any external services, APIs, or libraries]</td>
+                </tr>
+                <tr>
+                    <th>Performance</th>
+                    <td>Response time must be &lt; 500ms for 95th percentile</td>
+                </tr>
+                <tr>
+                    <th>Security</th>
+                    <td>[Authentication, authorization, input sanitization notes]</td>
+                </tr>
+            </table>
+
+            <div class="note">
+                <strong>Developer Notes:</strong>
+                <ul>
+                    <li>[Important implementation consideration]</li>
+                    <li>[Edge case to handle]</li>
+                    <li>[Reference to related code or documentation]</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- NON-FUNCTIONAL REQUIREMENTS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.16 Non-Functional Requirements</div>
+            <table>
+                <tr><th>Category</th><th>Requirement</th><th>Metric</th></tr>
+                <tr>
+                    <td>Performance</td>
+                    <td>Response time</td>
+                    <td>&lt; 500ms for 95th percentile</td>
+                </tr>
+                <tr>
+                    <td>Availability</td>
+                    <td>Offline capability</td>
+                    <td>100% offline after initial load</td>
+                </tr>
+                <tr>
+                    <td>Usability</td>
+                    <td>Task completion time</td>
+                    <td>&lt; 5 minutes for typical scenario</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- TRACEABILITY -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.17 Traceability</div>
+            <table>
+                <tr>
+                    <th style="width: 25%;">Related Requirements</th>
+                    <td>
+                        <span class="req-tag">REQ-FR-001</span>
+                        <span class="req-tag">REQ-FR-002</span>
+                        <span class="req-tag">REQ-FR-003</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Related Business Rules</th>
+                    <td>
+                        <span class="br-tag">BR-001</span>
+                        <span class="br-tag">BR-002</span>
+                        <span class="br-tag">BR-003</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Related Use Cases</th>
+                    <td>
+                        <span class="uc-tag">UC-002</span> (extends)
+                        <span class="uc-tag">UC-003</span> (includes)
+                    </td>
+                </tr>
+                <tr>
+                    <th>Test Cases</th>
+                    <td>TC-001, TC-002, TC-003, TC-004</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- TEST SCENARIOS -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.18 Test Scenarios</div>
+            <table>
+                <tr><th>Scenario ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                <tr>
+                    <td>TS-001</td>
+                    <td>Happy path with valid input</td>
+                    <td>Operation completes successfully</td>
+                    <td>P1</td>
+                </tr>
+                <tr>
+                    <td>TS-002</td>
+                    <td>Validation error on required field</td>
+                    <td>Error message displayed, no processing</td>
+                    <td>P1</td>
+                </tr>
+                <tr>
+                    <td>TS-003</td>
+                    <td>Boundary test: maximum values</td>
+                    <td>Handles max values correctly</td>
+                    <td>P2</td>
+                </tr>
+                <tr>
+                    <td>TS-004</td>
+                    <td>Boundary test: minimum/zero values</td>
+                    <td>Handles zero/min correctly</td>
+                    <td>P2</td>
+                </tr>
+                <tr>
+                    <td>TS-005</td>
+                    <td>Alternative flow: [description]</td>
+                    <td>[Expected result]</td>
+                    <td>P2</td>
+                </tr>
+                <tr>
+                    <td>TS-006</td>
+                    <td>Exception flow: system error</td>
+                    <td>Error handled gracefully, user notified</td>
+                    <td>P1</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- OPEN ISSUES -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.19 Open Issues / Questions</div>
+            <table>
+                <tr><th>Issue ID</th><th>Description</th><th>Status</th><th>Owner</th></tr>
+                <tr>
+                    <td>ISS-001</td>
+                    <td>[Question or unresolved issue]</td>
+                    <td>Open</td>
+                    <td>[Name]</td>
+                </tr>
+                <tr>
+                    <td>ISS-002</td>
+                    <td>[Pending decision]</td>
+                    <td>Pending</td>
+                    <td>[Name]</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- REVISION HISTORY -->
+        <div class="uc-section">
+            <div class="uc-section-title">4.2.20 Revision History</div>
+            <table>
+                <tr><th>Version</th><th>Date</th><th>Author</th><th>Changes</th></tr>
+                <tr><td>0.1</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Initial draft</td></tr>
+                <tr><td>0.2</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Added business rules</td></tr>
+                <tr><td>1.0</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Approved for development</td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- Additional Use Cases would follow the same template -->
+<h2>4.3 Use Case: [UC-002] [Use Case Name]</h2>
+<p><em>[Copy the UC-001 template above and fill in for each additional use case]</em></p>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: FUNCTIONAL REQUIREMENTS -->
+<!-- ============================================================ -->
+<h1>5. Functional Requirements</h1>
+
+<div class="note">
+    <strong>Relationship to Use Cases:</strong> Functional requirements are derived from use cases.
+    Each requirement traces back to one or more use cases and business rules.
+</div>
+
+<h2>5.1 Requirement Format</h2>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-XXX: [Requirement Title]</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> P1/P2/P3/P4</span>
+        <span><strong>Source:</strong> <span class="uc-tag">UC-XXX</span></span>
+        <span><strong>Status:</strong> [Proposed/Approved/Implemented]</span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL/SHOULD/MAY [action] [object] [condition].</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Rationale:</div>
+            <p>[Why this requirement exists]</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>[Testable condition 1]</li>
+                <li>[Testable condition 2]</li>
+            </ol>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Traceability:</div>
+            <ul>
+                <li><strong>Use Case:</strong> <span class="uc-tag">UC-XXX</span></li>
+                <li><strong>Business Rules:</strong> <span class="br-tag">BR-XXX</span></li>
+                <li><strong>Test Case:</strong> TC-XXX</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h2>5.2 Feature: [Feature Name]</h2>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-001: [Requirement Title]</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p1">P1 (Critical)</span></span>
+        <span><strong>Source:</strong> <span class="uc-tag">UC-001</span></span>
+        <span><strong>Status:</strong> <span class="status-approved">Approved</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL [describe the requirement in clear, unambiguous terms].</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Rationale:</div>
+            <p>[Explain why this requirement is needed]</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>[Specific, measurable, testable criterion]</li>
+                <li>[Specific, measurable, testable criterion]</li>
+            </ol>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Traceability:</div>
+            <ul>
+                <li><strong>Use Case:</strong> <span class="uc-tag">UC-001</span> Step 5</li>
+                <li><strong>Business Rules:</strong> <span class="br-tag">BR-001</span> <span class="br-tag">BR-002</span></li>
+                <li><strong>Test Case:</strong> TC-001</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<p><em>[Continue adding requirements...]</em></p>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: EXTERNAL INTERFACE REQUIREMENTS -->
+<!-- ============================================================ -->
+<h1>6. External Interface Requirements</h1>
+
+<h2>6.1 User Interfaces</h2>
+
+<h3>6.1.1 General UI Requirements</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-001</td><td>Responsive design supporting 1280px to 4K displays</td><td>P1</td></tr>
+    <tr><td>REQ-IR-002</td><td>Dark and light theme support</td><td>P2</td></tr>
+    <tr><td>REQ-IR-003</td><td>Keyboard navigation for all functions</td><td>P2</td></tr>
+    <tr><td>REQ-IR-004</td><td>WCAG 2.1 AA compliance</td><td>P2</td></tr>
+</table>
+
+<h2>6.2 Hardware Interfaces</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-010</td><td>Standard web browser hardware compatibility</td><td>P1</td></tr>
+</table>
+
+<h2>6.3 Software Interfaces</h2>
+<table>
+    <tr><th>Interface</th><th>Protocol</th><th>Data Format</th><th>Description</th></tr>
+    <tr><td>REST API</td><td>HTTPS</td><td>JSON</td><td>Programmatic access</td></tr>
+    <tr><td>Database</td><td>[Protocol]</td><td>[Format]</td><td>Data persistence</td></tr>
+</table>
+
+<h2>6.4 Communications Interfaces</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-020</td><td>HTTPS for all communications</td><td>P1</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: NON-FUNCTIONAL REQUIREMENTS -->
+<!-- ============================================================ -->
+<h1>7. Non-Functional Requirements</h1>
+
+<h2>7.1 Performance Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-001</td><td>Page load time</td><td>&lt; 2 seconds</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-002</td><td>API response time</td><td>&lt; 500ms</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-003</td><td>Concurrent users</td><td>Support 100 simultaneous</td><td>P2</td></tr>
+</table>
+
+<h2>7.2 Safety Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-010</td><td>No destructive operations without confirmation</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-011</td><td>Graceful error handling</td><td>P1</td></tr>
+</table>
+
+<h2>7.3 Security Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-020</td><td>Input sanitization (XSS prevention)</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-021</td><td>SQL injection prevention</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-022</td><td>HTTPS enforcement</td><td>P1</td></tr>
+</table>
+
+<h2>7.4 Software Quality Attributes</h2>
+
+<h3>7.4.1 Reliability</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-030</td><td>Uptime</td><td>99.5% availability</td><td>P1</td></tr>
+</table>
+
+<h3>7.4.2 Maintainability</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-040</td><td>Code coverage &gt; 80%</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-041</td><td>Modular architecture</td><td>P1</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: DATA REQUIREMENTS -->
+<!-- ============================================================ -->
+<h1>8. Data Requirements</h1>
+
+<h2>8.1 Data Dictionary</h2>
+<table>
+    <tr><th>Entity</th><th>Attribute</th><th>Type</th><th>Size</th><th>Description</th><th>Constraints</th></tr>
+    <tr><td>[Entity1]</td><td>[Attribute]</td><td>String</td><td>100</td><td>[Description]</td><td>Required, Unique</td></tr>
+    <tr><td>[Entity1]</td><td>[Attribute]</td><td>Integer</td><td>-</td><td>[Description]</td><td>Range: 0-999</td></tr>
+    <tr><td>[Entity2]</td><td>[Attribute]</td><td>DateTime</td><td>-</td><td>[Description]</td><td>Required</td></tr>
+</table>
+
+<h2>8.2 Data Validation Rules</h2>
+<p>See individual use case validation rules in Section 4.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: OTHER REQUIREMENTS -->
+<!-- ============================================================ -->
+<h1>9. Other Requirements</h1>
+
+<h2>9.1 Legal and Regulatory</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-OR-001</td><td>GDPR compliance for EU users</td><td>P2</td></tr>
+    <tr><td>REQ-OR-002</td><td>Open source license compliance</td><td>P1</td></tr>
+</table>
+
+<h2>9.2 Internationalization</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-OR-010</td><td>English (US) as default language</td><td>P1</td></tr>
+    <tr><td>REQ-OR-011</td><td>Locale-aware number formatting</td><td>P2</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: VERIFICATION & VALIDATION -->
+<!-- ============================================================ -->
+<h1>10. Verification & Validation</h1>
+
+<h2>10.1 Verification Methods</h2>
+<table>
+    <tr><th>Method</th><th>Description</th><th>Applicable To</th></tr>
+    <tr><td><strong>Inspection</strong></td><td>Document/code review</td><td>All requirements</td></tr>
+    <tr><td><strong>Analysis</strong></td><td>Mathematical verification</td><td>Calculation requirements</td></tr>
+    <tr><td><strong>Demonstration</strong></td><td>Feature walkthrough</td><td>UI requirements, Use Cases</td></tr>
+    <tr><td><strong>Test</strong></td><td>Automated/manual testing</td><td>Functional requirements</td></tr>
+</table>
+
+<h2>10.2 Test Types Required</h2>
+<table>
+    <tr><th>Test Type</th><th>Purpose</th><th>Coverage Target</th></tr>
+    <tr><td>Unit Tests</td><td>Component logic</td><td>&gt; 80%</td></tr>
+    <tr><td>Integration Tests</td><td>API endpoints</td><td>All endpoints</td></tr>
+    <tr><td>UI Tests</td><td>Component rendering</td><td>All components</td></tr>
+    <tr><td>E2E Tests</td><td>Use case flows</td><td>All P1 use cases</td></tr>
+    <tr><td>Performance Tests</td><td>Load/stress</td><td>NFR metrics</td></tr>
+    <tr><td>Security Tests</td><td>Vulnerability scanning</td><td>OWASP Top 10</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: TRACEABILITY -->
+<!-- ============================================================ -->
+<h1>11. Traceability</h1>
+
+<h2>11.1 Requirements Traceability Matrix</h2>
+<table>
+    <tr>
+        <th>Requirement</th>
+        <th>Use Case</th>
+        <th>Business Rule</th>
+        <th>Design</th>
+        <th>Code</th>
+        <th>Test Case</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-001</span></td>
+        <td><span class="uc-tag">UC-001</span></td>
+        <td><span class="br-tag">BR-001</span></td>
+        <td>DD-001</td>
+        <td>Service.cs</td>
+        <td>TC-001</td>
+        <td>Implemented</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-002</span></td>
+        <td><span class="uc-tag">UC-001</span></td>
+        <td><span class="br-tag">BR-002</span></td>
+        <td>DD-002</td>
+        <td>Component.razor</td>
+        <td>TC-002</td>
+        <td>Implemented</td>
+    </tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 12: APPENDICES -->
+<!-- ============================================================ -->
+<h1>12. Appendices</h1>
+
+<h2>Appendix A: Glossary</h2>
+<p><em>[Expanded glossary if needed beyond Section 1.3]</em></p>
+
+<h2>Appendix B: Diagrams</h2>
+<p><em>[Architecture diagrams, data flow diagrams, ERDs, etc.]</em></p>
+
+<h2>Appendix C: Mockups</h2>
+<p><em>[UI mockups and wireframes]</em></p>
+
+<!-- ============================================================ -->
+<!-- DOCUMENT APPROVAL -->
+<!-- ============================================================ -->
+<div class="page-break"></div>
+<h1>Document Approval</h1>
+
+<table class="signature-table">
+    <tr><th>Role</th><th>Name</th><th>Signature</th><th>Date</th></tr>
+    <tr><td>Product Owner</td><td></td><td></td><td></td></tr>
+    <tr><td>Technical Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>QA Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>Project Manager</td><td></td><td></td><td></td></tr>
+</table>
+
+<hr style="margin-top: 50px;">
+
+<h2>References</h2>
+<ul>
+    <li><a href="https://standards.ieee.org/ieee/830/1222/">IEEE 830-1998 - IEEE Recommended Practice for Software Requirements Specifications</a></li>
+    <li><a href="https://www.iso.org/standard/72089.html">ISO/IEC/IEEE 29148:2018 - Systems and software engineering — Requirements engineering</a></li>
+</ul>
+
+<p style="text-align: center; color: #718096; margin-top: 30px;">
+    <strong>Template Version:</strong> 1.0 |
+    <strong>Based On:</strong> IEEE 830-1998 + ISO/IEC/IEEE 29148:2018 |
+    <strong>Created:</strong> December 25, 2025
+</p>
+
+</body>
+</html>

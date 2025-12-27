@@ -1,0 +1,452 @@
+/* SRS Document Styles - Infrastructure Sizing Calculator */
+/* Shared stylesheet for book-style documentation */
+
+@page { size: A4; margin: 2.54cm; }
+
+/* Base Typography */
+body {
+    font-family: 'Calibri', 'Arial', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #333;
+    max-width: 21cm;
+    margin: 0 auto;
+    padding: 2cm;
+    background-color: #fff;
+}
+
+/* Headings */
+h1 {
+    font-size: 24pt;
+    color: #1a365d;
+    border-bottom: 3px solid #1a365d;
+    padding-bottom: 10px;
+    page-break-before: always;
+}
+
+h1:first-of-type { page-break-before: avoid; }
+
+h2 {
+    font-size: 16pt;
+    color: #2c5282;
+    border-bottom: 1px solid #2c5282;
+    padding-bottom: 5px;
+    margin-top: 25px;
+}
+
+h3 {
+    font-size: 13pt;
+    color: #2d3748;
+    margin-top: 20px;
+}
+
+h4 {
+    font-size: 11pt;
+    color: #4a5568;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 10pt;
+}
+
+th, td {
+    border: 1px solid #cbd5e0;
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: #e2e8f0;
+    font-weight: bold;
+    color: #1a365d;
+}
+
+tr:nth-child(even) { background-color: #f7fafc; }
+
+/* Cover Page */
+.cover-page {
+    text-align: center;
+    padding-top: 100px;
+    page-break-after: always;
+}
+
+.cover-title {
+    font-size: 36pt;
+    color: #1a365d;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.cover-subtitle {
+    font-size: 18pt;
+    color: #4a5568;
+    margin-bottom: 50px;
+}
+
+/* Table of Contents */
+.toc { page-break-after: always; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 8px 0; }
+.toc .level2 { padding-left: 20px; }
+.toc .level3 { padding-left: 40px; }
+
+/* Use Case Boxes */
+.uc-box {
+    border: 2px solid #2c5282;
+    border-radius: 8px;
+    margin: 25px 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+}
+
+.uc-header {
+    background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+    color: white;
+    padding: 15px 20px;
+}
+
+.uc-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 14pt;
+}
+
+.uc-header .uc-id {
+    font-size: 10pt;
+    opacity: 0.9;
+}
+
+.uc-body { padding: 20px; }
+
+.uc-section { margin-bottom: 20px; }
+
+.uc-section-title {
+    font-weight: bold;
+    color: #2c5282;
+    font-size: 11pt;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #cbd5e0;
+    padding-bottom: 5px;
+}
+
+/* Flow Steps */
+.flow-step {
+    display: flex;
+    margin: 10px 0;
+    align-items: flex-start;
+}
+
+.step-number {
+    background-color: #2c5282;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12pt;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.step-content { flex: 1; }
+.step-actor { font-weight: bold; color: #2c5282; }
+.step-system { font-weight: bold; color: #38a169; }
+
+.step-details {
+    font-size: 10pt;
+    color: #718096;
+    margin-top: 5px;
+    padding-left: 15px;
+    border-left: 2px solid #e2e8f0;
+}
+
+/* Alternative Flows */
+.alt-flow {
+    background-color: #fffaf0;
+    border: 1px solid #ed8936;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.alt-flow-title {
+    font-weight: bold;
+    color: #c05621;
+    margin-bottom: 10px;
+}
+
+/* Exception Flows */
+.exception-flow {
+    background-color: #fff5f5;
+    border: 1px solid #fc8181;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.exception-flow-title {
+    font-weight: bold;
+    color: #c53030;
+    margin-bottom: 10px;
+}
+
+/* Tags */
+.br-tag {
+    display: inline-block;
+    background-color: #805ad5;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.req-tag {
+    display: inline-block;
+    background-color: #3182ce;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.uc-tag {
+    display: inline-block;
+    background-color: #38a169;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* Priority Levels */
+.priority-p1 { color: #c53030; font-weight: bold; }
+.priority-p2 { color: #d69e2e; font-weight: bold; }
+.priority-p3 { color: #3182ce; font-weight: bold; }
+
+/* Requirement Boxes */
+.req-box {
+    border: 2px solid #2c5282;
+    border-radius: 5px;
+    margin: 20px 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+}
+
+.req-header {
+    background-color: #2c5282;
+    color: white;
+    padding: 10px 15px;
+    font-weight: bold;
+}
+
+.req-meta {
+    background-color: #e2e8f0;
+    padding: 10px 15px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.req-meta span { font-size: 10pt; }
+.req-body { padding: 15px; }
+.req-section { margin-bottom: 15px; }
+.req-section-title { font-weight: bold; color: #2c5282; margin-bottom: 5px; }
+
+.validation-rule {
+    background-color: #ebf8ff;
+    border-left: 3px solid #3182ce;
+    padding: 10px 15px;
+    margin: 5px 0;
+    font-size: 10pt;
+}
+
+/* Notes and Warnings */
+.note {
+    background-color: #ebf8ff;
+    border-left: 4px solid #3182ce;
+    padding: 12px 15px;
+    margin: 15px 0;
+    font-size: 10pt;
+}
+
+.warning {
+    background-color: #fffaf0;
+    border-left: 4px solid #ed8936;
+    padding: 12px 15px;
+    margin: 15px 0;
+    font-size: 10pt;
+}
+
+/* Code and Diagrams */
+.diagram {
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    font-family: 'Consolas', monospace;
+    font-size: 9pt;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.code-block {
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 10pt;
+    white-space: pre-wrap;
+    margin: 10px 0;
+}
+
+/* Lists */
+ul, ol { margin: 10px 0; padding-left: 25px; }
+li { margin: 5px 0; }
+
+/* Category Headers */
+.category-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 25px;
+    margin: 30px 0 20px 0;
+    border-radius: 8px;
+}
+
+.category-header h2 {
+    color: white;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.category-header p {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+    font-size: 10pt;
+}
+
+/* Navigation */
+.nav-breadcrumb {
+    background-color: #f7fafc;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-size: 10pt;
+}
+
+.nav-breadcrumb a {
+    color: #3182ce;
+    text-decoration: none;
+}
+
+.nav-breadcrumb a:hover { text-decoration: underline; }
+
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #2c5282;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.nav-button:hover { background-color: #1a365d; }
+.nav-button.disabled { background-color: #cbd5e0; pointer-events: none; }
+
+/* Index Page Specific */
+.book-index {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.chapter-list {
+    list-style: none;
+    padding: 0;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    margin: 10px 0;
+    background-color: #f7fafc;
+    border-radius: 8px;
+    border-left: 4px solid #2c5282;
+    transition: all 0.2s ease;
+}
+
+.chapter-item:hover {
+    background-color: #e2e8f0;
+    transform: translateX(5px);
+}
+
+.chapter-item a {
+    text-decoration: none;
+    color: #1a365d;
+    flex: 1;
+}
+
+.chapter-number {
+    font-weight: bold;
+    color: #2c5282;
+    margin-right: 15px;
+    min-width: 80px;
+}
+
+.chapter-title { font-size: 12pt; }
+
+.chapter-description {
+    font-size: 10pt;
+    color: #718096;
+    margin-top: 3px;
+}
+
+.section-group {
+    margin: 30px 0;
+}
+
+.section-group-title {
+    font-size: 14pt;
+    color: #1a365d;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Signature Table */
+.signature-table td {
+    height: 50px;
+    vertical-align: bottom;
+}
+
+/* Print Styles */
+@media print {
+    .nav-breadcrumb, .nav-buttons { display: none; }
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+}

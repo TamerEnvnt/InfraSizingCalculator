@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.6: Growth Planning Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.6 Growth Planning
+    </div>
+
+    <div class="category-header">
+        <h2>4.6 Growth Planning (UC-033 to UC-036)</h2>
+        <p>Future capacity planning with growth rate configuration and timeline projections</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-033</span></td><td>Set Growth Rate</td><td>Set annual growth rate percentage (0-200%)</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-034</span></td><td>Select Growth Pattern</td><td>Select linear, exponential, or step-wise growth</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-035</span></td><td>View Growth Timeline</td><td>View 1/3/5 year projected requirements</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-036</span></td><td>View Projections Chart</td><td>Graphical chart of projected growth</td><td><span class="priority-p2">P2</span></td></tr>
+    </table>
+
+    <!-- UC-033: Set Growth Rate -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-033</div>
+            <h3>Set Growth Rate</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to set annual growth rate percentage for infrastructure planning. Growth rate is applied to project future resource requirements.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-V009</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays growth rate input</div>
+                        <div class="step-details">
+                            <strong>Input:</strong> Slider or numeric input (0-200%)<br>
+                            <strong>Default:</strong> 20% annual growth
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Adjusts growth rate</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Updates growth projections</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-033</span></td></tr>
+                    <tr><th>Components</th><td>GrowthPlanningView.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-034: Select Growth Pattern -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-034</div>
+            <h3>Select Growth Pattern</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to select growth pattern (linear, exponential, step-wise) for more accurate projections based on expected business growth model.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays growth pattern options</div>
+                        <div class="step-details">
+                            <strong>Patterns:</strong><br>
+                            - Linear: Steady, predictable growth<br>
+                            - Exponential: Accelerating growth<br>
+                            - Step-wise: Growth in phases/sprints
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-034</span></td></tr>
+                    <tr><th>Components</th><td>GrowthPatternSelector.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-035: View Growth Timeline -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-035</div>
+            <h3>View Growth Timeline</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays timeline visualization showing projected infrastructure requirements over 1, 3, and 5 year horizons.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays growth timeline</div>
+                        <div class="step-details">
+                            <strong>Shows:</strong><br>
+                            - Current state<br>
+                            - Year 1 projection<br>
+                            - Year 3 projection<br>
+                            - Year 5 projection<br>
+                            - Resource and cost trends
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-035</span></td></tr>
+                    <tr><th>Components</th><td>GrowthTimeline.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-036: View Projections Chart -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-036</div>
+            <h3>View Growth Projections Chart</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays graphical chart showing projected growth in resources and costs over time.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-036</span></td></tr>
+                    <tr><th>Components</th><td>GrowthProjectionChart.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04e-uc-pricing.html" class="nav-button">&larr; Previous: Pricing</a>
+        <a href="04g-uc-scenarios.html" class="nav-button">Next: Scenario Management &rarr;</a>
+    </div>
+</body>
+</html>

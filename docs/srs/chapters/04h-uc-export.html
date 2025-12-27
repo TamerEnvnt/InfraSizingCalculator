@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.8: Export Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.8 Export
+    </div>
+
+    <div class="category-header">
+        <h2>4.8 Export (UC-045 to UC-048)</h2>
+        <p>Export sizing results and configurations in various formats</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-045</span></td><td>Export to CSV</td><td>Export results to CSV for spreadsheet analysis</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-046</span></td><td>Export to JSON</td><td>Export configuration and results to JSON</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-047</span></td><td>Export to Excel</td><td>Export to formatted Excel workbook</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-048</span></td><td>Export to PDF</td><td>Export to formatted PDF document</td><td><span class="priority-p2">P2</span></td></tr>
+    </table>
+
+    <!-- UC-045: Export to CSV -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-045</div>
+            <h3>Export to CSV</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Exports sizing results to CSV format for spreadsheet analysis.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Export CSV" button</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Generates CSV with results data</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Triggers browser download</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-045</span></td></tr>
+                    <tr><th>Components</th><td>ExportButtons.razor, ExportService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-046: Export to JSON -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-046</div>
+            <h3>Export to JSON</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Exports complete configuration and results to JSON format for programmatic use or import.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-046</span></td></tr>
+                    <tr><th>Components</th><td>ExportButtons.razor, ExportService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-047: Export to Excel -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-047</div>
+            <h3>Export to Excel</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Exports results to formatted Excel workbook with multiple sheets for different data views.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Export Excel" button</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Generates Excel workbook using ClosedXML</div>
+                        <div class="step-details">
+                            <strong>Worksheets:</strong><br>
+                            - Summary<br>
+                            - Sizing Details<br>
+                            - Cost Breakdown<br>
+                            - Growth Projections<br>
+                            - Configuration
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Triggers browser download</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-047</span></td></tr>
+                    <tr><th>Components</th><td>ExportButtons.razor, ExcelExportService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-048: Export to PDF -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-048</div>
+            <h3>Export to PDF</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Exports results to formatted PDF document suitable for presentations and documentation.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-048</span></td></tr>
+                    <tr><th>Components</th><td>ExportButtons.razor, PdfExportService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04g-uc-scenarios.html" class="nav-button">&larr; Previous: Scenario Management</a>
+        <a href="04i-uc-settings.html" class="nav-button">Next: Settings &rarr;</a>
+    </div>
+</body>
+</html>

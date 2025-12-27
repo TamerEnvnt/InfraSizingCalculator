@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 8: Data Requirements</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 8: Data Requirements
+    </div>
+
+    <h1>8. Data Requirements</h1>
+    <p>This section defines data models, data dictionary, and data integrity requirements.</p>
+
+    <!-- 8.1 Data Models -->
+    <div class="category-header">
+        <h2>8.1 Data Models</h2>
+        <p>Entity definitions and relationships</p>
+    </div>
+
+    <!-- Scenario Entity -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>8.1.1 Scenario Entity</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Entity Definition</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+                    <tr><td>Id</td><td>GUID</td><td>Primary Key, Auto-generated</td><td>Unique scenario identifier</td></tr>
+                    <tr><td>Name</td><td>String(100)</td><td>Required, Unique</td><td>User-defined scenario name</td></tr>
+                    <tr><td>Description</td><td>String(500)</td><td>Optional</td><td>User-defined description</td></tr>
+                    <tr><td>Configuration</td><td>JSON</td><td>Required</td><td>Complete configuration state</td></tr>
+                    <tr><td>Results</td><td>JSON</td><td>Optional</td><td>Cached sizing results</td></tr>
+                    <tr><td>CreatedAt</td><td>DateTime</td><td>Auto-generated</td><td>Creation timestamp (UTC)</td></tr>
+                    <tr><td>UpdatedAt</td><td>DateTime</td><td>Auto-updated</td><td>Last modification timestamp (UTC)</td></tr>
+                    <tr><td>Tags</td><td>String[]</td><td>Optional</td><td>Organization tags for filtering</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration State -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>8.1.2 Configuration State</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Configuration Object Structure</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Values/Format</th><th>Description</th></tr>
+                    <tr><td>PlatformType</td><td>Enum</td><td>Native, LowCode</td><td>Platform type selection</td></tr>
+                    <tr><td>DeploymentModel</td><td>Enum</td><td>K8s, VM</td><td>Deployment model selection</td></tr>
+                    <tr><td>Technology</td><td>Enum</td><td>Mendix, OutSystems, PowerPlatform, etc.</td><td>Selected technology platform</td></tr>
+                    <tr><td>Distribution</td><td>Enum</td><td>38+ K8s distributions</td><td>K8s distribution (if K8s mode)</td></tr>
+                    <tr><td>ClusterMode</td><td>Enum</td><td>MultiEnvironment, SharedCluster, PerEnvironment</td><td>Cluster topology mode</td></tr>
+                    <tr><td>Environments[]</td><td>Array</td><td>Environment objects</td><td>Per-environment configurations</td></tr>
+                    <tr><td>PricingConfig</td><td>Object</td><td>Pricing configuration</td><td>Cloud/on-prem pricing settings</td></tr>
+                    <tr><td>NodeSpecs</td><td>Object</td><td>Node specifications</td><td>Custom node specifications</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Object -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>8.1.3 Environment Object</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Per-Environment Configuration</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Range</th><th>Description</th></tr>
+                    <tr><td>Name</td><td>String</td><td>Dev, Test, Staging, Production</td><td>Environment identifier</td></tr>
+                    <tr><td>Enabled</td><td>Boolean</td><td>true/false</td><td>Whether environment is included</td></tr>
+                    <tr><td>SmallApps</td><td>Integer</td><td>0-1000</td><td>Number of small applications</td></tr>
+                    <tr><td>MediumApps</td><td>Integer</td><td>0-500</td><td>Number of medium applications</td></tr>
+                    <tr><td>LargeApps</td><td>Integer</td><td>0-100</td><td>Number of large applications</td></tr>
+                    <tr><td>Replicas</td><td>Integer</td><td>1-10</td><td>Application replicas</td></tr>
+                    <tr><td>Headroom</td><td>Decimal</td><td>0-100%</td><td>Resource headroom percentage</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sizing Results -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>8.1.4 Sizing Results Object</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Calculated Results Structure</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                    <tr><td>TotalCPU</td><td>Decimal</td><td>Total CPU cores required</td></tr>
+                    <tr><td>TotalRAM</td><td>Decimal</td><td>Total RAM in GB</td></tr>
+                    <tr><td>TotalStorage</td><td>Decimal</td><td>Total storage in GB</td></tr>
+                    <tr><td>MasterNodes</td><td>Integer</td><td>K8s master node count</td></tr>
+                    <tr><td>InfraNodes</td><td>Integer</td><td>K8s infrastructure node count</td></tr>
+                    <tr><td>WorkerNodes</td><td>Integer</td><td>K8s worker node count</td></tr>
+                    <tr><td>VMCount</td><td>Integer</td><td>VM deployment server count</td></tr>
+                    <tr><td>MonthlyCost</td><td>Decimal</td><td>Estimated monthly cost (USD)</td></tr>
+                    <tr><td>YearlyCost</td><td>Decimal</td><td>Estimated yearly cost (USD)</td></tr>
+                    <tr><td>EnvironmentResults[]</td><td>Array</td><td>Per-environment breakdown</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8.2 Data Dictionary -->
+    <div class="category-header">
+        <h2>8.2 Data Dictionary</h2>
+        <p>Complete data definitions with constraints and defaults</p>
+    </div>
+
+    <div class="note">
+        <strong>Reference:</strong> Complete data definitions including constraints and default values are defined in <a href="03-business-rules.html">Section 3: Business Rules</a>.
+    </div>
+
+    <table>
+        <tr><th>Category</th><th>Rules</th><th>Description</th></tr>
+        <tr><td>Master Nodes</td><td>BR-M001 to BR-M004</td><td>Master node count rules by cluster size</td></tr>
+        <tr><td>Infrastructure Nodes</td><td>BR-I001 to BR-I005</td><td>Infrastructure node requirements</td></tr>
+        <tr><td>Worker Nodes</td><td>BR-W001 to BR-W006</td><td>Worker node sizing rules</td></tr>
+        <tr><td>Headroom</td><td>BR-H001 to BR-H007</td><td>Resource headroom defaults</td></tr>
+        <tr><td>Replicas</td><td>BR-R001 to BR-R005</td><td>Replication requirements</td></tr>
+        <tr><td>VM Sizing</td><td>BR-VM001 to BR-VM006</td><td>VM deployment sizing rules</td></tr>
+        <tr><td>Pricing</td><td>BR-P001 to BR-P006</td><td>Cost calculation rules</td></tr>
+        <tr><td>Validation</td><td>BR-V001 to BR-V009</td><td>Input validation constraints</td></tr>
+    </table>
+
+    <!-- 8.3 Data Integrity Rules -->
+    <div class="category-header">
+        <h2>8.3 Data Integrity Rules</h2>
+        <p>Database constraints and validation rules</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Rule</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-DR-001</span></td>
+            <td>Scenario names must be unique per user</td>
+            <td>Unique constraint on Name column in Scenarios table</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-DR-002</span></td>
+            <td>Configuration JSON must be valid and parseable</td>
+            <td>JSON validation on save; fallback to last known good state</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-DR-003</span></td>
+            <td>All numeric values within defined ranges</td>
+            <td>Server-side validation per BR-V001 through BR-V009</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-DR-004</span></td>
+            <td>Referential integrity for distribution/technology combinations</td>
+            <td>Valid distribution required for selected technology platform</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-DR-005</span></td>
+            <td>Timestamps always in UTC</td>
+            <td>DateTime.UtcNow used for all timestamps</td>
+        </tr>
+    </table>
+
+    <!-- 8.4 Data Storage -->
+    <div class="category-header">
+        <h2>8.4 Data Storage</h2>
+        <p>Storage technology and location requirements</p>
+    </div>
+
+    <table>
+        <tr><th>Data Type</th><th>Storage</th><th>Location</th><th>Persistence</th></tr>
+        <tr><td>Saved Scenarios</td><td>SQLite Database</td><td>infrasizing.db</td><td>Permanent until deleted</td></tr>
+        <tr><td>User Preferences</td><td>Browser localStorage</td><td>Client-side</td><td>Browser session</td></tr>
+        <tr><td>Session State</td><td>Server memory</td><td>Blazor circuit</td><td>Active session only</td></tr>
+        <tr><td>Auto-save Data</td><td>Browser localStorage</td><td>Client-side</td><td>Until manual save/clear</td></tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="07-non-functional.html" class="nav-button">&larr; Previous: Non-Functional Requirements</a>
+        <a href="09-verification.html" class="nav-button">Next: Verification &amp; Validation &rarr;</a>
+    </div>
+</body>
+</html>

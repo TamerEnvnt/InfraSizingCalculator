@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Software Requirements Specification Template</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2.54cm;
+        }
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+            max-width: 21cm;
+            margin: 0 auto;
+            padding: 2cm;
+        }
+        h1 {
+            font-size: 24pt;
+            color: #1a365d;
+            border-bottom: 3px solid #1a365d;
+            padding-bottom: 10px;
+            page-break-before: always;
+        }
+        h1:first-of-type {
+            page-break-before: avoid;
+        }
+        h2 {
+            font-size: 16pt;
+            color: #2c5282;
+            border-bottom: 1px solid #2c5282;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+        h3 {
+            font-size: 13pt;
+            color: #2d3748;
+            margin-top: 15px;
+        }
+        h4 {
+            font-size: 11pt;
+            color: #4a5568;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #e2e8f0;
+            font-weight: bold;
+            color: #1a365d;
+        }
+        tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        .cover-page {
+            text-align: center;
+            padding-top: 150px;
+        }
+        .cover-title {
+            font-size: 36pt;
+            color: #1a365d;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #4a5568;
+            margin-bottom: 50px;
+        }
+        .cover-info {
+            font-size: 12pt;
+            margin-top: 100px;
+        }
+        .toc {
+            page-break-after: always;
+        }
+        .toc h2 {
+            border: none;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #2c5282;
+        }
+        .toc .level2 {
+            padding-left: 20px;
+        }
+        .toc .level3 {
+            padding-left: 40px;
+        }
+        .req-box {
+            border: 2px solid #2c5282;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .req-header {
+            background-color: #2c5282;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+        .req-meta {
+            background-color: #e2e8f0;
+            padding: 10px 15px;
+            display: flex;
+            gap: 30px;
+        }
+        .req-meta span {
+            font-size: 10pt;
+        }
+        .req-body {
+            padding: 15px;
+        }
+        .req-section {
+            margin-bottom: 15px;
+        }
+        .req-section-title {
+            font-weight: bold;
+            color: #2c5282;
+            margin-bottom: 5px;
+        }
+        .priority-p1 { color: #c53030; font-weight: bold; }
+        .priority-p2 { color: #d69e2e; font-weight: bold; }
+        .priority-p3 { color: #3182ce; font-weight: bold; }
+        .priority-p4 { color: #718096; font-weight: bold; }
+        .status-approved { color: #38a169; }
+        .status-proposed { color: #d69e2e; }
+        .code-block {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 10pt;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .diagram {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 9pt;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fffaf0;
+            border-left: 4px solid #d69e2e;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .signature-table td {
+            height: 50px;
+            vertical-align: bottom;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page">
+    <div class="cover-title">Software Requirements Specification</div>
+    <div class="cover-subtitle">for [Project Name]</div>
+    <div style="font-size: 14pt; color: #4a5568;">Version [X.Y.Z]</div>
+
+    <div class="cover-info">
+        <table style="width: 60%; margin: 0 auto; border: none;">
+            <tr><td style="border: none; text-align: right; width: 40%;"><strong>Prepared by:</strong></td><td style="border: none;">[Author Name]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Organization:</strong></td><td style="border: none;">[Company/Team Name]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Date:</strong></td><td style="border: none;">[YYYY-MM-DD]</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Status:</strong></td><td style="border: none;">[Draft / In Review / Approved]</td></tr>
+        </table>
+    </div>
+
+    <div style="position: absolute; bottom: 100px; width: 100%; text-align: center;">
+        <p style="font-size: 10pt; color: #718096;">
+            Based on IEEE 830-1998 and ISO/IEC/IEEE 29148:2018 Standards
+        </p>
+    </div>
+</div>
+
+<!-- DOCUMENT CONTROL -->
+<div class="page-break"></div>
+<h2>Document Control</h2>
+
+<table>
+    <tr><th style="width: 30%;">Field</th><th>Value</th></tr>
+    <tr><td><strong>Document Title</strong></td><td>Software Requirements Specification for [Project Name]</td></tr>
+    <tr><td><strong>Document ID</strong></td><td>[DOC-SRS-001]</td></tr>
+    <tr><td><strong>Version</strong></td><td>[X.Y.Z]</td></tr>
+    <tr><td><strong>Status</strong></td><td>[Draft / In Review / Approved / Released]</td></tr>
+    <tr><td><strong>Author(s)</strong></td><td>[Names]</td></tr>
+    <tr><td><strong>Organization</strong></td><td>[Company/Team Name]</td></tr>
+    <tr><td><strong>Created Date</strong></td><td>[YYYY-MM-DD]</td></tr>
+    <tr><td><strong>Last Updated</strong></td><td>[YYYY-MM-DD]</td></tr>
+    <tr><td><strong>Approved By</strong></td><td>[Name, Role]</td></tr>
+    <tr><td><strong>Approval Date</strong></td><td>[YYYY-MM-DD]</td></tr>
+</table>
+
+<h3>Revision History</h3>
+<table>
+    <tr><th>Version</th><th>Date</th><th>Author</th><th>Description</th></tr>
+    <tr><td>0.1</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Initial draft</td></tr>
+    <tr><td>0.2</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Added functional requirements</td></tr>
+    <tr><td>1.0</td><td>YYYY-MM-DD</td><td>[Name]</td><td>Approved for development</td></tr>
+</table>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page-break toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><strong>1. Introduction</strong></li>
+    <li class="level2">1.1 Purpose</li>
+    <li class="level2">1.2 Scope</li>
+    <li class="level2">1.3 Definitions, Acronyms, and Abbreviations</li>
+    <li class="level2">1.4 References</li>
+    <li class="level2">1.5 Document Conventions</li>
+    <li class="level2">1.6 Intended Audience and Reading Suggestions</li>
+    <li><strong>2. Overall Description</strong></li>
+    <li class="level2">2.1 Product Perspective</li>
+    <li class="level2">2.2 Product Functions</li>
+    <li class="level2">2.3 User Classes and Characteristics</li>
+    <li class="level2">2.4 Operating Environment</li>
+    <li class="level2">2.5 Design and Implementation Constraints</li>
+    <li class="level2">2.6 User Documentation</li>
+    <li class="level2">2.7 Assumptions and Dependencies</li>
+    <li><strong>3. Functional Requirements</strong></li>
+    <li class="level2">3.1 Requirement Format</li>
+    <li class="level2">3.2 Feature: [Feature Name]</li>
+    <li class="level2">3.3 Feature: [Feature Name]</li>
+    <li><strong>4. External Interface Requirements</strong></li>
+    <li class="level2">4.1 User Interfaces</li>
+    <li class="level2">4.2 Hardware Interfaces</li>
+    <li class="level2">4.3 Software Interfaces</li>
+    <li class="level2">4.4 Communications Interfaces</li>
+    <li><strong>5. Non-Functional Requirements</strong></li>
+    <li class="level2">5.1 Performance Requirements</li>
+    <li class="level2">5.2 Safety Requirements</li>
+    <li class="level2">5.3 Security Requirements</li>
+    <li class="level2">5.4 Software Quality Attributes</li>
+    <li class="level2">5.5 Business Rules</li>
+    <li><strong>6. Other Requirements</strong></li>
+    <li><strong>7. Verification & Validation</strong></li>
+    <li><strong>8. Appendices</strong></li>
+</ul>
+</div>
+
+<!-- SECTION 1: INTRODUCTION -->
+<h1>1. Introduction</h1>
+
+<h2>1.1 Purpose</h2>
+<p>Describe the purpose of this SRS document. Identify the software product(s) to be produced by name and version number.</p>
+
+<div class="code-block">Example:
+This Software Requirements Specification (SRS) document describes the functional and
+non-functional requirements for the Infrastructure Sizing Calculator v2.0. This document
+is intended for the development team, QA team, project managers, and stakeholders involved
+in the development and approval of this software.</div>
+
+<h2>1.2 Scope</h2>
+<p>Provide a brief description of the software being specified and its purpose. Include:</p>
+<ul>
+    <li>Software product name</li>
+    <li>What it will do (and will NOT do)</li>
+    <li>Benefits, objectives, and goals</li>
+    <li>Application domain</li>
+</ul>
+
+<div class="code-block">Example:
+The Infrastructure Sizing Calculator is a web-based application that enables organizations
+to estimate infrastructure requirements for Kubernetes and VM deployments.
+
+The system will:
+- Calculate node/VM sizing based on application requirements
+- Estimate costs across multiple cloud providers
+- Generate growth projections and reports
+
+The system will NOT:
+- Provision infrastructure directly
+- Store customer production data
+- Integrate with live cloud APIs for pricing (offline-capable)</div>
+
+<h2>1.3 Definitions, Acronyms, and Abbreviations</h2>
+<table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td>SRS</td><td>Software Requirements Specification</td></tr>
+    <tr><td>K8s</td><td>Kubernetes - container orchestration platform</td></tr>
+    <tr><td>VM</td><td>Virtual Machine</td></tr>
+    <tr><td>TCO</td><td>Total Cost of Ownership</td></tr>
+    <tr><td>HA</td><td>High Availability</td></tr>
+    <tr><td>DR</td><td>Disaster Recovery</td></tr>
+    <tr><td>API</td><td>Application Programming Interface</td></tr>
+    <tr><td>UI</td><td>User Interface</td></tr>
+    <tr><td>[Add more...]</td><td>[Definition]</td></tr>
+</table>
+
+<h2>1.4 References</h2>
+<table>
+    <tr><th>Reference ID</th><th>Document Title</th><th>Version</th><th>Date</th><th>Source</th></tr>
+    <tr><td>REF-001</td><td>IEEE 830-1998</td><td>1998</td><td>1998-10-20</td><td>IEEE</td></tr>
+    <tr><td>REF-002</td><td>ISO/IEC/IEEE 29148:2018</td><td>2018</td><td>2018-11-30</td><td>ISO</td></tr>
+    <tr><td>REF-003</td><td>[Business Requirements Doc]</td><td>1.0</td><td>YYYY-MM-DD</td><td>Internal</td></tr>
+    <tr><td>REF-004</td><td>[Technical Architecture Doc]</td><td>1.0</td><td>YYYY-MM-DD</td><td>Internal</td></tr>
+</table>
+
+<h2>1.5 Document Conventions</h2>
+<p>Describe any standards or typographical conventions used in this document.</p>
+
+<div class="code-block"><strong>Requirement IDs:</strong> REQ-[Category]-[Number]
+  - FR: Functional Requirement (REQ-FR-001)
+  - NFR: Non-Functional Requirement (REQ-NFR-001)
+  - IR: Interface Requirement (REQ-IR-001)
+  - DR: Data Requirement (REQ-DR-001)
+
+<strong>Priority Levels:</strong>
+  - P1 (Critical): Must have for MVP
+  - P2 (High): Should have for release
+  - P3 (Medium): Nice to have
+  - P4 (Low): Future consideration
+
+<strong>Requirement Keywords:</strong>
+  - SHALL: Mandatory requirement
+  - SHOULD: Recommended requirement
+  - MAY: Optional requirement</div>
+
+<h2>1.6 Intended Audience and Reading Suggestions</h2>
+<table>
+    <tr><th>Audience</th><th>Sections to Read</th><th>Purpose</th></tr>
+    <tr><td>Project Managers</td><td>1, 2, 7</td><td>Planning and oversight</td></tr>
+    <tr><td>Developers</td><td>All sections</td><td>Implementation</td></tr>
+    <tr><td>QA Engineers</td><td>3, 4, 5, 7</td><td>Test planning</td></tr>
+    <tr><td>UI/UX Designers</td><td>2.3, 4.1</td><td>Interface design</td></tr>
+    <tr><td>Business Analysts</td><td>1, 2, 3</td><td>Requirements validation</td></tr>
+    <tr><td>Stakeholders</td><td>1, 2</td><td>High-level understanding</td></tr>
+</table>
+
+<!-- SECTION 2: OVERALL DESCRIPTION -->
+<h1>2. Overall Description</h1>
+
+<h2>2.1 Product Perspective</h2>
+<p>Describe how the software fits into the larger system or business context.</p>
+
+<h3>2.1.1 System Context Diagram</h3>
+<div class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                    External Systems                          │
+├─────────────────┬─────────────────┬─────────────────────────┤
+│  Cloud Pricing  │  Export Tools   │  Authentication (SSO)   │
+│  APIs (Future)  │  (Excel/PDF)    │  (Future)               │
+└────────┬────────┴────────┬────────┴───────────┬─────────────┘
+         │                 │                    │
+         ▼                 ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    [System Name]                             │
+├─────────────────────────────────────────────────────────────┤
+│  • Module 1                                                 │
+│  • Module 2                                                 │
+│  • Module 3                                                 │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Data Storage                            │
+├─────────────────┬─────────────────┬─────────────────────────┤
+│  Database       │  Local Storage  │  File System            │
+└─────────────────┴─────────────────┴─────────────────────────┘
+</div>
+
+<h3>2.1.2 System Interfaces</h3>
+<table>
+    <tr><th>Interface</th><th>Type</th><th>Description</th></tr>
+    <tr><td>Web Browser</td><td>User Interface</td><td>Primary user access via modern browsers</td></tr>
+    <tr><td>REST API</td><td>System Interface</td><td>Programmatic access to functionality</td></tr>
+    <tr><td>File System</td><td>Data Interface</td><td>Export file generation</td></tr>
+    <tr><td>Database</td><td>Data Interface</td><td>Persistent storage</td></tr>
+</table>
+
+<h2>2.2 Product Functions</h2>
+<p>Provide a high-level summary of major functions the software will perform.</p>
+<table>
+    <tr><th>Function ID</th><th>Function Name</th><th>Description</th></tr>
+    <tr><td>F-001</td><td>[Function 1]</td><td>[Description]</td></tr>
+    <tr><td>F-002</td><td>[Function 2]</td><td>[Description]</td></tr>
+    <tr><td>F-003</td><td>[Function 3]</td><td>[Description]</td></tr>
+    <tr><td>F-004</td><td>[Function 4]</td><td>[Description]</td></tr>
+</table>
+
+<h2>2.3 User Classes and Characteristics</h2>
+<table>
+    <tr><th>User Class</th><th>Description</th><th>Technical Level</th><th>Frequency of Use</th></tr>
+    <tr><td>[User Type 1]</td><td>[Description]</td><td>Expert</td><td>Daily</td></tr>
+    <tr><td>[User Type 2]</td><td>[Description]</td><td>Advanced</td><td>Weekly</td></tr>
+    <tr><td>[User Type 3]</td><td>[Description]</td><td>Intermediate</td><td>Monthly</td></tr>
+    <tr><td>[User Type 4]</td><td>[Description]</td><td>Basic</td><td>Occasional</td></tr>
+</table>
+
+<h2>2.4 Operating Environment</h2>
+
+<h3>2.4.1 Client Environment</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Browser</td><td>Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</td></tr>
+    <tr><td>JavaScript</td><td>Enabled</td></tr>
+    <tr><td>Screen Resolution</td><td>Minimum 1280x720, Recommended 1920x1080</td></tr>
+    <tr><td>Network</td><td>Internet connection for initial load</td></tr>
+</table>
+
+<h3>2.4.2 Server Environment</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Operating System</td><td>[Supported OS versions]</td></tr>
+    <tr><td>Runtime</td><td>[Runtime requirements]</td></tr>
+    <tr><td>Memory</td><td>Minimum [X]GB, Recommended [Y]GB</td></tr>
+    <tr><td>Storage</td><td>Minimum [X]GB for application + data</td></tr>
+</table>
+
+<h2>2.5 Design and Implementation Constraints</h2>
+<table>
+    <tr><th>Constraint ID</th><th>Description</th><th>Rationale</th></tr>
+    <tr><td>CON-001</td><td>[Constraint description]</td><td>[Rationale]</td></tr>
+    <tr><td>CON-002</td><td>[Constraint description]</td><td>[Rationale]</td></tr>
+    <tr><td>CON-003</td><td>[Constraint description]</td><td>[Rationale]</td></tr>
+</table>
+
+<h2>2.6 User Documentation</h2>
+<table>
+    <tr><th>Document</th><th>Format</th><th>Delivery</th></tr>
+    <tr><td>User Guide</td><td>HTML/PDF</td><td>In-app help and downloadable</td></tr>
+    <tr><td>API Reference</td><td>OpenAPI/Swagger</td><td>In-app and online</td></tr>
+    <tr><td>Quick Start Guide</td><td>HTML</td><td>In-app</td></tr>
+</table>
+
+<h2>2.7 Assumptions and Dependencies</h2>
+
+<h3>Assumptions</h3>
+<table>
+    <tr><th>ID</th><th>Assumption</th><th>Impact if False</th></tr>
+    <tr><td>ASM-001</td><td>[Assumption]</td><td>[Impact]</td></tr>
+    <tr><td>ASM-002</td><td>[Assumption]</td><td>[Impact]</td></tr>
+</table>
+
+<h3>Dependencies</h3>
+<table>
+    <tr><th>ID</th><th>Dependency</th><th>Type</th><th>Impact</th></tr>
+    <tr><td>DEP-001</td><td>[Dependency]</td><td>Technical</td><td>[Impact]</td></tr>
+    <tr><td>DEP-002</td><td>[Dependency]</td><td>Data</td><td>[Impact]</td></tr>
+</table>
+
+<!-- SECTION 3: FUNCTIONAL REQUIREMENTS -->
+<h1>3. Functional Requirements</h1>
+
+<h2>3.1 Requirement Format</h2>
+<p>Each functional requirement follows this standardized format:</p>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-XXX: [Requirement Title]</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> P1/P2/P3/P4</span>
+        <span><strong>Source:</strong> [Stakeholder/Document]</span>
+        <span><strong>Status:</strong> [Proposed/Approved/Implemented]</span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL/SHOULD/MAY [action] [object] [condition].</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Rationale:</div>
+            <p>[Why this requirement exists]</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>[Testable condition 1]</li>
+                <li>[Testable condition 2]</li>
+                <li>[Testable condition 3]</li>
+            </ol>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Traceability:</div>
+            <ul>
+                <li><strong>Parent:</strong> [Business Requirement ID]</li>
+                <li><strong>Related:</strong> [Other Requirement IDs]</li>
+                <li><strong>Test Case:</strong> [TC-XXX]</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h2>3.2 Feature: [Feature Name] [F-001]</h2>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-001: [Requirement Title]</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p1">P1 (Critical)</span></span>
+        <span><strong>Source:</strong> Business Requirements Document</span>
+        <span><strong>Status:</strong> <span class="status-approved">Approved</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL [describe the requirement in clear, unambiguous terms].</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Rationale:</div>
+            <p>[Explain why this requirement is needed and the business value it provides]</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>[Specific, measurable, testable criterion]</li>
+                <li>[Specific, measurable, testable criterion]</li>
+                <li>[Specific, measurable, testable criterion]</li>
+            </ol>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Traceability:</div>
+            <ul>
+                <li><strong>Parent:</strong> BRD-001</li>
+                <li><strong>Related:</strong> REQ-FR-002, REQ-FR-003</li>
+                <li><strong>Test Case:</strong> TC-001</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-002: [Requirement Title]</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p2">P2 (High)</span></span>
+        <span><strong>Source:</strong> User Stories</span>
+        <span><strong>Status:</strong> <span class="status-approved">Approved</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHOULD [describe the requirement].</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Rationale:</div>
+            <p>[Rationale]</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>[Criterion]</li>
+                <li>[Criterion]</li>
+            </ol>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Traceability:</div>
+            <ul>
+                <li><strong>Parent:</strong> BRD-002</li>
+                <li><strong>Related:</strong> REQ-FR-001</li>
+                <li><strong>Test Case:</strong> TC-002</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<p><em>[Continue adding requirements following the same format...]</em></p>
+
+<!-- SECTION 4: EXTERNAL INTERFACE REQUIREMENTS -->
+<h1>4. External Interface Requirements</h1>
+
+<h2>4.1 User Interfaces</h2>
+
+<h3>4.1.1 General UI Requirements</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-001</td><td>Responsive design supporting 1280px to 4K displays</td><td>P1</td></tr>
+    <tr><td>REQ-IR-002</td><td>Dark and light theme support</td><td>P2</td></tr>
+    <tr><td>REQ-IR-003</td><td>Keyboard navigation for all functions</td><td>P2</td></tr>
+    <tr><td>REQ-IR-004</td><td>Consistent visual language and branding</td><td>P2</td></tr>
+    <tr><td>REQ-IR-005</td><td>Loading indicators for async operations</td><td>P1</td></tr>
+    <tr><td>REQ-IR-006</td><td>Error messages with clear resolution steps</td><td>P1</td></tr>
+</table>
+
+<h3>4.1.2 Screen Specifications</h3>
+<table>
+    <tr><th>Screen</th><th>Purpose</th><th>Key Elements</th></tr>
+    <tr><td>[Screen 1]</td><td>[Purpose]</td><td>[Key elements]</td></tr>
+    <tr><td>[Screen 2]</td><td>[Purpose]</td><td>[Key elements]</td></tr>
+    <tr><td>[Screen 3]</td><td>[Purpose]</td><td>[Key elements]</td></tr>
+</table>
+
+<h2>4.2 Hardware Interfaces</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-010</td><td>No direct hardware interfaces required</td><td>N/A</td></tr>
+    <tr><td>REQ-IR-011</td><td>Standard web browser hardware compatibility</td><td>P1</td></tr>
+</table>
+
+<h2>4.3 Software Interfaces</h2>
+<table>
+    <tr><th>Interface</th><th>Protocol</th><th>Data Format</th><th>Description</th></tr>
+    <tr><td>REST API</td><td>HTTPS</td><td>JSON</td><td>Programmatic access</td></tr>
+    <tr><td>Database</td><td>[Protocol]</td><td>[Format]</td><td>Data persistence</td></tr>
+    <tr><td>File System</td><td>OS Native</td><td>Various</td><td>Export files</td></tr>
+</table>
+
+<h3>4.3.1 API Endpoints</h3>
+<table>
+    <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+    <tr><td>/api/[resource]</td><td>GET</td><td>[Description]</td></tr>
+    <tr><td>/api/[resource]</td><td>POST</td><td>[Description]</td></tr>
+    <tr><td>/api/[resource]/{id}</td><td>PUT</td><td>[Description]</td></tr>
+    <tr><td>/api/[resource]/{id}</td><td>DELETE</td><td>[Description]</td></tr>
+</table>
+
+<h2>4.4 Communications Interfaces</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-020</td><td>HTTPS for all communications</td><td>P1</td></tr>
+    <tr><td>REQ-IR-021</td><td>[Additional communication requirement]</td><td>P2</td></tr>
+</table>
+
+<!-- SECTION 5: NON-FUNCTIONAL REQUIREMENTS -->
+<h1>5. Non-Functional Requirements</h1>
+
+<h2>5.1 Performance Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-001</td><td>Page load time</td><td>&lt; 2 seconds (first load)</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-002</td><td>API response time</td><td>&lt; 500ms</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-003</td><td>Export completion time</td><td>&lt; 5 seconds</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-004</td><td>Concurrent users</td><td>Support 100 simultaneous users</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-005</td><td>Memory usage</td><td>&lt; 500MB per session</td><td>P2</td></tr>
+</table>
+
+<h2>5.2 Safety Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-010</td><td>No destructive operations without confirmation</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-011</td><td>Data validation before processing</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-012</td><td>Graceful error handling</td><td>P1</td></tr>
+</table>
+
+<h2>5.3 Security Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-020</td><td>Input sanitization (XSS prevention)</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-021</td><td>SQL injection prevention</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-022</td><td>HTTPS enforcement</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-023</td><td>No sensitive data in logs</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-024</td><td>API rate limiting</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-025</td><td>CORS configuration</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-026</td><td>Content Security Policy headers</td><td>P2</td></tr>
+</table>
+
+<h2>5.4 Software Quality Attributes</h2>
+
+<h3>5.4.1 Reliability</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-030</td><td>Uptime</td><td>99.5% availability</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-031</td><td>Error rate</td><td>&lt; 0.1% of requests</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-032</td><td>Data integrity</td><td>Zero data corruption</td><td>P1</td></tr>
+</table>
+
+<h3>5.4.2 Maintainability</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-040</td><td>Code coverage &gt; 80%</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-041</td><td>Modular architecture</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-042</td><td>Documented APIs</td><td>P2</td></tr>
+</table>
+
+<h3>5.4.3 Usability</h3>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-060</td><td>Intuitive workflow</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-061</td><td>Contextual help available</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-062</td><td>WCAG 2.1 AA compliance</td><td>P2</td></tr>
+</table>
+
+<h2>5.5 Business Rules</h2>
+<table>
+    <tr><th>Rule ID</th><th>Rule Description</th><th>Implementation</th></tr>
+    <tr><td>BR-001</td><td>[Business rule description]</td><td>[How it's implemented]</td></tr>
+    <tr><td>BR-002</td><td>[Business rule description]</td><td>[How it's implemented]</td></tr>
+    <tr><td>BR-003</td><td>[Business rule description]</td><td>[How it's implemented]</td></tr>
+</table>
+
+<!-- SECTION 6: OTHER REQUIREMENTS -->
+<h1>6. Other Requirements</h1>
+
+<h2>6.1 Legal and Regulatory Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-OR-001</td><td>GDPR compliance for EU users</td><td>P2</td></tr>
+    <tr><td>REQ-OR-002</td><td>Open source license compliance</td><td>P1</td></tr>
+    <tr><td>REQ-OR-003</td><td>Third-party license attribution</td><td>P2</td></tr>
+</table>
+
+<h2>6.2 Internationalization Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-OR-010</td><td>English (US) as default language</td><td>P1</td></tr>
+    <tr><td>REQ-OR-011</td><td>Multi-currency support</td><td>P2</td></tr>
+    <tr><td>REQ-OR-012</td><td>Locale-aware number formatting</td><td>P2</td></tr>
+</table>
+
+<h2>6.3 Deployment Requirements</h2>
+<table>
+    <tr><th>REQ ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-OR-020</td><td>Docker container support</td><td>P1</td></tr>
+    <tr><td>REQ-OR-021</td><td>Environment variable configuration</td><td>P1</td></tr>
+    <tr><td>REQ-OR-022</td><td>Health check endpoints</td><td>P2</td></tr>
+</table>
+
+<!-- SECTION 7: VERIFICATION & VALIDATION -->
+<h1>7. Verification & Validation</h1>
+
+<h2>7.1 Verification Methods</h2>
+<table>
+    <tr><th>Method</th><th>Description</th><th>Applicable Requirements</th></tr>
+    <tr><td><strong>Inspection</strong></td><td>Document/code review</td><td>All requirements</td></tr>
+    <tr><td><strong>Analysis</strong></td><td>Mathematical verification</td><td>Calculation requirements</td></tr>
+    <tr><td><strong>Demonstration</strong></td><td>Feature walkthrough</td><td>UI requirements</td></tr>
+    <tr><td><strong>Test</strong></td><td>Automated/manual testing</td><td>Functional requirements</td></tr>
+</table>
+
+<h2>7.2 Verification Matrix</h2>
+<table>
+    <tr><th>REQ ID</th><th>Inspection</th><th>Analysis</th><th>Demo</th><th>Test</th></tr>
+    <tr><td>REQ-FR-001</td><td>&#10003;</td><td></td><td>&#10003;</td><td>&#10003;</td></tr>
+    <tr><td>REQ-FR-002</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+    <tr><td>REQ-NFR-001</td><td></td><td></td><td></td><td>&#10003;</td></tr>
+    <tr><td>REQ-NFR-020</td><td>&#10003;</td><td></td><td></td><td>&#10003;</td></tr>
+</table>
+
+<h2>7.3 Acceptance Criteria Summary</h2>
+<table>
+    <tr><th>Category</th><th>Criteria</th><th>Target</th></tr>
+    <tr><td>Functional</td><td>All P1 requirements implemented</td><td>100%</td></tr>
+    <tr><td>Functional</td><td>All P2 requirements implemented</td><td>90%</td></tr>
+    <tr><td>Performance</td><td>Response time under threshold</td><td>95th percentile</td></tr>
+    <tr><td>Security</td><td>No critical vulnerabilities</td><td>Zero</td></tr>
+    <tr><td>Coverage</td><td>Unit test coverage</td><td>&gt; 80%</td></tr>
+</table>
+
+<h2>7.4 Test Types Required</h2>
+<table>
+    <tr><th>Test Type</th><th>Purpose</th><th>Tools</th></tr>
+    <tr><td>Unit Tests</td><td>Component logic</td><td>[Testing framework]</td></tr>
+    <tr><td>Integration Tests</td><td>API endpoints</td><td>[Testing framework]</td></tr>
+    <tr><td>UI Tests</td><td>Component rendering</td><td>[Testing framework]</td></tr>
+    <tr><td>E2E Tests</td><td>User workflows</td><td>[E2E framework]</td></tr>
+    <tr><td>Performance Tests</td><td>Load/stress</td><td>[Performance tool]</td></tr>
+    <tr><td>Security Tests</td><td>Vulnerability scanning</td><td>[Security tool]</td></tr>
+</table>
+
+<!-- SECTION 8: APPENDICES -->
+<h1>8. Appendices</h1>
+
+<h2>Appendix A: Glossary</h2>
+<table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td>[Term 1]</td><td>[Definition]</td></tr>
+    <tr><td>[Term 2]</td><td>[Definition]</td></tr>
+    <tr><td>[Term 3]</td><td>[Definition]</td></tr>
+</table>
+
+<h2>Appendix B: Use Cases</h2>
+
+<h3>UC-001: [Use Case Name]</h3>
+<table>
+    <tr><th style="width: 25%;">Field</th><th>Description</th></tr>
+    <tr><td><strong>Actor</strong></td><td>[Primary actor]</td></tr>
+    <tr><td><strong>Preconditions</strong></td><td>[What must be true before]</td></tr>
+    <tr><td><strong>Main Flow</strong></td><td>
+        <ol>
+            <li>[Step 1]</li>
+            <li>[Step 2]</li>
+            <li>[Step 3]</li>
+            <li>[Step 4]</li>
+        </ol>
+    </td></tr>
+    <tr><td><strong>Postconditions</strong></td><td>[What is true after]</td></tr>
+    <tr><td><strong>Alternative Flows</strong></td><td>[Exception handling]</td></tr>
+</table>
+
+<h2>Appendix C: Data Dictionary</h2>
+<table>
+    <tr><th>Entity</th><th>Attribute</th><th>Type</th><th>Description</th></tr>
+    <tr><td>[Entity 1]</td><td>[Attribute]</td><td>[Type]</td><td>[Description]</td></tr>
+    <tr><td>[Entity 1]</td><td>[Attribute]</td><td>[Type]</td><td>[Description]</td></tr>
+    <tr><td>[Entity 2]</td><td>[Attribute]</td><td>[Type]</td><td>[Description]</td></tr>
+</table>
+
+<h2>Appendix D: Traceability Matrix</h2>
+<table>
+    <tr><th>Requirement ID</th><th>Design</th><th>Code</th><th>Test Case</th><th>Status</th></tr>
+    <tr><td>REQ-FR-001</td><td>DD-001</td><td>[File.cs]</td><td>TC-001</td><td>&#10003;</td></tr>
+    <tr><td>REQ-FR-002</td><td>DD-002</td><td>[File.cs]</td><td>TC-002</td><td>&#10003;</td></tr>
+    <tr><td>REQ-NFR-001</td><td>DD-NFR-001</td><td>-</td><td>TC-PERF-001</td><td>Pending</td></tr>
+</table>
+
+<h2>Appendix E: Diagrams</h2>
+<p><em>[Include or reference architecture diagrams, data flow diagrams, entity relationship diagrams, etc.]</em></p>
+
+<!-- DOCUMENT APPROVAL -->
+<div class="page-break"></div>
+<h1>Document Approval</h1>
+
+<table class="signature-table">
+    <tr><th>Role</th><th>Name</th><th>Signature</th><th>Date</th></tr>
+    <tr><td>Product Owner</td><td></td><td></td><td></td></tr>
+    <tr><td>Technical Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>QA Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>Project Manager</td><td></td><td></td><td></td></tr>
+</table>
+
+<hr style="margin-top: 50px;">
+
+<h2>References</h2>
+<ul>
+    <li><a href="https://standards.ieee.org/ieee/830/1222/">IEEE 830-1998 - IEEE Recommended Practice for Software Requirements Specifications</a></li>
+    <li><a href="https://www.iso.org/standard/72089.html">ISO/IEC/IEEE 29148:2018 - Systems and software engineering — Requirements engineering</a></li>
+    <li><a href="https://press.rebus.community/requirementsengineering/back-matter/appendix-c-ieee-830-template/">IEEE 830 Template - Rebus Community</a></li>
+    <li><a href="https://www.well-architected-guide.com/documents/iso-iec-ieee-29148-template/">ISO/IEC/IEEE 29148 Template - Well Architected Guide</a></li>
+</ul>
+
+<p style="text-align: center; color: #718096; margin-top: 30px;">
+    <strong>Template Version:</strong> 1.0 |
+    <strong>Based On:</strong> IEEE 830-1998 + ISO/IEC/IEEE 29148:2018 |
+    <strong>Created:</strong> December 25, 2025
+</p>
+
+</body>
+</html>

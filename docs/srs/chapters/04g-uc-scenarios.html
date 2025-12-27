@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.7: Scenario Management Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.7 Scenario Management
+    </div>
+
+    <div class="category-header">
+        <h2>4.7 Scenario Management (UC-037 to UC-044)</h2>
+        <p>Save, load, compare, and organize sizing scenarios for different configurations</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-037</span></td><td>Save Scenario</td><td>Save current configuration as named scenario</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-038</span></td><td>Load Scenario</td><td>Load and restore saved scenario</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-039</span></td><td>Delete Scenario</td><td>Permanently delete saved scenario</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-040</span></td><td>Compare Scenarios</td><td>Side-by-side comparison of 2-4 scenarios</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-041</span></td><td>Tag Scenario</td><td>Add tags for organization and filtering</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-042</span></td><td>Filter Scenarios</td><td>Filter scenario list by various criteria</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-043</span></td><td>Duplicate Scenario</td><td>Create copy of existing scenario</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-044</span></td><td>Share Scenario</td><td>Export scenario in shareable format</td><td><span class="priority-p3">P3</span></td></tr>
+    </table>
+
+    <!-- UC-037: Save Scenario -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-037</div>
+            <h3>Save Scenario</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to save current configuration and sizing results as a named scenario for future reference or comparison.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-V008</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Save Scenario" button</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays save scenario modal</div>
+                        <div class="step-details">
+                            <strong>Fields:</strong><br>
+                            - Scenario name (required)<br>
+                            - Description (optional)<br>
+                            - Tags (optional)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Enters scenario name and optional details</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Validates name (1-100 characters, unique)</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Saves scenario to database</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Shows success confirmation</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-037-01</td><td>Save with valid name</td><td>Scenario saved successfully</td><td>P1</td></tr>
+                    <tr><td>TS-037-02</td><td>Save with duplicate name</td><td>Error: Name already exists</td><td>P1</td></tr>
+                    <tr><td>TS-037-03</td><td>Save with empty name</td><td>Validation error displayed</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-037</span></td></tr>
+                    <tr><th>Components</th><td>SaveScenarioModal.razor, ScenarioService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-038: Load Scenario -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-038</div>
+            <h3>Load Scenario</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to load a previously saved scenario, restoring all configuration settings and recalculating results.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Navigates to Scenarios page</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays list of saved scenarios</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Load" on desired scenario</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Restores all configuration from scenario</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Recalculates results and navigates to home</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-038</span></td></tr>
+                    <tr><th>Components</th><td>Scenarios.razor, ScenarioService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-040: Compare Scenarios -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-040</div>
+            <h3>Compare Scenarios</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to select multiple scenarios and compare their configurations, sizing results, and costs side-by-side.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>High</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects 2-4 scenarios for comparison</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Compare" button</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays side-by-side comparison</div>
+                        <div class="step-details">
+                            <strong>Comparison Shows:</strong><br>
+                            - Configuration differences (highlighted)<br>
+                            - Sizing differences<br>
+                            - Cost differences<br>
+                            - Percentage variations
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-040</span></td></tr>
+                    <tr><th>Components</th><td>ScenarioComparisonView.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications including UC-039, UC-041, UC-042, UC-043, and UC-044, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04f-uc-growth.html" class="nav-button">&larr; Previous: Growth Planning</a>
+        <a href="04h-uc-export.html" class="nav-button">Next: Export &rarr;</a>
+    </div>
+</body>
+</html>

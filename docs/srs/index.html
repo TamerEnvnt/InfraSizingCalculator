@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Infrastructure Sizing Calculator - Book Index</title>
+    <link rel="stylesheet" href="srs-styles.css">
+    <style>
+        .book-cover {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #3182ce 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+        .book-cover h1 {
+            font-size: 32pt;
+            border: none;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .book-cover .subtitle {
+            font-size: 18pt;
+            opacity: 0.9;
+        }
+        .book-cover .version {
+            margin-top: 20px;
+            font-size: 12pt;
+            opacity: 0.8;
+        }
+        .book-cover .meta {
+            margin-top: 30px;
+            font-size: 10pt;
+            opacity: 0.7;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            background-color: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #2c5282;
+        }
+        .stat-label {
+            font-size: 10pt;
+            color: #718096;
+        }
+        .download-section {
+            text-align: center;
+            padding: 20px;
+            background-color: #ebf8ff;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #2c5282;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        .download-btn:hover {
+            background-color: #1a365d;
+        }
+    </style>
+</head>
+<body>
+    <div class="book-index">
+        <!-- Book Cover -->
+        <div class="book-cover">
+            <h1>Software Requirements Specification</h1>
+            <div class="subtitle">Infrastructure Sizing Calculator</div>
+            <div class="version">Version 3.0 - Complete Edition</div>
+            <div class="meta">
+                Based on IEEE 830-1998 and ISO/IEC/IEEE 29148:2018 Standards<br>
+                Prepared by: Tamer &amp; Claude Opus 4.5 | December 2025
+            </div>
+        </div>
+
+        <!-- Document Statistics -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value">55</div>
+                <div class="stat-label">Use Cases</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Chapters</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">38+</div>
+                <div class="stat-label">Distributions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Cloud Providers</div>
+            </div>
+        </div>
+
+        <!-- Download Complete Version -->
+        <div class="download-section">
+            <p style="margin-bottom: 15px; color: #2c5282;"><strong>Need the complete document in a single file?</strong></p>
+            <a href="../../SRS_InfraSizingCalculator_Complete.html" class="download-btn">Download Complete SRS (Single File)</a>
+        </div>
+
+        <!-- Front Matter -->
+        <div class="section-group">
+            <div class="section-group-title">Front Matter</div>
+            <ul class="chapter-list">
+                <li class="chapter-item">
+                    <a href="chapters/00-cover.html">
+                        <span class="chapter-number">Cover</span>
+                        <div>
+                            <div class="chapter-title">Cover Page &amp; Document Control</div>
+                            <div class="chapter-description">Title page, version history, and document metadata</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Sections -->
+        <div class="section-group">
+            <div class="section-group-title">Main Sections</div>
+            <ul class="chapter-list">
+                <li class="chapter-item">
+                    <a href="chapters/01-introduction.html">
+                        <span class="chapter-number">Section 1</span>
+                        <div>
+                            <div class="chapter-title">Introduction</div>
+                            <div class="chapter-description">Purpose, scope, definitions, and references</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/02-description.html">
+                        <span class="chapter-number">Section 2</span>
+                        <div>
+                            <div class="chapter-title">Overall Description</div>
+                            <div class="chapter-description">Product perspective, functions, user classes, and constraints</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/03-business-rules.html">
+                        <span class="chapter-number">Section 3</span>
+                        <div>
+                            <div class="chapter-title">Business Rules</div>
+                            <div class="chapter-description">Master, infrastructure, worker, headroom, and pricing rules</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Use Cases -->
+        <div class="section-group">
+            <div class="section-group-title">Section 4: Use Case Specifications (55 Total)</div>
+            <ul class="chapter-list">
+                <li class="chapter-item">
+                    <a href="chapters/04a-uc-wizard.html">
+                        <span class="chapter-number">4.1</span>
+                        <div>
+                            <div class="chapter-title">Wizard Steps (UC-001 to UC-005)</div>
+                            <div class="chapter-description">Platform, deployment, and pricing wizard configuration</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04b-uc-k8s.html">
+                        <span class="chapter-number">4.2</span>
+                        <div>
+                            <div class="chapter-title">Kubernetes Configuration (UC-006 to UC-012)</div>
+                            <div class="chapter-description">K8s cluster mode, distribution, node specs, and app counts</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04c-uc-vm.html">
+                        <span class="chapter-number">4.3</span>
+                        <div>
+                            <div class="chapter-title">VM Configuration (UC-013 to UC-016)</div>
+                            <div class="chapter-description">VM cluster mode, node sizing, and HA configuration</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04d-uc-results.html">
+                        <span class="chapter-number">4.4</span>
+                        <div>
+                            <div class="chapter-title">Results &amp; Analysis (UC-017 to UC-024)</div>
+                            <div class="chapter-description">Summary cards, sizing results, cost analysis, and warnings</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04e-uc-pricing.html">
+                        <span class="chapter-number">4.5</span>
+                        <div>
+                            <div class="chapter-title">Pricing (UC-025 to UC-032)</div>
+                            <div class="chapter-description">On-premises pricing, cloud alternatives, and TCO calculation</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04f-uc-growth.html">
+                        <span class="chapter-number">4.6</span>
+                        <div>
+                            <div class="chapter-title">Growth Planning (UC-033 to UC-036)</div>
+                            <div class="chapter-description">Growth projections, timeline, and expansion planning</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04g-uc-scenarios.html">
+                        <span class="chapter-number">4.7</span>
+                        <div>
+                            <div class="chapter-title">Scenario Management (UC-037 to UC-044)</div>
+                            <div class="chapter-description">Save, load, compare, duplicate, and delete scenarios</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04h-uc-export.html">
+                        <span class="chapter-number">4.8</span>
+                        <div>
+                            <div class="chapter-title">Export (UC-045 to UC-048)</div>
+                            <div class="chapter-description">PDF, Excel, JSON, and print exports</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04i-uc-settings.html">
+                        <span class="chapter-number">4.9</span>
+                        <div>
+                            <div class="chapter-title">Settings (UC-049 to UC-052)</div>
+                            <div class="chapter-description">Global settings, defaults, and user preferences</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/04j-uc-navigation.html">
+                        <span class="chapter-number">4.10</span>
+                        <div>
+                            <div class="chapter-title">Navigation (UC-053 to UC-055)</div>
+                            <div class="chapter-description">Sidebar, page navigation, and responsive layout</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Requirements -->
+        <div class="section-group">
+            <div class="section-group-title">Requirements Specifications</div>
+            <ul class="chapter-list">
+                <li class="chapter-item">
+                    <a href="chapters/05-functional-requirements.html">
+                        <span class="chapter-number">Section 5</span>
+                        <div>
+                            <div class="chapter-title">Functional Requirements</div>
+                            <div class="chapter-description">Detailed functional requirements with validation rules</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/06-external-interfaces.html">
+                        <span class="chapter-number">Section 6</span>
+                        <div>
+                            <div class="chapter-title">External Interface Requirements</div>
+                            <div class="chapter-description">User, hardware, software, and communication interfaces</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/07-non-functional.html">
+                        <span class="chapter-number">Section 7</span>
+                        <div>
+                            <div class="chapter-title">Non-Functional Requirements</div>
+                            <div class="chapter-description">Performance, security, reliability, and usability</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/08-data-requirements.html">
+                        <span class="chapter-number">Section 8</span>
+                        <div>
+                            <div class="chapter-title">Data Requirements</div>
+                            <div class="chapter-description">Data models, persistence, and migration</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Verification & Appendices -->
+        <div class="section-group">
+            <div class="section-group-title">Verification &amp; Appendices</div>
+            <ul class="chapter-list">
+                <li class="chapter-item">
+                    <a href="chapters/09-verification.html">
+                        <span class="chapter-number">Section 9</span>
+                        <div>
+                            <div class="chapter-title">Verification &amp; Validation</div>
+                            <div class="chapter-description">Testing strategy, acceptance criteria, and V&amp;V matrix</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/10-traceability.html">
+                        <span class="chapter-number">Section 10</span>
+                        <div>
+                            <div class="chapter-title">Traceability Matrix</div>
+                            <div class="chapter-description">Complete mapping of requirements to use cases</div>
+                        </div>
+                    </a>
+                </li>
+                <li class="chapter-item">
+                    <a href="chapters/11-appendices.html">
+                        <span class="chapter-number">Section 11</span>
+                        <div>
+                            <div class="chapter-title">Appendices</div>
+                            <div class="chapter-description">Glossary, acronyms, and signature block</div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 50px; padding: 20px; color: #718096; font-size: 10pt;">
+            <p>Infrastructure Sizing Calculator - Software Requirements Specification</p>
+            <p>Version 3.0 | December 2025 | Tamer &amp; Claude Opus 4.5</p>
+        </div>
+    </div>
+</body>
+</html>

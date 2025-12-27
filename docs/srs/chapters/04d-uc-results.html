@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.4: Results & Analysis Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.4 Results &amp; Analysis
+    </div>
+
+    <div class="category-header">
+        <h2>4.4 Results &amp; Analysis (UC-017 to UC-024)</h2>
+        <p>Display and analyze sizing results including summaries, detailed views, warnings, and comparisons</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-017</span></td><td>View Summary Cards</td><td>Display high-level summary cards with grand totals</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-018</span></td><td>View Detailed Results</td><td>Display per-environment breakdown of sizing results</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-019</span></td><td>View Warnings</td><td>Display context-aware warnings and recommendations</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-020</span></td><td>View Resource Breakdown</td><td>Display detailed resource allocation breakdown</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-021</span></td><td>Compare Environments</td><td>Compare sizing results between environments</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-022</span></td><td>View Node Distribution</td><td>Visual representation of node distribution</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-023</span></td><td>View Utilization</td><td>Display estimated resource utilization</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-024</span></td><td>View Cost Analysis</td><td>Comprehensive cost analysis with TCO breakdown</td><td><span class="priority-p1">P1</span></td></tr>
+    </table>
+
+    <!-- UC-017: View Summary Cards -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-017</div>
+            <h3>View Summary Cards</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays high-level summary cards showing grand totals for nodes, CPU, RAM, and disk across all environments. Provides at-a-glance infrastructure overview.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays summary cards after calculation</div>
+                        <div class="step-details">
+                            <strong>Cards Displayed:</strong><br>
+                            - Total Nodes (with breakdown by type)<br>
+                            - Total vCPU cores<br>
+                            - Total RAM (GB)<br>
+                            - Total Disk (GB)<br>
+                            - Estimated Monthly Cost (if pricing configured)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Views aggregated totals</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Optionally clicks card to expand details</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-017-01</td><td>Summary cards update after calculation</td><td>All totals displayed correctly</td><td>P1</td></tr>
+                    <tr><td>TS-017-02</td><td>Cards show 0 when no calculation done</td><td>All values show 0 or dash</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-017</span></td></tr>
+                    <tr><th>Components</th><td>SummaryCards.razor, RightStatsSidebar.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-018: View Detailed Results -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-018</div>
+            <h3>View Detailed Sizing Results</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays detailed per-environment breakdown of sizing results including node counts, resource allocations, and configuration details in tabular format.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays results table</div>
+                        <div class="step-details">
+                            <strong>Table Columns:</strong><br>
+                            - Environment name<br>
+                            - Master nodes (count, CPU, RAM, Disk)<br>
+                            - Infra nodes (if OpenShift)<br>
+                            - Worker nodes (count, CPU, RAM, Disk)<br>
+                            - Environment totals
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Reviews per-environment details</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Optionally expands environment rows for more detail</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-018-01</td><td>View details for 5 environments</td><td>All 5 rows displayed with correct data</td><td>P1</td></tr>
+                    <tr><td>TS-018-02</td><td>Infra column shown for OpenShift</td><td>Column visible with values</td><td>P1</td></tr>
+                    <tr><td>TS-018-03</td><td>Infra column hidden for EKS</td><td>Column not displayed</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-018</span></td></tr>
+                    <tr><th>Components</th><td>SizingResultsView.razor, ResultsTable.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-019: View Warnings -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-019</div>
+            <h3>View Warnings and Recommendations</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays context-aware warnings and recommendations based on sizing results. Alerts user to potential issues like insufficient resources, over-provisioning, or configuration concerns.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Analyzes sizing results for potential issues</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays warning cards if issues found</div>
+                        <div class="step-details">
+                            <strong>Warning Types:</strong><br>
+                            - High utilization risk (low headroom)<br>
+                            - Large cluster warning (100+ workers)<br>
+                            - HA recommendations<br>
+                            - Cost optimization suggestions
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Reviews and acknowledges warnings</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-019</span></td></tr>
+                    <tr><th>Components</th><td>ResultsWarnings.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-024: View Cost Analysis -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-024</div>
+            <h3>View Cost Analysis</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Displays comprehensive cost analysis including infrastructure costs, licensing, support, and TCO breakdown by category.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>High</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays cost analysis view</div>
+                        <div class="step-details">
+                            <strong>Sections:</strong><br>
+                            - Infrastructure costs (compute, storage, network)<br>
+                            - Platform licensing (Mendix/OpenShift if applicable)<br>
+                            - Support costs<br>
+                            - Monthly vs Annual totals<br>
+                            - Cost per environment breakdown
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Reviews cost breakdown</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-024</span></td></tr>
+                    <tr><th>Components</th><td>CostAnalysisView.razor, CostBreakdownPanel.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications including UC-020, UC-021, UC-022, and UC-023, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04c-uc-vm.html" class="nav-button">&larr; Previous: VM Configuration</a>
+        <a href="04e-uc-pricing.html" class="nav-button">Next: Pricing &rarr;</a>
+    </div>
+</body>
+</html>

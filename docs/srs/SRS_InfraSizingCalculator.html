@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Software Requirements Specification - Infrastructure Sizing Calculator</title>
+    <style>
+        @page { size: A4; margin: 2.54cm; }
+        body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #333; max-width: 21cm; margin: 0 auto; padding: 2cm; }
+        h1 { font-size: 24pt; color: #1a365d; border-bottom: 3px solid #1a365d; padding-bottom: 10px; page-break-before: always; }
+        h1:first-of-type { page-break-before: avoid; }
+        h2 { font-size: 16pt; color: #2c5282; border-bottom: 1px solid #2c5282; padding-bottom: 5px; margin-top: 25px; }
+        h3 { font-size: 13pt; color: #2d3748; margin-top: 20px; }
+        h4 { font-size: 11pt; color: #4a5568; margin-top: 15px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10pt; }
+        th, td { border: 1px solid #cbd5e0; padding: 8px 12px; text-align: left; vertical-align: top; }
+        th { background-color: #e2e8f0; font-weight: bold; color: #1a365d; }
+        tr:nth-child(even) { background-color: #f7fafc; }
+        .cover-page { text-align: center; padding-top: 100px; page-break-after: always; }
+        .cover-title { font-size: 36pt; color: #1a365d; font-weight: bold; margin-bottom: 20px; }
+        .cover-subtitle { font-size: 18pt; color: #4a5568; margin-bottom: 50px; }
+        .toc { page-break-after: always; }
+        .toc ul { list-style: none; padding-left: 0; }
+        .toc li { margin: 8px 0; }
+        .toc .level2 { padding-left: 20px; }
+        .toc .level3 { padding-left: 40px; }
+        .uc-box { border: 2px solid #2c5282; border-radius: 8px; margin: 25px 0; overflow: hidden; page-break-inside: avoid; }
+        .uc-header { background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%); color: white; padding: 15px 20px; }
+        .uc-header h3 { margin: 0; color: white; font-size: 14pt; }
+        .uc-header .uc-id { font-size: 10pt; opacity: 0.9; }
+        .uc-body { padding: 20px; }
+        .uc-section { margin-bottom: 20px; }
+        .uc-section-title { font-weight: bold; color: #2c5282; font-size: 11pt; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e0; padding-bottom: 5px; }
+        .flow-step { display: flex; margin: 10px 0; align-items: flex-start; }
+        .step-number { background-color: #2c5282; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12pt; margin-right: 15px; flex-shrink: 0; }
+        .step-content { flex: 1; }
+        .step-actor { font-weight: bold; color: #2c5282; }
+        .step-system { font-weight: bold; color: #38a169; }
+        .step-details { font-size: 10pt; color: #718096; margin-top: 5px; padding-left: 15px; border-left: 2px solid #e2e8f0; }
+        .alt-flow { background-color: #fffaf0; border: 1px solid #ed8936; border-radius: 5px; padding: 15px; margin: 10px 0; }
+        .alt-flow-title { font-weight: bold; color: #c05621; margin-bottom: 10px; }
+        .exception-flow { background-color: #fff5f5; border: 1px solid #fc8181; border-radius: 5px; padding: 15px; margin: 10px 0; }
+        .exception-flow-title { font-weight: bold; color: #c53030; margin-bottom: 10px; }
+        .br-tag { display: inline-block; background-color: #805ad5; color: white; padding: 2px 8px; border-radius: 3px; font-size: 9pt; font-weight: bold; margin-right: 5px; }
+        .req-tag { display: inline-block; background-color: #3182ce; color: white; padding: 2px 8px; border-radius: 3px; font-size: 9pt; font-weight: bold; margin-right: 5px; }
+        .uc-tag { display: inline-block; background-color: #38a169; color: white; padding: 2px 8px; border-radius: 3px; font-size: 9pt; font-weight: bold; margin-right: 5px; }
+        .priority-p1 { color: #c53030; font-weight: bold; }
+        .priority-p2 { color: #d69e2e; font-weight: bold; }
+        .priority-p3 { color: #3182ce; font-weight: bold; }
+        .req-box { border: 2px solid #2c5282; border-radius: 5px; margin: 20px 0; overflow: hidden; page-break-inside: avoid; }
+        .req-header { background-color: #2c5282; color: white; padding: 10px 15px; font-weight: bold; }
+        .req-meta { background-color: #e2e8f0; padding: 10px 15px; display: flex; gap: 30px; flex-wrap: wrap; }
+        .req-meta span { font-size: 10pt; }
+        .req-body { padding: 15px; }
+        .req-section { margin-bottom: 15px; }
+        .req-section-title { font-weight: bold; color: #2c5282; margin-bottom: 5px; }
+        .validation-rule { background-color: #ebf8ff; border-left: 3px solid #3182ce; padding: 10px 15px; margin: 5px 0; font-size: 10pt; }
+        .note { background-color: #ebf8ff; border-left: 4px solid #3182ce; padding: 12px 15px; margin: 15px 0; font-size: 10pt; }
+        .warning { background-color: #fffaf0; border-left: 4px solid #ed8936; padding: 12px 15px; margin: 15px 0; font-size: 10pt; }
+        .diagram { background-color: #f7fafc; border: 1px solid #e2e8f0; padding: 20px; font-family: 'Consolas', monospace; font-size: 9pt; white-space: pre; overflow-x: auto; }
+        .code-block { background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 15px; font-family: 'Consolas', monospace; font-size: 10pt; white-space: pre-wrap; margin: 10px 0; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .signature-table td { height: 50px; vertical-align: bottom; }
+        .page-break { page-break-before: always; }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page">
+    <div class="cover-title">Software Requirements Specification</div>
+    <div class="cover-subtitle">Infrastructure Sizing Calculator</div>
+    <div style="font-size: 14pt; color: #4a5568;">Version 2.0</div>
+    <div style="margin-top: 80px;">
+        <table style="width: 60%; margin: 0 auto; border: none;">
+            <tr><td style="border: none; text-align: right; width: 40%;"><strong>Prepared by:</strong></td><td style="border: none;">Tamer &amp; Claude Opus 4.5</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Organization:</strong></td><td style="border: none;">Infrastructure Planning Team</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Date:</strong></td><td style="border: none;">December 25, 2025</td></tr>
+            <tr><td style="border: none; text-align: right;"><strong>Status:</strong></td><td style="border: none;">Approved</td></tr>
+        </table>
+    </div>
+    <div style="position: absolute; bottom: 100px; width: 100%; text-align: center;">
+        <p style="font-size: 10pt; color: #718096;">Based on IEEE 830-1998 and ISO/IEC/IEEE 29148:2018 Standards</p>
+    </div>
+</div>
+
+<!-- DOCUMENT CONTROL -->
+<h2>Document Control</h2>
+<table>
+    <tr><th style="width: 30%;">Field</th><th>Value</th></tr>
+    <tr><td><strong>Document Title</strong></td><td>Software Requirements Specification for Infrastructure Sizing Calculator</td></tr>
+    <tr><td><strong>Document ID</strong></td><td>DOC-SRS-ISC-001</td></tr>
+    <tr><td><strong>Version</strong></td><td>2.0</td></tr>
+    <tr><td><strong>Status</strong></td><td>Approved</td></tr>
+    <tr><td><strong>Author(s)</strong></td><td>Tamer, Claude Opus 4.5</td></tr>
+    <tr><td><strong>Created Date</strong></td><td>2025-12-25</td></tr>
+    <tr><td><strong>Last Updated</strong></td><td>2025-12-25</td></tr>
+</table>
+
+<h3>Revision History</h3>
+<table>
+    <tr><th>Version</th><th>Date</th><th>Author</th><th>Description</th></tr>
+    <tr><td>1.0</td><td>2025-12-01</td><td>Tamer</td><td>Initial draft with K8s sizing</td></tr>
+    <tr><td>1.5</td><td>2025-12-15</td><td>Tamer</td><td>Added VM sizing and cost estimation</td></tr>
+    <tr><td>2.0</td><td>2025-12-25</td><td>Tamer &amp; Claude</td><td>Complete SRS with all use cases and business rules</td></tr>
+</table>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page-break toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><strong>1. Introduction</strong></li>
+    <li class="level2">1.1 Purpose</li>
+    <li class="level2">1.2 Scope</li>
+    <li class="level2">1.3 Definitions, Acronyms, and Abbreviations</li>
+    <li class="level2">1.4 References</li>
+    <li class="level2">1.5 Document Conventions</li>
+    <li class="level2">1.6 Intended Audience</li>
+    <li><strong>2. Overall Description</strong></li>
+    <li class="level2">2.1 Product Perspective</li>
+    <li class="level2">2.2 Product Functions</li>
+    <li class="level2">2.3 User Classes and Characteristics</li>
+    <li class="level2">2.4 Operating Environment</li>
+    <li class="level2">2.5 Design and Implementation Constraints</li>
+    <li class="level2">2.6 Assumptions and Dependencies</li>
+    <li><strong>3. Business Rules</strong></li>
+    <li class="level2">3.1 Master Node Rules</li>
+    <li class="level2">3.2 Infrastructure Node Rules</li>
+    <li class="level2">3.3 Worker Node Rules</li>
+    <li class="level2">3.4 Headroom Rules</li>
+    <li class="level2">3.5 Replica Rules</li>
+    <li class="level2">3.6 Technology Rules</li>
+    <li class="level2">3.7 VM Rules</li>
+    <li class="level2">3.8 Validation Rules</li>
+    <li><strong>4. Use Case Specifications</strong></li>
+    <li class="level2">4.1 UC-001: Calculate K8s Cluster Sizing</li>
+    <li class="level2">4.2 UC-002: Calculate VM Deployment Sizing</li>
+    <li class="level2">4.3 UC-003: Estimate Infrastructure Costs</li>
+    <li class="level2">4.4 UC-004: Plan Growth Projections</li>
+    <li class="level2">4.5 UC-005: Manage Scenarios</li>
+    <li class="level2">4.6 UC-006: Export Results</li>
+    <li><strong>5. Functional Requirements</strong></li>
+    <li><strong>6. External Interface Requirements</strong></li>
+    <li><strong>7. Non-Functional Requirements</strong></li>
+    <li><strong>8. Data Requirements</strong></li>
+    <li><strong>9. Verification &amp; Validation</strong></li>
+    <li><strong>10. Traceability Matrix</strong></li>
+    <li><strong>11. Appendices</strong></li>
+</ul>
+</div>
+
+<!-- SECTION 1: INTRODUCTION -->
+<h1>1. Introduction</h1>
+
+<h2>1.1 Purpose</h2>
+<p>This Software Requirements Specification (SRS) document describes the functional and non-functional requirements for the <strong>Infrastructure Sizing Calculator</strong> version 2.0. This document serves as:</p>
+<ul>
+    <li>The contract between stakeholders and the development team</li>
+    <li>The basis for system design and architecture</li>
+    <li>The foundation for test planning and validation</li>
+    <li>A reference for project planning and estimation</li>
+</ul>
+
+<h2>1.2 Scope</h2>
+
+<h3>1.2.1 Product Overview</h3>
+<p>The Infrastructure Sizing Calculator is an enterprise-grade web application that helps organizations determine infrastructure requirements for deploying applications on <strong>Kubernetes clusters</strong> or <strong>Virtual Machines</strong>. It provides comprehensive capacity planning, cost estimation, and growth projections.</p>
+
+<h3>1.2.2 In Scope</h3>
+<table>
+    <tr><th>Feature Category</th><th>Capabilities</th></tr>
+    <tr><td>Kubernetes Sizing</td><td>Control plane, infrastructure, and worker node calculations for 38+ distributions</td></tr>
+    <tr><td>VM Sizing</td><td>Server role calculations with HA/DR patterns for 7 technology platforms</td></tr>
+    <tr><td>Cost Estimation</td><td>Multi-cloud pricing (AWS, Azure, GCP, Oracle, IBM) and on-premises costs</td></tr>
+    <tr><td>Growth Planning</td><td>1/3/5 year projections with multiple growth patterns</td></tr>
+    <tr><td>Scenario Management</td><td>Save, load, compare, and export scenarios</td></tr>
+    <tr><td>Export</td><td>CSV, JSON, Excel, HTML/PDF export formats</td></tr>
+</table>
+
+<h3>1.2.3 Out of Scope</h3>
+<ul>
+    <li>Direct infrastructure provisioning or deployment</li>
+    <li>Real-time cloud API integration for live pricing</li>
+    <li>Application performance monitoring</li>
+    <li>Container image management</li>
+    <li>CI/CD pipeline integration</li>
+</ul>
+
+<h2>1.3 Definitions, Acronyms, and Abbreviations</h2>
+<table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td>K8s</td><td>Kubernetes - container orchestration platform</td></tr>
+    <tr><td>VM</td><td>Virtual Machine</td></tr>
+    <tr><td>vCPU</td><td>Virtual CPU core</td></tr>
+    <tr><td>RAM</td><td>Random Access Memory (measured in GB)</td></tr>
+    <tr><td>HA</td><td>High Availability - redundant systems for fault tolerance</td></tr>
+    <tr><td>DR</td><td>Disaster Recovery - systems for business continuity</td></tr>
+    <tr><td>TCO</td><td>Total Cost of Ownership</td></tr>
+    <tr><td>Control Plane</td><td>K8s master nodes that manage the cluster</td></tr>
+    <tr><td>Worker Node</td><td>K8s nodes that run application workloads</td></tr>
+    <tr><td>Infra Node</td><td>OpenShift-specific nodes for platform services</td></tr>
+    <tr><td>Pod</td><td>Smallest deployable unit in Kubernetes</td></tr>
+    <tr><td>Headroom</td><td>Buffer capacity for scaling and maintenance</td></tr>
+    <tr><td>Overcommit</td><td>Ratio allowing resource over-allocation</td></tr>
+    <tr><td>EKS</td><td>Amazon Elastic Kubernetes Service</td></tr>
+    <tr><td>AKS</td><td>Azure Kubernetes Service</td></tr>
+    <tr><td>GKE</td><td>Google Kubernetes Engine</td></tr>
+    <tr><td>OKE</td><td>Oracle Kubernetes Engine</td></tr>
+</table>
+
+<h2>1.4 References</h2>
+<table>
+    <tr><th>ID</th><th>Document</th><th>Source</th></tr>
+    <tr><td>REF-001</td><td>IEEE 830-1998 - Software Requirements Specifications</td><td>IEEE</td></tr>
+    <tr><td>REF-002</td><td>ISO/IEC/IEEE 29148:2018 - Requirements Engineering</td><td>ISO</td></tr>
+    <tr><td>REF-003</td><td>Kubernetes Documentation - Cluster Architecture</td><td>kubernetes.io</td></tr>
+    <tr><td>REF-004</td><td>OpenShift Container Platform Sizing Guide</td><td>Red Hat</td></tr>
+    <tr><td>REF-005</td><td>AWS EKS Best Practices Guide</td><td>Amazon</td></tr>
+    <tr><td>REF-006</td><td>Mendix Cloud Resource Packs Documentation</td><td>Mendix</td></tr>
+</table>
+
+<h2>1.5 Document Conventions</h2>
+<div class="code-block"><strong>Requirement IDs:</strong>
+  REQ-FR-XXX   : Functional Requirement
+  REQ-NFR-XXX  : Non-Functional Requirement
+  REQ-IR-XXX   : Interface Requirement
+
+<strong>Use Case IDs:</strong>
+  UC-XXX       : Use Case Specification
+
+<strong>Business Rule IDs:</strong>
+  BR-M-XXX     : Master Node Rules
+  BR-I-XXX     : Infrastructure Node Rules
+  BR-W-XXX     : Worker Node Rules
+  BR-H-XXX     : Headroom Rules
+  BR-R-XXX     : Replica Rules
+  BR-T-XXX     : Technology Rules
+  BR-VM-XXX    : VM-Specific Rules
+  BR-V-XXX     : Validation Rules
+
+<strong>Priority Levels:</strong>
+  P1 (Critical) : Must have for MVP
+  P2 (High)     : Should have for release
+  P3 (Medium)   : Nice to have</div>
+
+<h2>1.6 Intended Audience</h2>
+<table>
+    <tr><th>Audience</th><th>Primary Sections</th><th>Purpose</th></tr>
+    <tr><td>Developers</td><td>3, 4, 5, 6, 8</td><td>Implementation details and business logic</td></tr>
+    <tr><td>QA Engineers</td><td>4, 5, 7, 9</td><td>Test planning and validation criteria</td></tr>
+    <tr><td>Business Analysts</td><td>1, 2, 3, 4</td><td>Requirements and business rules validation</td></tr>
+    <tr><td>Project Managers</td><td>1, 2, 9</td><td>Scope, planning, and verification</td></tr>
+    <tr><td>Architects</td><td>2, 6, 7, 8</td><td>System design and integration</td></tr>
+</table>
+
+<!-- SECTION 2: OVERALL DESCRIPTION -->
+<h1>2. Overall Description</h1>
+
+<h2>2.1 Product Perspective</h2>
+
+<h3>2.1.1 System Context</h3>
+<div class="diagram">
+                         ┌─────────────────────────────────────────────────────────┐
+                         │                    Users                                 │
+                         ├──────────────┬──────────────┬──────────────┬────────────┤
+                         │ Infrastructure│   DevOps    │  Platform    │ Finance    │
+                         │  Architects   │  Engineers  │  Engineers   │ Teams      │
+                         └──────┬───────┴──────┬───────┴──────┬───────┴─────┬──────┘
+                                │              │              │             │
+                                └──────────────┴──────┬───────┴─────────────┘
+                                                      │
+                                                      ▼
+                         ┌─────────────────────────────────────────────────────────┐
+                         │         Infrastructure Sizing Calculator                 │
+                         ├─────────────────────────────────────────────────────────┤
+                         │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+                         │  │ K8s Sizing  │  │ VM Sizing   │  │ Cost        │     │
+                         │  │ Engine      │  │ Engine      │  │ Estimation  │     │
+                         │  └─────────────┘  └─────────────┘  └─────────────┘     │
+                         │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+                         │  │ Growth      │  │ Scenario    │  │ Export      │     │
+                         │  │ Planning    │  │ Management  │  │ Service     │     │
+                         │  └─────────────┘  └─────────────┘  └─────────────┘     │
+                         └─────────────────────────┬───────────────────────────────┘
+                                                   │
+                                                   ▼
+                         ┌─────────────────────────────────────────────────────────┐
+                         │                    Data Storage                          │
+                         ├─────────────────┬───────────────────────────────────────┤
+                         │  SQLite DB      │  Local Browser Storage                │
+                         │  (Scenarios)    │  (User Preferences)                   │
+                         └─────────────────┴───────────────────────────────────────┘
+</div>
+
+<h3>2.1.2 Key Differentiators</h3>
+<table>
+    <tr><th>Feature</th><th>Infrastructure Sizing Calculator</th><th>Competitors</th></tr>
+    <tr><td>K8s Distributions</td><td>38+ (including all major cloud + on-prem)</td><td>Typically 3-5</td></tr>
+    <tr><td>VM Sizing</td><td>Full support with HA/DR patterns</td><td>Rarely included</td></tr>
+    <tr><td>Offline Capability</td><td>100% offline after initial load</td><td>Usually requires connectivity</td></tr>
+    <tr><td>On-Premises Support</td><td>Full pricing and sizing</td><td>Cloud-only focus</td></tr>
+    <tr><td>Low-Code Platforms</td><td>Mendix, OutSystems native support</td><td>Not supported</td></tr>
+    <tr><td>Air-Gap Deployment</td><td>Fully supported</td><td>Not supported</td></tr>
+</table>
+
+<h2>2.2 Product Functions</h2>
+<table>
+    <tr><th>ID</th><th>Function</th><th>Description</th><th>Use Cases</th></tr>
+    <tr><td>F-001</td><td>K8s Cluster Sizing</td><td>Calculate control plane, infrastructure, and worker nodes for Kubernetes deployments</td><td><span class="uc-tag">UC-001</span></td></tr>
+    <tr><td>F-002</td><td>VM Deployment Sizing</td><td>Calculate server roles and resources for VM-based deployments with HA/DR</td><td><span class="uc-tag">UC-002</span></td></tr>
+    <tr><td>F-003</td><td>Cost Estimation</td><td>Calculate infrastructure costs across cloud providers and on-premises</td><td><span class="uc-tag">UC-003</span></td></tr>
+    <tr><td>F-004</td><td>Growth Planning</td><td>Project infrastructure needs over 1-5 years with multiple growth patterns</td><td><span class="uc-tag">UC-004</span></td></tr>
+    <tr><td>F-005</td><td>Scenario Management</td><td>Save, load, compare, and manage sizing scenarios</td><td><span class="uc-tag">UC-005</span></td></tr>
+    <tr><td>F-006</td><td>Export &amp; Reporting</td><td>Export results in CSV, JSON, Excel, and HTML/PDF formats</td><td><span class="uc-tag">UC-006</span></td></tr>
+</table>
+
+<h2>2.3 User Classes and Characteristics</h2>
+<table>
+    <tr><th>User Class</th><th>Description</th><th>Technical Level</th><th>Primary Use Cases</th></tr>
+    <tr>
+        <td><strong>Infrastructure Architect</strong></td>
+        <td>Technical professional responsible for designing infrastructure solutions. Primary user for sizing calculations.</td>
+        <td>Expert</td>
+        <td><span class="uc-tag">UC-001</span> <span class="uc-tag">UC-002</span> <span class="uc-tag">UC-003</span></td>
+    </tr>
+    <tr>
+        <td><strong>DevOps Engineer</strong></td>
+        <td>Engineer responsible for deployment pipelines and cluster management.</td>
+        <td>Advanced</td>
+        <td><span class="uc-tag">UC-001</span> <span class="uc-tag">UC-005</span></td>
+    </tr>
+    <tr>
+        <td><strong>Platform Engineer</strong></td>
+        <td>Engineer managing platform services and configurations.</td>
+        <td>Advanced</td>
+        <td><span class="uc-tag">UC-001</span> <span class="uc-tag">UC-002</span></td>
+    </tr>
+    <tr>
+        <td><strong>Procurement Manager</strong></td>
+        <td>Manager responsible for hardware acquisition and vendor negotiations.</td>
+        <td>Intermediate</td>
+        <td><span class="uc-tag">UC-003</span> <span class="uc-tag">UC-006</span></td>
+    </tr>
+    <tr>
+        <td><strong>Finance Analyst</strong></td>
+        <td>Analyst responsible for infrastructure budgeting and cost analysis.</td>
+        <td>Basic</td>
+        <td><span class="uc-tag">UC-003</span> <span class="uc-tag">UC-004</span></td>
+    </tr>
+</table>
+
+<h2>2.4 Operating Environment</h2>
+
+<h3>2.4.1 Client Requirements</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Browser</td><td>Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</td></tr>
+    <tr><td>JavaScript</td><td>Enabled (ES6+ support required)</td></tr>
+    <tr><td>Screen Resolution</td><td>Minimum: 1280x720, Recommended: 1920x1080</td></tr>
+    <tr><td>Network</td><td>Required for initial load; offline capable thereafter</td></tr>
+</table>
+
+<h3>2.4.2 Server Requirements</h3>
+<table>
+    <tr><th>Component</th><th>Requirement</th></tr>
+    <tr><td>Runtime</td><td>.NET 10.0</td></tr>
+    <tr><td>Framework</td><td>Blazor Server (ASP.NET Core)</td></tr>
+    <tr><td>Database</td><td>SQLite (embedded) or SQL Server</td></tr>
+    <tr><td>Memory</td><td>Minimum: 512MB, Recommended: 2GB</td></tr>
+    <tr><td>Storage</td><td>Minimum: 100MB for application</td></tr>
+</table>
+
+<h2>2.5 Design and Implementation Constraints</h2>
+<table>
+    <tr><th>ID</th><th>Constraint</th><th>Rationale</th></tr>
+    <tr><td>CON-001</td><td>Must operate fully offline after initial load</td><td>Air-gap deployment requirement</td></tr>
+    <tr><td>CON-002</td><td>No external API calls for pricing data</td><td>Offline capability and data control</td></tr>
+    <tr><td>CON-003</td><td>Must support deployment without database server</td><td>Simplified deployment (SQLite)</td></tr>
+    <tr><td>CON-004</td><td>Single-page application architecture</td><td>User experience and performance</td></tr>
+    <tr><td>CON-005</td><td>Must not store personally identifiable information</td><td>Privacy and compliance</td></tr>
+</table>
+
+<h2>2.6 Assumptions and Dependencies</h2>
+
+<h3>Assumptions</h3>
+<table>
+    <tr><th>ID</th><th>Assumption</th><th>Impact if False</th></tr>
+    <tr><td>ASM-001</td><td>Users have basic understanding of K8s/VM concepts</td><td>Additional training/documentation needed</td></tr>
+    <tr><td>ASM-002</td><td>Pricing data is updated quarterly</td><td>Cost estimates may be inaccurate</td></tr>
+    <tr><td>ASM-003</td><td>Resource requirements follow linear scaling</td><td>Large cluster estimates may need adjustment</td></tr>
+</table>
+
+<h3>Dependencies</h3>
+<table>
+    <tr><th>ID</th><th>Dependency</th><th>Type</th></tr>
+    <tr><td>DEP-001</td><td>.NET 10.0 Runtime</td><td>Technical</td></tr>
+    <tr><td>DEP-002</td><td>ClosedXML library for Excel export</td><td>Technical</td></tr>
+    <tr><td>DEP-003</td><td>QuestPDF library for PDF generation</td><td>Technical</td></tr>
+    <tr><td>DEP-004</td><td>Entity Framework Core 9.0</td><td>Technical</td></tr>
+</table>
+
+<!-- SECTION 3: BUSINESS RULES -->
+<h1>3. Business Rules</h1>
+
+<div class="note">
+    <strong>Purpose:</strong> Business rules define the policies, constraints, and calculation logic that govern infrastructure sizing.
+    These rules are referenced throughout use cases using <span class="br-tag">BR-XXX</span> tags.
+</div>
+
+<h2>3.1 Master Node Rules (Control Plane)</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-M001</span></td>
+        <td>Managed Kubernetes services (EKS, AKS, GKE, OKE) have 0 control plane nodes - the cloud provider manages them</td>
+        <td><code>if (distribution.HasManagedControlPlane) masterNodes = 0</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-M002</span></td>
+        <td>Standard HA clusters require minimum 3 master nodes for quorum</td>
+        <td><code>masterNodes = Max(3, calculated)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-M003</span></td>
+        <td>Large clusters with 100+ workers require 5 master nodes</td>
+        <td><code>if (workers >= 100) masterNodes = 5</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-M004</span></td>
+        <td>Non-production environments can use 3 masters regardless of worker count</td>
+        <td><code>if (!isProd) masterNodes = 3</code></td>
+    </tr>
+</table>
+
+<h2>3.2 Infrastructure Node Rules (OpenShift Only)</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-I001</span></td>
+        <td>Only OpenShift distributions require dedicated infrastructure nodes</td>
+        <td><code>if (!distribution.HasInfraNodes) infraNodes = 0</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-I002</span></td>
+        <td>Minimum infrastructure nodes per cluster is 3 for HA</td>
+        <td><code>infraNodes = Max(3, calculated)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-I003</span></td>
+        <td>Maximum infrastructure nodes is capped at 10</td>
+        <td><code>infraNodes = Min(10, calculated)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-I004</span></td>
+        <td>Scale infrastructure nodes at 1 per 25 applications</td>
+        <td><code>infraNodes = Ceiling(apps / 25)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-I005</span></td>
+        <td>Large production environments (50+ apps) require minimum 5 infra nodes</td>
+        <td><code>if (isProd && apps >= 50) infraNodes = Max(5, calculated)</code></td>
+    </tr>
+</table>
+
+<h2>3.3 Worker Node Rules</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-W001</span></td>
+        <td>Minimum 3 worker nodes per cluster for high availability</td>
+        <td><code>workers = Max(3, calculated)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-W002</span></td>
+        <td>15% of node resources reserved for system overhead (kubelet, OS)</td>
+        <td><code>availableResources = nodeResources * 0.85</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-W003</span></td>
+        <td>Calculate workers needed based on total CPU demand</td>
+        <td><code>workersByCpu = Ceiling(totalCpu / (nodeSpec.Cpu * 0.85 * cpuOvercommit))</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-W004</span></td>
+        <td>Calculate workers needed based on total RAM demand</td>
+        <td><code>workersByRam = Ceiling(totalRam / (nodeSpec.Ram * 0.85 * ramOvercommit))</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-W005</span></td>
+        <td>Final worker count is maximum of CPU-based and RAM-based calculations</td>
+        <td><code>workers = Max(workersByCpu, workersByRam, 3)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-W006</span></td>
+        <td>Worker node specs always use production-grade specifications</td>
+        <td><code>nodeSpecs = distribution.ProdWorker</code></td>
+    </tr>
+</table>
+
+<h2>3.4 Headroom Rules</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-H001</span></td>
+        <td>Headroom is applied as a percentage multiplier to worker count</td>
+        <td><code>finalWorkers = baseWorkers * (1 + headroomPercent)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H002</span></td>
+        <td>Default headroom for Dev environment is 33%</td>
+        <td><code>DevHeadroom = 0.33</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H003</span></td>
+        <td>Default headroom for Test environment is 33%</td>
+        <td><code>TestHeadroom = 0.33</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H004</span></td>
+        <td>Default headroom for Stage environment is 0%</td>
+        <td><code>StageHeadroom = 0.0</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H005</span></td>
+        <td>Default headroom for Production environment is 37.5%</td>
+        <td><code>ProdHeadroom = 0.375</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H006</span></td>
+        <td>Default headroom for DR environment is 37.5%</td>
+        <td><code>DRHeadroom = 0.375</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-H007</span></td>
+        <td>Headroom percentage range is 0% to 100%</td>
+        <td><code>headroom = Clamp(input, 0, 1.0)</code></td>
+    </tr>
+</table>
+
+<h2>3.5 Replica Rules</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-R001</span></td>
+        <td>Default replicas for Production and DR environments is 3</td>
+        <td><code>ProdReplicas = DRReplicas = 3</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-R002</span></td>
+        <td>Default replicas for Dev and Test environments is 1</td>
+        <td><code>DevReplicas = TestReplicas = 1</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-R003</span></td>
+        <td>Default replicas for Stage environment is 2</td>
+        <td><code>StageReplicas = 2</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-R004</span></td>
+        <td>Replica count range is 1 to 10</td>
+        <td><code>replicas = Clamp(input, 1, 10)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-R005</span></td>
+        <td>Total pods = Applications x Replicas</td>
+        <td><code>totalPods = apps * replicas</code></td>
+    </tr>
+</table>
+
+<h2>3.6 Technology Resource Rules</h2>
+<table>
+    <tr><th>Technology</th><th>Small (CPU/RAM)</th><th>Medium (CPU/RAM)</th><th>Large (CPU/RAM)</th><th>XLarge (CPU/RAM)</th></tr>
+    <tr><td><strong>.NET</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+    <tr><td><strong>Java</strong></td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td></tr>
+    <tr><td><strong>Node.js</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+    <tr><td><strong>Python</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+    <tr><td><strong>Go</strong></td><td>0.125 / 0.25 GB</td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td></tr>
+    <tr><td><strong>Mendix</strong></td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td><td>8 / 16 GB</td></tr>
+    <tr><td><strong>OutSystems</strong></td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td><td>8 / 16 GB</td></tr>
+</table>
+
+<h2>3.7 VM-Specific Rules</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-VM001</span></td>
+        <td>Each technology has specific server roles with defined resource requirements</td>
+        <td>Roles defined in TechnologyVMRoles configuration</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-VM002</span></td>
+        <td>Some roles have maximum instance limits (e.g., OutSystems Controller = 1)</td>
+        <td><code>instances = Min(requested, role.MaxInstances)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-VM003</span></td>
+        <td>Some roles have minimum instance requirements for HA (e.g., Frontend >= 2)</td>
+        <td><code>instances = Max(requested, role.MinInstances)</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-VM004</span></td>
+        <td>Database roles have 1.5x memory multiplier</td>
+        <td><code>ram = baseRam * role.MemoryMultiplier</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-VM005</span></td>
+        <td>HA pattern multipliers: None=1.0, Active-Active=2.0, Active-Passive=2.0, N+1=1.5, N+2=1.67</td>
+        <td><code>vms = baseVMs * haMultiplier</code></td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-VM006</span></td>
+        <td>Load balancer HA Pair configuration requires 2 VMs</td>
+        <td><code>if (loadBalancer == HAPair) lbVMs = 2</code></td>
+    </tr>
+</table>
+
+<h2>3.8 Validation Rules</h2>
+<table>
+    <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Error Message</th></tr>
+    <tr>
+        <td><span class="br-tag">BR-V001</span></td>
+        <td>Application counts must be non-negative integers</td>
+        <td>"Application count must be 0 or greater"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V002</span></td>
+        <td>At least one environment must be enabled</td>
+        <td>"Please select at least one environment"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V003</span></td>
+        <td>Total application count must be greater than 0</td>
+        <td>"Please enter at least one application"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V004</span></td>
+        <td>CPU overcommit ratio must be between 1.0 and 10.0</td>
+        <td>"CPU overcommit must be between 1.0 and 10.0"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V005</span></td>
+        <td>Memory overcommit ratio must be between 1.0 and 4.0</td>
+        <td>"Memory overcommit must be between 1.0 and 4.0"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V006</span></td>
+        <td>Instance count must be between 1 and 100</td>
+        <td>"Instance count must be between 1 and 100"</td>
+    </tr>
+    <tr>
+        <td><span class="br-tag">BR-V007</span></td>
+        <td>Disk size must be between 10 GB and 10,000 GB</td>
+        <td>"Disk size must be between 10 and 10,000 GB"</td>
+    </tr>
+</table>
+
+<!-- SECTION 4: USE CASE SPECIFICATIONS -->
+<h1>4. Use Case Specifications</h1>
+
+<h2>4.1 Use Case Summary</h2>
+<table>
+    <tr><th>Use Case ID</th><th>Name</th><th>Primary Actor</th><th>Priority</th></tr>
+    <tr><td><span class="uc-tag">UC-001</span></td><td>Calculate K8s Cluster Sizing</td><td>Infrastructure Architect</td><td><span class="priority-p1">P1</span></td></tr>
+    <tr><td><span class="uc-tag">UC-002</span></td><td>Calculate VM Deployment Sizing</td><td>Infrastructure Architect</td><td><span class="priority-p1">P1</span></td></tr>
+    <tr><td><span class="uc-tag">UC-003</span></td><td>Estimate Infrastructure Costs</td><td>Infrastructure Architect</td><td><span class="priority-p1">P1</span></td></tr>
+    <tr><td><span class="uc-tag">UC-004</span></td><td>Plan Growth Projections</td><td>Finance Analyst</td><td><span class="priority-p2">P2</span></td></tr>
+    <tr><td><span class="uc-tag">UC-005</span></td><td>Manage Scenarios</td><td>Infrastructure Architect</td><td><span class="priority-p2">P2</span></td></tr>
+    <tr><td><span class="uc-tag">UC-006</span></td><td>Export Results</td><td>Procurement Manager</td><td><span class="priority-p2">P2</span></td></tr>
+</table>
+
+<!-- UC-001 -->
+<h2>4.2 UC-001: Calculate Kubernetes Cluster Sizing</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-001</div>
+        <h3>Calculate Kubernetes Cluster Sizing</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Allows infrastructure architects to calculate the required Kubernetes cluster sizing (control plane, infrastructure, and worker nodes) based on application requirements, technology stack, distribution, and environment configuration.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Core functionality</td></tr>
+                <tr><th>Complexity</th><td>High</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Actors</div>
+            <table>
+                <tr><th style="width: 25%;">Primary Actor</th><td><strong>Infrastructure Architect</strong> - Technical professional responsible for designing infrastructure solutions with expert-level understanding of Kubernetes</td></tr>
+                <tr><th>Secondary Actors</th><td>DevOps Engineer, Platform Engineer</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Preconditions</div>
+            <table>
+                <tr><th style="width: 10%;">#</th><th>Precondition</th></tr>
+                <tr><td>PRE-1</td><td>User has accessed the application via web browser</td></tr>
+                <tr><td>PRE-2</td><td>User knows the target technology platform (.NET, Java, Mendix, etc.)</td></tr>
+                <tr><td>PRE-3</td><td>User knows the target K8s distribution (OpenShift, EKS, etc.)</td></tr>
+                <tr><td>PRE-4</td><td>User has application counts per environment tier</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Applicable Business Rules</div>
+            <table>
+                <tr><th>Category</th><th>Rules</th></tr>
+                <tr><td>Master Nodes</td><td><span class="br-tag">BR-M001</span> <span class="br-tag">BR-M002</span> <span class="br-tag">BR-M003</span> <span class="br-tag">BR-M004</span></td></tr>
+                <tr><td>Infrastructure Nodes</td><td><span class="br-tag">BR-I001</span> <span class="br-tag">BR-I002</span> <span class="br-tag">BR-I003</span> <span class="br-tag">BR-I004</span> <span class="br-tag">BR-I005</span></td></tr>
+                <tr><td>Worker Nodes</td><td><span class="br-tag">BR-W001</span> <span class="br-tag">BR-W002</span> <span class="br-tag">BR-W003</span> <span class="br-tag">BR-W004</span> <span class="br-tag">BR-W005</span></td></tr>
+                <tr><td>Headroom</td><td><span class="br-tag">BR-H001</span> through <span class="br-tag">BR-H007</span></td></tr>
+                <tr><td>Replicas</td><td><span class="br-tag">BR-R001</span> through <span class="br-tag">BR-R005</span></td></tr>
+                <tr><td>Validation</td><td><span class="br-tag">BR-V001</span> <span class="br-tag">BR-V002</span> <span class="br-tag">BR-V003</span> <span class="br-tag">BR-V004</span> <span class="br-tag">BR-V005</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects platform type (Native or Low-Code)</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> PlatformStep.razor - Selection cards<br>
+                        <strong>Options:</strong> Native (standard apps), Low-Code (Mendix, OutSystems)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects deployment model (Kubernetes)</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> DeploymentStep.razor - Selection cards<br>
+                        <strong>Selection:</strong> Kubernetes (vs VMs)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects application technology</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> TechnologyStep.razor - Technology cards with resource specs<br>
+                        <strong>Options:</strong> .NET, Java, Node.js, Python, Go, Mendix, OutSystems<br>
+                        <strong>Display:</strong> Resource requirements per tier (S/M/L/XL)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects Kubernetes distribution</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> DistributionStep.razor - Distribution cards with filtering<br>
+                        <strong>Options:</strong> OpenShift, EKS, AKS, GKE, OKE, Rancher, K3s, etc. (38+ options)<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-M001</span> (managed vs self-hosted detection)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Loads distribution-specific configuration</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> DistributionService.GetDistributionConfig()<br>
+                        <strong>Data Loaded:</strong> Node specs (CPU/RAM/Disk), HasInfraNodes, HasManagedControlPlane
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects cluster mode</div>
+                    <div class="step-details">
+                        <strong>Options:</strong><br>
+                        - Multi-Cluster: Separate cluster per environment<br>
+                        - Shared Cluster: Single cluster for all environments<br>
+                        - Per-Environment: Calculate for single selected environment
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Enables/disables environments and enters application counts</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> K8sAppsConfig.razor - Environment checkboxes + tier inputs<br>
+                        <strong>Environments:</strong> Dev, Test, Stage, Prod (mandatory), DR<br>
+                        <strong>Tiers:</strong> Small, Medium, Large, XLarge counts per environment<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-V001</span> <span class="br-tag">BR-V002</span> <span class="br-tag">BR-V003</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">8</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Configures advanced settings (optional)</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> K8sSettingsConfig.razor<br>
+                        <strong>Settings:</strong><br>
+                        - Replicas per environment (1-10)<br>
+                        - Headroom percentages (0-100%)<br>
+                        - Overcommit ratios (CPU: 1-10, RAM: 1-4)<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-R001</span>-<span class="br-tag">BR-R004</span>, <span class="br-tag">BR-H001</span>-<span class="br-tag">BR-H007</span>, <span class="br-tag">BR-V004</span>-<span class="br-tag">BR-V005</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">9</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Validates all input data</div>
+                    <div class="step-details">
+                        <strong>Validation:</strong> Range checks, required fields, cross-field rules<br>
+                        <strong>On Failure:</strong> Go to Exception Flow E1
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">10</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Clicks "Calculate" button</div>
+                    <div class="step-details">
+                        <strong>UI Element:</strong> WizardNavigation.razor - Primary action button
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">11</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Executes sizing calculation</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> K8sSizingService.CalculateSizing()<br>
+                        <strong>Applies:</strong> All BR-M, BR-I, BR-W, BR-H, BR-R rules<br>
+                        <strong>Performance:</strong> Must complete within 500ms
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">12</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Displays sizing results</div>
+                    <div class="step-details">
+                        <strong>UI Elements:</strong><br>
+                        - SummaryCards.razor: Grand totals (nodes, CPU, RAM, disk)<br>
+                        - ResultsTable.razor: Per-environment breakdown<br>
+                        - ResultsWarnings.razor: Recommendations and warnings<br>
+                        <strong>Data Displayed:</strong> Masters, Infra (if OpenShift), Workers, Total CPU/RAM/Disk per environment
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Alternative Flows</div>
+
+            <div class="alt-flow">
+                <div class="alt-flow-title">A1: Custom Node Specifications (branches from Step 8)</div>
+                <p><strong>Condition:</strong> User wants to override default node specs</p>
+                <div class="flow-step">
+                    <div class="step-number">A1.1</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Opens Node Specs configuration panel</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.2</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Enters custom CPU, RAM, and Disk values for each node type</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.3</div>
+                    <div class="step-content"><span class="step-system">System:</span> Validates custom values (must be positive)</div>
+                </div>
+                <p><strong>Rejoins Main Flow:</strong> Step 9</p>
+            </div>
+
+            <div class="alt-flow">
+                <div class="alt-flow-title">A2: Shared Cluster Mode (branches from Step 6)</div>
+                <p><strong>Condition:</strong> User selects Shared Cluster mode</p>
+                <div class="flow-step">
+                    <div class="step-number">A2.1</div>
+                    <div class="step-content"><span class="step-system">System:</span> Combines all environment resources into single cluster calculation</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A2.2</div>
+                    <div class="step-content"><span class="step-system">System:</span> Displays unified node counts with namespace isolation notes</div>
+                </div>
+                <p><strong>Rejoins Main Flow:</strong> Step 12</p>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Exception Flows</div>
+
+            <div class="exception-flow">
+                <div class="exception-flow-title">E1: Validation Error (Step 9)</div>
+                <p><strong>Trigger:</strong> Input data fails validation</p>
+                <div class="flow-step">
+                    <div class="step-number">E1.1</div>
+                    <div class="step-content"><span class="step-system">System:</span> Highlights invalid fields with red border</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">E1.2</div>
+                    <div class="step-content"><span class="step-system">System:</span> Displays inline error messages from BR-V rules</div>
+                </div>
+                <p><strong>Recovery:</strong> User corrects input and resubmits (returns to Step 7)</p>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Input Data Requirements</div>
+            <table>
+                <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default</th></tr>
+                <tr><td>Platform</td><td>Enum</td><td>Yes</td><td>Native, LowCode</td><td>Native</td></tr>
+                <tr><td>Technology</td><td>Enum</td><td>Yes</td><td>Valid technology</td><td>-</td></tr>
+                <tr><td>Distribution</td><td>Enum</td><td>Yes</td><td>Valid distribution</td><td>-</td></tr>
+                <tr><td>ClusterMode</td><td>Enum</td><td>Yes</td><td>MultiCluster, SharedCluster, PerEnvironment</td><td>MultiCluster</td></tr>
+                <tr><td>[Env]Apps.Small</td><td>Integer</td><td>No</td><td>0-999</td><td>0</td></tr>
+                <tr><td>[Env]Apps.Medium</td><td>Integer</td><td>No</td><td>0-999</td><td>0</td></tr>
+                <tr><td>[Env]Apps.Large</td><td>Integer</td><td>No</td><td>0-999</td><td>0</td></tr>
+                <tr><td>[Env]Apps.XLarge</td><td>Integer</td><td>No</td><td>0-999</td><td>0</td></tr>
+                <tr><td>[Env]Replicas</td><td>Integer</td><td>No</td><td>1-10</td><td>See BR-R001-R003</td></tr>
+                <tr><td>[Env]Headroom</td><td>Decimal</td><td>No</td><td>0-100%</td><td>See BR-H002-H006</td></tr>
+                <tr><td>CpuOvercommit</td><td>Decimal</td><td>No</td><td>1.0-10.0</td><td>1.0</td></tr>
+                <tr><td>RamOvercommit</td><td>Decimal</td><td>No</td><td>1.0-4.0</td><td>1.0</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Output Data</div>
+            <table>
+                <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                <tr><td>EnvironmentResults[]</td><td>Array</td><td>Per-environment breakdown</td></tr>
+                <tr><td>Environment.Masters</td><td>Integer</td><td>Control plane node count</td></tr>
+                <tr><td>Environment.Infra</td><td>Integer</td><td>Infrastructure node count (OpenShift only)</td></tr>
+                <tr><td>Environment.Workers</td><td>Integer</td><td>Worker node count</td></tr>
+                <tr><td>Environment.TotalCpu</td><td>Integer</td><td>Total vCPU cores</td></tr>
+                <tr><td>Environment.TotalRam</td><td>Integer</td><td>Total RAM in GB</td></tr>
+                <tr><td>Environment.TotalDisk</td><td>Integer</td><td>Total disk in GB</td></tr>
+                <tr><td>GrandTotal</td><td>Object</td><td>Aggregated totals across all environments</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Test Scenarios</div>
+            <table>
+                <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                <tr><td>TS-001</td><td>Happy path: OpenShift with 10 Prod apps</td><td>Masters=3, Infra=3, Workers calculated correctly</td><td>P1</td></tr>
+                <tr><td>TS-002</td><td>Managed K8s (EKS) shows 0 masters</td><td>Masters=0 per BR-M001</td><td>P1</td></tr>
+                <tr><td>TS-003</td><td>100+ workers triggers 5 masters</td><td>Masters=5 per BR-M003</td><td>P1</td></tr>
+                <tr><td>TS-004</td><td>Non-OpenShift shows 0 infra nodes</td><td>Infra=0 per BR-I001</td><td>P1</td></tr>
+                <tr><td>TS-005</td><td>Empty app count shows validation error</td><td>Error message displayed per BR-V003</td><td>P1</td></tr>
+                <tr><td>TS-006</td><td>Headroom 37.5% increases workers by ~38%</td><td>Workers multiplied correctly per BR-H001</td><td>P2</td></tr>
+                <tr><td>TS-007</td><td>Overcommit 2.0 reduces worker count</td><td>Workers halved (approximately) per BR-W003-W004</td><td>P2</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Traceability</div>
+            <table>
+                <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-001</span> <span class="req-tag">REQ-FR-002</span> <span class="req-tag">REQ-FR-003</span></td></tr>
+                <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-003</span> (extends to cost) <span class="uc-tag">UC-006</span> (extends to export)</td></tr>
+                <tr><th>Components</th><td>Home.razor, K8sSizingService.cs, K8sAppsConfig.razor, ResultsTable.razor</td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- UC-002 -->
+<h2>4.3 UC-002: Calculate VM Deployment Sizing</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-002</div>
+        <h3>Calculate VM Deployment Sizing</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Allows infrastructure architects to calculate VM requirements for traditional deployments, including server roles, HA patterns, DR configurations, and load balancers.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Applicable Business Rules</div>
+            <p><span class="br-tag">BR-VM001</span> through <span class="br-tag">BR-VM006</span>, <span class="br-tag">BR-V001</span>, <span class="br-tag">BR-V006</span>, <span class="br-tag">BR-V007</span></p>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects platform and VM deployment model</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects technology (determines available server roles)</div>
+                    <div class="step-details">
+                        <strong>Applies:</strong> <span class="br-tag">BR-VM001</span> - Each technology has specific roles
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Configures server roles for each environment</div>
+                    <div class="step-details">
+                        <strong>Per Role:</strong> Size tier (S/M/L/XL), Instance count, Disk size<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-VM002</span> <span class="br-tag">BR-VM003</span> (min/max instances)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects HA pattern per environment</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> None, Active-Active, Active-Passive, N+1, N+2<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-VM005</span> - Multipliers applied
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects DR pattern for Prod/DR environments</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> None, Warm Standby, Hot Standby, Multi-Region
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Configures load balancer option</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> None, Single, HA Pair, Cloud LB<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-VM006</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Clicks "Calculate"</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">8</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Calculates VM requirements applying HA/DR multipliers</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> VMSizingService.CalculateSizing()<br>
+                        <strong>Applies:</strong> <span class="br-tag">BR-VM004</span> (memory multipliers), <span class="br-tag">BR-VM005</span> (HA multipliers)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">9</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Displays results with per-role breakdown</div>
+                    <div class="step-details">
+                        <strong>Output:</strong> Total VMs, CPU, RAM, Disk per environment and role
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Test Scenarios</div>
+            <table>
+                <tr><th>ID</th><th>Description</th><th>Expected Result</th></tr>
+                <tr><td>TS-010</td><td>OutSystems with Active-Active HA</td><td>VM count doubled per BR-VM005</td></tr>
+                <tr><td>TS-011</td><td>Database role with memory multiplier</td><td>RAM = base * 1.5 per BR-VM004</td></tr>
+                <tr><td>TS-012</td><td>Controller role max instances = 1</td><td>Capped at 1 per BR-VM002</td></tr>
+                <tr><td>TS-013</td><td>HA Pair load balancer</td><td>2 LB VMs added per BR-VM006</td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- UC-003 -->
+<h2>4.4 UC-003: Estimate Infrastructure Costs</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-003</div>
+        <h3>Estimate Infrastructure Costs</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Calculates estimated infrastructure costs based on sizing results, cloud provider pricing, licensing, and support levels.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Preconditions</div>
+            <table>
+                <tr><td>PRE-1</td><td>Sizing calculation completed (UC-001 or UC-002)</td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Navigates to Cost Estimation view after sizing</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects cloud provider or on-premises</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> AWS, Azure, GCP, Oracle Cloud, IBM Cloud, On-Premises
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects region (for cloud providers)</div>
+                    <div class="step-details">
+                        <strong>Display:</strong> Region-specific pricing applied
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects pricing type</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> On-Demand, 1-Year Reserved, 3-Year Reserved
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects support level</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> Basic, Developer, Business, Enterprise
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Calculates cost breakdown</div>
+                    <div class="step-details">
+                        <strong>Categories:</strong> Compute, Storage, Network, Licensing, Support<br>
+                        <strong>Service:</strong> CostEstimationService.CalculateCosts()
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Displays cost summary</div>
+                    <div class="step-details">
+                        <strong>Display:</strong> Monthly cost, Annual cost, 3-Year TCO<br>
+                        <strong>Breakdown:</strong> Per category and per environment
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Output Data</div>
+            <table>
+                <tr><th>Field</th><th>Description</th></tr>
+                <tr><td>MonthlyCost</td><td>Total monthly infrastructure cost</td></tr>
+                <tr><td>AnnualCost</td><td>Total annual cost (Monthly * 12)</td></tr>
+                <tr><td>ThreeYearTCO</td><td>3-year total cost of ownership</td></tr>
+                <tr><td>ComputeCost</td><td>Compute resource costs</td></tr>
+                <tr><td>StorageCost</td><td>Storage costs</td></tr>
+                <tr><td>LicenseCost</td><td>Software licensing costs</td></tr>
+                <tr><td>SupportCost</td><td>Support tier costs</td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- UC-004 -->
+<h2>4.5 UC-004: Plan Growth Projections</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-004</div>
+        <h3>Plan Growth Projections</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Projects infrastructure needs over 1-5 years based on growth rate and pattern, including cost inflation modeling.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Navigates to Growth Planning view</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Sets annual growth rate (0-100%)</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects projection period (1, 3, or 5 years)</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Selects growth pattern</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> Linear, Exponential, S-Curve, Custom
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Calculates year-by-year projections</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> GrowthPlanningService.CalculateProjections()
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Displays timeline with projections</div>
+                    <div class="step-details">
+                        <strong>Display:</strong> Apps, Nodes, CPU, RAM, Cost per year<br>
+                        <strong>Warnings:</strong> Cluster limit warnings if exceeded
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- UC-005 -->
+<h2>4.6 UC-005: Manage Scenarios</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-005</div>
+        <h3>Manage Scenarios</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Allows users to save, load, compare, tag, and manage sizing scenarios for future reference and team sharing.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario - Save</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Clicks "Save Scenario" after calculation</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Opens SaveScenarioModal</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Enters scenario name, description, and tags</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Saves scenario to database</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> ScenarioService.SaveScenario()<br>
+                        <strong>Data:</strong> Full configuration + results + timestamp
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Alternative Flow - Compare Scenarios</div>
+
+            <div class="alt-flow">
+                <div class="alt-flow-title">A1: Compare Two Scenarios</div>
+                <div class="flow-step">
+                    <div class="step-number">A1.1</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Selects two scenarios from list</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.2</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Clicks "Compare"</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.3</div>
+                    <div class="step-content"><span class="step-system">System:</span> Displays side-by-side comparison with metrics</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">A1.4</div>
+                    <div class="step-content"><span class="step-system">System:</span> Shows recommendations based on comparison</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- UC-006 -->
+<h2>4.7 UC-006: Export Results</h2>
+
+<div class="uc-box">
+    <div class="uc-header">
+        <div class="uc-id">UC-006</div>
+        <h3>Export Results</h3>
+    </div>
+    <div class="uc-body">
+
+        <div class="uc-section">
+            <div class="uc-section-title">Overview</div>
+            <table>
+                <tr><th style="width: 25%;">Brief Description</th><td>Exports sizing results and cost estimates in multiple formats for reporting and procurement.</td></tr>
+                <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+            </table>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Main Success Scenario</div>
+
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Completes sizing calculation</div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div><span class="step-actor">Actor:</span> Clicks export button and selects format</div>
+                    <div class="step-details">
+                        <strong>Options:</strong> CSV, JSON, Excel, HTML/PDF
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Generates export file</div>
+                    <div class="step-details">
+                        <strong>Service:</strong> ExportService.Export[Format]()<br>
+                        <strong>Libraries:</strong> ClosedXML (Excel), QuestPDF (PDF)
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div><span class="step-system">System:</span> Downloads file to user's device</div>
+                    <div class="step-details">
+                        <strong>Filename:</strong> InfraSizing_[Distribution]_[Timestamp].[ext]
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uc-section">
+            <div class="uc-section-title">Export Format Details</div>
+            <table>
+                <tr><th>Format</th><th>Contents</th><th>Use Case</th></tr>
+                <tr><td>CSV</td><td>Tabular data with metadata header</td><td>Import to spreadsheets</td></tr>
+                <tr><td>JSON</td><td>Full configuration + results</td><td>Team sharing, API integration</td></tr>
+                <tr><td>Excel</td><td>Multi-sheet: Summary, Environment Details, Configuration</td><td>Management reporting</td></tr>
+                <tr><td>HTML/PDF</td><td>Formatted report with diagrams</td><td>Procurement, documentation</td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECTION 5: FUNCTIONAL REQUIREMENTS -->
+<h1>5. Functional Requirements</h1>
+
+<h2>5.1 Core Sizing Requirements</h2>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-001: K8s Cluster Sizing Calculation</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p1">P1</span></span>
+        <span><strong>Source:</strong> <span class="uc-tag">UC-001</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL calculate Kubernetes cluster sizing including control plane, infrastructure (OpenShift only), and worker nodes based on application requirements and distribution specifications.</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>Supports all 38+ Kubernetes distributions</li>
+                <li>Applies correct master node rules (BR-M001 through BR-M004)</li>
+                <li>Applies correct infrastructure node rules for OpenShift (BR-I001 through BR-I005)</li>
+                <li>Calculates worker nodes based on CPU and RAM demand</li>
+                <li>Applies headroom and overcommit settings</li>
+                <li>Calculation completes within 500ms</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-002: VM Deployment Sizing Calculation</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p1">P1</span></span>
+        <span><strong>Source:</strong> <span class="uc-tag">UC-002</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL calculate VM deployment sizing including server roles, HA patterns, DR configurations, and load balancers for each supported technology platform.</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>Supports all 7 technology platforms</li>
+                <li>Applies technology-specific server roles</li>
+                <li>Applies HA pattern multipliers correctly (BR-VM005)</li>
+                <li>Applies memory multipliers for database roles (BR-VM004)</li>
+                <li>Enforces min/max instance constraints (BR-VM002, BR-VM003)</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<div class="req-box">
+    <div class="req-header">REQ-FR-003: Cost Estimation</div>
+    <div class="req-meta">
+        <span><strong>Priority:</strong> <span class="priority-p1">P1</span></span>
+        <span><strong>Source:</strong> <span class="uc-tag">UC-003</span></span>
+    </div>
+    <div class="req-body">
+        <div class="req-section">
+            <div class="req-section-title">Description:</div>
+            <p>The system SHALL calculate infrastructure costs based on sizing results, supporting multiple cloud providers and on-premises deployments.</p>
+        </div>
+        <div class="req-section">
+            <div class="req-section-title">Acceptance Criteria:</div>
+            <ol>
+                <li>Supports AWS, Azure, GCP, Oracle Cloud, IBM Cloud, On-Premises</li>
+                <li>Calculates compute, storage, network, licensing, and support costs</li>
+                <li>Supports On-Demand and Reserved pricing types</li>
+                <li>Displays monthly, annual, and 3-year TCO</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<h2>5.2 Additional Functional Requirements</h2>
+
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Source</th></tr>
+    <tr><td>REQ-FR-004</td><td>System SHALL support growth projections with Linear, Exponential, S-Curve, and Custom patterns</td><td>P2</td><td><span class="uc-tag">UC-004</span></td></tr>
+    <tr><td>REQ-FR-005</td><td>System SHALL save and load scenarios with full configuration and results</td><td>P2</td><td><span class="uc-tag">UC-005</span></td></tr>
+    <tr><td>REQ-FR-006</td><td>System SHALL compare two scenarios side-by-side with metrics</td><td>P2</td><td><span class="uc-tag">UC-005</span></td></tr>
+    <tr><td>REQ-FR-007</td><td>System SHALL export results in CSV, JSON, Excel, and HTML/PDF formats</td><td>P2</td><td><span class="uc-tag">UC-006</span></td></tr>
+    <tr><td>REQ-FR-008</td><td>System SHALL validate all inputs before calculation per BR-V rules</td><td>P1</td><td>All UCs</td></tr>
+    <tr><td>REQ-FR-009</td><td>System SHALL display warnings and recommendations based on sizing results</td><td>P2</td><td><span class="uc-tag">UC-001</span></td></tr>
+    <tr><td>REQ-FR-010</td><td>System SHALL support Multi-Cluster, Shared Cluster, and Per-Environment modes</td><td>P1</td><td><span class="uc-tag">UC-001</span></td></tr>
+</table>
+
+<!-- SECTION 6: EXTERNAL INTERFACE REQUIREMENTS -->
+<h1>6. External Interface Requirements</h1>
+
+<h2>6.1 User Interfaces</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-IR-001</td><td>Responsive design supporting 1280px to 4K displays</td><td>P1</td></tr>
+    <tr><td>REQ-IR-002</td><td>Dark theme with high contrast for readability</td><td>P1</td></tr>
+    <tr><td>REQ-IR-003</td><td>Wizard-based navigation with 6 steps</td><td>P1</td></tr>
+    <tr><td>REQ-IR-004</td><td>Real-time input validation with inline error messages</td><td>P1</td></tr>
+    <tr><td>REQ-IR-005</td><td>Keyboard navigation for all functions</td><td>P2</td></tr>
+    <tr><td>REQ-IR-006</td><td>Loading indicators for async operations</td><td>P1</td></tr>
+</table>
+
+<h2>6.2 Software Interfaces</h2>
+<table>
+    <tr><th>Interface</th><th>Protocol</th><th>Format</th><th>Description</th></tr>
+    <tr><td>REST API</td><td>HTTPS</td><td>JSON</td><td>Programmatic access to sizing calculations</td></tr>
+    <tr><td>SQLite Database</td><td>ADO.NET</td><td>SQL</td><td>Scenario and configuration persistence</td></tr>
+    <tr><td>File System</td><td>OS Native</td><td>CSV/JSON/XLSX</td><td>Export file generation</td></tr>
+</table>
+
+<h2>6.3 API Endpoints</h2>
+<table>
+    <tr><th>Endpoint</th><th>Method</th><th>Description</th></tr>
+    <tr><td>/api/k8s/calculate</td><td>POST</td><td>Calculate K8s cluster sizing</td></tr>
+    <tr><td>/api/vm/calculate</td><td>POST</td><td>Calculate VM deployment sizing</td></tr>
+    <tr><td>/api/technologies</td><td>GET</td><td>Get available technologies</td></tr>
+    <tr><td>/api/distributions</td><td>GET</td><td>Get available K8s distributions</td></tr>
+    <tr><td>/health</td><td>GET</td><td>Health check endpoint</td></tr>
+</table>
+
+<!-- SECTION 7: NON-FUNCTIONAL REQUIREMENTS -->
+<h1>7. Non-Functional Requirements</h1>
+
+<h2>7.1 Performance Requirements</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-001</td><td>Initial page load time</td><td>&lt; 2 seconds</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-002</td><td>Sizing calculation response time</td><td>&lt; 500ms</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-003</td><td>Export generation time</td><td>&lt; 5 seconds</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-004</td><td>UI interaction response</td><td>&lt; 100ms</td><td>P1</td></tr>
+</table>
+
+<h2>7.2 Security Requirements</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-010</td><td>Input sanitization for XSS prevention</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-011</td><td>HTTPS enforcement in production</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-012</td><td>No PII storage</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-013</td><td>CORS policy enforcement</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-014</td><td>Antiforgery token protection</td><td>P2</td></tr>
+</table>
+
+<h2>7.3 Reliability Requirements</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-020</td><td>System availability</td><td>99.5% uptime</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-021</td><td>Error rate</td><td>&lt; 0.1% of requests</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-022</td><td>Graceful error handling</td><td>No unhandled exceptions</td><td>P1</td></tr>
+</table>
+
+<h2>7.4 Maintainability Requirements</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-030</td><td>Unit test coverage &gt; 80%</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-031</td><td>Modular service architecture</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-032</td><td>Externalized configuration</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-033</td><td>Nullable reference types enabled</td><td>P2</td></tr>
+</table>
+
+<h2>7.5 Usability Requirements</h2>
+<table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>REQ-NFR-040</td><td>Task completion within 5 minutes for typical sizing</td><td>P1</td></tr>
+    <tr><td>REQ-NFR-041</td><td>Contextual help available on all screens</td><td>P2</td></tr>
+    <tr><td>REQ-NFR-042</td><td>Clear error messages with resolution guidance</td><td>P1</td></tr>
+</table>
+
+<!-- SECTION 8: DATA REQUIREMENTS -->
+<h1>8. Data Requirements</h1>
+
+<h2>8.1 Data Dictionary - Core Entities</h2>
+
+<h3>K8sSizingInput</h3>
+<table>
+    <tr><th>Attribute</th><th>Type</th><th>Description</th><th>Constraints</th></tr>
+    <tr><td>Distribution</td><td>Enum</td><td>Target K8s distribution</td><td>Required, Valid distribution</td></tr>
+    <tr><td>Technology</td><td>Enum</td><td>Application technology</td><td>Required, Valid technology</td></tr>
+    <tr><td>ClusterMode</td><td>Enum</td><td>Cluster deployment mode</td><td>MultiCluster, SharedCluster, PerEnvironment</td></tr>
+    <tr><td>EnabledEnvironments</td><td>HashSet</td><td>Active environments</td><td>At least one required</td></tr>
+    <tr><td>EnvironmentApps</td><td>Dictionary</td><td>App counts per environment</td><td>Non-negative integers</td></tr>
+    <tr><td>Replicas</td><td>ReplicaSettings</td><td>Replica counts per environment</td><td>1-10</td></tr>
+    <tr><td>Headroom</td><td>HeadroomSettings</td><td>Headroom % per environment</td><td>0-100%</td></tr>
+    <tr><td>ProdOvercommit</td><td>OvercommitSettings</td><td>Overcommit ratios</td><td>CPU: 1-10, RAM: 1-4</td></tr>
+</table>
+
+<h3>K8sSizingResult</h3>
+<table>
+    <tr><th>Attribute</th><th>Type</th><th>Description</th></tr>
+    <tr><td>Environments</td><td>List&lt;EnvironmentResult&gt;</td><td>Per-environment breakdown</td></tr>
+    <tr><td>GrandTotal</td><td>GrandTotal</td><td>Aggregated totals</td></tr>
+    <tr><td>CalculatedAt</td><td>DateTime</td><td>Calculation timestamp</td></tr>
+    <tr><td>DistributionName</td><td>String</td><td>Distribution display name</td></tr>
+    <tr><td>TechnologyName</td><td>String</td><td>Technology display name</td></tr>
+</table>
+
+<h3>Scenario</h3>
+<table>
+    <tr><th>Attribute</th><th>Type</th><th>Description</th><th>Constraints</th></tr>
+    <tr><td>Id</td><td>Guid</td><td>Unique identifier</td><td>Primary key</td></tr>
+    <tr><td>Name</td><td>String</td><td>Scenario name</td><td>Required, Max 100 chars</td></tr>
+    <tr><td>Description</td><td>String</td><td>Optional description</td><td>Max 500 chars</td></tr>
+    <tr><td>Type</td><td>String</td><td>"k8s" or "vm"</td><td>Required</td></tr>
+    <tr><td>CreatedAt</td><td>DateTime</td><td>Creation timestamp</td><td>Required</td></tr>
+    <tr><td>Tags</td><td>List&lt;String&gt;</td><td>Scenario tags</td><td>Optional</td></tr>
+    <tr><td>IsFavorite</td><td>Boolean</td><td>Favorite flag</td><td>Default: false</td></tr>
+</table>
+
+<h2>8.2 Enumerations</h2>
+<table>
+    <tr><th>Enum</th><th>Values</th></tr>
+    <tr><td>PlatformType</td><td>Native, LowCode</td></tr>
+    <tr><td>DeploymentModel</td><td>Kubernetes, VMs</td></tr>
+    <tr><td>Technology</td><td>DotNet, Java, NodeJs, Python, Go, Mendix, OutSystems</td></tr>
+    <tr><td>EnvironmentType</td><td>Dev, Test, Stage, Prod, DR</td></tr>
+    <tr><td>ClusterMode</td><td>MultiCluster, SharedCluster, PerEnvironment</td></tr>
+    <tr><td>AppTier</td><td>Small, Medium, Large, XLarge</td></tr>
+    <tr><td>HAPattern</td><td>None, ActiveActive, ActivePassive, NPlus1, NPlus2</td></tr>
+    <tr><td>DRPattern</td><td>None, WarmStandby, HotStandby, MultiRegion</td></tr>
+</table>
+
+<!-- SECTION 9: VERIFICATION & VALIDATION -->
+<h1>9. Verification &amp; Validation</h1>
+
+<h2>9.1 Test Types</h2>
+<table>
+    <tr><th>Test Type</th><th>Purpose</th><th>Tools</th><th>Coverage Target</th></tr>
+    <tr><td>Unit Tests</td><td>Service and calculation logic</td><td>xUnit, FluentAssertions</td><td>&gt; 80%</td></tr>
+    <tr><td>Component Tests</td><td>Blazor component behavior</td><td>bUnit</td><td>All components</td></tr>
+    <tr><td>Integration Tests</td><td>API endpoints</td><td>Microsoft.AspNetCore.Mvc.Testing</td><td>All endpoints</td></tr>
+    <tr><td>E2E Tests</td><td>Full user workflows</td><td>Playwright</td><td>All P1 use cases</td></tr>
+    <tr><td>Security Tests</td><td>Vulnerability scanning</td><td>SecurityCodeScan, OWASP ZAP</td><td>OWASP Top 10</td></tr>
+</table>
+
+<h2>9.2 Acceptance Criteria Summary</h2>
+<table>
+    <tr><th>Category</th><th>Criteria</th><th>Target</th></tr>
+    <tr><td>Functional</td><td>All P1 requirements implemented</td><td>100%</td></tr>
+    <tr><td>Functional</td><td>All P2 requirements implemented</td><td>90%</td></tr>
+    <tr><td>Performance</td><td>Calculation response &lt; 500ms</td><td>95th percentile</td></tr>
+    <tr><td>Security</td><td>No critical vulnerabilities</td><td>Zero</td></tr>
+    <tr><td>Coverage</td><td>Unit test coverage</td><td>&gt; 80%</td></tr>
+    <tr><td>Business Rules</td><td>All BR rules correctly implemented</td><td>100%</td></tr>
+</table>
+
+<!-- SECTION 10: TRACEABILITY -->
+<h1>10. Traceability Matrix</h1>
+
+<table>
+    <tr>
+        <th>Requirement</th>
+        <th>Use Case</th>
+        <th>Business Rules</th>
+        <th>Component</th>
+        <th>Test</th>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-001</span></td>
+        <td><span class="uc-tag">UC-001</span></td>
+        <td>BR-M*, BR-I*, BR-W*, BR-H*, BR-R*</td>
+        <td>K8sSizingService.cs</td>
+        <td>K8sSizingServiceTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-002</span></td>
+        <td><span class="uc-tag">UC-002</span></td>
+        <td>BR-VM001-BR-VM006</td>
+        <td>VMSizingService.cs</td>
+        <td>VMSizingServiceTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-003</span></td>
+        <td><span class="uc-tag">UC-003</span></td>
+        <td>-</td>
+        <td>CostEstimationService.cs</td>
+        <td>CostEstimationTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-004</span></td>
+        <td><span class="uc-tag">UC-004</span></td>
+        <td>-</td>
+        <td>GrowthPlanningService.cs</td>
+        <td>GrowthPlanningTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-005</span></td>
+        <td><span class="uc-tag">UC-005</span></td>
+        <td>-</td>
+        <td>ScenarioService.cs</td>
+        <td>ScenarioServiceTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-007</span></td>
+        <td><span class="uc-tag">UC-006</span></td>
+        <td>-</td>
+        <td>ExportService.cs</td>
+        <td>ExportServiceTests</td>
+    </tr>
+    <tr>
+        <td><span class="req-tag">REQ-FR-008</span></td>
+        <td>All</td>
+        <td>BR-V001-BR-V007</td>
+        <td>ValidationService.cs</td>
+        <td>ValidationTests</td>
+    </tr>
+</table>
+
+<!-- SECTION 11: APPENDICES -->
+<h1>11. Appendices</h1>
+
+<h2>Appendix A: Supported Kubernetes Distributions</h2>
+<table>
+    <tr><th>Category</th><th>Distributions</th></tr>
+    <tr><td>Managed Cloud</td><td>EKS (AWS), AKS (Azure), GKE (Google), OKE (Oracle), IKS (IBM)</td></tr>
+    <tr><td>Enterprise On-Prem</td><td>OpenShift, Rancher, Tanzu, Charmed Kubernetes</td></tr>
+    <tr><td>Lightweight</td><td>K3s, MicroK8s, Kind, Minikube</td></tr>
+    <tr><td>Managed OpenShift</td><td>ROSA (AWS), ARO (Azure), OSD (GCP)</td></tr>
+</table>
+
+<h2>Appendix B: Node Specifications (Default)</h2>
+<table>
+    <tr><th>Distribution</th><th>Control Plane (CPU/RAM/Disk)</th><th>Worker (CPU/RAM/Disk)</th></tr>
+    <tr><td>OpenShift</td><td>4 / 16 GB / 100 GB</td><td>8 / 32 GB / 200 GB</td></tr>
+    <tr><td>EKS/AKS/GKE</td><td>Managed (0)</td><td>4 / 16 GB / 100 GB</td></tr>
+    <tr><td>Rancher</td><td>4 / 8 GB / 50 GB</td><td>4 / 16 GB / 100 GB</td></tr>
+    <tr><td>K3s</td><td>2 / 4 GB / 20 GB</td><td>2 / 8 GB / 50 GB</td></tr>
+</table>
+
+<h2>Appendix C: Glossary</h2>
+<p>See Section 1.3 for complete definitions.</p>
+
+<!-- DOCUMENT APPROVAL -->
+<div class="page-break"></div>
+<h1>Document Approval</h1>
+
+<table class="signature-table">
+    <tr><th>Role</th><th>Name</th><th>Signature</th><th>Date</th></tr>
+    <tr><td>Product Owner</td><td></td><td></td><td></td></tr>
+    <tr><td>Technical Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>QA Lead</td><td></td><td></td><td></td></tr>
+    <tr><td>Project Manager</td><td></td><td></td><td></td></tr>
+</table>
+
+<hr style="margin-top: 50px;">
+
+<p style="text-align: center; color: #718096; margin-top: 30px;">
+    <strong>Document ID:</strong> DOC-SRS-ISC-001 |
+    <strong>Version:</strong> 2.0 |
+    <strong>Based On:</strong> IEEE 830-1998 + ISO/IEC/IEEE 29148:2018 |
+    <strong>Created:</strong> December 25, 2025
+</p>
+
+</body>
+</html>

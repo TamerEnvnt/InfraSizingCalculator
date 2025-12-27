@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.3: VM Configuration Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.3 VM Configuration
+    </div>
+
+    <div class="category-header">
+        <h2>4.3 VM Configuration (UC-013 to UC-016)</h2>
+        <p>Virtual Machine deployment configuration including server roles, HA patterns, DR patterns, and load balancers</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-013</span></td><td>Configure Server Roles</td><td>Configure VM server roles specific to selected technology</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-014</span></td><td>Configure HA Pattern</td><td>Select High Availability pattern for VM deployments</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-015</span></td><td>Configure DR Pattern</td><td>Configure Disaster Recovery patterns for business continuity</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-016</span></td><td>Configure Load Balancer</td><td>Configure load balancer requirements (None/Single/HA Pair)</td><td><span class="priority-p2">P2</span></td></tr>
+    </table>
+
+    <!-- UC-013: Configure Server Roles -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-013</div>
+            <h3>Configure Server Roles</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to configure VM server roles specific to the selected technology. Each technology has different required roles (e.g., Web Server, App Server, Database, Controller for OutSystems).</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>High</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-VM001</span> <span class="br-tag">BR-VM002</span> <span class="br-tag">BR-VM003</span> <span class="br-tag">BR-VM004</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Loads available roles for selected technology</div>
+                        <div class="step-details">
+                            <strong>Example roles for OutSystems:</strong><br>
+                            - Controller (max: 1)<br>
+                            - Frontend Server (min: 2 for HA)<br>
+                            - Database Server<br>
+                            - Cache Server
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Configures instance count per role</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Validates against min/max constraints</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Optionally adjusts resource specs per role</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-013-01</td><td>OutSystems Controller set to 2</td><td>Capped at 1 (max instances)</td><td>P1</td></tr>
+                    <tr><td>TS-013-02</td><td>Frontend Server set to 1 with HA enabled</td><td>Warning: HA requires minimum 2</td><td>P1</td></tr>
+                    <tr><td>TS-013-03</td><td>Database role shows 1.5x RAM multiplier</td><td>RAM calculated with multiplier</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-013</span></td></tr>
+                    <tr><th>Components</th><td>VMRolesPanel.razor, TechnologyVMRoles.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-014: Configure HA Pattern -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-014</div>
+            <h3>Configure HA Pattern</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to select a High Availability pattern for VM deployments. HA patterns determine how VMs are replicated for fault tolerance.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-VM005</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays HA pattern options</div>
+                        <div class="step-details">
+                            <strong>Options with multipliers:</strong><br>
+                            - None (1.0x)<br>
+                            - Active-Active (2.0x)<br>
+                            - Active-Passive (2.0x)<br>
+                            - N+1 (1.5x)<br>
+                            - N+2 (1.67x)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects HA pattern</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Updates VM count calculations</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-014-01</td><td>Select Active-Active HA</td><td>VM count doubled</td><td>P1</td></tr>
+                    <tr><td>TS-014-02</td><td>Select N+1 HA</td><td>VM count x 1.5</td><td>P1</td></tr>
+                    <tr><td>TS-014-03</td><td>Select None</td><td>Base VM count (no redundancy)</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-014</span></td></tr>
+                    <tr><th>Components</th><td>HAPatternSelector.razor, VMSizingService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-015: Configure DR Pattern -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-015</div>
+            <h3>Configure DR Pattern</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to configure Disaster Recovery patterns for VM deployments. DR patterns determine how infrastructure is replicated across sites for business continuity.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays DR pattern options</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - None (no DR site)<br>
+                            - Pilot Light (minimal DR footprint)<br>
+                            - Warm Standby (scaled down DR)<br>
+                            - Hot Standby (full replica)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects DR pattern</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Adds DR site VMs to calculations</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-015-01</td><td>Select Hot Standby</td><td>Full DR environment added</td><td>P1</td></tr>
+                    <tr><td>TS-015-02</td><td>Select Pilot Light</td><td>Minimal DR VMs added</td><td>P2</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-015</span></td></tr>
+                    <tr><th>Components</th><td>DRPatternSelector.razor, VMSizingService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-016: Configure Load Balancer -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-016</div>
+            <h3>Configure Load Balancer</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to configure load balancer requirements for VM deployments. Options include no load balancer, single instance, or HA pair.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p2">P2 (High)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-VM006</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays load balancer options</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - None<br>
+                            - Single (1 VM)<br>
+                            - HA Pair (2 VMs)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects load balancer configuration</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Adds load balancer VMs to calculations</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-016-01</td><td>Select HA Pair</td><td>2 LB VMs added per BR-VM006</td><td>P1</td></tr>
+                    <tr><td>TS-016-02</td><td>Select Single</td><td>1 LB VM added</td><td>P1</td></tr>
+                    <tr><td>TS-016-03</td><td>Select None</td><td>No LB VMs added</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-016</span></td></tr>
+                    <tr><th>Components</th><td>LoadBalancerSelector.razor, VMSizingService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications including all flows, test scenarios, and traceability, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04b-uc-k8s.html" class="nav-button">&larr; Previous: K8s Configuration</a>
+        <a href="04d-uc-results.html" class="nav-button">Next: Results &amp; Analysis &rarr;</a>
+    </div>
+</body>
+</html>

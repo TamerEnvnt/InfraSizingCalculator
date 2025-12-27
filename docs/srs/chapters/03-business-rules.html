@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 3: Business Rules</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; <a href="00-cover.html">Cover</a> &gt; Section 3: Business Rules
+    </div>
+
+    <h1 id="business-rules">3. Business Rules</h1>
+
+    <div class="note">
+        <strong>Purpose:</strong> Business rules define the policies, constraints, and calculation logic that govern infrastructure sizing.
+        These rules are referenced throughout use cases using <span class="br-tag">BR-XXX</span> tags.
+    </div>
+
+    <h2 id="master">3.1 Master Node Rules (Control Plane)</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-M001</span></td>
+            <td>Managed Kubernetes services (EKS, AKS, GKE, OKE) have 0 control plane nodes - the cloud provider manages them</td>
+            <td><code>if (distribution.HasManagedControlPlane) masterNodes = 0</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-M002</span></td>
+            <td>Standard HA clusters require minimum 3 master nodes for quorum</td>
+            <td><code>masterNodes = Max(3, calculated)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-M003</span></td>
+            <td>Large clusters with 100+ workers require 5 master nodes</td>
+            <td><code>if (workers >= 100) masterNodes = 5</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-M004</span></td>
+            <td>Non-production environments can use 3 masters regardless of worker count</td>
+            <td><code>if (!isProd) masterNodes = 3</code></td>
+        </tr>
+    </table>
+
+    <h2 id="infra">3.2 Infrastructure Node Rules (OpenShift Only)</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-I001</span></td>
+            <td>Only OpenShift distributions require dedicated infrastructure nodes</td>
+            <td><code>if (!distribution.HasInfraNodes) infraNodes = 0</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-I002</span></td>
+            <td>Minimum infrastructure nodes per cluster is 3 for HA</td>
+            <td><code>infraNodes = Max(3, calculated)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-I003</span></td>
+            <td>Maximum infrastructure nodes is capped at 10</td>
+            <td><code>infraNodes = Min(10, calculated)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-I004</span></td>
+            <td>Scale infrastructure nodes at 1 per 25 applications</td>
+            <td><code>infraNodes = Ceiling(apps / 25)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-I005</span></td>
+            <td>Large production environments (50+ apps) require minimum 5 infra nodes</td>
+            <td><code>if (isProd && apps >= 50) infraNodes = Max(5, calculated)</code></td>
+        </tr>
+    </table>
+
+    <h2 id="worker">3.3 Worker Node Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-W001</span></td>
+            <td>Minimum 3 worker nodes per cluster for high availability</td>
+            <td><code>workers = Max(3, calculated)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-W002</span></td>
+            <td>15% of node resources reserved for system overhead (kubelet, OS)</td>
+            <td><code>availableResources = nodeResources * 0.85</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-W003</span></td>
+            <td>Calculate workers needed based on total CPU demand</td>
+            <td><code>workersByCpu = Ceiling(totalCpu / (nodeSpec.Cpu * 0.85 * cpuOvercommit))</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-W004</span></td>
+            <td>Calculate workers needed based on total RAM demand</td>
+            <td><code>workersByRam = Ceiling(totalRam / (nodeSpec.Ram * 0.85 * ramOvercommit))</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-W005</span></td>
+            <td>Final worker count is maximum of CPU-based and RAM-based calculations</td>
+            <td><code>workers = Max(workersByCpu, workersByRam, 3)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-W006</span></td>
+            <td>Worker node specs always use production-grade specifications</td>
+            <td><code>nodeSpecs = distribution.ProdWorker</code></td>
+        </tr>
+    </table>
+
+    <h2 id="headroom">3.4 Headroom Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-H001</span></td>
+            <td>Headroom is applied as a percentage multiplier to worker count</td>
+            <td><code>finalWorkers = baseWorkers * (1 + headroomPercent)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H002</span></td>
+            <td>Default headroom for Dev environment is 33%</td>
+            <td><code>DevHeadroom = 0.33</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H003</span></td>
+            <td>Default headroom for Test environment is 33%</td>
+            <td><code>TestHeadroom = 0.33</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H004</span></td>
+            <td>Default headroom for Stage environment is 0%</td>
+            <td><code>StageHeadroom = 0.0</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H005</span></td>
+            <td>Default headroom for Production environment is 37.5%</td>
+            <td><code>ProdHeadroom = 0.375</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H006</span></td>
+            <td>Default headroom for DR environment is 37.5%</td>
+            <td><code>DRHeadroom = 0.375</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-H007</span></td>
+            <td>Headroom percentage range is 0% to 100%</td>
+            <td><code>headroom = Clamp(input, 0, 1.0)</code></td>
+        </tr>
+    </table>
+
+    <h2 id="replica">3.5 Replica Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-R001</span></td>
+            <td>Default replicas for Production and DR environments is 3</td>
+            <td><code>ProdReplicas = DRReplicas = 3</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-R002</span></td>
+            <td>Default replicas for Dev and Test environments is 1</td>
+            <td><code>DevReplicas = TestReplicas = 1</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-R003</span></td>
+            <td>Default replicas for Stage environment is 2</td>
+            <td><code>StageReplicas = 2</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-R004</span></td>
+            <td>Replica count range is 1 to 10</td>
+            <td><code>replicas = Clamp(input, 1, 10)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-R005</span></td>
+            <td>Total pods = Applications x Replicas</td>
+            <td><code>totalPods = apps * replicas</code></td>
+        </tr>
+    </table>
+
+    <h2 id="technology">3.6 Technology Resource Rules</h2>
+    <table>
+        <tr><th>Technology</th><th>Small (CPU/RAM)</th><th>Medium (CPU/RAM)</th><th>Large (CPU/RAM)</th><th>XLarge (CPU/RAM)</th></tr>
+        <tr><td><strong>.NET</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+        <tr><td><strong>Java</strong></td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td></tr>
+        <tr><td><strong>Node.js</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+        <tr><td><strong>Python</strong></td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td><td>2 / 4 GB</td></tr>
+        <tr><td><strong>Go</strong></td><td>0.125 / 0.25 GB</td><td>0.25 / 0.5 GB</td><td>0.5 / 1 GB</td><td>1 / 2 GB</td></tr>
+        <tr><td><strong>Mendix</strong></td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td><td>8 / 16 GB</td></tr>
+        <tr><td><strong>OutSystems</strong></td><td>1 / 2 GB</td><td>2 / 4 GB</td><td>4 / 8 GB</td><td>8 / 16 GB</td></tr>
+    </table>
+
+    <h2 id="vm">3.7 VM-Specific Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-VM001</span></td>
+            <td>Each technology has specific server roles with defined resource requirements</td>
+            <td>Roles defined in TechnologyVMRoles configuration</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-VM002</span></td>
+            <td>Some roles have maximum instance limits (e.g., OutSystems Controller = 1)</td>
+            <td><code>instances = Min(requested, role.MaxInstances)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-VM003</span></td>
+            <td>Some roles have minimum instance requirements for HA (e.g., Frontend >= 2)</td>
+            <td><code>instances = Max(requested, role.MinInstances)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-VM004</span></td>
+            <td>Database roles have 1.5x memory multiplier</td>
+            <td><code>ram = baseRam * role.MemoryMultiplier</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-VM005</span></td>
+            <td>HA pattern multipliers: None=1.0, Active-Active=2.0, Active-Passive=2.0, N+1=1.5, N+2=1.67</td>
+            <td><code>vms = baseVMs * haMultiplier</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-VM006</span></td>
+            <td>Load balancer HA Pair configuration requires 2 VMs</td>
+            <td><code>if (loadBalancer == HAPair) lbVMs = 2</code></td>
+        </tr>
+    </table>
+
+    <h2 id="pricing">3.8 Pricing Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-P001</span></td>
+            <td>On-premises costs include hardware, power, cooling, and datacenter space</td>
+            <td><code>totalCost = hardwareCost + powerCost + coolingCost + spaceCost</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-P002</span></td>
+            <td>Cloud pricing varies by region and instance type</td>
+            <td>Pricing tables per provider/region</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-P003</span></td>
+            <td>Reserved instances provide 30-60% savings over on-demand</td>
+            <td><code>reservedPrice = onDemandPrice * reservedDiscount</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-P004</span></td>
+            <td>Mendix platform licensing is based on resource packs</td>
+            <td>Pricing per resource pack tier</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-P005</span></td>
+            <td>Support costs are calculated as percentage of infrastructure cost</td>
+            <td><code>supportCost = infraCost * supportTier.Percentage</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-P006</span></td>
+            <td>Storage costs are calculated per GB per month</td>
+            <td><code>storageCost = totalGB * pricePerGB * months</code></td>
+        </tr>
+    </table>
+
+    <h2 id="validation">3.9 Validation Rules</h2>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Error Message</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-V001</span></td>
+            <td>Application counts must be non-negative integers</td>
+            <td>"Application count must be 0 or greater"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V002</span></td>
+            <td>At least one environment must be enabled</td>
+            <td>"Please select at least one environment"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V003</span></td>
+            <td>Total application count must be greater than 0</td>
+            <td>"Please enter at least one application"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V004</span></td>
+            <td>CPU overcommit ratio must be between 1.0 and 10.0</td>
+            <td>"CPU overcommit must be between 1.0 and 10.0"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V005</span></td>
+            <td>Memory overcommit ratio must be between 1.0 and 4.0</td>
+            <td>"Memory overcommit must be between 1.0 and 4.0"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V006</span></td>
+            <td>Instance count must be between 1 and 100</td>
+            <td>"Instance count must be between 1 and 100"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V007</span></td>
+            <td>Disk size must be between 10 GB and 10,000 GB</td>
+            <td>"Disk size must be between 10 and 10,000 GB"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V008</span></td>
+            <td>Scenario name must be 1-100 characters</td>
+            <td>"Scenario name must be between 1 and 100 characters"</td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-V009</span></td>
+            <td>Growth rate must be between 0% and 200%</td>
+            <td>"Growth rate must be between 0% and 200%"</td>
+        </tr>
+    </table>
+
+    <h2 id="hadr">3.10 K8s HA/DR Rules</h2>
+    <p class="note">
+        <strong>Purpose:</strong> High Availability and Disaster Recovery rules govern control plane configuration,
+        node distribution, and DR strategy cost calculations for Kubernetes clusters.
+    </p>
+
+    <h3 id="hadr-controlplane">3.10.1 Control Plane HA Rules</h3>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-001</span></td>
+            <td>Managed K8s distributions (EKS, AKS, GKE, OKE) auto-set ControlPlaneHA to "Managed"</td>
+            <td><code>if (distribution.HasManagedControlPlane) ControlPlaneHA = Managed</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-002</span></td>
+            <td>StackedHA mode requires odd number of control plane nodes (3, 5, or 7) for etcd quorum</td>
+            <td><code>ControlPlaneNodes ∈ {3, 5, 7}</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-003</span></td>
+            <td>ExternalEtcd mode adds separate etcd node count to total infrastructure cost</td>
+            <td><code>totalNodes += etcdClusterNodes (3-7 nodes)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-004</span></td>
+            <td>Production environments default to Multi-AZ distribution with 3 availability zones</td>
+            <td><code>if (isProd) { NodeDistribution = MultiAZ; AvailabilityZones = 3 }</code></td>
+        </tr>
+    </table>
+
+    <h3 id="hadr-distribution">3.10.2 Node Distribution Rules</h3>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-005</span></td>
+            <td>SingleAZ deployment uses 1 availability zone (no cross-AZ costs)</td>
+            <td><code>if (NodeDistribution == SingleAZ) AZs = 1</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-006</span></td>
+            <td>DualAZ deployment uses 2 availability zones</td>
+            <td><code>if (NodeDistribution == DualAZ) AZs = 2</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-007</span></td>
+            <td>MultiAZ deployment uses 3-5 availability zones (user configurable)</td>
+            <td><code>if (NodeDistribution == MultiAZ) AZs ∈ {3, 4, 5}</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-008</span></td>
+            <td>MultiRegion adds cross-region data transfer costs (~17-20% overhead)</td>
+            <td><code>if (NodeDistribution == MultiRegion) costMultiplier += 0.17-0.20</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-009</span></td>
+            <td>Minimum nodes per AZ = ceiling(total_nodes / az_count) for balanced distribution</td>
+            <td><code>nodesPerAZ = ⌈totalNodes / AvailabilityZones⌉</code></td>
+        </tr>
+    </table>
+
+    <h3 id="hadr-dr">3.10.3 DR Pattern Rules</h3>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Cost Multiplier</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-010</span></td>
+            <td>BackupRestore: Storage-only costs for backup infrastructure (lowest RTO/RPO)</td>
+            <td><code>+8% (0.08x multiplier)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-011</span></td>
+            <td>WarmStandby: Minimal running infrastructure (10-30% of production capacity)</td>
+            <td><code>+40% (0.40x multiplier)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-012</span></td>
+            <td>HotStandby: Near-full capacity ready for immediate failover (80-100% capacity)</td>
+            <td><code>+90% (0.90x multiplier)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-013</span></td>
+            <td>ActiveActive: Full duplicate infrastructure serving traffic in both regions</td>
+            <td><code>+110% (1.10x multiplier)</code></td>
+        </tr>
+    </table>
+
+    <h3 id="hadr-cost">3.10.4 Provider-Specific Cost Rules</h3>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th style="width: 50%;">Description</th><th>Cost Impact</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-014</span></td>
+            <td>Azure cross-AZ traffic is FREE within a region (significant cost advantage)</td>
+            <td><code>Azure: crossAZCost = 0</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-015</span></td>
+            <td>AWS/GCP cross-AZ traffic adds ~$0.01/GB each direction (~2-3% overhead)</td>
+            <td><code>AWS/GCP: +2-3% for MultiAZ</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-016</span></td>
+            <td>Cross-region traffic adds ~$0.02-0.12/GB depending on provider and regions</td>
+            <td><code>All providers: +17-20% for MultiRegion</code></td>
+        </tr>
+    </table>
+
+    <h3 id="hadr-backup">3.10.5 Backup Strategy Rules</h3>
+    <table>
+        <tr><th style="width: 12%;">Rule ID</th><th>Backup Tool</th><th>Description</th><th>Cost Impact</th></tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-017</span></td>
+            <td>Velero</td>
+            <td>Open-source backup (Apache 2.0), minimal resource overhead</td>
+            <td><code>+2% (0.02x)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-018</span></td>
+            <td>Kasten K10</td>
+            <td>Enterprise backup solution (~$225/node/year)</td>
+            <td><code>+5% (0.05x)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-019</span></td>
+            <td>Portworx PX-Backup</td>
+            <td>Enterprise storage and backup (~$2100/node/year)</td>
+            <td><code>+8% (0.08x)</code></td>
+        </tr>
+        <tr>
+            <td><span class="br-tag">BR-HADR-020</span></td>
+            <td>CloudNative</td>
+            <td>Cloud provider native snapshots (EBS, Azure Disk, etc.)</td>
+            <td><code>+3% (0.03x)</code></td>
+        </tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="02-description.html" class="nav-button">&larr; Previous: Overall Description</a>
+        <a href="04a-uc-wizard.html" class="nav-button">Next: Wizard Use Cases &rarr;</a>
+    </div>
+</body>
+</html>

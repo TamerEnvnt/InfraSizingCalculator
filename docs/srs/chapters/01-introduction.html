@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 1: Introduction</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; <a href="00-cover.html">Cover</a> &gt; Section 1: Introduction
+    </div>
+
+    <h1 id="introduction">1. Introduction</h1>
+
+    <h2 id="purpose">1.1 Purpose</h2>
+    <p>This Software Requirements Specification (SRS) document describes the functional and non-functional requirements for the <strong>Infrastructure Sizing Calculator</strong> version 3.0. This comprehensive edition expands the original SRS with 55 detailed use cases covering all system functionality. This document serves as:</p>
+    <ul>
+        <li>The contract between stakeholders and the development team</li>
+        <li>The basis for system design and architecture</li>
+        <li>The foundation for test planning and validation</li>
+        <li>A reference for project planning and estimation</li>
+        <li>Complete traceability from requirements to implementation</li>
+    </ul>
+
+    <h2 id="scope">1.2 Scope</h2>
+
+    <h3>1.2.1 Product Overview</h3>
+    <p>The Infrastructure Sizing Calculator is an enterprise-grade web application that helps organizations determine infrastructure requirements for deploying applications on <strong>Kubernetes clusters</strong> or <strong>Virtual Machines</strong>. It provides comprehensive capacity planning, cost estimation, and growth projections.</p>
+
+    <h3>1.2.2 In Scope</h3>
+    <table>
+        <tr><th>Feature Category</th><th>Capabilities</th><th>Use Cases</th></tr>
+        <tr><td>Wizard Navigation</td><td>Step-by-step configuration through platform, deployment, technology selection</td><td><a href="04a-uc-wizard.html">UC-001 to UC-005</a></td></tr>
+        <tr><td>Kubernetes Sizing</td><td>Control plane, infrastructure, and worker node calculations for 38+ distributions</td><td><a href="04b-uc-k8s.html">UC-006 to UC-012</a></td></tr>
+        <tr><td>VM Sizing</td><td>Server role calculations with HA/DR patterns for 7 technology platforms</td><td><a href="04c-uc-vm.html">UC-013 to UC-016</a></td></tr>
+        <tr><td>Results Display</td><td>Summary cards, detailed views, warnings, resource breakdowns</td><td><a href="04d-uc-results.html">UC-017 to UC-024</a></td></tr>
+        <tr><td>Cost Estimation</td><td>Multi-cloud pricing (AWS, Azure, GCP, Oracle, IBM) and on-premises costs</td><td><a href="04e-uc-pricing.html">UC-025 to UC-032</a></td></tr>
+        <tr><td>Growth Planning</td><td>1/3/5 year projections with multiple growth patterns</td><td><a href="04f-uc-growth.html">UC-033 to UC-036</a></td></tr>
+        <tr><td>Scenario Management</td><td>Save, load, compare, tag, filter, duplicate, and share scenarios</td><td><a href="04g-uc-scenarios.html">UC-037 to UC-044</a></td></tr>
+        <tr><td>Export</td><td>CSV, JSON, Excel, HTML/PDF export formats</td><td><a href="04h-uc-export.html">UC-045 to UC-048</a></td></tr>
+        <tr><td>Settings</td><td>Custom node specs, defaults, theme, reset</td><td><a href="04i-uc-settings.html">UC-049 to UC-052</a></td></tr>
+        <tr><td>Navigation</td><td>Wizard, tabs, breadcrumbs</td><td><a href="04j-uc-navigation.html">UC-053 to UC-055</a></td></tr>
+    </table>
+
+    <h3>1.2.3 Out of Scope</h3>
+    <ul>
+        <li>Direct infrastructure provisioning or deployment</li>
+        <li>Real-time cloud API integration for live pricing</li>
+        <li>Application performance monitoring</li>
+        <li>Container image management</li>
+        <li>CI/CD pipeline integration</li>
+        <li>Multi-user collaboration (single-user application)</li>
+    </ul>
+
+    <h2 id="definitions">1.3 Definitions, Acronyms, and Abbreviations</h2>
+    <table>
+        <tr><th>Term</th><th>Definition</th></tr>
+        <tr><td>K8s</td><td>Kubernetes - container orchestration platform</td></tr>
+        <tr><td>VM</td><td>Virtual Machine</td></tr>
+        <tr><td>vCPU</td><td>Virtual CPU core</td></tr>
+        <tr><td>RAM</td><td>Random Access Memory (measured in GB)</td></tr>
+        <tr><td>HA</td><td>High Availability - redundant systems for fault tolerance</td></tr>
+        <tr><td>DR</td><td>Disaster Recovery - systems for business continuity</td></tr>
+        <tr><td>TCO</td><td>Total Cost of Ownership</td></tr>
+        <tr><td>Control Plane</td><td>K8s master nodes that manage the cluster</td></tr>
+        <tr><td>Worker Node</td><td>K8s nodes that run application workloads</td></tr>
+        <tr><td>Infra Node</td><td>OpenShift-specific nodes for platform services</td></tr>
+        <tr><td>Pod</td><td>Smallest deployable unit in Kubernetes</td></tr>
+        <tr><td>Headroom</td><td>Buffer capacity for scaling and maintenance</td></tr>
+        <tr><td>Overcommit</td><td>Ratio allowing resource over-allocation</td></tr>
+        <tr><td>EKS</td><td>Amazon Elastic Kubernetes Service</td></tr>
+        <tr><td>AKS</td><td>Azure Kubernetes Service</td></tr>
+        <tr><td>GKE</td><td>Google Kubernetes Engine</td></tr>
+        <tr><td>OKE</td><td>Oracle Kubernetes Engine</td></tr>
+        <tr><td>PAYG</td><td>Pay As You Go pricing model</td></tr>
+        <tr><td>RI</td><td>Reserved Instance pricing</td></tr>
+    </table>
+
+    <h2 id="references">1.4 References</h2>
+    <table>
+        <tr><th>ID</th><th>Document</th><th>Source</th></tr>
+        <tr><td>REF-001</td><td>IEEE 830-1998 - Software Requirements Specifications</td><td>IEEE</td></tr>
+        <tr><td>REF-002</td><td>ISO/IEC/IEEE 29148:2018 - Requirements Engineering</td><td>ISO</td></tr>
+        <tr><td>REF-003</td><td>Kubernetes Documentation - Cluster Architecture</td><td>kubernetes.io</td></tr>
+        <tr><td>REF-004</td><td>OpenShift Container Platform Sizing Guide</td><td>Red Hat</td></tr>
+        <tr><td>REF-005</td><td>AWS EKS Best Practices Guide</td><td>Amazon</td></tr>
+        <tr><td>REF-006</td><td>Mendix Cloud Resource Packs Documentation</td><td>Mendix</td></tr>
+        <tr><td>REF-007</td><td>Azure AKS Cluster Planning Guide</td><td>Microsoft</td></tr>
+        <tr><td>REF-008</td><td>GKE Cluster Architecture Best Practices</td><td>Google</td></tr>
+    </table>
+
+    <h2 id="conventions">1.5 Document Conventions</h2>
+    <div class="code-block"><strong>Requirement IDs:</strong>
+  REQ-FR-XXX   : Functional Requirement
+  REQ-NFR-XXX  : Non-Functional Requirement
+  REQ-IR-XXX   : Interface Requirement
+  REQ-DR-XXX   : Data Requirement
+
+<strong>Use Case IDs:</strong>
+  UC-001 to UC-005  : Wizard Steps
+  UC-006 to UC-012  : K8s Configuration
+  UC-013 to UC-016  : VM Configuration
+  UC-017 to UC-024  : Results &amp; Analysis
+  UC-025 to UC-032  : Pricing
+  UC-033 to UC-036  : Growth Planning
+  UC-037 to UC-044  : Scenario Management
+  UC-045 to UC-048  : Export
+  UC-049 to UC-052  : Settings
+  UC-053 to UC-055  : Navigation
+
+<strong>Business Rule IDs:</strong>
+  BR-M-XXX     : Master Node Rules
+  BR-I-XXX     : Infrastructure Node Rules
+  BR-W-XXX     : Worker Node Rules
+  BR-H-XXX     : Headroom Rules
+  BR-R-XXX     : Replica Rules
+  BR-T-XXX     : Technology Rules
+  BR-VM-XXX    : VM-Specific Rules
+  BR-P-XXX     : Pricing Rules
+  BR-V-XXX     : Validation Rules
+
+<strong>Priority Levels:</strong>
+  P1 (Critical) : Must have for MVP
+  P2 (High)     : Should have for release
+  P3 (Medium)   : Nice to have</div>
+
+    <h2 id="audience">1.6 Intended Audience</h2>
+    <table>
+        <tr><th>Audience</th><th>Primary Sections</th><th>Purpose</th></tr>
+        <tr><td>Developers</td><td>3, 4, 5, 6, 8</td><td>Implementation details and business logic</td></tr>
+        <tr><td>QA Engineers</td><td>4, 5, 7, 9</td><td>Test planning and validation criteria</td></tr>
+        <tr><td>Business Analysts</td><td>1, 2, 3, 4</td><td>Requirements and business rules validation</td></tr>
+        <tr><td>Project Managers</td><td>1, 2, 9</td><td>Scope, planning, and verification</td></tr>
+        <tr><td>Architects</td><td>2, 6, 7, 8</td><td>System design and integration</td></tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="00-cover.html" class="nav-button">&larr; Previous: Cover</a>
+        <a href="02-description.html" class="nav-button">Next: Overall Description &rarr;</a>
+    </div>
+</body>
+</html>

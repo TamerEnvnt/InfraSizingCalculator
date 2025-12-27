@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 9: Verification &amp; Validation</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 9: Verification &amp; Validation
+    </div>
+
+    <h1>9. Verification &amp; Validation</h1>
+    <p>This section defines verification methods, validation criteria, and acceptance requirements.</p>
+
+    <!-- 9.1 Verification Methods -->
+    <div class="category-header">
+        <h2>9.1 Verification Methods</h2>
+        <p>Testing and review methods to verify requirements are met</p>
+    </div>
+
+    <table>
+        <tr><th>Method</th><th>Description</th><th>Applies To</th><th>Tools</th></tr>
+        <tr>
+            <td>Unit Testing</td>
+            <td>Automated tests for individual components and functions</td>
+            <td>All business logic, services, utilities</td>
+            <td>xUnit, bUnit, Moq</td>
+        </tr>
+        <tr>
+            <td>Integration Testing</td>
+            <td>Testing component interactions and data flow</td>
+            <td>Services, database layer, component composition</td>
+            <td>xUnit, TestContainers</td>
+        </tr>
+        <tr>
+            <td>E2E Testing</td>
+            <td>Browser automation testing of user workflows</td>
+            <td>Complete user scenarios, wizard flows</td>
+            <td>Playwright</td>
+        </tr>
+        <tr>
+            <td>Code Review</td>
+            <td>Peer review of all code changes</td>
+            <td>All code modifications</td>
+            <td>GitHub Pull Requests</td>
+        </tr>
+        <tr>
+            <td>Static Analysis</td>
+            <td>Automated code quality and security checks</td>
+            <td>All code</td>
+            <td>.NET Analyzers, SonarQube</td>
+        </tr>
+    </table>
+
+    <!-- Test Coverage Requirements -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>Test Coverage Requirements</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Coverage Targets by Component Type</div>
+                <table>
+                    <tr><th>Component Type</th><th>Target Coverage</th><th>Critical Paths</th></tr>
+                    <tr><td>Business Logic Services</td><td>&gt; 90%</td><td>Sizing calculations, cost calculations</td></tr>
+                    <tr><td>Data Access Layer</td><td>&gt; 85%</td><td>CRUD operations, queries</td></tr>
+                    <tr><td>UI Components</td><td>&gt; 70%</td><td>Form validation, state management</td></tr>
+                    <tr><td>Utility Functions</td><td>&gt; 95%</td><td>All public methods</td></tr>
+                    <tr><td>Overall Project</td><td>&gt; 80%</td><td>Line and branch coverage</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9.2 Validation Criteria -->
+    <div class="category-header">
+        <h2>9.2 Validation Criteria</h2>
+        <p>Criteria for validating system meets user needs</p>
+    </div>
+
+    <table>
+        <tr><th>Criterion</th><th>Method</th><th>Acceptance Threshold</th><th>Verification</th></tr>
+        <tr>
+            <td>Calculation Accuracy</td>
+            <td>Comparison with manual calculations</td>
+            <td>100% match for 50+ defined test cases</td>
+            <td>Automated regression tests</td>
+        </tr>
+        <tr>
+            <td>Usability</td>
+            <td>User testing with 5+ target users</td>
+            <td>Task completion rate &gt; 90%</td>
+            <td>Usability study report</td>
+        </tr>
+        <tr>
+            <td>Performance</td>
+            <td>Load testing and benchmarking</td>
+            <td>All NFR performance metrics met</td>
+            <td>Performance test report</td>
+        </tr>
+        <tr>
+            <td>Browser Compatibility</td>
+            <td>Cross-browser testing</td>
+            <td>Works in Chrome, Firefox, Edge, Safari</td>
+            <td>E2E tests on all browsers</td>
+        </tr>
+        <tr>
+            <td>Accessibility</td>
+            <td>WCAG 2.1 AA audit</td>
+            <td>No Level A or AA violations</td>
+            <td>Accessibility audit tool + manual review</td>
+        </tr>
+    </table>
+
+    <!-- Test Scenarios by Use Case Category -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>Test Scenarios by Category</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">E2E Test Scenario Coverage</div>
+                <table>
+                    <tr><th>Category</th><th>Use Cases</th><th>Test Scenarios</th><th>Priority</th></tr>
+                    <tr><td>Wizard Flow</td><td>UC-001 to UC-005</td><td>Complete wizard navigation, step validation</td><td>P1</td></tr>
+                    <tr><td>K8s Configuration</td><td>UC-006 to UC-012</td><td>All distribution/mode combinations</td><td>P1</td></tr>
+                    <tr><td>VM Configuration</td><td>UC-013 to UC-016</td><td>HA/DR patterns, role assignments</td><td>P1</td></tr>
+                    <tr><td>Results Display</td><td>UC-017 to UC-024</td><td>Summary cards, charts, warnings</td><td>P1</td></tr>
+                    <tr><td>Pricing</td><td>UC-025 to UC-032</td><td>All providers, pricing models</td><td>P1</td></tr>
+                    <tr><td>Growth Planning</td><td>UC-033 to UC-036</td><td>Growth patterns, projections</td><td>P2</td></tr>
+                    <tr><td>Scenarios</td><td>UC-037 to UC-044</td><td>Save, load, compare, delete</td><td>P2</td></tr>
+                    <tr><td>Export</td><td>UC-045 to UC-048</td><td>All export formats</td><td>P2</td></tr>
+                    <tr><td>Settings</td><td>UC-049 to UC-052</td><td>Preferences, reset</td><td>P3</td></tr>
+                    <tr><td>Navigation</td><td>UC-053 to UC-055</td><td>Wizard, tabs, breadcrumbs</td><td>P1</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9.3 Acceptance Criteria -->
+    <div class="category-header">
+        <h2>9.3 Acceptance Criteria</h2>
+        <p>Criteria for project acceptance and release</p>
+    </div>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>Release Acceptance Checklist</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Mandatory Criteria</div>
+                <ul>
+                    <li>All P1 (Critical) requirements implemented and tested</li>
+                    <li>All P2 (High) requirements implemented and tested</li>
+                    <li>Unit test coverage &gt; 80%</li>
+                    <li>All E2E test scenarios passing</li>
+                    <li>No critical or high severity defects open</li>
+                    <li>Performance metrics within specified thresholds</li>
+                    <li>Documentation complete and reviewed</li>
+                    <li>Security scan passed (no critical vulnerabilities)</li>
+                </ul>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Quality Gates</div>
+                <table>
+                    <tr><th>Gate</th><th>Criteria</th><th>Enforced By</th></tr>
+                    <tr><td>Code Review</td><td>All PRs reviewed and approved</td><td>GitHub branch protection</td></tr>
+                    <tr><td>Build</td><td>Zero build errors or warnings</td><td>CI/CD pipeline</td></tr>
+                    <tr><td>Unit Tests</td><td>100% pass rate</td><td>CI/CD pipeline</td></tr>
+                    <tr><td>E2E Tests</td><td>100% pass rate on P1 scenarios</td><td>CI/CD pipeline</td></tr>
+                    <tr><td>Coverage</td><td>&gt; 80% line coverage</td><td>CI/CD pipeline</td></tr>
+                    <tr><td>Security</td><td>No critical/high vulnerabilities</td><td>Security scan tools</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9.4 Defect Classification -->
+    <div class="category-header">
+        <h2>9.4 Defect Classification</h2>
+        <p>Severity and priority definitions for defect management</p>
+    </div>
+
+    <table>
+        <tr><th>Severity</th><th>Definition</th><th>Response Time</th><th>Fix Target</th></tr>
+        <tr>
+            <td><span class="priority-p1">Critical</span></td>
+            <td>System crash, data loss, security vulnerability</td>
+            <td>Immediate</td>
+            <td>24 hours</td>
+        </tr>
+        <tr>
+            <td><span class="priority-p2">High</span></td>
+            <td>Major feature broken, no workaround</td>
+            <td>4 hours</td>
+            <td>3 days</td>
+        </tr>
+        <tr>
+            <td><span class="priority-p3">Medium</span></td>
+            <td>Feature impacted but workaround exists</td>
+            <td>1 business day</td>
+            <td>Next sprint</td>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td>Minor issue, cosmetic, enhancement</td>
+            <td>3 business days</td>
+            <td>Backlog prioritization</td>
+        </tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="08-data-requirements.html" class="nav-button">&larr; Previous: Data Requirements</a>
+        <a href="10-traceability.html" class="nav-button">Next: Traceability Matrix &rarr;</a>
+    </div>
+</body>
+</html>

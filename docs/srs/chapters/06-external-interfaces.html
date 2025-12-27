@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 6: External Interface Requirements</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 6: External Interface Requirements
+    </div>
+
+    <h1>6. External Interface Requirements</h1>
+    <p>This section defines the interfaces between the system and external entities.</p>
+
+    <!-- 6.1 User Interface -->
+    <div class="category-header">
+        <h2>6.1 User Interface Requirements</h2>
+        <p>Requirements for the web-based user interface</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Details</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-001</span></td>
+            <td>Responsive Design</td>
+            <td>Interface shall adapt to screen sizes from 1280x720 to 4K resolution. Mobile devices not required.</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-002</span></td>
+            <td>Keyboard Navigation</td>
+            <td>All functions accessible via keyboard for accessibility compliance.</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-003</span></td>
+            <td>Visual Feedback</td>
+            <td>All user actions shall provide immediate visual feedback (button states, loading indicators).</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-004</span></td>
+            <td>Error Display</td>
+            <td>Validation errors displayed inline near relevant fields with clear error messages.</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-005</span></td>
+            <td>Progress Indication</td>
+            <td>Long-running operations (exports, calculations) show progress indicators.</td>
+        </tr>
+    </table>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>UI Layout Requirements</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Three-Panel Layout</div>
+                <table>
+                    <tr><th>Panel</th><th>Purpose</th><th>Width</th></tr>
+                    <tr><td>Left Sidebar</td><td>Configuration inputs and settings</td><td>300px (collapsible)</td></tr>
+                    <tr><td>Main Content</td><td>Results, charts, and detailed views</td><td>Flexible (remaining)</td></tr>
+                    <tr><td>Right Sidebar</td><td>Summary statistics and quick actions</td><td>280px (collapsible)</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6.2 Hardware Interfaces -->
+    <div class="category-header">
+        <h2>6.2 Hardware Interfaces</h2>
+        <p>Direct hardware interface requirements</p>
+    </div>
+
+    <div class="note">
+        <strong>Note:</strong> No direct hardware interfaces required. The application runs entirely in a web browser and relies on standard browser APIs for all hardware interactions (display, keyboard, mouse).
+    </div>
+
+    <!-- 6.3 Software Interfaces -->
+    <div class="category-header">
+        <h2>6.3 Software Interfaces</h2>
+        <p>Interfaces with external software systems</p>
+    </div>
+
+    <table>
+        <tr><th>Interface</th><th>Description</th><th>Protocol/Technology</th></tr>
+        <tr>
+            <td>Web Browser</td>
+            <td>Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</td>
+            <td>HTTP/HTTPS, WebSockets (SignalR)</td>
+        </tr>
+        <tr>
+            <td>SQLite Database</td>
+            <td>Local scenario persistence storage</td>
+            <td>Entity Framework Core 8.0</td>
+        </tr>
+        <tr>
+            <td>Local Storage</td>
+            <td>User preferences and session state</td>
+            <td>Web Storage API (localStorage)</td>
+        </tr>
+        <tr>
+            <td>File System</td>
+            <td>Export file downloads</td>
+            <td>Browser Download API</td>
+        </tr>
+    </table>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>Third-Party Libraries</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">NuGet Dependencies</div>
+                <table>
+                    <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+                    <tr><td>Microsoft.AspNetCore.Components</td><td>8.0+</td><td>Blazor Server framework</td></tr>
+                    <tr><td>Microsoft.EntityFrameworkCore.Sqlite</td><td>8.0+</td><td>SQLite database access</td></tr>
+                    <tr><td>ClosedXML</td><td>0.102+</td><td>Excel file generation</td></tr>
+                    <tr><td>System.Text.Json</td><td>8.0+</td><td>JSON serialization</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6.4 Communication Interfaces -->
+    <div class="category-header">
+        <h2>6.4 Communication Interfaces</h2>
+        <p>Network and communication protocol requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Details</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-010</span></td>
+            <td>HTTPS Communication</td>
+            <td>Application shall support HTTPS communication in production environments.</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-011</span></td>
+            <td>Offline Capability</td>
+            <td>Application shall function offline after initial page load (no external API dependencies).</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-IR-012</span></td>
+            <td>SignalR WebSocket</td>
+            <td>Blazor Server requires persistent WebSocket connection for UI updates.</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <strong>Architecture Note:</strong> The application uses Blazor Server architecture, which requires a persistent SignalR connection. All UI updates are pushed from server to client over WebSocket.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="05-functional-requirements.html" class="nav-button">&larr; Previous: Functional Requirements</a>
+        <a href="07-non-functional.html" class="nav-button">Next: Non-Functional Requirements &rarr;</a>
+    </div>
+</body>
+</html>

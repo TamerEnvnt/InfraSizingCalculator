@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.9: Settings Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.9 Settings
+    </div>
+
+    <div class="category-header">
+        <h2>4.9 Settings (UC-049 to UC-052)</h2>
+        <p>Application settings and configuration management</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-049</span></td><td>Configure Node Specs</td><td>Define custom node specification presets</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-050</span></td><td>Configure Defaults</td><td>Customize default values for settings</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-051</span></td><td>Configure Theme</td><td>Switch between light and dark themes</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><span class="uc-tag">UC-052</span></td><td>Reset Configuration</td><td>Reset all settings to factory defaults</td><td><span class="priority-p3">P3</span></td></tr>
+    </table>
+
+    <!-- UC-049: Configure Custom Node Specs -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-049</div>
+            <h3>Configure Custom Node Specifications</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to define custom node specifications as presets that can be reused across sessions.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p3">P3 (Medium)</span></td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-049</span></td></tr>
+                    <tr><th>Components</th><td>CustomNodeSpecsManager.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-050: Configure Default Values -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-050</div>
+            <h3>Configure Default Values</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to customize default values for headroom, replicas, overcommit ratios, and other settings.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p3">P3 (Medium)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-050</span></td></tr>
+                    <tr><th>Components</th><td>DefaultsSettings.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-051: Configure Theme -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-051</div>
+            <h3>Configure Theme</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to switch between light and dark themes for the application interface.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p3">P3 (Medium)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-051</span></td></tr>
+                    <tr><th>Components</th><td>ThemeToggle.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-052: Reset Configuration -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-052</div>
+            <h3>Reset Configuration</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to reset all configuration to factory defaults, clearing current session and saved preferences.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p3">P3 (Medium)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Reset to Defaults" button</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Shows confirmation dialog</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Confirms reset</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Clears all configuration and restores defaults</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-052</span></td></tr>
+                    <tr><th>Components</th><td>ResetButton.razor, ConfigState.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04h-uc-export.html" class="nav-button">&larr; Previous: Export</a>
+        <a href="04j-uc-navigation.html" class="nav-button">Next: Navigation &rarr;</a>
+    </div>
+</body>
+</html>

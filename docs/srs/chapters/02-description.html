@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 2: Overall Description</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; <a href="00-cover.html">Cover</a> &gt; Section 2: Overall Description
+    </div>
+
+    <h1 id="description">2. Overall Description</h1>
+
+    <h2 id="perspective">2.1 Product Perspective</h2>
+
+    <h3>2.1.1 System Context</h3>
+    <div class="diagram">
+                         ┌─────────────────────────────────────────────────────────┐
+                         │                    Users                                 │
+                         ├──────────────┬──────────────┬──────────────┬────────────┤
+                         │ Infrastructure│   DevOps    │  Platform    │ Finance    │
+                         │  Architects   │  Engineers  │  Engineers   │ Teams      │
+                         └──────┬───────┴──────┬───────┴──────┬───────┴─────┬──────┘
+                                │              │              │             │
+                                └──────────────┴──────┬───────┴─────────────┘
+                                                      │
+                                                      ▼
+                         ┌─────────────────────────────────────────────────────────┐
+                         │         Infrastructure Sizing Calculator                 │
+                         ├─────────────────────────────────────────────────────────┤
+                         │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+                         │  │ K8s Sizing  │  │ VM Sizing   │  │ Cost        │     │
+                         │  │ Engine      │  │ Engine      │  │ Estimation  │     │
+                         │  └─────────────┘  └─────────────┘  └─────────────┘     │
+                         │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+                         │  │ Growth      │  │ Scenario    │  │ Export      │     │
+                         │  │ Planning    │  │ Management  │  │ Service     │     │
+                         │  └─────────────┘  └─────────────┘  └─────────────┘     │
+                         └─────────────────────────┬───────────────────────────────┘
+                                                   │
+                                                   ▼
+                         ┌─────────────────────────────────────────────────────────┐
+                         │                    Data Storage                          │
+                         ├─────────────────┬───────────────────────────────────────┤
+                         │  SQLite DB      │  Local Browser Storage                │
+                         │  (Scenarios)    │  (User Preferences)                   │
+                         └─────────────────┴───────────────────────────────────────┘
+    </div>
+
+    <h3>2.1.2 Key Differentiators</h3>
+    <table>
+        <tr><th>Feature</th><th>Infrastructure Sizing Calculator</th><th>Competitors</th></tr>
+        <tr><td>K8s Distributions</td><td>38+ (including all major cloud + on-prem)</td><td>Typically 3-5</td></tr>
+        <tr><td>VM Sizing</td><td>Full support with HA/DR patterns</td><td>Rarely included</td></tr>
+        <tr><td>Offline Capability</td><td>100% offline after initial load</td><td>Usually requires connectivity</td></tr>
+        <tr><td>On-Premises Support</td><td>Full pricing and sizing</td><td>Cloud-only focus</td></tr>
+        <tr><td>Low-Code Platforms</td><td>Mendix, OutSystems native support</td><td>Not supported</td></tr>
+        <tr><td>Air-Gap Deployment</td><td>Fully supported</td><td>Not supported</td></tr>
+    </table>
+
+    <h2 id="functions">2.2 Product Functions</h2>
+    <table>
+        <tr><th>ID</th><th>Function</th><th>Description</th><th>Use Cases</th></tr>
+        <tr><td>F-001</td><td>Wizard Navigation</td><td>Step-by-step configuration wizard for platform, deployment, technology selection</td><td><a href="04a-uc-wizard.html">UC-001 to UC-005</a></td></tr>
+        <tr><td>F-002</td><td>K8s Cluster Sizing</td><td>Calculate control plane, infrastructure, and worker nodes for Kubernetes deployments</td><td><a href="04b-uc-k8s.html">UC-006 to UC-012</a></td></tr>
+        <tr><td>F-003</td><td>VM Deployment Sizing</td><td>Calculate server roles and resources for VM-based deployments with HA/DR</td><td><a href="04c-uc-vm.html">UC-013 to UC-016</a></td></tr>
+        <tr><td>F-004</td><td>Results Display</td><td>Display sizing results with summaries, details, warnings, and comparisons</td><td><a href="04d-uc-results.html">UC-017 to UC-024</a></td></tr>
+        <tr><td>F-005</td><td>Cost Estimation</td><td>Calculate infrastructure costs across cloud providers and on-premises</td><td><a href="04e-uc-pricing.html">UC-025 to UC-032</a></td></tr>
+        <tr><td>F-006</td><td>Growth Planning</td><td>Project infrastructure needs over 1-5 years with multiple growth patterns</td><td><a href="04f-uc-growth.html">UC-033 to UC-036</a></td></tr>
+        <tr><td>F-007</td><td>Scenario Management</td><td>Save, load, compare, tag, filter, duplicate, and share scenarios</td><td><a href="04g-uc-scenarios.html">UC-037 to UC-044</a></td></tr>
+        <tr><td>F-008</td><td>Export &amp; Reporting</td><td>Export results in CSV, JSON, Excel, and HTML/PDF formats</td><td><a href="04h-uc-export.html">UC-045 to UC-048</a></td></tr>
+        <tr><td>F-009</td><td>Settings Management</td><td>Configure custom node specs, defaults, theme, and reset options</td><td><a href="04i-uc-settings.html">UC-049 to UC-052</a></td></tr>
+        <tr><td>F-010</td><td>Navigation</td><td>Provide wizard, tab, and breadcrumb navigation</td><td><a href="04j-uc-navigation.html">UC-053 to UC-055</a></td></tr>
+    </table>
+
+    <h2 id="users">2.3 User Classes and Characteristics</h2>
+    <table>
+        <tr><th>User Class</th><th>Description</th><th>Technical Level</th><th>Primary Use Cases</th></tr>
+        <tr>
+            <td><strong>Infrastructure Architect</strong></td>
+            <td>Technical professional responsible for designing infrastructure solutions. Primary user for sizing calculations.</td>
+            <td>Expert</td>
+            <td>UC-001 to UC-012, UC-017 to UC-024</td>
+        </tr>
+        <tr>
+            <td><strong>DevOps Engineer</strong></td>
+            <td>Engineer responsible for deployment pipelines and cluster management.</td>
+            <td>Advanced</td>
+            <td>UC-006 to UC-012, UC-037 to UC-044</td>
+        </tr>
+        <tr>
+            <td><strong>Platform Engineer</strong></td>
+            <td>Engineer managing platform services and configurations.</td>
+            <td>Advanced</td>
+            <td>UC-006 to UC-016, UC-049 to UC-052</td>
+        </tr>
+        <tr>
+            <td><strong>Procurement Manager</strong></td>
+            <td>Manager responsible for hardware acquisition and vendor negotiations.</td>
+            <td>Intermediate</td>
+            <td>UC-025 to UC-032, UC-045 to UC-048</td>
+        </tr>
+        <tr>
+            <td><strong>Finance Analyst</strong></td>
+            <td>Analyst responsible for infrastructure budgeting and cost analysis.</td>
+            <td>Basic</td>
+            <td>UC-025 to UC-036, UC-045 to UC-048</td>
+        </tr>
+    </table>
+
+    <h2 id="environment">2.4 Operating Environment</h2>
+
+    <h3>2.4.1 Client Requirements</h3>
+    <table>
+        <tr><th>Component</th><th>Requirement</th></tr>
+        <tr><td>Browser</td><td>Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</td></tr>
+        <tr><td>JavaScript</td><td>Enabled (ES6+ support required)</td></tr>
+        <tr><td>Screen Resolution</td><td>Minimum: 1280x720, Recommended: 1920x1080</td></tr>
+        <tr><td>Network</td><td>Required for initial load; offline capable thereafter</td></tr>
+    </table>
+
+    <h3>2.4.2 Server Requirements</h3>
+    <table>
+        <tr><th>Component</th><th>Requirement</th></tr>
+        <tr><td>Runtime</td><td>.NET 10.0</td></tr>
+        <tr><td>Framework</td><td>Blazor Server (ASP.NET Core)</td></tr>
+        <tr><td>Database</td><td>SQLite (embedded) or SQL Server</td></tr>
+        <tr><td>Memory</td><td>Minimum: 512MB, Recommended: 2GB</td></tr>
+        <tr><td>Storage</td><td>Minimum: 100MB for application</td></tr>
+    </table>
+
+    <h2 id="constraints">2.5 Design and Implementation Constraints</h2>
+    <table>
+        <tr><th>ID</th><th>Constraint</th><th>Rationale</th></tr>
+        <tr><td>CON-001</td><td>Must operate fully offline after initial load</td><td>Air-gap deployment requirement</td></tr>
+        <tr><td>CON-002</td><td>No external API calls for pricing data</td><td>Offline capability and data control</td></tr>
+        <tr><td>CON-003</td><td>Must support deployment without database server</td><td>Simplified deployment (SQLite)</td></tr>
+        <tr><td>CON-004</td><td>Single-page application architecture</td><td>User experience and performance</td></tr>
+        <tr><td>CON-005</td><td>Must not store personally identifiable information</td><td>Privacy and compliance</td></tr>
+    </table>
+
+    <h2 id="assumptions">2.6 Assumptions and Dependencies</h2>
+
+    <h3>Assumptions</h3>
+    <table>
+        <tr><th>ID</th><th>Assumption</th><th>Impact if False</th></tr>
+        <tr><td>ASM-001</td><td>Users have basic understanding of K8s/VM concepts</td><td>Additional training/documentation needed</td></tr>
+        <tr><td>ASM-002</td><td>Pricing data is updated quarterly</td><td>Cost estimates may be inaccurate</td></tr>
+        <tr><td>ASM-003</td><td>Resource requirements follow linear scaling</td><td>Large cluster estimates may need adjustment</td></tr>
+    </table>
+
+    <h3>Dependencies</h3>
+    <table>
+        <tr><th>ID</th><th>Dependency</th><th>Type</th></tr>
+        <tr><td>DEP-001</td><td>.NET 10.0 Runtime</td><td>Technical</td></tr>
+        <tr><td>DEP-002</td><td>ClosedXML library for Excel export</td><td>Technical</td></tr>
+        <tr><td>DEP-003</td><td>QuestPDF library for PDF generation</td><td>Technical</td></tr>
+        <tr><td>DEP-004</td><td>Entity Framework Core 9.0</td><td>Technical</td></tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="01-introduction.html" class="nav-button">&larr; Previous: Introduction</a>
+        <a href="03-business-rules.html" class="nav-button">Next: Business Rules &rarr;</a>
+    </div>
+</body>
+</html>

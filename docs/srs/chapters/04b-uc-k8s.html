@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.2: K8s Configuration Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.2 K8s Configuration
+    </div>
+
+    <div class="category-header">
+        <h2>4.2 K8s Configuration (UC-006 to UC-013)</h2>
+        <p>Kubernetes-specific configuration including application counts, replicas, headroom, overcommit, node specifications, and HA/DR settings</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-006</span></td><td>Configure Application Counts</td><td>Enter application counts per tier (S/M/L/XL) per environment</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-007</span></td><td>Configure Environment Settings</td><td>Enable/disable environments, set environment-specific properties</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-008</span></td><td>Configure Replicas</td><td>Set pod replicas per environment (default: Dev=1, Prod=3)</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-009</span></td><td>Configure Headroom</td><td>Set buffer capacity percentage per environment</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-010</span></td><td>Configure Overcommit</td><td>Set CPU (1-10x) and RAM (1-4x) overcommit ratios</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-011</span></td><td>Configure Node Specifications</td><td>View/customize node specs (CPU/RAM/Disk)</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-012</span></td><td>Calculate K8s Sizing</td><td>Execute sizing calculation applying all business rules</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-013</span></td><td>Configure K8s HA/DR</td><td>Configure High Availability and Disaster Recovery settings</td><td><span class="priority-p2">P2</span></td></tr>
+    </table>
+
+    <!-- UC-006: Configure Application Counts -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-006</div>
+            <h3>Configure Application Counts</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <p>Allows the user to enter the number of applications per size tier (Small, Medium, Large, XLarge) for each enabled environment. These counts drive the resource calculations.</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <p><span class="br-tag">BR-V001</span> <span class="br-tag">BR-V002</span> <span class="br-tag">BR-V003</span> - Application count validation rules</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Input Data</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Constraints</th><th>Default</th></tr>
+                    <tr><td>[Env].Small</td><td>Integer</td><td>0-999</td><td>0</td></tr>
+                    <tr><td>[Env].Medium</td><td>Integer</td><td>0-999</td><td>0</td></tr>
+                    <tr><td>[Env].Large</td><td>Integer</td><td>0-999</td><td>0</td></tr>
+                    <tr><td>[Env].XLarge</td><td>Integer</td><td>0-999</td><td>0</td></tr>
+                </table>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Components</div>
+                <p><code>AppCountsPanel.razor</code>, <code>K8sAppsConfig.razor</code></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-008: Configure Replicas -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-008</div>
+            <h3>Configure Replicas per Environment</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <p>Set the number of pod replicas for each environment. Replicas multiply resource requirements (Apps x Replicas = Total Pods).</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <p><span class="br-tag">BR-R001</span> Prod/DR = 3 replicas | <span class="br-tag">BR-R002</span> Dev/Test = 1 replica | <span class="br-tag">BR-R003</span> Stage = 2 replicas | <span class="br-tag">BR-R004</span> Range: 1-10</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Default Values</div>
+                <table>
+                    <tr><th>Environment</th><th>Default Replicas</th><th>Rationale</th></tr>
+                    <tr><td>Development</td><td>1</td><td>Single instance for dev/debug</td></tr>
+                    <tr><td>Test</td><td>1</td><td>Minimal for test validation</td></tr>
+                    <tr><td>Staging</td><td>2</td><td>Pre-production validation</td></tr>
+                    <tr><td>Production</td><td>3</td><td>High availability</td></tr>
+                    <tr><td>DR</td><td>3</td><td>Match production for failover</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-009: Configure Headroom -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-009</div>
+            <h3>Configure Headroom Percentage</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <p>Set headroom (buffer capacity) percentage for each environment. Headroom accounts for scaling needs, maintenance operations, and unexpected load spikes.</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <p><span class="br-tag">BR-H001</span> Headroom multiplier | <span class="br-tag">BR-H002</span>-<span class="br-tag">BR-H006</span> Environment defaults | <span class="br-tag">BR-H007</span> Range: 0-100%</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Default Values</div>
+                <table>
+                    <tr><th>Environment</th><th>Default Headroom</th><th>Calculation Impact</th></tr>
+                    <tr><td>Development</td><td>33%</td><td>Workers x 1.33</td></tr>
+                    <tr><td>Test</td><td>33%</td><td>Workers x 1.33</td></tr>
+                    <tr><td>Staging</td><td>0%</td><td>No additional workers</td></tr>
+                    <tr><td>Production</td><td>37.5%</td><td>Workers x 1.375</td></tr>
+                    <tr><td>DR</td><td>37.5%</td><td>Workers x 1.375</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-012: Calculate K8s Sizing -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-012</div>
+            <h3>Calculate K8s Cluster Sizing</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <p>Executes the Kubernetes sizing calculation based on all configured inputs. Calculates Master nodes, Infrastructure nodes (OpenShift), and Worker nodes per environment, applying all business rules.</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Category</th><th>Rules Applied</th></tr>
+                    <tr><td>Master Nodes</td><td><span class="br-tag">BR-M001</span> <span class="br-tag">BR-M002</span> <span class="br-tag">BR-M003</span> <span class="br-tag">BR-M004</span></td></tr>
+                    <tr><td>Infrastructure</td><td><span class="br-tag">BR-I001</span> <span class="br-tag">BR-I002</span> <span class="br-tag">BR-I003</span> <span class="br-tag">BR-I004</span> <span class="br-tag">BR-I005</span></td></tr>
+                    <tr><td>Workers</td><td><span class="br-tag">BR-W001</span> through <span class="br-tag">BR-W006</span></td></tr>
+                    <tr><td>Headroom</td><td><span class="br-tag">BR-H001</span> through <span class="br-tag">BR-H007</span></td></tr>
+                    <tr><td>Replicas</td><td><span class="br-tag">BR-R001</span> through <span class="br-tag">BR-R005</span></td></tr>
+                </table>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Calculation Flow</div>
+                <ol>
+                    <li>Calculate total resource demand (Apps x Tiers x Replicas)</li>
+                    <li>Apply technology resource profiles from <a href="03-business-rules.html#technology">Section 3.6</a></li>
+                    <li>Calculate Master nodes (0 for managed K8s, 3-5 for self-managed)</li>
+                    <li>Calculate Infra nodes (OpenShift only, scaled by app count)</li>
+                    <li>Calculate Worker nodes based on CPU and RAM demand</li>
+                    <li>Apply headroom percentage to worker count</li>
+                    <li>Aggregate totals based on cluster mode</li>
+                </ol>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Output Data</div>
+                <table>
+                    <tr><th>Field</th><th>Description</th></tr>
+                    <tr><td>Environment.Masters</td><td>Control plane node count</td></tr>
+                    <tr><td>Environment.Infra</td><td>Infrastructure node count (OpenShift)</td></tr>
+                    <tr><td>Environment.Workers</td><td>Worker node count</td></tr>
+                    <tr><td>Environment.TotalCpu</td><td>Total vCPU cores</td></tr>
+                    <tr><td>Environment.TotalRam</td><td>Total RAM in GB</td></tr>
+                    <tr><td>GrandTotal</td><td>Aggregated totals across environments</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-013: Configure K8s HA/DR -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-013</div>
+            <h3>Configure K8s HA/DR Settings</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <p>Configure High Availability and Disaster Recovery settings for Kubernetes clusters, including control plane HA mode, node distribution across availability zones, DR strategy, and backup configuration.</p>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Category</th><th>Rules Applied</th></tr>
+                    <tr><td>Control Plane HA</td><td><span class="br-tag">BR-HADR-001</span> <span class="br-tag">BR-HADR-002</span> <span class="br-tag">BR-HADR-003</span> <span class="br-tag">BR-HADR-004</span></td></tr>
+                    <tr><td>Node Distribution</td><td><span class="br-tag">BR-HADR-005</span> <span class="br-tag">BR-HADR-006</span> <span class="br-tag">BR-HADR-007</span> <span class="br-tag">BR-HADR-008</span> <span class="br-tag">BR-HADR-009</span></td></tr>
+                    <tr><td>DR Patterns</td><td><span class="br-tag">BR-HADR-010</span> <span class="br-tag">BR-HADR-011</span> <span class="br-tag">BR-HADR-012</span> <span class="br-tag">BR-HADR-013</span></td></tr>
+                    <tr><td>Provider Costs</td><td><span class="br-tag">BR-HADR-014</span> <span class="br-tag">BR-HADR-015</span> <span class="br-tag">BR-HADR-016</span></td></tr>
+                    <tr><td>Backup Strategy</td><td><span class="br-tag">BR-HADR-017</span> <span class="br-tag">BR-HADR-018</span> <span class="br-tag">BR-HADR-019</span> <span class="br-tag">BR-HADR-020</span></td></tr>
+                </table>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Input Data</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Options/Constraints</th><th>Default</th></tr>
+                    <tr><td>ControlPlaneHA</td><td>Enum</td><td>Managed, Single, StackedHA, ExternalEtcd</td><td>Managed (for managed K8s)</td></tr>
+                    <tr><td>ControlPlaneNodes</td><td>Integer</td><td>3, 5, or 7 (for HA modes)</td><td>3</td></tr>
+                    <tr><td>NodeDistribution</td><td>Enum</td><td>SingleAZ, DualAZ, MultiAZ, MultiRegion</td><td>MultiAZ</td></tr>
+                    <tr><td>AvailabilityZones</td><td>Integer</td><td>1-5</td><td>3</td></tr>
+                    <tr><td>DRPattern</td><td>Enum</td><td>None, BackupRestore, WarmStandby, HotStandby, ActiveActive</td><td>None</td></tr>
+                    <tr><td>DRRegion</td><td>String</td><td>Cloud region identifier (e.g., "us-west-2")</td><td>null</td></tr>
+                    <tr><td>RTOMinutes</td><td>Integer</td><td>5, 15, 60, 240, 480, 1440</td><td>null</td></tr>
+                    <tr><td>BackupStrategy</td><td>Enum</td><td>None, Velero, Kasten, Portworx, CloudNative, Custom</td><td>None</td></tr>
+                    <tr><td>BackupFrequencyHours</td><td>Integer</td><td>1, 4, 12, 24, 168</td><td>24</td></tr>
+                    <tr><td>BackupRetentionDays</td><td>Integer</td><td>7, 14, 30, 90, 365</td><td>30</td></tr>
+                    <tr><td>EnablePodDisruptionBudgets</td><td>Boolean</td><td>true/false</td><td>true</td></tr>
+                    <tr><td>EnableTopologySpread</td><td>Boolean</td><td>true/false</td><td>true</td></tr>
+                </table>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Output Data</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                    <tr><td>CostMultiplier</td><td>Decimal</td><td>Combined cost multiplier from all HA/DR settings (1.0 = baseline)</td></tr>
+                    <tr><td>Summary</td><td>String</td><td>Human-readable summary of configuration (e.g., "CP HA (3 nodes) • 3 AZs • HotStandby")</td></tr>
+                    <tr><td>EtcdNodes</td><td>Integer</td><td>Separate etcd nodes count (ExternalEtcd mode only)</td></tr>
+                    <tr><td>DRCostMultiplier</td><td>Decimal</td><td>DR-specific cost multiplier component</td></tr>
+                </table>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Auto-Configuration Behavior</div>
+                <ul>
+                    <li>Managed K8s distributions (EKS, AKS, GKE, OKE) auto-set ControlPlaneHA to "Managed" and disable manual control plane options</li>
+                    <li>Azure provider shows "FREE cross-AZ" indicator when MultiAZ is selected</li>
+                    <li>Cost multiplier updates live as user changes settings</li>
+                    <li>DR region field appears only when DRPattern ≠ None</li>
+                </ul>
+            </div>
+            <div class="uc-section">
+                <div class="uc-section-title">Components</div>
+                <p><code>K8sHADRPanel.razor</code></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications including all flows, test scenarios, and traceability, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04a-uc-wizard.html" class="nav-button">&larr; Previous: Wizard Steps</a>
+        <a href="04c-uc-vm.html" class="nav-button">Next: VM Configuration &rarr;</a>
+    </div>
+</body>
+</html>

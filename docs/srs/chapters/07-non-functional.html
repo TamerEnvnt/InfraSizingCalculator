@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 7: Non-Functional Requirements</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 7: Non-Functional Requirements
+    </div>
+
+    <h1>7. Non-Functional Requirements</h1>
+    <p>This section defines quality attributes and constraints for the system.</p>
+
+    <!-- 7.1 Performance Requirements -->
+    <div class="category-header">
+        <h2>7.1 Performance Requirements</h2>
+        <p>Response time, throughput, and resource utilization requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Metric</th><th>Priority</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-001</span></td>
+            <td>Sizing calculations shall complete quickly</td>
+            <td>&lt; 500ms for any configuration</td>
+            <td><span class="priority-p1">P1</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-002</span></td>
+            <td>Initial page load time</td>
+            <td>&lt; 3 seconds on 4G connection</td>
+            <td><span class="priority-p1">P1</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-003</span></td>
+            <td>UI responsiveness</td>
+            <td>&lt; 100ms for user interactions</td>
+            <td><span class="priority-p1">P1</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-004</span></td>
+            <td>Export generation time</td>
+            <td>&lt; 5 seconds for Excel/PDF exports</td>
+            <td><span class="priority-p2">P2</span></td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-005</span></td>
+            <td>Memory usage</td>
+            <td>&lt; 500MB client-side browser memory</td>
+            <td><span class="priority-p2">P2</span></td>
+        </tr>
+    </table>
+
+    <!-- 7.2 Safety Requirements -->
+    <div class="category-header">
+        <h2>7.2 Safety Requirements</h2>
+        <p>Data protection and safe operation requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-010</span></td>
+            <td>No permanent data loss on browser crash</td>
+            <td>Auto-save configuration to localStorage every 30 seconds</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-011</span></td>
+            <td>Confirmation required for destructive actions</td>
+            <td>Modal confirmation dialog for delete operations</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-012</span></td>
+            <td>Undo capability for configuration changes</td>
+            <td>Configuration state history (last 10 states)</td>
+        </tr>
+    </table>
+
+    <!-- 7.3 Security Requirements -->
+    <div class="category-header">
+        <h2>7.3 Security Requirements</h2>
+        <p>Application security and data protection requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-020</span></td>
+            <td>No PII storage</td>
+            <td>Application does not collect or store personally identifiable information</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-021</span></td>
+            <td>XSS protection</td>
+            <td>All user inputs sanitized; Blazor provides built-in XSS protection</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-022</span></td>
+            <td>CSRF protection</td>
+            <td>Anti-forgery tokens for form submissions</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-023</span></td>
+            <td>Content Security Policy</td>
+            <td>CSP headers to prevent injection attacks</td>
+        </tr>
+    </table>
+
+    <!-- 7.4 Usability Requirements -->
+    <div class="category-header">
+        <h2>7.4 Usability Requirements</h2>
+        <p>User experience and accessibility requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Metric</th><th>Verification</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-030</span></td>
+            <td>Learnability</td>
+            <td>New user can complete basic sizing in &lt; 5 minutes</td>
+            <td>User testing</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-031</span></td>
+            <td>Efficiency</td>
+            <td>Expert user can complete sizing in &lt; 2 minutes</td>
+            <td>User testing</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-032</span></td>
+            <td>Error recovery</td>
+            <td>Clear error messages with recovery guidance</td>
+            <td>UI review</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-033</span></td>
+            <td>Accessibility</td>
+            <td>WCAG 2.1 Level AA compliance</td>
+            <td>Accessibility audit</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-034</span></td>
+            <td>Theme support</td>
+            <td>Light and dark theme options</td>
+            <td>Visual inspection</td>
+        </tr>
+    </table>
+
+    <div class="uc-box">
+        <div class="uc-header">
+            <h3>Accessibility Checklist</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">WCAG 2.1 AA Requirements</div>
+                <ul>
+                    <li>Color contrast ratio minimum 4.5:1 for normal text, 3:1 for large text</li>
+                    <li>All interactive elements keyboard accessible</li>
+                    <li>Focus indicators visible on all focusable elements</li>
+                    <li>Screen reader compatible (ARIA labels where needed)</li>
+                    <li>No content flashing more than 3 times per second</li>
+                    <li>Form inputs have associated labels</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7.5 Maintainability Requirements -->
+    <div class="category-header">
+        <h2>7.5 Maintainability Requirements</h2>
+        <p>Code quality and maintenance requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Implementation</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-040</span></td>
+            <td>Modular component architecture</td>
+            <td>Blazor component-based architecture with clear separation of concerns</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-041</span></td>
+            <td>Configuration-driven pricing data</td>
+            <td>Pricing tables stored in database/config for easy updates without code changes</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-042</span></td>
+            <td>Unit test coverage</td>
+            <td>&gt; 80% code coverage for business logic</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-043</span></td>
+            <td>Code documentation</td>
+            <td>XML documentation for all public APIs and complex logic</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-044</span></td>
+            <td>Consistent coding standards</td>
+            <td>EditorConfig and .NET analyzers enforced</td>
+        </tr>
+    </table>
+
+    <!-- 7.6 Reliability Requirements -->
+    <div class="category-header">
+        <h2>7.6 Reliability Requirements</h2>
+        <p>System reliability and availability requirements</p>
+    </div>
+
+    <table>
+        <tr><th>ID</th><th>Requirement</th><th>Target</th></tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-050</span></td>
+            <td>Application uptime</td>
+            <td>99.5% availability during business hours</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-051</span></td>
+            <td>Graceful degradation</td>
+            <td>Core sizing functions remain available if optional features fail</td>
+        </tr>
+        <tr>
+            <td><span class="req-tag">REQ-NFR-052</span></td>
+            <td>Error handling</td>
+            <td>All exceptions logged; user sees friendly error messages</td>
+        </tr>
+    </table>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="06-external-interfaces.html" class="nav-button">&larr; Previous: External Interface Requirements</a>
+        <a href="08-data-requirements.html" class="nav-button">Next: Data Requirements &rarr;</a>
+    </div>
+</body>
+</html>

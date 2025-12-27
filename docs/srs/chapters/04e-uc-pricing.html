@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.5: Pricing Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; Section 4: Use Cases &gt; 4.5 Pricing
+    </div>
+
+    <div class="category-header">
+        <h2>4.5 Pricing (UC-025 to UC-032)</h2>
+        <p>Cost estimation including cloud provider selection, pricing models, support levels, and detailed cost breakdown</p>
+    </div>
+
+    <!-- Use Case Summary -->
+    <table>
+        <tr><th>Use Case ID</th><th>Name</th><th>Description</th><th>Priority</th></tr>
+        <tr><td><span class="uc-tag">UC-025</span></td><td>Select Pricing Provider</td><td>Select pricing source (On-Prem or cloud provider)</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-026</span></td><td>Select Region</td><td>Select cloud region for regional pricing</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-027</span></td><td>Select Pricing Type</td><td>Select PAYG, 1-Year, or 3-Year Reserved</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-028</span></td><td>Select Support Level</td><td>Select support tier for cost estimation</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-029</span></td><td>View Cost Breakdown</td><td>Display detailed cost breakdown by category</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-030</span></td><td>Configure Mendix Pricing</td><td>Configure Mendix platform pricing (resource packs)</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><span class="uc-tag">UC-031</span></td><td>Configure Storage Pricing</td><td>Configure storage type and IOPS requirements</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><span class="uc-tag">UC-032</span></td><td>Configure On-Prem Pricing</td><td>Configure on-premises cost factors</td><td><span class="priority-p1">P1</span></td></tr>
+    </table>
+
+    <!-- UC-025: Select Pricing Provider -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-025</div>
+            <h3>Select Pricing Provider</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to select the pricing source - On-Premises or a cloud provider (AWS, Azure, GCP, Oracle Cloud, IBM Cloud). This determines which pricing tables are used for cost estimation.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays pricing provider options</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - On-Premises<br>
+                            - AWS<br>
+                            - Microsoft Azure<br>
+                            - Google Cloud Platform<br>
+                            - Oracle Cloud Infrastructure<br>
+                            - IBM Cloud
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects provider</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Loads provider-specific pricing tables and options</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-025-01</td><td>Select AWS</td><td>AWS regions and instance types loaded</td><td>P1</td></tr>
+                    <tr><td>TS-025-02</td><td>Select On-Premises</td><td>On-prem cost factors shown (power, cooling, etc.)</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-025</span></td></tr>
+                    <tr><th>Components</th><td>PricingSelector.razor, CloudAlternativesPanel.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-027: Select Pricing Type -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-027</div>
+            <h3>Select Pricing Type</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows user to select pricing model - Pay As You Go (on-demand), 1-Year Reserved, or 3-Year Reserved. Reserved instances provide significant discounts.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span></td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-P003</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays pricing type options</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - Pay As You Go (PAYG / On-Demand)<br>
+                            - 1-Year Reserved (30-40% savings)<br>
+                            - 3-Year Reserved (50-60% savings)
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Selects pricing type</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Recalculates costs with selected pricing model</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-027</span></td></tr>
+                    <tr><th>Components</th><td>PricingTypeSelector.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-032: Configure On-Premises Pricing -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-032</div>
+            <h3>Configure On-Premises Pricing</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows configuration of on-premises cost factors including hardware depreciation, power, cooling, datacenter space, and maintenance costs.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - For on-prem deployments</td></tr>
+                    <tr><th>Complexity</th><td>Medium</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Rules</th><td><span class="br-tag">BR-P001</span></td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays on-premises cost configuration</div>
+                        <div class="step-details">
+                            <strong>Configurable Factors:</strong><br>
+                            - Hardware cost per server<br>
+                            - Depreciation period (years)<br>
+                            - Power cost ($/kWh)<br>
+                            - Cooling factor<br>
+                            - Datacenter space cost<br>
+                            - Annual maintenance percentage
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-032</span></td></tr>
+                    <tr><th>Components</th><td>OnPremPricingPanel.razor</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Full Details:</strong> For complete use case specifications including UC-026, UC-028, UC-029, UC-030, and UC-031, see the <a href="../../SRS_InfraSizingCalculator_Complete.html">Complete SRS Document</a>.
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="04d-uc-results.html" class="nav-button">&larr; Previous: Results &amp; Analysis</a>
+        <a href="04f-uc-growth.html" class="nav-button">Next: Growth Planning &rarr;</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS - Section 4.1: Wizard Steps Use Cases</title>
+    <link rel="stylesheet" href="../srs-styles.css">
+</head>
+<body>
+    <!-- Navigation Breadcrumb -->
+    <div class="nav-breadcrumb">
+        <a href="../index.html">SRS Index</a> &gt; <a href="00-cover.html">Cover</a> &gt; Section 4: Use Cases &gt; 4.1 Wizard Steps
+    </div>
+
+    <h1>4. Use Case Specifications</h1>
+
+    <h2>4.0 Use Case Summary</h2>
+    <table>
+        <tr><th>Category</th><th>Use Case IDs</th><th>Count</th><th>Primary Priority</th></tr>
+        <tr><td><strong>Wizard Steps</strong></td><td>UC-001 to UC-005</td><td>5</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><a href="04b-uc-k8s.html">K8s Configuration</a></td><td>UC-006 to UC-012</td><td>7</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><a href="04c-uc-vm.html">VM Configuration</a></td><td>UC-013 to UC-016</td><td>4</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><a href="04d-uc-results.html">Results &amp; Analysis</a></td><td>UC-017 to UC-024</td><td>8</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><a href="04e-uc-pricing.html">Pricing</a></td><td>UC-025 to UC-032</td><td>8</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td><a href="04f-uc-growth.html">Growth Planning</a></td><td>UC-033 to UC-036</td><td>4</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><a href="04g-uc-scenarios.html">Scenario Management</a></td><td>UC-037 to UC-044</td><td>8</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><a href="04h-uc-export.html">Export</a></td><td>UC-045 to UC-048</td><td>4</td><td><span class="priority-p2">P2</span></td></tr>
+        <tr><td><a href="04i-uc-settings.html">Settings</a></td><td>UC-049 to UC-052</td><td>4</td><td><span class="priority-p3">P3</span></td></tr>
+        <tr><td><a href="04j-uc-navigation.html">Navigation</a></td><td>UC-053 to UC-055</td><td>3</td><td><span class="priority-p1">P1</span></td></tr>
+        <tr><td colspan="2"><strong>Total Use Cases</strong></td><td><strong>55</strong></td><td></td></tr>
+    </table>
+
+    <!-- Wizard Steps Header -->
+    <div class="category-header">
+        <h2>4.1 Wizard Steps (UC-001 to UC-005)</h2>
+        <p>Step-by-step configuration wizard for platform, deployment model, and technology selection</p>
+    </div>
+
+    <!-- UC-001: Select Platform Type -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-001</div>
+            <h3>Select Platform Type</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to select whether they are sizing for native applications (.NET, Java, Node.js, etc.) or low-code platforms (Mendix, OutSystems). This is the first step in the configuration wizard.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Entry point to application</td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Actors</div>
+                <table>
+                    <tr><th style="width: 25%;">Primary Actor</th><td><strong>Infrastructure Architect</strong> - Technical professional starting the sizing process</td></tr>
+                    <tr><th>Secondary Actors</th><td>DevOps Engineer, Platform Engineer</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Preconditions</div>
+                <table>
+                    <tr><th style="width: 10%;">#</th><th>Precondition</th></tr>
+                    <tr><td>PRE-1</td><td>User has accessed the application via web browser</td></tr>
+                    <tr><td>PRE-2</td><td>Application has fully loaded (JavaScript initialized)</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Postconditions</div>
+                <table>
+                    <tr><th style="width: 10%;">#</th><th>Postcondition</th></tr>
+                    <tr><td>POST-1</td><td>Platform type is stored in application state</td></tr>
+                    <tr><td>POST-2</td><td>Available technologies are filtered based on platform selection</td></tr>
+                    <tr><td>POST-3</td><td>User is advanced to Deployment Step (UC-002)</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays platform selection cards</div>
+                        <div class="step-details">
+                            <strong>UI Element:</strong> PlatformStep.razor<br>
+                            <strong>Options Displayed:</strong><br>
+                            - Native Applications (icon: code brackets) - ".NET, Java, Node.js, Python, Go"<br>
+                            - Low-Code Platforms (icon: blocks) - "Mendix, OutSystems"
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks on desired platform card</div>
+                        <div class="step-details">
+                            <strong>Interaction:</strong> Single click to select<br>
+                            <strong>Visual Feedback:</strong> Selected card shows highlighted border and checkmark
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Updates application state with selection</div>
+                        <div class="step-details">
+                            <strong>State Update:</strong> ConfigState.PlatformType = selected value<br>
+                            <strong>Action:</strong> Filters available technologies for next step
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div><span class="step-actor">Actor:</span> Clicks "Next" button or card is auto-advancing</div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Advances to Deployment Step (UC-002)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Alternative Flows</div>
+                <div class="alt-flow">
+                    <div class="alt-flow-title">A1: Change Selection (from Step 2)</div>
+                    <p><strong>Condition:</strong> User clicks different platform card after initial selection</p>
+                    <div class="flow-step">
+                        <div class="step-number">A1.1</div>
+                        <div class="step-content"><span class="step-system">System:</span> Updates selection to new platform</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">A1.2</div>
+                        <div class="step-content"><span class="step-system">System:</span> Clears any dependent selections (technology, distribution)</div>
+                    </div>
+                    <p><strong>Rejoins Main Flow:</strong> Step 3</p>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Exception Flows</div>
+                <div class="exception-flow">
+                    <div class="exception-flow-title">E1: No Selection Made</div>
+                    <p><strong>Trigger:</strong> User clicks "Next" without selecting a platform</p>
+                    <div class="flow-step">
+                        <div class="step-number">E1.1</div>
+                        <div class="step-content"><span class="step-system">System:</span> Displays inline validation message "Please select a platform type"</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">E1.2</div>
+                        <div class="step-content"><span class="step-system">System:</span> Keeps user on current step</div>
+                    </div>
+                    <p><strong>Recovery:</strong> User selects a platform (returns to Step 2)</p>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Input Data Requirements</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default</th></tr>
+                    <tr><td>PlatformType</td><td>Enum</td><td>Yes</td><td>Native, LowCode</td><td>None (must select)</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-001-01</td><td>Select Native platform</td><td>State updated, 5 technologies available</td><td>P1</td></tr>
+                    <tr><td>TS-001-02</td><td>Select Low-Code platform</td><td>State updated, 2 technologies available</td><td>P1</td></tr>
+                    <tr><td>TS-001-03</td><td>Click Next without selection</td><td>Validation error displayed</td><td>P1</td></tr>
+                    <tr><td>TS-001-04</td><td>Change selection from Native to Low-Code</td><td>Technology selection cleared, new options shown</td><td>P2</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-001</span> <span class="req-tag">REQ-FR-010</span></td></tr>
+                    <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-002</span> (next step) <span class="uc-tag">UC-053</span> (navigation)</td></tr>
+                    <tr><th>Components</th><td>PlatformStep.razor, ConfigState.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-002: Select Deployment Model -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-002</div>
+            <h3>Select Deployment Model</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to choose between Kubernetes container orchestration or traditional Virtual Machine deployment. This fundamental choice determines which configuration flow to follow.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Determines entire workflow</td></tr>
+                    <tr><th>Complexity</th><td>Low</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays deployment model selection cards</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - Kubernetes (icon: wheel/helm) - "Container orchestration with pods and clusters"<br>
+                            - Virtual Machines (icon: server) - "Traditional VM-based deployment"
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Clicks on desired deployment model card</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Updates application state</div>
+                        <div class="step-details">
+                            <strong>Side Effects:</strong><br>
+                            - K8s: Enables K8s configuration panels, disables VM panels<br>
+                            - VM: Enables VM configuration panels, disables K8s panels
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Clicks "Next" button</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content"><span class="step-system">System:</span> Advances to Technology Selection Step</div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-002-01</td><td>Select Kubernetes deployment</td><td>K8s panels enabled, VM panels hidden</td><td>P1</td></tr>
+                    <tr><td>TS-002-02</td><td>Select VM deployment</td><td>VM panels enabled, K8s panels hidden</td><td>P1</td></tr>
+                    <tr><td>TS-002-03</td><td>Switch from K8s to VM</td><td>All K8s configuration cleared</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-001</span> <span class="req-tag">REQ-FR-002</span></td></tr>
+                    <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-001</span> (previous) <span class="uc-tag">UC-003</span> (next)</td></tr>
+                    <tr><th>Components</th><td>DeploymentStep.razor, ConfigState.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-003: Select Technology -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-003</div>
+            <h3>Select Technology Platform</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to select the application technology platform (.NET, Java, Node.js, Python, Go, Mendix, OutSystems). Each technology has different resource requirements that affect sizing calculations.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Determines resource profiles</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <p>Technology resource requirements defined in <a href="03-business-rules.html#technology">Section 3.6</a></p>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-003-01</td><td>Select .NET technology</td><td>Resource profiles loaded: S=0.25/0.5, M=0.5/1, L=1/2, XL=2/4</td><td>P1</td></tr>
+                    <tr><td>TS-003-02</td><td>Select Java technology</td><td>Resource profiles loaded: S=0.5/1, M=1/2, L=2/4, XL=4/8</td><td>P1</td></tr>
+                    <tr><td>TS-003-03</td><td>Select Mendix with Low-Code platform</td><td>Mendix-specific settings loaded</td><td>P1</td></tr>
+                    <tr><td>TS-003-04</td><td>Native platform shows 5 options</td><td>DotNet, Java, NodeJS, Python, Go visible</td><td>P1</td></tr>
+                    <tr><td>TS-003-05</td><td>Low-Code platform shows 2 options</td><td>Mendix, OutSystems visible</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-003</span></td></tr>
+                    <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-002</span> (previous) <span class="uc-tag">UC-004</span> (next for K8s)</td></tr>
+                    <tr><th>Components</th><td>TechnologyStep.razor, TechnologyService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-004: Select K8s Distribution -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-004</div>
+            <h3>Select Kubernetes Distribution</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to select from 38+ Kubernetes distributions including cloud-managed services (EKS, AKS, GKE, OKE) and on-premises options (OpenShift, Rancher, K3s, etc.). Each distribution has different node specifications and features.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Determines node specs and control plane</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Applicable Business Rules</div>
+                <table>
+                    <tr><th>Category</th><th>Rules</th></tr>
+                    <tr><td>Master Nodes</td><td><span class="br-tag">BR-M001</span> (managed control plane detection)</td></tr>
+                    <tr><td>Infrastructure Nodes</td><td><span class="br-tag">BR-I001</span> (OpenShift infra node requirement)</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Output Data</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                    <tr><td>Distribution</td><td>Enum</td><td>Selected distribution</td></tr>
+                    <tr><td>HasManagedControlPlane</td><td>Boolean</td><td>Whether cloud provider manages masters</td></tr>
+                    <tr><td>HasInfraNodes</td><td>Boolean</td><td>Whether infra nodes are required</td></tr>
+                    <tr><td>NodeSpecs</td><td>Object</td><td>CPU/RAM/Disk per node type</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-004-01</td><td>Select EKS (managed)</td><td>HasManagedControlPlane=true, HasInfraNodes=false</td><td>P1</td></tr>
+                    <tr><td>TS-004-02</td><td>Select OpenShift (on-prem)</td><td>HasManagedControlPlane=false, HasInfraNodes=true</td><td>P1</td></tr>
+                    <tr><td>TS-004-03</td><td>Search for "rancher"</td><td>Only Rancher distributions shown</td><td>P2</td></tr>
+                    <tr><td>TS-004-04</td><td>Filter by "Cloud Managed"</td><td>EKS, AKS, GKE, OKE visible</td><td>P2</td></tr>
+                    <tr><td>TS-004-05</td><td>38+ distributions available</td><td>All distributions selectable</td><td>P1</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-004</span></td></tr>
+                    <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-003</span> (previous) <span class="uc-tag">UC-005</span> (next)</td></tr>
+                    <tr><th>Components</th><td>DistributionStep.razor, DistributionService.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- UC-005: Select Cluster Mode -->
+    <div class="uc-box">
+        <div class="uc-header">
+            <div class="uc-id">UC-005</div>
+            <h3>Select Cluster Mode</h3>
+        </div>
+        <div class="uc-body">
+            <div class="uc-section">
+                <div class="uc-section-title">Overview</div>
+                <table>
+                    <tr><th style="width: 25%;">Brief Description</th><td>Allows the user to choose between Multi-Cluster (separate cluster per environment), Shared Cluster (single cluster for all environments), or Per-Environment (calculate for a single selected environment). This determines how environment resources are aggregated.</td></tr>
+                    <tr><th>Priority</th><td><span class="priority-p1">P1 (Critical)</span> - Determines calculation strategy</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Main Success Scenario</div>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Displays cluster mode options</div>
+                        <div class="step-details">
+                            <strong>Options:</strong><br>
+                            - Multi-Cluster: "Separate cluster per environment (Dev, Test, Stage, Prod, DR)"<br>
+                            - Shared Cluster: "Single cluster with namespace isolation for all environments"<br>
+                            - Per-Environment: "Calculate sizing for a single environment only"
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Selects cluster mode</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div><span class="step-system">System:</span> Updates state and adjusts UI</div>
+                        <div class="step-details">
+                            <strong>Multi-Cluster:</strong> Shows all environment configuration panels independently<br>
+                            <strong>Shared Cluster:</strong> Shows all environments but calculates unified totals<br>
+                            <strong>Per-Environment:</strong> Shows single environment selector dropdown
+                        </div>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content"><span class="step-actor">Actor:</span> Clicks "Next" button</div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content"><span class="step-system">System:</span> Completes wizard, transitions to main configuration view</div>
+                </div>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Input Data Requirements</div>
+                <table>
+                    <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default</th></tr>
+                    <tr><td>ClusterMode</td><td>Enum</td><td>Yes</td><td>MultiCluster, SharedCluster, PerEnvironment</td><td>MultiCluster</td></tr>
+                    <tr><td>SelectedEnvironment</td><td>Enum</td><td>Conditional</td><td>Required if PerEnvironment mode</td><td>Prod</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Test Scenarios</div>
+                <table>
+                    <tr><th>ID</th><th>Description</th><th>Expected Result</th><th>Priority</th></tr>
+                    <tr><td>TS-005-01</td><td>Select Multi-Cluster mode</td><td>All 5 environment panels shown independently</td><td>P1</td></tr>
+                    <tr><td>TS-005-02</td><td>Select Shared Cluster mode</td><td>Single unified result with combined resources</td><td>P1</td></tr>
+                    <tr><td>TS-005-03</td><td>Select Per-Environment, choose Prod</td><td>Only Prod configuration shown</td><td>P1</td></tr>
+                    <tr><td>TS-005-04</td><td>Switch from Multi to Shared</td><td>Results recalculated for single cluster</td><td>P2</td></tr>
+                </table>
+            </div>
+
+            <div class="uc-section">
+                <div class="uc-section-title">Traceability</div>
+                <table>
+                    <tr><th>Related Requirements</th><td><span class="req-tag">REQ-FR-005</span></td></tr>
+                    <tr><th>Related Use Cases</th><td><span class="uc-tag">UC-004</span> (previous) <span class="uc-tag">UC-006</span>-<span class="uc-tag">UC-012</span> (configuration)</td></tr>
+                    <tr><th>Components</th><td>ClusterModeSelector.razor, ConfigState.cs</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="03-business-rules.html" class="nav-button">&larr; Previous: Business Rules</a>
+        <a href="04b-uc-k8s.html" class="nav-button">Next: K8s Configuration &rarr;</a>
+    </div>
+</body>
+</html>

@@ -12,6 +12,7 @@ This document describes all services in the Infrastructure Sizing Calculator.
 | VMSizingService | IVMSizingService | Virtual machine sizing calculations |
 | TechnologyService | ITechnologyService | Technology configurations and specs |
 | DistributionService | IDistributionService | K8s distribution configurations (46 distributions) |
+| IconResources | - | CSS icon class mappings for technologies, distributions, environments |
 | ExportService | IExportService | Result export to various formats |
 | WizardStateService | IWizardStateService | UI wizard state management |
 | AppStateService | IAppStateService | Centralized application state management |
@@ -70,16 +71,60 @@ Main entry point for K8s sizing calculation.
    - Calculate total resources
 4. Aggregate to grand total
 
-#### CalculateMasters
+#### CalculateMasterNodes
 ```csharp
-int CalculateMasters(bool hasManagedControlPlane, int workers, bool isProd)
+int CalculateMasterNodes(int workerCount, bool isManagedControlPlane, K8sHADRConfig? hadrConfig = null)
 ```
-Calculate control plane node count.
+Calculate control plane node count (HA/DR aware).
 
 **Rules:**
-- Managed CP (EKS/AKS/GKE/OKE) → 0
-- 100+ workers → 5
+- Managed CP (EKS/AKS/GKE/OKE) or `hadrConfig.ControlPlaneHA == Managed` → 0
+- `hadrConfig.ControlPlaneHA == Single` → 1
+- `hadrConfig.ControlPlaneHA == StackedHA` or `ExternalEtcd` → `hadrConfig.ControlPlaneNodes`
+- 100+ workers (no HADR config) → 5
 - Default → 3
+
+#### CalculateEtcdNodes
+```csharp
+int CalculateEtcdNodes(K8sHADRConfig? hadrConfig)
+```
+Calculate external etcd node count.
+
+**Rules:**
+- Only applies when `ControlPlaneHA == ExternalEtcd`
+- Returns 3 for 3 control plane nodes
+- Returns 5 for 5+ control plane nodes
+- Returns 0 otherwise
+
+#### ApplyAZMinimum
+```csharp
+int ApplyAZMinimum(int workers, K8sHADRConfig? hadrConfig)
+```
+Ensure minimum workers per AZ for proper distribution.
+
+**Rules:**
+- Single AZ: No change
+- Multi-AZ: Minimum 1 worker per AZ, rounds up to distribute evenly
+
+#### CalculateDRResources
+```csharp
+(int drNodes, decimal drCostMultiplier) CalculateDRResources(int primaryNodes, K8sHADRConfig? hadrConfig)
+```
+Calculate DR site resources based on DR pattern.
+
+**Returns:**
+- `drNodes`: Number of nodes in DR site
+- `drCostMultiplier`: Cost multiplier for DR (uses `hadrConfig.GetCostMultiplier()`)
+
+#### GetHADRConfigForEnvironment
+```csharp
+K8sHADRConfig? GetHADRConfigForEnvironment(EnvironmentType env, K8sSizingInput input)
+```
+Get HA/DR config for a specific environment.
+
+**Priority:**
+1. Environment-specific override from `input.EnvironmentHADRConfigs`
+2. Default `input.HADRConfig`
 
 #### CalculateInfra
 ```csharp
@@ -236,7 +281,7 @@ Get VM server role definitions for a technology.
 **Interface:** `Services/Interfaces/IDistributionService.cs`
 
 ### Data
-Static dictionary of `DistributionConfig` for all 11 distributions.
+Static dictionary of `DistributionConfig` for all 46 distributions.
 
 ### Methods
 
@@ -731,3 +776,62 @@ Validate sizing inputs against business rules.
 IEnumerable<Recommendation> GetRecommendations(K8sSizingResult result)
 ```
 Generate optimization recommendations based on results.
+
+---
+
+## IconResources
+
+**File:** `Services/IconResources.cs`
+
+### Purpose
+Provides CSS icon class mappings for consistent iconography across the application. Replaces emoji icons with CSS-based icons for better styling control and accessibility.
+
+### Methods
+
+#### GetTechIconClass
+```csharp
+static string GetTechIconClass(Technology tech)
+```
+Get CSS icon class for a technology.
+
+| Technology | Icon Class |
+|------------|------------|
+| DotNet | `icon-dotnet` |
+| Java | `icon-java` |
+| NodeJs | `icon-nodejs` |
+| Python | `icon-python` |
+| Go | `icon-go` |
+| Mendix | `icon-mendix` |
+| OutSystems | `icon-outsystems` |
+
+#### GetDistroIconClass
+```csharp
+static string GetDistroIconClass(Distribution distro)
+```
+Get CSS icon class for a K8s distribution.
+
+#### GetEnvIconClass
+```csharp
+static string GetEnvIconClass(EnvironmentType env)
+```
+Get CSS icon class for an environment.
+
+| Environment | Icon Class |
+|-------------|------------|
+| Dev | `icon-env-dev` |
+| Test | `icon-env-test` |
+| Stage | `icon-env-stage` |
+| Prod | `icon-env-prod` |
+| DR | `icon-env-dr` |
+
+#### GetEnvDisplayName
+```csharp
+static string GetEnvDisplayName(EnvironmentType env)
+```
+Get full display name for an environment.
+
+#### GetEnvShortLabel
+```csharp
+static string GetEnvShortLabel(EnvironmentType env)
+```
+Get short label for environment (e.g., "DEV", "PRD").

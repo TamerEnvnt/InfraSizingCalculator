@@ -23,10 +23,18 @@ App.razor
     │   │   └── Step 7: Results
     │   ├── K8s Configuration (Components/K8s/)
     │   │   ├── K8sAppsConfig.razor
-    │   │   └── K8sNodeSpecsConfig.razor
+    │   │   ├── K8sNodeSpecsConfig.razor
+    │   │   ├── K8sHADRPanel.razor (NEW)
+    │   │   └── K8sSettingsConfig.razor (NEW)
     │   ├── VM Configuration (Components/VM/)
     │   │   ├── VMServerRolesConfig.razor
     │   │   └── VMHADRConfig.razor
+    │   ├── Shared Components (Components/Shared/)
+    │   │   ├── EnvironmentSlider.razor (NEW)
+    │   │   ├── HorizontalSlider.razor (NEW)
+    │   │   ├── EnvironmentAppCard.razor (NEW)
+    │   │   ├── EnvironmentAppGrid.razor (NEW)
+    │   │   └── HorizontalAccordionPanel.razor
     │   ├── Pricing (Components/Pricing/)
     │   │   ├── CloudAlternativesPanel.razor
     │   │   └── OnPremPricingPanel.razor
@@ -702,3 +710,384 @@ private async Task DownloadExcel()
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 }
 ```
+
+---
+
+## K8s Configuration Components
+
+### K8sHADRPanel.razor
+
+**File:** `Components/K8s/K8sHADRPanel.razor`
+
+**Purpose:** Configure High Availability and Disaster Recovery settings for Kubernetes clusters.
+
+**Design Pattern:** Two-section panel with summary bar
+
+**Key Features:**
+- Control plane HA configuration (for self-managed distributions only)
+- Node distribution across availability zones
+- DR strategy selection with RTO guidance
+- Backup strategy configuration (Velero, Kasten, Portworx, CloudNative)
+- Live cost multiplier calculation display
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| Config | K8sHADRConfig | Current HA/DR configuration |
+| ConfigChanged | EventCallback<K8sHADRConfig> | Callback when config changes |
+| Distribution | Distribution | Selected K8s distribution |
+
+**HA Options:**
+| Option | Description | Nodes |
+|--------|-------------|-------|
+| Managed | Cloud provider manages CP | 0 (managed) |
+| Single | No HA, single node | 1 |
+| StackedHA | etcd on control plane | 3, 5, or 7 |
+| ExternalEtcd | Separate etcd cluster | 3, 5, or 7 |
+
+**DR Patterns:**
+| Pattern | RTO | Description |
+|---------|-----|-------------|
+| None | N/A | Multi-AZ only |
+| BackupRestore | ~24h | Regular backups, manual restore |
+| WarmStandby | ~1h | Minimal DR cluster, scales on failover |
+| HotStandby | ~15min | Full DR cluster ready |
+| ActiveActive | ~5min | Multi-region traffic serving |
+
+**UI Structure:**
+```
+┌─────────────────────────────────────────────────────┐
+│ 🛡️ High Availability                                │
+│   Control Plane: [Stacked HA ▼]  Nodes: [3 ▼]      │
+│   Node Distribution: [Multi-AZ ▼]  AZs: [3 ▼]      │
+│   ☑ Pod Disruption Budgets  ☑ Topology Spread      │
+├─────────────────────────────────────────────────────┤
+│ 🔄 Disaster Recovery                                │
+│   DR Strategy: [Warm Standby ▼]                     │
+│   DR Region: [us-west-2]  RTO: [1 hour ▼]          │
+│   Backup Strategy: [Velero ▼]                       │
+│   Frequency: [Daily ▼]  Retention: [30 days ▼]      │
+├─────────────────────────────────────────────────────┤
+│ 📊 Multi-AZ + Warm Standby | Cost multiplier: 1.40x │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+### K8sSettingsConfig.razor
+
+**File:** `Components/K8s/K8sSettingsConfig.razor`
+
+**Purpose:** Configure headroom, replicas, and resource overcommit settings.
+
+**Design Pattern:** Compact grid with sections
+
+**Key Features:**
+- Per-environment headroom percentages (buffer capacity)
+- Per-environment replica counts (pod instances)
+- Production vs non-production overcommit ratios
+- Disabled inputs for unchecked environments
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| EnabledEnvironments | HashSet<EnvironmentType> | Currently enabled environments |
+| Headroom | Dictionary<EnvironmentType, double> | Headroom % per environment |
+| HeadroomChanged | EventCallback | Headroom update callback |
+| Replicas | Dictionary<EnvironmentType, int> | Replicas per environment |
+| ReplicasChanged | EventCallback | Replicas update callback |
+| ProdCpuOvercommit | double | Production CPU overcommit ratio |
+| ProdMemoryOvercommit | double | Production memory overcommit ratio |
+| NonProdCpuOvercommit | double | Non-prod CPU overcommit ratio |
+| NonProdMemoryOvercommit | double | Non-prod memory overcommit ratio |
+
+**UI Structure:**
+```
+┌─────────────────────────────────────────────────────┐
+│ Headroom (Buffer %)                                 │
+│ [Dev: 20%] [Test: 20%] [Stage: 25%] [Prod: 30%]    │
+├─────────────────────────────────────────────────────┤
+│ Replicas (Pod Instances)                            │
+│ [Dev: 1] [Test: 1] [Stage: 2] [Prod: 3]            │
+├─────────────────────────────────────────────────────┤
+│ Resource Overcommit Ratios                          │
+│ Production:     CPU [1.0]  Memory [1.0]            │
+│ Non-Production: CPU [2.0]  Memory [1.5]            │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## VM Configuration Components
+
+### VMHADRConfig.razor
+
+**File:** `Components/VM/VMHADRConfig.razor`
+
+**Purpose:** Configure HA and DR patterns for VM deployments per environment.
+
+**Design Pattern:** Horizontal accordion with inline configuration
+
+**Key Features:**
+- Uses HorizontalAccordion for environment navigation
+- HA pattern selection (None, Active-Passive, Active-Active, N+1)
+- DR pattern selection (None, Warm Standby, Hot Standby, Multi-Region)
+- Load balancer configuration (None, Single, HA Pair, Cloud LB)
+- Inline summary display
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| EnabledEnvironments | HashSet<EnvironmentType> | Enabled environments |
+| EnvironmentConfigs | Dictionary<EnvironmentType, VMEnvironmentConfig> | Per-env configs |
+| EnvironmentConfigsChanged | EventCallback | Config update callback |
+
+**HA Patterns:**
+| Pattern | Description | Multiplier |
+|---------|-------------|------------|
+| None | Single server, no redundancy | 1.0x |
+| ActivePassive | Primary + standby failover | 2.0x |
+| ActiveActive | Multiple active with LB | 2.0x+ |
+| NPlus1 | N servers + 1 spare | 1.x× |
+
+**UI Structure:**
+```
+┌─────────────────────────────────────────────────────┐
+│ ⚙️ High Availability & Disaster Recovery            │
+├─────────────────────────────────────────────────────┤
+│ [Dev][Test][Stage][▼ Prod]                         │
+│ ┌─────────────────────────────────────────────────┐ │
+│ │ HA: [Active-Active ▼]  DR: [Hot Standby ▼]     │ │
+│ │ LB: [HA Pair ▼]                                 │ │
+│ │ Summary: Active-Active + Hot Standby + HA LB   │ │
+│ └─────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Shared Components
+
+### EnvironmentSlider.razor
+
+**File:** `Components/Shared/EnvironmentSlider.razor`
+
+**Purpose:** Navigate environments horizontally with app tier configuration.
+
+**Design Pattern:** Left-to-right slider with navigation dots
+
+**Key Features:**
+- One environment visible at a time
+- Previous/Next arrow navigation
+- Navigation dots for quick jump
+- Real-time stats (total apps, estimated CPU/RAM)
+- Four-tier application configuration (S/M/L/XL)
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| EnabledEnvironments | HashSet<EnvironmentType> | Enabled environments |
+| EnvironmentApps | Dictionary<EnvironmentType, AppConfig> | App counts per env |
+| EnvironmentAppsChanged | EventCallback | App config callback |
+| SmallSpec | string | Small tier specification |
+| MediumSpec | string | Medium tier specification |
+| LargeSpec | string | Large tier specification |
+| XLargeSpec | string | XLarge tier specification |
+
+**UI Structure:**
+```
+┌─────────────────────────────────────────────────────┐
+│ 📦 Multi-Cluster Mode | 25 Apps | 12.5 CPU | 50 GB │
+├─────────────────────────────────────────────────────┤
+│         [D] [T] [S] [●P] [DR]                       │
+├─────────────────────────────────────────────────────┤
+│ ◀ │ ┌─────────────────────────────────┐          │ ▶│
+│   │ │ P  Production Environment  8    │          │  │
+│   │ │    ┌───┐ ┌───┐ ┌───┐ ┌───┐    │          │  │
+│   │ │    │ S │ │ M │ │ L │ │XL │    │          │  │
+│   │ │    │ 2 │ │ 3 │ │ 2 │ │ 1 │    │          │  │
+│   │ │    └───┘ └───┘ └───┘ └───┘    │          │  │
+│   │ └─────────────────────────────────┘          │  │
+├─────────────────────────────────────────────────────┤
+│                  4 of 5 environments                │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+### HorizontalSlider.razor
+
+**File:** `Components/Shared/HorizontalSlider.razor`
+
+**Purpose:** Generic horizontal slider component for any item type.
+
+**Design Pattern:** Generic templated slider with navigation
+
+**Key Features:**
+- Generic `TItem` type parameter for any item collection
+- RenderFragment templates for content customization
+- Optional header, navigation dots, and progress bar
+- Previous/Next navigation with optional labels
+- CSS class customization via callback functions
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| Items | IEnumerable<TItem> | Items to navigate |
+| ItemTemplate | RenderFragment<TItem> | Template for item content |
+| HeaderContent | RenderFragment? | Optional header content |
+| NavDotTemplate | RenderFragment<TItem>? | Optional nav dot template |
+| CurrentIndex | int | Current item index |
+| CurrentIndexChanged | EventCallback<int> | Index change callback |
+| OnItemChanged | EventCallback<TItem> | Item change callback |
+| ItemTitleFunc | Func<TItem, string>? | Get item title |
+| ItemCssClassFunc | Func<TItem, string>? | Get item CSS class |
+| ShowHeader | bool | Show header (default: true) |
+| ShowNavDots | bool | Show nav dots (default: true) |
+| ShowProgress | bool | Show progress (default: true) |
+
+**Usage Example:**
+```razor
+<HorizontalSlider TItem="EnvironmentType"
+                  Items="@environments"
+                  CurrentIndex="@currentIndex"
+                  ItemTitleFunc="@(e => e.ToString())"
+                  ItemCssClassFunc="@(e => $"env-{e.ToString().ToLower()}")">
+    <ItemTemplate Context="env">
+        <div class="env-config">@env configuration...</div>
+    </ItemTemplate>
+</HorizontalSlider>
+```
+
+---
+
+### EnvironmentAppCard.razor
+
+**File:** `Components/Shared/EnvironmentAppCard.razor`
+
+**Purpose:** Expandable card for environment app tier configuration.
+
+**Design Pattern:** Expand/collapse card with horizontal inputs
+
+**Key Features:**
+- Collapsed state shows environment name and app count
+- Expanded state shows all four tier inputs horizontally
+- Color-coded by environment type
+- Displays tier specifications and total count
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| Environment | EnvironmentType | The environment type |
+| IsExpanded | bool | Current expand state |
+| IsExpandedChanged | EventCallback<bool> | Expand state callback |
+| SmallCount | int | Small tier count |
+| MediumCount | int | Medium tier count |
+| LargeCount | int | Large tier count |
+| XLargeCount | int | XLarge tier count |
+| SmallSpec | string | Small tier spec display |
+| MediumSpec | string | Medium tier spec display |
+| LargeSpec | string | Large tier spec display |
+| XLargeSpec | string | XLarge tier spec display |
+| OnSmallChanged | EventCallback<int> | Small count callback |
+| OnMediumChanged | EventCallback<int> | Medium count callback |
+| OnLargeChanged | EventCallback<int> | Large count callback |
+| OnXLargeChanged | EventCallback<int> | XLarge count callback |
+
+**UI Structure:**
+```
+Collapsed:
+┌───────────────────────────────────────┐
+│ [P] Prod                    8 apps ▶ │
+└───────────────────────────────────────┘
+
+Expanded:
+┌───────────────────────────────────────────────────────┐
+│ [P] Prod                                          ▼ │
+│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐      │
+│ │  S   │ │  M   │ │  L   │ │  XL  │ │Total │      │
+│ │ [2]  │ │ [3]  │ │ [2]  │ │ [1]  │ │  8   │      │
+│ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘      │
+└───────────────────────────────────────────────────────┘
+```
+
+---
+
+### EnvironmentAppGrid.razor
+
+**File:** `Components/Shared/EnvironmentAppGrid.razor`
+
+**Purpose:** Grid layout for multi-cluster app configuration.
+
+**Design Pattern:** Toggle chips + expandable cards grid
+
+**Key Features:**
+- Environment toggle chips to enable/disable clusters
+- Multiple EnvironmentAppCard components in horizontal layout
+- Real-time stats header (total apps, CPU, RAM)
+- Production environment always enabled
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| EnabledEnvironments | HashSet<EnvironmentType> | Enabled environments |
+| EnvironmentApps | Dictionary<EnvironmentType, AppConfig> | App configs |
+| EnabledEnvironmentsChanged | EventCallback | Enabled envs callback |
+| EnvironmentAppsChanged | EventCallback | App config callback |
+| SmallSpec | string | Small tier spec display |
+| MediumSpec | string | Medium tier spec display |
+| LargeSpec | string | Large tier spec display |
+| XLargeSpec | string | XLarge tier spec display |
+
+**UI Structure:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📦 Multi-Cluster Mode            25 Apps | 12.5 CPU | 50 GB │
+├─────────────────────────────────────────────────────────────┤
+│ [☑ Dev] [☑ Test] [☑ Stage] [☑ Prod*] [☐ DR]                │
+│ * Prod always enabled                                        │
+├─────────────────────────────────────────────────────────────┤
+│ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐            │
+│ │ Dev     │ │ Test    │ │ Stage   │ │▼ Prod   │            │
+│ │ 5 apps ▶│ │ 4 apps ▶│ │ 4 apps ▶│ │ S M L XL│            │
+│ └─────────┘ └─────────┘ └─────────┘ │ 2 3 2 1 │            │
+│                                      └─────────┘            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Relationships
+
+### Shared Component Usage
+
+```
+Home.razor
+├── EnvironmentSlider.razor ──────── Alternative app config UI (slider mode)
+│
+├── EnvironmentAppGrid.razor ─────── Multi-cluster app configuration
+│   └── EnvironmentAppCard.razor ─── Individual environment card
+│
+├── HorizontalSlider.razor ───────── Generic slider (reusable)
+│
+├── K8sHADRPanel.razor ───────────── K8s HA/DR configuration
+│
+├── K8sSettingsConfig.razor ──────── K8s headroom/replicas/overcommit
+│
+└── VMHADRConfig.razor ───────────── VM HA/DR configuration
+    └── HorizontalAccordion.razor ── Environment navigation
+        └── HorizontalAccordionPanel.razor ── Panel content
+```
+
+---
+
+## Design Patterns Summary
+
+| Pattern | Components | Use Case |
+|---------|------------|----------|
+| **Horizontal Slider** | EnvironmentSlider, HorizontalSlider | Step-through navigation |
+| **Expand/Collapse Card** | EnvironmentAppCard, SizingResultsView | Progressive disclosure |
+| **Horizontal Accordion** | VMHADRConfig, HorizontalAccordion | Multi-panel selection |
+| **Grid with Toggle Chips** | EnvironmentAppGrid | Multi-select configuration |
+| **Two-Section Panel** | K8sHADRPanel | Grouped configuration |
+| **Compact Grid** | K8sSettingsConfig | Dense settings layout |

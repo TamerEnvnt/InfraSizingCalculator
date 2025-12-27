@@ -25,6 +25,8 @@ Primary input model for Kubernetes cluster sizing calculations.
 | ProdOvercommit | OvercommitSettings | Production overcommit | Default |
 | NonProdOvercommit | OvercommitSettings | Non-prod overcommit | Default |
 | CustomNodeSpecs | DistributionConfig? | Custom node specs | null |
+| HADRConfig | K8sHADRConfig? | Default HA/DR configuration | null |
+| EnvironmentHADRConfigs | Dictionary\<EnvironmentType, K8sHADRConfig\>? | Per-env HA/DR overrides | null |
 
 **Validation:**
 - Production environment always enabled (BR-E002)
@@ -162,6 +164,10 @@ Results for a single environment (K8s).
 | Masters | int | Master node count |
 | Infra | int | Infra node count |
 | Workers | int | Worker node count |
+| EtcdNodes | int | External etcd node count |
+| DRNodes | int | DR site node count |
+| DRCostMultiplier | decimal | DR cost multiplier |
+| AvailabilityZones | int | Number of AZs used |
 | TotalNodes | int | Sum of all nodes |
 | TotalCpu | int | Total vCPU |
 | TotalRam | int | Total RAM (GB) |
@@ -485,3 +491,176 @@ Controller,     // Platform controller
 LifeTime,       // OutSystems LifeTime
 FileStorage     // File storage server
 ```
+
+---
+
+## K8s HA/DR Enumerations
+
+### K8sControlPlaneHA
+```csharp
+Managed,      // Cloud-managed control plane (EKS, AKS, GKE) - automatic HA
+Single,       // Single control plane node (dev/test only)
+StackedHA,    // 3+ control planes with co-located etcd
+ExternalEtcd  // 3+ control planes with separate etcd cluster
+```
+
+### K8sNodeDistribution
+```csharp
+SingleAZ,     // All nodes in one AZ (lowest cost, no AZ redundancy)
+DualAZ,       // Nodes spread across 2 AZs
+MultiAZ,      // Nodes spread across 3+ AZs (recommended for prod)
+MultiRegion   // Nodes across multiple regions (highest availability)
+```
+
+### K8sDRPattern
+```csharp
+None,           // No DR - single cluster with multi-AZ
+BackupRestore,  // Regular backups with Velero/Kasten, manual restore
+WarmStandby,    // Minimal standby cluster, scales up on failover
+HotStandby,     // Fully provisioned standby (RTO < 15min)
+ActiveActive    // Multiple clusters with global load balancing
+```
+
+### K8sBackupStrategy
+```csharp
+None,         // No automated backup
+Velero,       // Open source CNCF project
+Kasten,       // Kasten K10 - enterprise-grade
+Portworx,     // Portworx PX-Backup - storage-integrated
+CloudNative,  // AWS Backup, Azure Backup, GCP Backup
+Custom        // Organization-specific tooling
+```
+
+---
+
+## K8s HA/DR Configuration Model
+
+### K8sHADRConfig
+
+High Availability and Disaster Recovery configuration for K8s clusters.
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| ControlPlaneHA | K8sControlPlaneHA | Control plane HA mode | Managed |
+| ControlPlaneNodes | int | Control plane node count | 3 |
+| NodeDistribution | K8sNodeDistribution | Worker node distribution | MultiAZ |
+| AvailabilityZones | int | Number of AZs | 3 |
+| DRPattern | K8sDRPattern | Disaster recovery pattern | None |
+| BackupStrategy | K8sBackupStrategy | Backup strategy | None |
+| BackupFrequencyHours | int | Backup frequency (0 = none) | 24 |
+| BackupRetentionDays | int | Backup retention period | 30 |
+| EnablePodDisruptionBudgets | bool | Enable PDBs | true |
+| MinAvailableReplicas | int | Min replicas during disruptions | 1 |
+| EnableTopologySpread | bool | Use topology spread constraints | true |
+| DRRegion | string? | Target DR region | null |
+| RTOMinutes | int? | Recovery Time Objective | null |
+| RPOMinutes | int? | Recovery Point Objective | null |
+
+**Methods:**
+- `GetCostMultiplier()` - Returns decimal cost multiplier based on HA/DR settings
+- `GetCostMultiplier(Distribution)` - Provider-aware cost multiplier (Azure FREE cross-AZ)
+- `GetSummary()` - Returns human-readable summary
+
+**Cost Multiplier Sources (Dec 2024):**
+- Multi-AZ: AWS $0.01/GB, Azure FREE, GCP $0.01/GB (~2-3% overhead)
+- Multi-Region: AWS $0.02-0.09/GB, Azure/GCP $0.05-0.12/GB (~20% overhead)
+- DR patterns: AWS Well-Architected DR pillar ratios
+- Backup costs: Velero free, Kasten ~$225/node/yr, Portworx ~$2100/node/yr
+
+---
+
+## OutSystems Pricing Models
+
+### OutSystemsEdition
+```csharp
+Standard,    // Starting tier for small-medium deployments
+Enterprise   // Full-featured for large enterprise
+```
+
+### OutSystemsDeploymentType
+```csharp
+Cloud,       // OutSystems Cloud (managed PaaS)
+SelfManaged  // Self-managed on-premises or private cloud
+```
+
+### OutSystemsUserLicenseType
+```csharp
+Named,       // Named users - dedicated license per user
+Concurrent,  // Concurrent users - floating licenses
+External     // External/Anonymous - session-based for public apps
+```
+
+### OutSystemsSupportTier
+```csharp
+Standard,  // Included in subscription
+Premium,   // 24/7 with faster SLAs (+15%)
+Elite      // Dedicated support with custom SLAs (+25%)
+```
+
+### OutSystemsPricingSettings
+
+Complete OutSystems pricing configuration based on ODC pricing model.
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| StandardEditionBasePrice | decimal | Standard annual base | $36,300 |
+| StandardEditionAOsIncluded | int | AOs included in Standard | 150 |
+| StandardEditionInternalUsersIncluded | int | Users included | 100 |
+| EnterpriseEditionBasePrice | decimal | Enterprise annual base | $72,600 |
+| EnterpriseEditionAOsIncluded | int | AOs included | 450 |
+| EnterpriseEditionInternalUsersIncluded | int | Users included | 500 |
+| AOPackSize | int | AOs per additional pack | 150 |
+| AdditionalAOPackPrice | decimal | Price per AO pack | $18,000 |
+| InternalUserPackSize | int | Users per pack | 100 |
+| AdditionalInternalUserPackPrice | decimal | Price per user pack | $6,000 |
+| ExternalUserPackSize | int | Sessions per pack | 10,000 |
+| ExternalUserPackPricePerYear | decimal | External pack price | $12,000 |
+| CloudAdditionalProdEnvPrice | decimal | Add'l prod environment | $12,000 |
+| CloudAdditionalNonProdEnvPrice | decimal | Add'l non-prod env | $6,000 |
+| CloudHAAddOnPrice | decimal | HA add-on | $24,000 |
+| CloudDRAddOnPrice | decimal | DR add-on | $18,000 |
+| SelfManagedBasePrice | decimal | Self-managed base | $48,000 |
+| SelfManagedPerEnvironmentPrice | decimal | Per environment | $9,600 |
+| SelfManagedPerFrontEndPrice | decimal | Per front-end server | $4,800 |
+| PremiumSupportPercent | decimal | Premium support % | 15% |
+| EliteSupportPercent | decimal | Elite support % | 25% |
+
+### OutSystemsDeploymentConfig
+
+User-selected OutSystems deployment configuration.
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Edition | OutSystemsEdition | Edition type | Standard |
+| DeploymentType | OutSystemsDeploymentType | Cloud or Self-managed | SelfManaged |
+| TotalApplicationObjects | int | Total AOs | 20 |
+| ProductionEnvironments | int | Prod env count | 1 |
+| NonProductionEnvironments | int | Non-prod env count | 3 |
+| FrontEndServers | int | Self-managed front-ends | 2 |
+| IncludeHA | bool | Include HA | false |
+| IncludeDR | bool | Include DR | false |
+| UserLicenseType | OutSystemsUserLicenseType | License type | Named |
+| NamedUsers | int | Named user count | 100 |
+| ConcurrentUsers | int | Concurrent user count | 0 |
+| ExternalSessions | int | Monthly session count | 0 |
+| SupportTier | OutSystemsSupportTier | Support level | Standard |
+
+### OutSystemsPricingResult
+
+Calculated OutSystems pricing result.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| Edition | OutSystemsEdition | Selected edition |
+| DeploymentType | OutSystemsDeploymentType | Deployment type |
+| EditionBaseCost | decimal | Base subscription cost |
+| AdditionalAOsCost | decimal | Additional AO packs |
+| EnvironmentCost | decimal | Environment costs |
+| FrontEndCost | decimal | Front-end server costs |
+| HACost | decimal | HA add-on cost |
+| DRCost | decimal | DR add-on cost |
+| UserLicenseCost | decimal | User licensing cost |
+| SupportCost | decimal | Support tier cost |
+| TotalPerYear | decimal | Annual total |
+| TotalPerMonth | decimal | Monthly total |
+| TotalThreeYear | decimal | 3-year TCO |

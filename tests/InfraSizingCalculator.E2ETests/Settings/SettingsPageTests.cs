@@ -22,15 +22,14 @@ public class SettingsPageTests : PlaywrightFixture
         // Wait for settings page to load
         await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
 
-        // Verify the settings layout is visible
-        var settingsLayout = Page.Locator(".settings-layout");
-        Assert.That(await settingsLayout.IsVisibleAsync(), Is.True,
+        // Verify the settings main content is visible
+        var settingsMain = Page.Locator(".settings-main");
+        Assert.That(await settingsMain.IsVisibleAsync(), Is.True,
             "Settings layout should be visible");
 
-        // Verify content is not clipped - check that multiple sections are visible
-        var sections = Page.Locator(".settings-card");
-        var count = await sections.CountAsync();
-        Assert.That(count, Is.GreaterThan(0), "Settings cards should be visible");
+        // Verify content is not clipped - check that content section is visible
+        var content = Page.Locator(".settings-content");
+        Assert.That(await content.IsVisibleAsync(), Is.True, "Settings content should be visible");
     }
 
     [Test]
@@ -43,13 +42,13 @@ public class SettingsPageTests : PlaywrightFixture
         await settingsButton.ClickAsync();
         await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
 
-        // Get the page scroll height
-        var fullPageShell = Page.Locator(".full-page-shell");
-        var isScrollable = await fullPageShell.EvaluateAsync<bool>("el => el.scrollHeight > el.clientHeight");
+        // Verify the settings page has content
+        var settingsContent = Page.Locator(".settings-content");
+        var isVisible = await settingsContent.IsVisibleAsync();
 
         // Either the content fits or we can scroll - either is acceptable
         // The fact that we got here means the page is accessible
-        Assert.Pass("Settings page is fully accessible");
+        Assert.That(isVisible, Is.True, "Settings page content is fully accessible");
     }
 
     [Test]
@@ -61,11 +60,11 @@ public class SettingsPageTests : PlaywrightFixture
         await settingsButton.ClickAsync();
         await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
 
-        // Check for main sections
+        // Check for main sections in sidebar
         var pageContent = await Page.ContentAsync();
 
-        Assert.That(pageContent.Contains("On-Premises") || pageContent.Contains("On Prem"),
-            Is.True, "On-Premises section should be present");
+        Assert.That(pageContent.Contains("Hardware") || pageContent.Contains("Infrastructure"),
+            Is.True, "Infrastructure/Hardware section should be present");
         Assert.That(pageContent.Contains("Mendix"),
             Is.True, "Mendix section should be present");
     }

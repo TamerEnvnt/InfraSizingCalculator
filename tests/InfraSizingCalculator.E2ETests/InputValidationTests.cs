@@ -17,9 +17,9 @@ public class InputValidationTests : PlaywrightFixture
         if (singleClusterInput != null)
             return singleClusterInput;
 
-        // Multi-cluster mode: Dev panel is expanded by default with spinbuttons
-        var spinbutton = await Page.QuerySelectorAsync("[role='spinbutton']");
-        return spinbutton;
+        // Multi-cluster mode: Dev panel is expanded by default with tier inputs
+        var tierInput = await Page.QuerySelectorAsync(".tier-panel input.tier-input");
+        return tierInput;
     }
 
     /// <summary>
@@ -32,8 +32,8 @@ public class InputValidationTests : PlaywrightFixture
         if (singleClusterInputs.Count > 0)
             return singleClusterInputs;
 
-        // Multi-cluster mode: Dev panel is expanded by default with spinbuttons
-        var multiClusterInputs = await Page.QuerySelectorAllAsync("[role='spinbutton']");
+        // Multi-cluster mode: Dev panel is expanded by default with tier inputs
+        var multiClusterInputs = await Page.QuerySelectorAllAsync(".tier-panel input.tier-input");
         return multiClusterInputs;
     }
 
@@ -63,9 +63,9 @@ public class InputValidationTests : PlaywrightFixture
             return;
         }
 
-        // Multi-cluster mode: Dev panel is expanded by default with spinbuttons
-        inputs = await Page.QuerySelectorAllAsync("[role='spinbutton']");
-        Assert.That(inputs.Count, Is.GreaterThan(0), "Should have spinbutton input fields");
+        // Multi-cluster mode: Dev panel is expanded by default with tier inputs
+        inputs = await Page.QuerySelectorAllAsync(".tier-panel input.tier-input");
+        Assert.That(inputs.Count, Is.GreaterThan(0), "Should have tier input fields");
 
         foreach (var input in inputs)
         {

@@ -74,21 +74,21 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Find collapsed Dev panel and click to expand
-        var devPanel = await Page.QuerySelectorAsync(".h-accordion-panel.env-dev");
-        Assert.That(devPanel, Is.Not.Null, "Dev panel should exist");
+        // Dev panel is expanded by default - find Prod panel which is collapsed
+        var prodPanel = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod");
+        Assert.That(prodPanel, Is.Not.Null, "Prod panel should exist");
 
-        // Click on the header to expand
-        var devHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-dev .h-accordion-header");
-        Assert.That(devHeader, Is.Not.Null, "Dev panel header should exist");
-        await devHeader!.ClickAsync();
+        // Click on the Prod header to expand it
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        Assert.That(prodHeader, Is.Not.Null, "Prod panel header should exist");
+        await prodHeader!.ClickAsync();
         await Page.WaitForTimeoutAsync(300);
 
-        // Dev panel should now be expanded
-        devPanel = await Page.QuerySelectorAsync(".h-accordion-panel.env-dev");
-        var devPanelClass = await devPanel!.GetAttributeAsync("class") ?? "";
-        Assert.That(devPanelClass, Does.Contain("expanded"),
-            "Dev panel should be expanded after clicking");
+        // Prod panel should now be expanded
+        prodPanel = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod");
+        var prodPanelClass = await prodPanel!.GetAttributeAsync("class") ?? "";
+        Assert.That(prodPanelClass, Does.Contain("expanded"),
+            "Prod panel should be expanded after clicking");
     }
 
     [Test]
@@ -126,10 +126,10 @@ public class MultiClusterTests : PlaywrightFixture
         await NavigateToMultiClusterConfigAsync();
 
         // Dev panel is expanded by default in multi-cluster mode
-        // Should show spinbuttons for tier inputs
-        var spinbuttons = await Page.QuerySelectorAllAsync("[role='spinbutton']");
-        Assert.That(spinbuttons.Count, Is.GreaterThanOrEqualTo(4),
-            "Should have spinbuttons for tier inputs (S/M/L/XL)");
+        // Should show tier inputs for S/M/L/XL
+        var tierInputs = await Page.QuerySelectorAllAsync(".tier-panel input.tier-input");
+        Assert.That(tierInputs.Count, Is.GreaterThanOrEqualTo(4),
+            "Should have tier inputs for S/M/L/XL");
     }
 
     [Test]
@@ -137,14 +137,13 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Dev panel is expanded by default - find and use the Medium tier spinbutton
-        // Structure is: container with text "Medium" containing a spinbutton
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
+        // Dev panel is expanded by default - find and use the Medium tier input
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
 
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("50");
-        var value = await mediumSpinbutton.InputValueAsync();
-        Assert.That(value, Is.EqualTo("50"), "Medium tier spinbutton should accept app count");
+        await mediumInput!.FillAsync("50");
+        var value = await mediumInput.InputValueAsync();
+        Assert.That(value, Is.EqualTo("50"), "Medium tier input should accept app count");
     }
 
     [Test]
@@ -152,10 +151,10 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Dev panel is expanded by default - use the Medium tier spinbutton
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("20");
+        // Dev panel is expanded by default - use the Medium tier input
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
+        await mediumInput!.FillAsync("20");
 
         await ClickK8sCalculateAsync();
         await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
@@ -171,9 +170,9 @@ public class MultiClusterTests : PlaywrightFixture
         await NavigateToMultiClusterConfigAsync();
 
         // Dev panel is expanded by default - set apps in Medium tier
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("20");
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
+        await mediumInput!.FillAsync("20");
 
         await ClickK8sCalculateAsync();
         await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
@@ -189,8 +188,8 @@ public class MultiClusterTests : PlaywrightFixture
         await NavigateToMultiClusterConfigAsync();
         await ClickTabAsync("Node Specs");
 
-        // Should show tabbed interface for per-environment node specs
-        Assert.That(await IsVisibleAsync(".node-specs-tabbed") || await IsVisibleAsync(".node-specs-panel"), Is.True,
+        // Should show node specs configuration with per-environment accordion
+        Assert.That(await IsVisibleAsync(".k8s-node-specs-config") || await IsVisibleAsync(".node-specs-accordion") || await IsVisibleAsync(".node-cards"), Is.True,
             "Node specs panel should be visible");
     }
 
@@ -246,10 +245,10 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Dev panel is expanded by default - update Medium tier spinbutton
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("100");
+        // Dev panel is expanded by default - update Medium tier input
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
+        await mediumInput!.FillAsync("100");
         await Page.WaitForTimeoutAsync(300);
 
         // Stats should show the updated count (look for the total apps display)
@@ -265,10 +264,10 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Dev panel is expanded by default - use the Medium tier spinbutton
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("70");
+        // Dev panel is expanded by default - use the Medium tier input
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
+        await mediumInput!.FillAsync("70");
 
         await ClickK8sCalculateAsync();
         await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
@@ -297,10 +296,10 @@ public class MultiClusterTests : PlaywrightFixture
     {
         await NavigateToMultiClusterConfigAsync();
 
-        // Dev panel is expanded by default - use the Medium tier spinbutton
-        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
-        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
-        await mediumSpinbutton.FillAsync("20");
+        // Dev panel is expanded by default - use the Medium tier input
+        var mediumInput = await Page.QuerySelectorAsync(".tier-panel.medium input.tier-input");
+        Assert.That(mediumInput, Is.Not.Null, "Medium tier input should exist");
+        await mediumInput!.FillAsync("20");
 
         await ClickK8sCalculateAsync();
         await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });

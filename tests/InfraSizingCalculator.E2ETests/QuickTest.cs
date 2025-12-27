@@ -16,26 +16,21 @@ public class QuickTest : PlaywrightFixture
         await Page.WaitForFunctionAsync("() => window.Blazor !== undefined", new PageWaitForFunctionOptions { Timeout = 10000 });
         await Task.Delay(1000);
 
-        // Find and click Defaults button
-        var defaultsBtn = Page.Locator("button.header-btn").Filter(new() { HasText = "Defaults" });
-        await defaultsBtn.WaitForAsync(new LocatorWaitForOptions { Timeout = 5000 });
+        // Find and click Settings button (navigates to /settings page)
+        var settingsBtn = Page.Locator("button.header-btn.settings-btn");
+        await settingsBtn.WaitForAsync(new LocatorWaitForOptions { Timeout = 5000 });
 
-        Console.WriteLine($"Defaults button visible: {await defaultsBtn.IsVisibleAsync()}");
-        Console.WriteLine($"Defaults button enabled: {await defaultsBtn.IsEnabledAsync()}");
+        Console.WriteLine($"Settings button visible: {await settingsBtn.IsVisibleAsync()}");
+        Console.WriteLine($"Settings button enabled: {await settingsBtn.IsEnabledAsync()}");
 
-        await defaultsBtn.ClickAsync();
+        await settingsBtn.ClickAsync();
         await Task.Delay(1000);
 
-        // Check if modal opened - modals use @if so we just look for .modal-overlay
-        var modal = Page.Locator(".modal-overlay");
-        var modalVisible = await modal.IsVisibleAsync();
-        Console.WriteLine($"Modal visible after click: {modalVisible}");
+        // Settings button navigates to /settings page, check for settings page content
+        var settingsPage = Page.Locator(".settings-page, .settings-main").First;
+        var settingsVisible = await settingsPage.IsVisibleAsync();
+        Console.WriteLine($"Settings page visible after click: {settingsVisible}");
 
-        // Also check for modal content
-        var modalContent = Page.Locator(".modal-content");
-        var contentVisible = await modalContent.IsVisibleAsync();
-        Console.WriteLine($"Modal content visible: {contentVisible}");
-
-        Assert.That(modalVisible || contentVisible, Is.True, "Settings modal should be visible after clicking Defaults");
+        Assert.That(settingsVisible, Is.True, "Settings page should be visible after clicking Settings button");
     }
 }

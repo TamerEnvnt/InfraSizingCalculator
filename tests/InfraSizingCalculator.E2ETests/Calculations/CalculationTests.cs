@@ -20,16 +20,6 @@ public class CalculationTests : PlaywrightFixture
         await ClickTabAsync("Applications");
         await Page.WaitForTimeoutAsync(500);
 
-        // Map tier names to display labels
-        var tierLabel = tier.ToLower() switch
-        {
-            "small" => "Small",
-            "medium" => "Medium",
-            "large" => "Large",
-            "xlarge" or "xl" => "XLarge",
-            _ => tier
-        };
-
         // Try single cluster selector first (.tier-card)
         var singleClusterSelector = $".tier-card.{tier.ToLower()} input";
         var singleClusterElement = await Page.QuerySelectorAsync(singleClusterSelector);
@@ -42,25 +32,27 @@ public class CalculationTests : PlaywrightFixture
         }
 
         // Multi-cluster mode: Dev panel is expanded by default
-        // Wait for spinbuttons to be present in the DOM
-        await Page.WaitForSelectorAsync("[role='spinbutton']", new() { Timeout = 5000, State = WaitForSelectorState.Visible });
+        // Wait for tier inputs to be present in the DOM (inputs are .tier-input inside .tier-panel)
+        await Page.WaitForSelectorAsync(".tier-panel input.tier-input", new() { Timeout = 5000, State = WaitForSelectorState.Visible });
 
-        // Find the tier spinbutton by looking for the label text
-        var tierSpinbutton = Page.Locator($":has-text('{tierLabel}')").Locator("[role='spinbutton']").First;
+        // Find the tier input by looking for the panel with matching class
+        var tierInputSelector = $".tier-panel.{tier.ToLower()} input.tier-input";
+        var tierInput = await Page.QuerySelectorAsync(tierInputSelector);
 
-        try
+        if (tierInput != null)
         {
-            await tierSpinbutton.WaitForAsync(new() { Timeout = 3000, State = WaitForSelectorState.Visible });
-            await tierSpinbutton.FillAsync(count);
+            await tierInput.FillAsync(count);
             await Page.WaitForTimeoutAsync(300);
         }
-        catch
+        else
         {
-            // Fallback: use the first visible spinbutton
-            var fallbackSpinbutton = Page.Locator("[role='spinbutton']").First;
-            await fallbackSpinbutton.WaitForAsync(new() { Timeout = 3000, State = WaitForSelectorState.Visible });
-            await fallbackSpinbutton.FillAsync(count);
-            await Page.WaitForTimeoutAsync(300);
+            // Fallback: use the first visible tier input
+            var fallbackInput = await Page.QuerySelectorAsync(".tier-panel input.tier-input");
+            if (fallbackInput != null)
+            {
+                await fallbackInput.FillAsync(count);
+                await Page.WaitForTimeoutAsync(300);
+            }
         }
     }
 
@@ -103,32 +95,30 @@ public class CalculationTests : PlaywrightFixture
     public async Task K8s_Calculate_ShowsEnvironmentBreakdown()
     {
         await NavigateToK8sConfigAsync();
-
-        // Set app counts
         await SetTierAppsAsync("small", "20");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show environment results (env-cards in new UI)
-        Assert.That(await IsVisibleAsync(".env-card") || await IsVisibleAsync(".results-table") || await IsVisibleAsync(".sizing-results-view"), Is.True,
-            "Environment breakdown should be visible");
+        // Results show as a table with environment rows
+        var envRows = Page.Locator("table tbody tr");
+        Assert.That(await envRows.CountAsync(), Is.GreaterThan(0),
+            "Results table should show environment rows");
     }
 
     [Test]
     public async Task K8s_Calculate_ShowsGrandTotal()
     {
         await NavigateToK8sConfigAsync();
-
-        // Set app counts
         await SetTierAppsAsync("small", "10");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show grand total bar
-        Assert.That(await IsVisibleAsync(".grand-total-bar") || await IsVisibleAsync(".sizing-results-view"), Is.True,
-            "Results should show grand total");
+        // Results table shows Total row at bottom
+        var totalRow = Page.Locator("table tr:has-text('Total')");
+        Assert.That(await totalRow.CountAsync(), Is.GreaterThan(0),
+            "Results should show grand total row");
     }
 
     [Test]

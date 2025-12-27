@@ -42,9 +42,9 @@ public class SharedClusterTests : PlaywrightFixture
     {
         await NavigateToSharedClusterConfigAsync();
 
-        // Verify the mode description banner is displayed
-        Assert.That(await IsVisibleAsync(".mode-description-banner") || await IsVisibleAsync(".cluster-mode-banner"), Is.True,
-            "Mode description banner should be visible");
+        // Verify the cluster mode options are visible with Single selected
+        Assert.That(await IsVisibleAsync(".cluster-mode-options") || await IsVisibleAsync(".mode-option.selected"), Is.True,
+            "Cluster mode options should be visible");
     }
 
     [Test]
@@ -111,10 +111,10 @@ public class SharedClusterTests : PlaywrightFixture
         await NavigateToSharedClusterConfigAsync();
         await ClickTabAsync("Node Specs");
 
-        // Should show node specs (may be unified or tabbed)
-        Assert.That(await IsVisibleAsync(".node-specs-panel") ||
-                   await IsVisibleAsync(".node-spec-row") ||
-                   await IsVisibleAsync(".unified-specs"), Is.True,
+        // Should show node specs (unified for single cluster or node cards)
+        Assert.That(await IsVisibleAsync(".k8s-node-specs-config") ||
+                   await IsVisibleAsync(".node-cards") ||
+                   await IsVisibleAsync(".node-card"), Is.True,
             "Node specs should be visible");
     }
 
@@ -123,10 +123,10 @@ public class SharedClusterTests : PlaywrightFixture
     {
         await NavigateToSharedClusterConfigAsync();
 
-        // Check for any mode description or cluster mode indicator
-        var hasModeBanner = await IsVisibleAsync(".mode-description-banner") ||
-                           await IsVisibleAsync(".cluster-mode-banner") ||
-                           await IsVisibleAsync(".mode-selector");
+        // Check for cluster mode selector with single mode selected
+        var hasModeBanner = await IsVisibleAsync(".cluster-mode-sidebar") ||
+                           await IsVisibleAsync(".cluster-mode-options") ||
+                           await IsVisibleAsync(".mode-option.selected");
 
         Assert.That(hasModeBanner, Is.True,
             "Should show cluster mode indicator");
@@ -140,52 +140,45 @@ public class SharedClusterTests : PlaywrightFixture
     public async Task SharedCluster_Calculate_ShowsResults()
     {
         await NavigateToSharedClusterConfigAsync();
-
-        // Set some app counts
         await SetTierAppsAsync("small", "10");
         await SetTierAppsAsync("medium", "20");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Results should be displayed
-        Assert.That(await IsVisibleAsync(".sizing-results-view") || await IsVisibleAsync(".results-panel"), Is.True,
-            "Results panel should be visible");
+        // Results displayed as table
+        Assert.That(await Page.Locator("table").CountAsync(), Is.GreaterThan(0),
+            "Results table should be visible");
     }
 
     [Test]
     public async Task SharedCluster_Calculate_ShowsSummaryCards()
     {
         await NavigateToSharedClusterConfigAsync();
-
-        // Set apps
         await SetTierAppsAsync("medium", "30");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show summary cards or grand total
-        Assert.That(await IsVisibleAsync(".summary-cards") ||
-                   await IsVisibleAsync(".grand-total-bar") ||
-                   await IsVisibleAsync(".total-item") ||
-                   await IsVisibleAsync(".sizing-results-view"), Is.True,
-            "Summary information should be visible");
+        // Results table shows Total row as summary
+        var totalRow = Page.Locator("table tr:has-text('Total')");
+        Assert.That(await totalRow.CountAsync(), Is.GreaterThan(0),
+            "Summary Total row should be visible");
     }
 
     [Test]
     public async Task SharedCluster_Calculate_ShowsEnvironmentResults()
     {
         await NavigateToSharedClusterConfigAsync();
-
-        // Set apps
         await SetTierAppsAsync("small", "10");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show environment breakdown (env-cards) or sizing results
-        Assert.That(await IsVisibleAsync(".env-card") || await IsVisibleAsync(".sizing-results-view"), Is.True,
-            "Results should show environment cards or sizing results");
+        // Results table shows environment rows
+        var envRows = Page.Locator("table tbody tr");
+        Assert.That(await envRows.CountAsync(), Is.GreaterThan(0),
+            "Results should show environment rows");
     }
 
     [Test]
@@ -202,32 +195,28 @@ public class SharedClusterTests : PlaywrightFixture
         }
 
         await ClickTabAsync("Applications");
-
-        // Set some apps
         await SetTierAppsAsync("medium", "20");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Results should be generated successfully
-        Assert.That(await IsVisibleAsync(".sizing-results-view") || await IsVisibleAsync(".results-panel"), Is.True,
-            "Results should be displayed using unified specs");
+        // Results should be generated successfully as table
+        Assert.That(await Page.Locator("table").CountAsync(), Is.GreaterThan(0),
+            "Results table should be displayed using unified specs");
     }
 
     [Test]
     public async Task SharedCluster_Calculate_TotalNodes_ShowsInSummary()
     {
         await NavigateToSharedClusterConfigAsync();
-
-        // Set known app count
         await SetTierAppsAsync("medium", "70");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show total nodes in summary or results
-        var resultsText = await GetTextAsync(".sizing-results-view, .results-panel");
-        Assert.That(resultsText, Does.Contain("Node").Or.Contain("Total").Or.Contain("vCPU").IgnoreCase,
+        // Table has columns including Nodes
+        var tableContent = await Page.Locator("table").TextContentAsync();
+        Assert.That(tableContent, Does.Contain("Node").Or.Contain("Total").Or.Contain("vCPU").IgnoreCase,
             "Summary should show resource information");
     }
 
@@ -235,21 +224,15 @@ public class SharedClusterTests : PlaywrightFixture
     public async Task SharedCluster_Calculate_ResourceTotal_Visible()
     {
         await NavigateToSharedClusterConfigAsync();
-
-        // Set apps
         await SetTierAppsAsync("small", "10");
 
         await ClickK8sCalculateAsync();
-        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync("table", new() { Timeout = 10000 });
 
-        // Should show CPU and RAM totals in grand total bar or summary
-        var hasResourceInfo = await IsVisibleAsync(".total-item") ||
-                              await IsVisibleAsync(".grand-total-bar") ||
-                              await IsVisibleAsync(".summary-cards") ||
-                              await IsVisibleAsync(".sizing-results-view");
-
-        Assert.That(hasResourceInfo, Is.True,
-            "Results should show resource totals (CPU/RAM)");
+        // Results table shows Total row with resource totals
+        var totalRow = Page.Locator("table tr:has-text('Total')");
+        Assert.That(await totalRow.CountAsync(), Is.GreaterThan(0),
+            "Results should show resource totals in Total row");
     }
 
     #endregion

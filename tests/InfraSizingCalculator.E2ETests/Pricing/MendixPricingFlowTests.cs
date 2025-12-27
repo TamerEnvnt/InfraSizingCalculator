@@ -39,78 +39,97 @@ public class MendixPricingFlowTests : PlaywrightFixture
             "Mendix technology card should be visible");
 
         await mendixCard.ClickAsync();
-        await Page.WaitForTimeoutAsync(800);
 
-        // Verify we moved to distribution selection (Step 4 for K8s)
-        var distroCards = Page.Locator(".distro-card, .selection-card");
-        Assert.That(await distroCards.CountAsync(), Is.GreaterThan(0),
-            "Distribution options should be visible after selecting Mendix");
+        // Wait for Mendix deployment categories (Mendix has a special flow, not .distro-card)
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+
+        // Verify we moved to Mendix deployment category selection (Step 4 for Mendix K8s)
+        var categoryCards = Page.Locator(".mendix-category-card");
+        Assert.That(await categoryCards.CountAsync(), Is.GreaterThan(0),
+            "Mendix deployment categories should be visible after selecting Mendix");
     }
 
     [Test]
-    public async Task MendixFlow_ShowsDistributionOptions()
+    public async Task MendixFlow_ShowsDeploymentCategories()
     {
         await NavigateToMendixPlatformAsync();
 
-        // Select Mendix -> auto-advances to distribution step
+        // Select Mendix -> auto-advances to Mendix deployment category step
         await SelectTechCardAsync("Mendix");
-        await Page.WaitForTimeoutAsync(500);
 
-        // Look for distribution cards (OpenShift, K3s, etc.)
-        var distroCards = await Page.QuerySelectorAllAsync(".distro-card");
-        Assert.That(distroCards.Count, Is.GreaterThan(0),
-            "Distribution options should be visible after selecting Mendix");
+        // Wait for Mendix deployment categories to load (Mendix has special flow)
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+
+        // Look for Mendix deployment category cards (Cloud, Private Cloud, Other)
+        var categoryCards = await Page.QuerySelectorAllAsync(".mendix-category-card");
+        Assert.That(categoryCards.Count, Is.GreaterThan(0),
+            "Mendix deployment categories should be visible after selecting Mendix");
     }
 
     [Test]
-    public async Task MendixFlow_ShowsConfigurationAfterDistribution()
+    public async Task MendixFlow_ShowsConfigurationAfterDeploymentSelection()
     {
         await NavigateToMendixPlatformAsync();
 
         // Select Mendix
         await SelectTechCardAsync("Mendix");
+
+        // Wait for Mendix deployment categories to load
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+
+        // Select "Other Kubernetes" category (leads to configuration)
+        var otherK8sCard = Page.Locator(".mendix-category-card:has-text('Other Kubernetes')");
+        await otherK8sCard.ClickAsync();
         await Page.WaitForTimeoutAsync(500);
 
-        // Select a distribution
-        await Page.ClickAsync(".distro-card");
-        await Page.WaitForTimeoutAsync(800);
+        // Select a provider (e.g., K3s) from sub-options
+        var k3sOption = Page.Locator(".mendix-option-card:has-text('K3s')");
+        if (await k3sOption.CountAsync() > 0)
+        {
+            await k3sOption.ClickAsync();
+            await Page.WaitForTimeoutAsync(500);
+        }
 
-        // Should show configuration tabs
-        Assert.That(await IsVisibleAsync(".config-tabs-container") || await IsVisibleAsync(".config-tab"), Is.True,
-            "Configuration tabs should be visible after selecting distribution");
+        // Wait for configuration to appear
+        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 5000 });
+
+        // Should show configuration
+        Assert.That(await IsVisibleAsync(".config-tabs-container") || await IsVisibleAsync(".config-tab") ||
+                    await IsVisibleAsync(".k8s-apps-config") || await IsVisibleAsync(".cluster-mode-sidebar"), Is.True,
+            "Configuration should be visible after selecting Mendix deployment option");
     }
 
     [Test]
-    public async Task MendixConfigTab_ShowsMendixTab()
+    public async Task MendixConfigTab_ShowsMendixConfiguration()
     {
         await NavigateToMendixPlatformAsync();
 
         // Select Mendix and navigate through the wizard
         await SelectTechCardAsync("Mendix");
+
+        // Wait for Mendix deployment categories
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+
+        // Select "Other Kubernetes" category
+        var otherK8sCard = Page.Locator(".mendix-category-card:has-text('Other Kubernetes')");
+        await otherK8sCard.ClickAsync();
         await Page.WaitForTimeoutAsync(500);
 
-        // Select a distribution
-        await Page.ClickAsync(".distro-card");
-        await Page.WaitForTimeoutAsync(800);
-
-        // Look for Mendix tab in configuration
-        var mendixTab = Page.Locator(".config-tab:has-text('Mendix')");
-        if (await mendixTab.IsVisibleAsync())
+        // Select K3s from sub-options
+        var k3sOption = Page.Locator(".mendix-option-card:has-text('K3s')");
+        if (await k3sOption.CountAsync() > 0)
         {
-            await mendixTab.ClickAsync();
+            await k3sOption.ClickAsync();
             await Page.WaitForTimeoutAsync(500);
+        }
 
-            // Look for Mendix-related content
-            var pageContent = await Page.ContentAsync();
-            Assert.That(pageContent.Contains("Mendix") || pageContent.Contains("User"),
-                Is.True, "Mendix configuration should be visible");
-        }
-        else
-        {
-            // Fallback: verify configuration tabs exist
-            Assert.That(await IsVisibleAsync(".config-tabs-container"), Is.True,
-                "Configuration container should be visible");
-        }
+        // Wait for configuration to appear
+        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 5000 });
+
+        // Verify Mendix-related content is visible (either in tabs or page content)
+        var pageContent = await Page.ContentAsync();
+        Assert.That(pageContent.Contains("Mendix") || pageContent.Contains("Apps") || pageContent.Contains("Multi-Cluster"),
+            Is.True, "Mendix configuration or app configuration should be visible");
     }
 
     [Test]

@@ -63,7 +63,6 @@ The comprehensive SRS is available as a navigable HTML book:
 
 ### Business Requirements
 - [BRD](./business/BRD.md) - Business Requirements Document
-- [SRS (legacy)](./business/SRS.md) - Original Software Requirements Specification
 - [Business Rules](./business/business-rules.md) - BR-xxx rules reference
 - [Business Review Requirements](./business/BUSINESS_REVIEW_REQUIREMENTS.md) - Review checklist
 
@@ -88,7 +87,7 @@ The comprehensive SRS is available as a navigable HTML book:
 ### Vendor Specifications
 - [Kubernetes Distributions](./vendor-specs/kubernetes/) - Official specs per distribution
 - [Technologies](./vendor-specs/technologies/) - Platform-specific sizing
-- [Validation Report](./vendor-specs/validation-report.md) - Gap analysis
+- [Validation Report](./vendor-specs/validation-report.md) - Technical specs and pricing validation
 - [Mendix Deployment Research](./vendor-specs/mendix-deployment-research.md) - Mendix specs
 
 ---
@@ -98,7 +97,6 @@ The comprehensive SRS is available as a navigable HTML book:
 - [GitHub Setup](./setup/github-setup.md) - Repository setup
 - [Cloud Pricing API Setup](./guides/cloud-pricing-api-setup.md) - Cloud pricing integration
 - [Mendix Pricing Guide](./guides/mendix-pricing.md) - Mendix platform pricing
-- [Pricing Validation](./guides/PRICING_VALIDATION.md) - Pricing data validation
 
 ---
 
@@ -125,6 +123,6 @@ Visual diagrams with vendor-specific icons (open in browser):
 ## Quick Links
 
 - **Technologies Supported**: .NET, Java, Node.js, Python, Go, Mendix, OutSystems
-- **K8s Distributions**: 38+ including OpenShift, EKS, AKS, GKE, Rancher, K3s, Tanzu
+- **K8s Distributions**: 46 including OpenShift, EKS, AKS, GKE, Rancher, K3s, Tanzu
 - **Deployment Models**: Kubernetes (3 cluster modes) and Virtual Machines
 - **Cloud Pricing**: AWS, Azure, GCP, Oracle Cloud, IBM Cloud

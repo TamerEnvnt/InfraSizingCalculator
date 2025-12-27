@@ -1,0 +1,128 @@
+@using InfraSizingCalculator.Models.Enums
+
+@* Environment App Configuration Card - Horizontal layout for widescreen *@
+
+<div class="env-app-card @(IsExpanded ? "expanded" : "collapsed") @GetEnvClass()">
+    <div class="env-card-header" @onclick="ToggleExpanded">
+        <div class="env-card-icon">@GetEnvIcon()</div>
+        <div class="env-card-info">
+            <span class="env-card-name">@Environment</span>
+            @if (!IsExpanded)
+            {
+                <span class="env-card-summary">@GetTotalApps() apps</span>
+            }
+        </div>
+        <span class="expand-icon">@(IsExpanded ? "▼" : "▶")</span>
+    </div>
+
+    @if (IsExpanded)
+    {
+        <div class="env-card-content">
+            <div class="tier-inputs-horizontal">
+                <div class="tier-input-group">
+                    <label class="tier-label">
+                        <span class="tier-badge small">S</span>
+                        <span class="tier-spec">@SmallSpec</span>
+                    </label>
+                    <input type="number" min="0" class="tier-input"
+                           value="@SmallCount"
+                           @onchange="@(e => OnSmallChanged.InvokeAsync(ParseInt(e.Value)))" />
+                </div>
+                <div class="tier-input-group">
+                    <label class="tier-label">
+                        <span class="tier-badge medium">M</span>
+                        <span class="tier-spec">@MediumSpec</span>
+                    </label>
+                    <input type="number" min="0" class="tier-input"
+                           value="@MediumCount"
+                           @onchange="@(e => OnMediumChanged.InvokeAsync(ParseInt(e.Value)))" />
+                </div>
+                <div class="tier-input-group">
+                    <label class="tier-label">
+                        <span class="tier-badge large">L</span>
+                        <span class="tier-spec">@LargeSpec</span>
+                    </label>
+                    <input type="number" min="0" class="tier-input"
+                           value="@LargeCount"
+                           @onchange="@(e => OnLargeChanged.InvokeAsync(ParseInt(e.Value)))" />
+                </div>
+                <div class="tier-input-group">
+                    <label class="tier-label">
+                        <span class="tier-badge xlarge">XL</span>
+                        <span class="tier-spec">@XLargeSpec</span>
+                    </label>
+                    <input type="number" min="0" class="tier-input"
+                           value="@XLargeCount"
+                           @onchange="@(e => OnXLargeChanged.InvokeAsync(ParseInt(e.Value)))" />
+                </div>
+                <div class="tier-total">
+                    <span class="total-label">Total</span>
+                    <span class="total-value">@GetTotalApps()</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EnvironmentType Environment { get; set; }
+    [Parameter] public bool IsExpanded { get; set; }
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+
+    [Parameter] public int SmallCount { get; set; }
+    [Parameter] public int MediumCount { get; set; }
+    [Parameter] public int LargeCount { get; set; }
+    [Parameter] public int XLargeCount { get; set; }
+
+    [Parameter] public string SmallSpec { get; set; } = "0.25 CPU, 0.5 GB";
+    [Parameter] public string MediumSpec { get; set; } = "0.5 CPU, 1 GB";
+    [Parameter] public string LargeSpec { get; set; } = "1 CPU, 2 GB";
+    [Parameter] public string XLargeSpec { get; set; } = "2 CPU, 4 GB";
+
+    [Parameter] public EventCallback<int> OnSmallChanged { get; set; }
+    [Parameter] public EventCallback<int> OnMediumChanged { get; set; }
+    [Parameter] public EventCallback<int> OnLargeChanged { get; set; }
+    [Parameter] public EventCallback<int> OnXLargeChanged { get; set; }
+
+    private int GetTotalApps() => SmallCount + MediumCount + LargeCount + XLargeCount;
+
+    private async Task ToggleExpanded()
+    {
+        IsExpanded = !IsExpanded;
+        await IsExpandedChanged.InvokeAsync(IsExpanded);
+    }
+
+    private string GetEnvClass()
+    {
+        return Environment switch
+        {
+            EnvironmentType.Dev => "env-dev",
+            EnvironmentType.Test => "env-test",
+            EnvironmentType.Stage => "env-stage",
+            EnvironmentType.Prod => "env-prod",
+            EnvironmentType.DR => "env-dr",
+            _ => ""
+        };
+    }
+
+    private string GetEnvIcon()
+    {
+        return Environment switch
+        {
+            EnvironmentType.Dev => "D",
+            EnvironmentType.Test => "T",
+            EnvironmentType.Stage => "S",
+            EnvironmentType.Prod => "P",
+            EnvironmentType.DR => "DR",
+            _ => "E"
+        };
+    }
+
+    private int ParseInt(object? value)
+    {
+        if (value == null) return 0;
+        if (int.TryParse(value.ToString(), out var result))
+            return Math.Max(0, result);
+        return 0;
+    }
+}

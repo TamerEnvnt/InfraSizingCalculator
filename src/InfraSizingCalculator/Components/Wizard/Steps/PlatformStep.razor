@@ -6,13 +6,13 @@
 <SectionHeader Title="Select Platform Type" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
 
 <div class="selection-grid">
-    <SelectionCard Icon="⚙️"
+    <SelectionCard Icon="Code"
                    Title="Native Applications"
                    Description=".NET, Java, Node.js, Python, Go"
                    IsSelected="@(SelectedPlatform == PlatformType.Native)"
                    OnClick="@(() => OnPlatformSelected(PlatformType.Native))" />
 
-    <SelectionCard Icon="🔷"
+    <SelectionCard Icon="Low"
                    Title="Low-Code Platform"
                    Description="Mendix, OutSystems"
                    IsSelected="@(SelectedPlatform == PlatformType.LowCode)"

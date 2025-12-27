@@ -18,6 +18,7 @@ public class InfraSizingDbContext : DbContext
     public DbSet<CloudApiCredentialsEntity> CloudApiCredentials { get; set; } = null!;
     public DbSet<OnPremPricingEntity> OnPremPricing { get; set; } = null!;
     public DbSet<MendixPricingEntity> MendixPricing { get; set; } = null!;
+    public DbSet<OutSystemsPricingEntity> OutSystemsPricing { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -111,6 +112,42 @@ public class InfraSizingDbContext : DbContext
             entity.Property(e => e.GenAIKnowledgeBaseDiskGB).HasPrecision(18, 2);
         });
 
+        // OutSystemsPricing - single row table with OutSystems subscription pricing
+        modelBuilder.Entity<OutSystemsPricingEntity>(entity =>
+        {
+            entity.ToTable("OutSystemsPricing");
+            entity.HasKey(e => e.Id);
+
+            // Edition Pricing
+            entity.Property(e => e.StandardEditionBase).HasPrecision(18, 2);
+            entity.Property(e => e.EnterpriseEditionBase).HasPrecision(18, 2);
+            entity.Property(e => e.AdditionalAOPackPrice).HasPrecision(18, 2);
+
+            // Cloud Add-ons
+            entity.Property(e => e.CloudAdditionalProdEnv).HasPrecision(18, 2);
+            entity.Property(e => e.CloudAdditionalNonProdEnv).HasPrecision(18, 2);
+            entity.Property(e => e.CloudHAAddOn).HasPrecision(18, 2);
+            entity.Property(e => e.CloudDRAddOn).HasPrecision(18, 2);
+
+            // Self-Managed
+            entity.Property(e => e.SelfManagedBase).HasPrecision(18, 2);
+            entity.Property(e => e.SelfManagedPerEnvironment).HasPrecision(18, 2);
+            entity.Property(e => e.SelfManagedPerFrontEnd).HasPrecision(18, 2);
+
+            // User Licensing
+            entity.Property(e => e.AdditionalInternalUserPackPrice).HasPrecision(18, 2);
+            entity.Property(e => e.ExternalUserPackPerYear).HasPrecision(18, 2);
+
+            // Support
+            entity.Property(e => e.StandardSupportPercent).HasPrecision(5, 2);
+            entity.Property(e => e.PremiumSupportPercent).HasPrecision(5, 2);
+            entity.Property(e => e.EliteSupportPercent).HasPrecision(5, 2);
+
+            // Professional Services
+            entity.Property(e => e.ProfessionalServicesDayRate).HasPrecision(18, 2);
+            entity.Property(e => e.TrainingPerPersonPerDay).HasPrecision(18, 2);
+        });
+
         // Seed default data
         SeedDefaultData(modelBuilder);
     }
@@ -146,6 +183,14 @@ public class InfraSizingDbContext : DbContext
 
         // Seed default Mendix pricing (from June 2025 Pricebook)
         modelBuilder.Entity<MendixPricingEntity>().HasData(new MendixPricingEntity
+        {
+            Id = 1,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        // Seed default OutSystems pricing
+        modelBuilder.Entity<OutSystemsPricingEntity>().HasData(new OutSystemsPricingEntity
         {
             Id = 1,
             CreatedAt = DateTime.UtcNow,

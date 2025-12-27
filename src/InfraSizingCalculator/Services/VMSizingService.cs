@@ -111,7 +111,7 @@ public class VMSizingService : IVMSizingService
         return new VMRoleResult
         {
             Role = roleConfig.Role,
-            RoleName = GetRoleName(roleConfig.Role),
+            RoleName = roleConfig.RoleName ?? GetRoleName(roleConfig.Role),
             Size = roleConfig.Size,
             BaseInstances = baseInstances,
             TotalInstances = totalInstances,

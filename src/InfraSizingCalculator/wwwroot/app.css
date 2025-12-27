@@ -44,6 +44,91 @@
     --env-dr: #f0883e;
 }
 
+/* ============================================
+   ICON SYSTEM - Brand Icons
+   SVG icons are defined in /css/icons.css
+   ============================================ */
+
+/* UI Element Icons (non-brand) */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.icon-check::before { content: '✓'; color: var(--accent-green); }
+.icon-warning::before { content: '!'; color: var(--accent-yellow); }
+.icon-error::before { content: '×'; color: var(--accent-red); }
+.icon-info::before { content: 'i'; color: var(--accent-blue); font-style: italic; }
+.icon-settings::before { content: '⚙'; }
+.icon-export::before { content: '↓'; }
+.icon-share::before { content: '↗'; }
+.icon-save::before { content: '⬇'; }
+.icon-search::before { content: '⌕'; }
+.icon-cloud::before { content: '☁'; }
+.icon-lock::before { content: '🔐'; }
+.icon-chart::before { content: '▤'; }
+.icon-cost::before { content: '$'; }
+.icon-growth::before { content: '↗'; }
+.icon-bulb::before { content: '•'; color: var(--accent-yellow); }
+.icon-sun::before { content: '☀'; }
+.icon-moon::before { content: '☾'; }
+.icon-server::before { content: '▦'; }
+.icon-app::before { content: '⊞'; }
+.icon-infinity::before { content: '∞'; }
+
+/* Environment badge icons - SVG icons defined in icons.css */
+/* Removed ::before content to allow SVG backgrounds to show */
+
+/* Role/Component Icons - SVG icons defined in icons.css */
+/* Removed ::before content to allow SVG backgrounds to show */
+
+/* Cluster mode icons */
+.mode-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: var(--bg-tertiary);
+}
+
+.mode-icon.multi { background: #3b82f6; color: white; }
+.mode-icon.multi::before { content: '⊞'; font-size: 0.85rem; }
+
+.mode-icon.single { background: #10b981; color: white; }
+.mode-icon.single::before { content: '◉'; font-size: 0.85rem; }
+
+/* Category icons */
+.cat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.cat-icon.cloud { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; }
+.cat-icon.cloud::before { content: '☁'; font-size: 1rem; }
+
+.cat-icon.private { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; }
+.cat-icon.private::before { content: '🔒'; font-size: 0.9rem; }
+
+.cat-icon.manual { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+.cat-icon.manual::before { content: '⚙'; font-size: 0.9rem; }
+
+/* ============================================ */
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
@@ -2371,7 +2456,7 @@ html, body {
 
 /* Cluster Mode Sidebar */
 .cluster-mode-sidebar {
-    width: 140px;
+    width: 160px;
     flex-shrink: 0;
     background: var(--bg-tertiary);
     border-radius: 10px;
@@ -2433,17 +2518,26 @@ html, body {
 .mode-name {
     font-size: 0.8em;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mode-desc {
     font-size: 0.7em;
     color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mode-text {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    min-width: 0; /* Allow flex shrink */
+    flex: 1;
+    overflow: hidden;
 }
 
 /* Single Cluster Scope Selector */
@@ -3674,6 +3768,163 @@ html, body {
     border: none;
 }
 
+/* Role Breakdown Accordion (single-expand behavior) */
+.role-breakdown-content.accordion {
+    gap: 4px;
+}
+
+.env-accordion-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.env-accordion-header {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease;
+}
+
+.env-accordion-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.env-accordion-header .accordion-arrow {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    width: 12px;
+}
+
+.env-accordion-header.env-development { border-left: 3px solid var(--env-dev); }
+.env-accordion-header.env-test { border-left: 3px solid var(--env-test); }
+.env-accordion-header.env-staging { border-left: 3px solid var(--env-stage); }
+.env-accordion-header.env-production { border-left: 3px solid var(--env-prod); }
+.env-accordion-header.env-disaster\ recovery,
+.env-accordion-header.env-dr { border-left: 3px solid var(--env-dr); }
+
+.env-accordion-item.expanded .env-accordion-header {
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.env-accordion-content {
+    padding: 0;
+}
+
+.env-accordion-content table {
+    margin: 0;
+    border-radius: 0;
+    border: none;
+}
+
+/* Role Breakdown Horizontal Accordion */
+.role-breakdown-section {
+    margin-top: 16px;
+}
+
+.role-breakdown-horizontal {
+    padding: 12px;
+}
+
+.role-breakdown-accordion.h-accordion {
+    min-height: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.role-breakdown-accordion .h-accordion-panel {
+    border: 1px solid var(--border-color);
+    min-width: 50px;
+}
+
+.role-breakdown-accordion .h-accordion-panel.collapsed {
+    min-width: 50px;
+    flex: 0 0 50px !important;
+}
+
+.role-breakdown-accordion .h-accordion-panel.expanded {
+    flex: 1 1 auto !important;
+}
+
+.role-breakdown-accordion .h-accordion-panel.env-dev { border-left: 3px solid var(--env-dev); }
+.role-breakdown-accordion .h-accordion-panel.env-test { border-left: 3px solid var(--env-test); }
+.role-breakdown-accordion .h-accordion-panel.env-stage { border-left: 3px solid var(--env-stage); }
+.role-breakdown-accordion .h-accordion-panel.env-prod { border-left: 3px solid var(--env-prod); }
+.role-breakdown-accordion .h-accordion-panel.env-dr { border-left: 3px solid var(--env-dr); }
+
+.role-breakdown-accordion .h-accordion-panel.env-dev.expanded { background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), transparent); }
+.role-breakdown-accordion .h-accordion-panel.env-test.expanded { background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), transparent); }
+.role-breakdown-accordion .h-accordion-panel.env-stage.expanded { background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), transparent); }
+.role-breakdown-accordion .h-accordion-panel.env-prod.expanded { background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), transparent); }
+.role-breakdown-accordion .h-accordion-panel.env-dr.expanded { background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), transparent); }
+
+.role-breakdown-accordion .h-accordion-content {
+    padding: 8px;
+    overflow: auto;
+}
+
+.role-breakdown-accordion .role-table {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.role-breakdown-accordion .role-table th,
+.role-breakdown-accordion .role-table td {
+    padding: 6px 10px;
+    white-space: nowrap;
+}
+
+/* Environment Panel Header with HA Badge */
+.env-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.env-ha-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.env-ha-badge.ha-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--env-dev);
+    border: 1px solid var(--env-dev);
+}
+
+/* Empty environment state */
+.env-no-roles {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.no-roles-icon {
+    font-size: 1.5rem;
+    color: var(--warning-color);
+}
+
 /* Pricing options content inside details */
 .pricing-options-content {
     padding: 16px;
@@ -3860,10 +4111,10 @@ html, body {
 .cluster-mode-banner {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 10px;
     font-weight: 500;
 }
 
@@ -4236,6 +4487,33 @@ html, body {
     margin: 0;
 }
 
+/* Compact cluster selection bar for K8s Apps tab */
+.cluster-selection-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.cluster-selection-bar .selection-label {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.cluster-selection-bar .cluster-chips {
+    margin-bottom: 0;
+}
+
+.cluster-selection-bar .cluster-chip {
+    padding: 6px 12px;
+    font-size: 0.85em;
+}
+
 .app-tiers-unified {
     background: var(--bg-secondary);
     border-radius: 12px;
@@ -4574,6 +4852,374 @@ html, body {
 
     .step-indicator {
         order: -1;
+    }
+}
+
+/* ==================== VM PRICING PANEL STYLES ==================== */
+
+.pricing-step.vm-pricing {
+    max-width: 800px;
+}
+
+.pricing-step .step-header h3 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+}
+
+.pricing-step .step-description {
+    color: var(--text-secondary);
+    margin: 0 0 20px 0;
+}
+
+.mendix-vm-pricing-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pricing-option-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.pricing-option-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pricing-option-card:hover {
+    border-color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.pricing-option-card.selected {
+    border-color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.pricing-option-card .option-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.pricing-option-card .option-icon {
+    font-size: 1.5rem;
+    color: var(--accent-blue);
+}
+
+.pricing-option-card.selected .option-icon {
+    color: var(--accent-green);
+}
+
+.pricing-option-card .option-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.pricing-option-card .option-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+}
+
+.pricing-option-card.selected .option-price {
+    color: var(--accent-green);
+}
+
+.pricing-option-card .option-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.pricing-option-card .app-count-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.pricing-option-card .app-count-input label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.pricing-option-card .app-count-input input {
+    width: 80px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    text-align: center;
+}
+
+.pricing-option-card .option-total {
+    font-weight: 600;
+    color: var(--accent-green);
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pricing-summary {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 16px 20px;
+    border: 1px solid var(--border-color);
+}
+
+.pricing-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.pricing-summary .summary-row:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pricing-summary .summary-row.total {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding-top: 12px;
+}
+
+.pricing-summary .summary-row .total-value {
+    color: var(--accent-green);
+    font-size: 1.1rem;
+}
+
+.pricing-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* OutSystems VM Pricing Panel */
+.outsystems-vm-pricing-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.outsystems-vm-pricing-panel .pricing-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.outsystems-vm-pricing-panel .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.outsystems-vm-pricing-panel .section-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--accent-blue);
+    border-radius: 2px;
+}
+
+/* AO Configuration */
+.outsystems-vm-pricing-panel .ao-config {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.outsystems-vm-pricing-panel .config-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.outsystems-vm-pricing-panel .config-row label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    min-width: 180px;
+}
+
+.outsystems-vm-pricing-panel .ao-input,
+.outsystems-vm-pricing-panel .user-input {
+    width: 100px;
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    text-align: center;
+    transition: border-color 0.2s ease;
+}
+
+.outsystems-vm-pricing-panel .ao-input:focus,
+.outsystems-vm-pricing-panel .user-input:focus {
+    border-color: var(--accent-blue);
+    outline: none;
+}
+
+.outsystems-vm-pricing-panel .ao-breakdown {
+    display: flex;
+    gap: 16px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.outsystems-vm-pricing-panel .ao-included {
+    color: var(--accent-green);
+    font-weight: 500;
+}
+
+.outsystems-vm-pricing-panel .ao-additional {
+    color: var(--accent-orange);
+    font-weight: 500;
+}
+
+.outsystems-vm-pricing-panel .config-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+}
+
+/* User Configuration */
+.outsystems-vm-pricing-panel .user-config {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.outsystems-vm-pricing-panel .user-cost {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+/* OutSystems Summary */
+.outsystems-vm-pricing-panel .outsystems-summary {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.outsystems-vm-pricing-panel .summary-row.monthly {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.pricing-note .icon {
+    color: var(--accent-blue);
+    flex-shrink: 0;
+}
+
+/* Native VM Pricing Panel */
+.native-vm-pricing-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.native-vm-pricing-panel .info-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.native-vm-pricing-panel .info-icon {
+    font-size: 1.5rem;
+    color: var(--accent-blue);
+    flex-shrink: 0;
+}
+
+.native-vm-pricing-panel .info-content strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.native-vm-pricing-panel .info-content p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.vm-summary-card {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.vm-summary-card .summary-title {
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.vm-summary-card .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.vm-summary-card .summary-item {
+    text-align: center;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.vm-summary-card .item-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+.vm-summary-card .item-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .pricing-option-cards {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -5562,28 +6208,158 @@ html, body {
 /* Pricing selector */
 .pricing-selector {
     background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
     border: 1px solid var(--border-color);
 }
 
 .pricing-selector h4 {
-    margin: 0 0 15px 0;
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
     color: var(--text-primary);
 }
 
-/* Cloud Alternatives Note */
+/* Provider Row - always visible */
+.pricing-provider-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.pricing-provider-row .option-group label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+.pricing-provider-row select {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+}
+
+/* Pricing Accordion */
+.pricing-accordion {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: var(--bg-tertiary);
+}
+
+.pricing-accordion summary {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-secondary);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pricing-accordion summary::before {
+    content: '▶';
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+
+.pricing-accordion[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.pricing-accordion summary::-webkit-details-marker {
+    display: none;
+}
+
+.pricing-accordion .accordion-content {
+    padding: 8px 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Pricing Options Grid */
+.pricing-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.pricing-options-grid .option-group label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+.pricing-options-grid select {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+}
+
+/* Compact toggles */
+.pricing-toggles-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+}
+
+.pricing-toggles-compact label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.pricing-toggles-compact input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+}
+
+/* Advanced Options Grid */
+.advanced-options-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.advanced-options-grid .option-group label {
+    font-size: 0.65rem;
+    margin-bottom: 2px;
+}
+
+.advanced-options-grid input {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .pricing-provider-row,
+    .pricing-options-grid {
+        grid-template-columns: 1fr;
+    }
+    .advanced-options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Cloud Alternatives Note - hidden in compact mode */
 .cloud-alternatives-note {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 8px;
+    padding: 8px 10px;
     background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
     border: 1px solid rgba(52, 152, 219, 0.3);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 13px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+/* Hide note in cost-column context */
+.cost-column .cloud-alternatives-note {
+    display: none;
 }
 
 .cloud-alternatives-note .note-icon {
@@ -5598,9 +6374,9 @@ html, body {
 
 .pricing-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 /* Option groups for forms */
@@ -5704,12 +6480,29 @@ html, body {
 
 .advanced-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    padding: 15px;
+    grid-template-columns: repeat(4, 1fr); /* All 4 fields in one row */
+    gap: 8px;
+    padding: 10px;
     background: var(--bg-tertiary);
     border-radius: 0 0 6px 6px;
     border-top: 1px solid var(--border-color);
+}
+
+/* Make advanced options responsive - 2 columns on smaller screens */
+@media (max-width: 1200px) {
+    .advanced-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.advanced-options .option-group label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+.advanced-options .option-group input {
+    padding: 4px 6px;
+    font-size: 0.8rem;
 }
 
 .pricing-actions {
@@ -5824,28 +6617,28 @@ html, body {
 }
 
 .cost-tab-content {
-    padding: 12px 0 24px 0;
+    padding: 8px 0 12px 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
     min-height: 0;
 }
 
 /* Cost Summary Bar - Compact horizontal layout */
 .cost-summary-bar {
     display: flex;
-    gap: 8px;
-    padding: 12px 16px;
+    gap: 6px;
+    padding: 8px 12px;
     background: var(--bg-secondary);
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid var(--border-color);
 }
 
 .cost-summary-item {
     flex: 1;
     text-align: center;
-    padding: 8px;
-    border-radius: 6px;
+    padding: 4px 6px;
+    border-radius: 4px;
 }
 
 .cost-summary-item.primary {
@@ -5855,7 +6648,7 @@ html, body {
 
 .cost-summary-item .cost-amount {
     display: block;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -5879,8 +6672,8 @@ html, body {
 .cost-two-column {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start; /* Align columns at top */
+    gap: 10px;
+    align-items: start; /* Let columns size naturally */
 }
 
 @media (max-width: 900px) {
@@ -5978,46 +6771,160 @@ html, body {
     color: var(--text-secondary);
 }
 
-/* Cost Sub-Tabs for On-Prem vs Cloud */
-.cost-sub-tabs {
+/* Horizontal Accordion for Cost Breakdown */
+.cost-h-accordion-row {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
-    background: var(--bg-tertiary);
-    padding: 6px;
-    border-radius: 10px;
+    min-height: 0;
+    flex: 1;
 }
 
-.cost-sub-tab {
-    flex: 1;
+.cost-h-panel {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 12px 16px;
-    background: transparent;
-    border: none;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
+    overflow: hidden;
+    transition: flex 0.3s ease;
+}
+
+.cost-h-panel.collapsed {
+    flex: 0 0 auto;
+}
+
+.cost-h-panel.expanded {
+    flex: 1;
+}
+
+.cost-h-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary);
+    border: none;
     cursor: pointer;
-    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
     font-weight: 500;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.cost-h-header:hover {
+    background: var(--bg-elevated, var(--bg-secondary));
+}
+
+.cost-h-panel.expanded .cost-h-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cost-h-header .h-icon {
+    font-size: 1rem;
+}
+
+.cost-h-header .h-title {
+    font-weight: 600;
+}
+
+.cost-h-header .h-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.cost-h-header .h-hint {
     color: var(--text-secondary);
-    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    font-weight: 400;
 }
 
-.cost-sub-tab:hover {
-    background: var(--bg-secondary);
+.cost-h-content {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Compact Breakdown Layout */
+.cost-breakdown-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cost-breakdown-compact .breakdown-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cost-breakdown-compact .section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.cost-breakdown-compact .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.cost-breakdown-compact .category-icon {
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+}
+
+.cost-breakdown-compact .category-name,
+.cost-breakdown-compact .env-name {
+    flex: 1;
     color: var(--text-primary);
 }
 
-.cost-sub-tab.active {
-    background: var(--bg-secondary);
+.cost-breakdown-compact .category-cost,
+.cost-breakdown-compact .env-cost {
+    font-weight: 600;
     color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cost-breakdown-compact .category-pct {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    min-width: 32px;
+    text-align: right;
+}
+
+.cost-breakdown-compact .env-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.cost-breakdown-compact .env-dot.env-production { background: var(--error-color); }
+.cost-breakdown-compact .env-dot.env-staging { background: var(--accent-color); }
+.cost-breakdown-compact .env-dot.env-test { background: var(--warning-color); }
+.cost-breakdown-compact .env-dot.env-development { background: var(--success-color); }
+
+.cost-breakdown-compact .env-vms {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
 }
 
 .cost-sub-tab .tab-price {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--accent-color);
 }
@@ -6025,6 +6932,50 @@ html, body {
 .cost-sub-tab .tab-price.na {
     color: var(--text-secondary);
     font-style: italic;
+}
+
+.cost-sub-tab .pricing-source-badge.compact {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: var(--accent-blue);
+    color: white;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+/* Pricing Config Panel */
+.pricing-config-panel {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* Inline Notes */
+.cost-notes-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 10px;
+}
+
+.cost-notes-inline .notes-label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cost-notes-inline .note-item {
+    opacity: 0.9;
+}
+
+.cost-notes-inline .note-more {
+    color: var(--accent-color);
+    cursor: pointer;
 }
 
 /* Cost Panels */
@@ -6306,10 +7257,9 @@ html, body {
 
 .cost-column {
     background: var(--bg-secondary);
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid var(--border-color);
     overflow: visible;
-    min-height: 200px; /* Ensure minimum height */
 }
 
 /* Ensure tables inside cost-column render correctly */
@@ -6336,9 +7286,9 @@ html, body {
 }
 
 .cost-section-header {
-    padding: 10px 14px;
+    padding: 6px 10px;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-primary);
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
@@ -6349,14 +7299,14 @@ html, body {
 .cost-env-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .cost-breakdown-table th,
 .cost-breakdown-table td,
 .cost-env-table th,
 .cost-env-table td {
-    padding: 10px 14px;
+    padding: 6px 10px;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -6481,24 +7431,24 @@ html, body {
 .collapsible-section {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: visible; /* Allow dropdown content to overflow */
-    margin-top: 12px;
+    margin-top: 6px;
 }
 
 .collapsible-header {
     width: 100%;
-    padding: 12px 16px;
+    padding: 8px 12px;
     cursor: pointer;
     font-weight: 500;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: var(--bg-tertiary);
     border: none;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-family: inherit;
 }
 
@@ -6518,7 +7468,7 @@ html, body {
 }
 
 .collapsible-content {
-    padding: 16px;
+    padding: 10px 12px;
     border-top: 1px solid var(--border-color);
     background: var(--bg-primary);
 }
@@ -7686,6 +8636,26 @@ html, body {
 .growth-tab-content {
     background: transparent;
     padding: 12px 0;
+}
+
+/* Override wizard-content flex when growth planning is showing - no scroll */
+.wizard-content:has(.growth-tab-content) {
+    flex: 0 1 auto !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow-y: visible !important;
+}
+
+.wizard-content:has(.growth-tab-content) .results-panel {
+    flex: 0 1 auto !important;
+    height: auto !important;
+    overflow-y: visible !important;
+}
+
+/* Growth dashboard should not scroll internally */
+.growth-tab-content .growth-dashboard {
+    overflow: visible !important;
+    max-height: none !important;
 }
 
 /* Unified Growth Tab */
@@ -9041,8 +10011,7 @@ html, body {
 /* ==================== Mendix Settings Tab ==================== */
 
 .mendix-settings-panel {
-    max-height: 65vh;
-    overflow-y: auto;
+    /* Removed max-height constraint to prevent scrollbars */
 }
 
 .settings-collapsible {
@@ -9120,20 +10089,22 @@ html, body {
 /* ==================== Mendix Deployment Flow ==================== */
 
 .mendix-deployment-categories {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 16px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 12px 0;
 }
 
 .mendix-category-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
-    padding: 20px;
+    text-align: center;
+    gap: 6px;
+    padding: 12px 10px;
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -9149,25 +10120,25 @@ html, body {
 }
 
 .mendix-category-card .category-icon {
-    font-size: 2rem;
-    width: 50px;
-    text-align: center;
+    font-size: 1.5rem;
 }
 
 .mendix-category-card .category-content {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .mendix-category-card .category-name {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 4px;
 }
 
 .mendix-category-card .category-desc {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
+    line-height: 1.3;
 }
 
 .mendix-category-card .category-badge {
@@ -9209,18 +10180,20 @@ html, body {
 
 .mendix-option-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
 }
 
 .mendix-option-card {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 16px;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 10px 6px;
     background: var(--bg-primary);
     border: 2px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -9240,45 +10213,55 @@ html, body {
 }
 
 .mendix-option-card .option-icon {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
 }
 
 .mendix-option-card .option-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: 0.8rem;
+    line-height: 1.2;
 }
 
 .mendix-option-card .option-desc {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
+    line-height: 1.2;
+    display: none; /* Hide desc to save space */
 }
 
 .mendix-option-card .option-price {
-    font-size: 0.85rem;
-    color: var(--accent-color);
-    font-weight: 500;
-    margin-top: auto;
+    display: none; /* Hide price - shown in price list */
 }
 
-.badge-supported {
+.badge-supported,
+.badge-manual {
+    display: none; /* Hide individual badges - moved to header */
+}
+
+/* Show badge in header instead */
+.mendix-suboptions .header-badge {
     display: inline-block;
     padding: 2px 8px;
     background: #10b981;
     color: white;
     font-size: 0.7rem;
     border-radius: 10px;
-    margin-top: 4px;
+    margin-left: 8px;
 }
 
-.badge-manual {
-    display: inline-block;
-    padding: 2px 8px;
+.mendix-suboptions .header-badge.manual {
     background: #f59e0b;
-    color: white;
-    font-size: 0.7rem;
-    border-radius: 10px;
-    margin-top: 4px;
+}
+
+/* Cloud type has 2 items - use 2 columns */
+.mendix-option-cards.cloud-type {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Other K8s has only 3 items - use 3 columns */
+.mendix-option-cards.other-k8s {
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .warning-banner {
@@ -9368,12 +10351,19 @@ html, body {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     transition: flex 0.3s ease, background 0.2s ease;
 }
 
 .h-accordion-panel.collapsed {
+    flex: 0 0 56px;
     cursor: pointer;
+    overflow: hidden;
+}
+
+.h-accordion-panel.expanded {
+    flex: 1 1 300px;
+    min-width: 320px;
 }
 
 .h-accordion-panel.collapsed:hover {
@@ -9386,8 +10376,8 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 8px;
-    min-width: 50px;
+    padding: 10px 8px;
+    min-width: 54px;
     background: var(--bg-tertiary);
     border-right: 1px solid var(--border-color);
     cursor: pointer;
@@ -9453,8 +10443,8 @@ html, body {
 
 .h-accordion-content {
     flex: 1;
-    padding: 16px;
-    overflow: auto;
+    padding: 12px;
+    overflow: visible;
 }
 
 /* Compact variant for smaller sections */
@@ -9468,7 +10458,8 @@ html, body {
 }
 
 .h-accordion.compact .h-accordion-content {
-    padding: 12px;
+    padding: 10px;
+    overflow: visible;
 }
 
 /* Cards layout variant - for selection cards */
@@ -10317,4 +11308,360 @@ html, body {
     .node-spec-row .spec-inputs {
         width: 100%;
     }
+}
+
+/* ===========================================
+   NATIVE VM PRICING PANEL
+   For non-Mendix VM deployments
+   =========================================== */
+
+.native-vm-pricing-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.native-vm-pricing-panel .info-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.native-vm-pricing-panel .info-icon {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+}
+
+.native-vm-pricing-panel .info-content {
+    flex: 1;
+}
+
+.native-vm-pricing-panel .info-content strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.native-vm-pricing-panel .info-content p {
+    margin: 0 0 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.native-vm-pricing-panel .info-content p:last-child {
+    margin-bottom: 0;
+}
+
+.native-vm-pricing-panel .vm-summary-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.native-vm-pricing-panel .summary-title {
+    padding: 14px 20px;
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.native-vm-pricing-panel .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border-color);
+}
+
+.native-vm-pricing-panel .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: var(--bg-secondary);
+}
+
+.native-vm-pricing-panel .item-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.native-vm-pricing-panel .item-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .native-vm-pricing-panel .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ==========================================
+   Pricing Accordion Styles
+   ========================================== */
+
+.accordion-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.outsystems-vm-pricing-panel {
+    max-width: 700px;
+}
+
+/* OutSystems Accordion Styling (button-based) */
+.outsystems-vm-pricing-panel .pricing-accordion {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.outsystems-vm-pricing-panel .pricing-accordion.open {
+    border-color: var(--accent-color);
+}
+
+.outsystems-vm-pricing-panel .accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: var(--bg-tertiary);
+    border: none;
+    text-align: left;
+    transition: background 0.2s ease;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.outsystems-vm-pricing-panel .accordion-header:hover {
+    background: var(--bg-hover, var(--bg-secondary));
+}
+
+.outsystems-vm-pricing-panel .accordion-chevron {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    width: 14px;
+    flex-shrink: 0;
+}
+
+.outsystems-vm-pricing-panel .accordion-icon {
+    font-size: 1rem;
+}
+
+.outsystems-vm-pricing-panel .accordion-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.outsystems-vm-pricing-panel .accordion-summary {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-left: auto;
+}
+
+.outsystems-vm-pricing-panel .pricing-accordion .accordion-content {
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+/* Compact form layout for licensing config */
+.compact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.config-row-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.config-row-inline label {
+    min-width: 55px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.config-input-sm {
+    width: 80px;
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.config-info-inline {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.config-info-inline .extra {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+/* Compact pricing option cards for accordions */
+.pricing-option-cards.compact {
+    display: flex;
+    gap: 12px;
+}
+
+.pricing-option-cards.compact .pricing-option-card {
+    flex: 1;
+    padding: 14px 16px;
+}
+
+.pricing-option-cards.compact .option-header {
+    margin-bottom: 6px;
+}
+
+.pricing-option-cards.compact .option-title {
+    font-size: 0.95rem;
+}
+
+.pricing-option-cards.compact .option-price {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.pricing-option-cards.compact .option-desc {
+    font-size: 0.8rem;
+}
+
+/* Config sections inside accordions */
+.config-section {
+    margin-bottom: 16px;
+}
+
+.config-section:last-child {
+    margin-bottom: 0;
+}
+
+.config-section .config-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.config-section .config-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.config-section .config-input {
+    width: 100px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.config-section .config-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.config-section .additional-cost {
+    color: var(--accent-color);
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+/* Compact pricing summary */
+.pricing-summary-compact {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.pricing-summary-compact .summary-items {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 8px;
+}
+
+.pricing-summary-compact .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.pricing-summary-compact .summary-item .item-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.pricing-summary-compact .summary-item .item-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.pricing-summary-compact .summary-item.highlight {
+    padding: 6px 16px;
+    background: var(--accent-color);
+    border-radius: 6px;
+    margin: -6px 0;
+}
+
+.pricing-summary-compact .summary-item.highlight .item-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.pricing-summary-compact .summary-item.highlight .item-value {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.pricing-summary-compact .summary-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pricing-summary-compact .summary-note .icon {
+    margin-right: 4px;
+}
+
+/* Config hint for pack info */
+.config-section .config-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-style: italic;
 }

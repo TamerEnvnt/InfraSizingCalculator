@@ -4,11 +4,15 @@
      style="@GetFlexStyle()">
     <div class="h-accordion-header" @onclick="HandleClick">
         <div class="header-content">
-            @if (!string.IsNullOrEmpty(Icon))
+            @if (!string.IsNullOrEmpty(IconClass))
+            {
+                <span class="@IconClass"></span>
+            }
+            else if (!string.IsNullOrEmpty(Icon))
             {
                 <span class="panel-icon">@Icon</span>
             }
-            <span class="panel-title">@Title</span>
+            <span class="panel-title">@GetDisplayTitle()</span>
             @if (!string.IsNullOrEmpty(Subtitle) && !GetIsExpanded())
             {
                 <span class="panel-subtitle">@Subtitle</span>
@@ -30,8 +34,13 @@
 
     [Parameter] public string? Key { get; set; }
     [Parameter] public string Title { get; set; } = "";
+    /// <summary>
+    /// Short title for collapsed state. If not set, uses Title.
+    /// </summary>
+    [Parameter] public string? ShortTitle { get; set; }
     [Parameter] public string? Subtitle { get; set; }
     [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? IconClass { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string? AdditionalClass { get; set; }
 
@@ -59,6 +68,16 @@
             return ParentAccordion.IsPanelExpanded(Key);
         }
         return IsExpanded;
+    }
+
+    private string GetDisplayTitle()
+    {
+        // Use ShortTitle when collapsed, full Title when expanded
+        if (!GetIsExpanded() && !string.IsNullOrEmpty(ShortTitle))
+        {
+            return ShortTitle;
+        }
+        return Title;
     }
 
     private string GetFlexStyle()

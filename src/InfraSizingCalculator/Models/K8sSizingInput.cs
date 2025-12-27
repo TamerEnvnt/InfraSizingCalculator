@@ -86,6 +86,18 @@ public class K8sSizingInput : IValidatableObject
     /// </summary>
     public DistributionConfig? CustomNodeSpecs { get; set; }
 
+    /// <summary>
+    /// HA/DR configuration for the cluster(s).
+    /// In Multi-Cluster mode, this applies to each cluster.
+    /// </summary>
+    public K8sHADRConfig HADRConfig { get; set; } = new();
+
+    /// <summary>
+    /// Per-environment HA/DR overrides (optional).
+    /// Allows different HA/DR settings for Production vs Non-Production.
+    /// </summary>
+    public Dictionary<EnvironmentType, K8sHADRConfig>? EnvironmentHADRConfigs { get; set; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         // BR-E002: Production is always enabled

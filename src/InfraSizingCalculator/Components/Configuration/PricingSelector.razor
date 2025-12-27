@@ -4,55 +4,48 @@
 <div class="pricing-selector @AdditionalClass">
     <h4>@GetCostSectionTitle()</h4>
 
-    <div class="cloud-alternatives-note">
-        <span class="note-icon">💡</span>
-        <span class="note-text">
-            Compare costs across all cloud providers and on-premises to find the best option for your workload.
-        </span>
-    </div>
-
-    <div class="pricing-options">
+    <!-- Provider Selection (always visible, compact) -->
+    <div class="pricing-provider-row">
         <div class="option-group">
-            <label>Cloud Provider / Deployment</label>
+            <label>Provider</label>
             <select @bind="SelectedProvider" @bind:after="OnProviderChanged">
                 @if (IsOpenShiftDistribution)
                 {
-                    <optgroup label="Managed OpenShift Services">
-                        <option value="@CloudProvider.ROSA">ROSA (Red Hat OpenShift on AWS)</option>
-                        <option value="@CloudProvider.ARO">ARO (Azure Red Hat OpenShift)</option>
-                        <option value="@CloudProvider.OSD">OSD (OpenShift Dedicated on GCP)</option>
-                        <option value="@CloudProvider.ROKS">ROKS (Red Hat OpenShift on IBM)</option>
+                    <optgroup label="Managed OpenShift">
+                        <option value="@CloudProvider.ROSA">ROSA (AWS)</option>
+                        <option value="@CloudProvider.ARO">ARO (Azure)</option>
+                        <option value="@CloudProvider.OSD">OSD (GCP)</option>
+                        <option value="@CloudProvider.ROKS">ROKS (IBM)</option>
                     </optgroup>
                 }
-                <optgroup label="Major Cloud Providers">
-                    <option value="@CloudProvider.AWS">AWS (EKS / EC2)</option>
-                    <option value="@CloudProvider.Azure">Azure (AKS / VMs)</option>
-                    <option value="@CloudProvider.GCP">Google Cloud (GKE / GCE)</option>
-                    <option value="@CloudProvider.OCI">Oracle Cloud (OKE / VMs)</option>
-                    <option value="@CloudProvider.IBM">IBM Cloud (IKS)</option>
-                    <option value="@CloudProvider.Alibaba">Alibaba Cloud (ACK)</option>
-                    <option value="@CloudProvider.Tencent">Tencent Cloud (TKE)</option>
-                    <option value="@CloudProvider.Huawei">Huawei Cloud (CCE)</option>
+                <optgroup label="Major Clouds">
+                    <option value="@CloudProvider.AWS">AWS</option>
+                    <option value="@CloudProvider.Azure">Azure</option>
+                    <option value="@CloudProvider.GCP">Google Cloud</option>
+                    <option value="@CloudProvider.OCI">Oracle</option>
+                    <option value="@CloudProvider.IBM">IBM Cloud</option>
+                    <option value="@CloudProvider.Alibaba">Alibaba</option>
+                    <option value="@CloudProvider.Tencent">Tencent</option>
+                    <option value="@CloudProvider.Huawei">Huawei</option>
                 </optgroup>
-                <optgroup label="Developer-Friendly Clouds">
-                    <option value="@CloudProvider.DigitalOcean">DigitalOcean (DOKS)</option>
-                    <option value="@CloudProvider.Linode">Linode / Akamai (LKE)</option>
-                    <option value="@CloudProvider.Vultr">Vultr (VKE)</option>
-                    <option value="@CloudProvider.Hetzner">Hetzner Cloud</option>
+                <optgroup label="Developer Clouds">
+                    <option value="@CloudProvider.DigitalOcean">DigitalOcean</option>
+                    <option value="@CloudProvider.Linode">Linode</option>
+                    <option value="@CloudProvider.Vultr">Vultr</option>
+                    <option value="@CloudProvider.Hetzner">Hetzner</option>
                     <option value="@CloudProvider.OVH">OVHcloud</option>
-                    <option value="@CloudProvider.Scaleway">Scaleway (Kapsule)</option>
-                    <option value="@CloudProvider.Civo">Civo Cloud</option>
-                    <option value="@CloudProvider.Exoscale">Exoscale (SKS)</option>
+                    <option value="@CloudProvider.Scaleway">Scaleway</option>
+                    <option value="@CloudProvider.Civo">Civo</option>
+                    <option value="@CloudProvider.Exoscale">Exoscale</option>
                 </optgroup>
                 @if (!IsCloudAlternativeMode)
                 {
                     <optgroup label="On-Premises">
-                        <option value="@CloudProvider.OnPrem">On-Premises (Self-Managed)</option>
+                        <option value="@CloudProvider.OnPrem">On-Premises</option>
                     </optgroup>
                 }
             </select>
         </div>
-
         @if (SelectedProvider != CloudProvider.OnPrem)
         {
             <div class="option-group">
@@ -64,76 +57,61 @@
                     }
                 </select>
             </div>
-
-            <div class="option-group">
-                <label>Pricing Type</label>
-                <select @bind="Options.PricingType">
-                    <option value="@PricingType.OnDemand">On-Demand</option>
-                    <option value="@PricingType.Reserved1Year">1-Year Reserved</option>
-                    <option value="@PricingType.Reserved3Year">3-Year Reserved</option>
-                    <option value="@PricingType.Spot">Spot/Preemptible</option>
-                </select>
-            </div>
-        }
-
-        <div class="option-group">
-            <label>Support Tier</label>
-            <select @bind="Options.SupportTier">
-                <option value="@SupportTier.None">None</option>
-                <option value="@SupportTier.Basic">Basic</option>
-                <option value="@SupportTier.Developer">Developer</option>
-                <option value="@SupportTier.Business">Business</option>
-                <option value="@SupportTier.Enterprise">Enterprise</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="pricing-toggles">
-        <div class="toggle-group">
-            <label>
-                <input type="checkbox" @bind="Options.IncludeLicenses" />
-                Include Licenses
-            </label>
-        </div>
-        <div class="toggle-group">
-            <label>
-                <input type="checkbox" @bind="Options.IncludeSupport" />
-                Include Support
-            </label>
-        </div>
-        <div class="toggle-group">
-            <label>
-                <input type="checkbox" @bind="Options.IncludeStorage" />
-                Include Storage
-            </label>
-        </div>
-        <div class="toggle-group">
-            <label>
-                <input type="checkbox" @bind="Options.IncludeNetwork" />
-                Include Network
-            </label>
-        </div>
-        @if (SelectedProvider != CloudProvider.OnPrem)
-        {
-            <div class="toggle-group">
-                <label>
-                    <input type="checkbox" @bind="Options.IncludeManagedControlPlane" />
-                    Include Managed Control Plane
-                </label>
-            </div>
         }
     </div>
 
-    <div class="pricing-advanced">
-        <details>
-            <summary>Advanced Options</summary>
-            <div class="advanced-options">
+    <!-- Pricing Options Accordion -->
+    <details class="pricing-accordion" open>
+        <summary>Pricing Options</summary>
+        <div class="accordion-content">
+            <div class="pricing-options-grid">
+                @if (SelectedProvider != CloudProvider.OnPrem)
+                {
+                    <div class="option-group">
+                        <label>Pricing</label>
+                        <select @bind="Options.PricingType">
+                            <option value="@PricingType.OnDemand">On-Demand</option>
+                            <option value="@PricingType.Reserved1Year">1-Year Reserved</option>
+                            <option value="@PricingType.Reserved3Year">3-Year Reserved</option>
+                            <option value="@PricingType.Spot">Spot</option>
+                        </select>
+                    </div>
+                }
                 <div class="option-group">
-                    <label>Storage GB per Node</label>
+                    <label>Support</label>
+                    <select @bind="Options.SupportTier">
+                        <option value="@SupportTier.None">None</option>
+                        <option value="@SupportTier.Basic">Basic</option>
+                        <option value="@SupportTier.Developer">Developer</option>
+                        <option value="@SupportTier.Business">Business</option>
+                        <option value="@SupportTier.Enterprise">Enterprise</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pricing-toggles-compact">
+                <label><input type="checkbox" @bind="Options.IncludeLicenses" /> Licenses</label>
+                <label><input type="checkbox" @bind="Options.IncludeSupport" /> Support</label>
+                <label><input type="checkbox" @bind="Options.IncludeStorage" /> Storage</label>
+                <label><input type="checkbox" @bind="Options.IncludeNetwork" /> Network</label>
+                @if (SelectedProvider != CloudProvider.OnPrem)
+                {
+                    <label><input type="checkbox" @bind="Options.IncludeManagedControlPlane" /> Control Plane</label>
+                }
+            </div>
+        </div>
+    </details>
+
+    <!-- Advanced Options Accordion -->
+    <details class="pricing-accordion">
+        <summary>Advanced Options</summary>
+        <div class="accordion-content">
+            <div class="advanced-options-grid">
+                <div class="option-group">
+                    <label>Storage/Node</label>
                     <input type="number" @bind="Options.StorageGBPerNode" min="10" max="10000" />
                 </div>
                 <div class="option-group">
-                    <label>Monthly Egress (GB)</label>
+                    <label>Egress (GB)</label>
                     <input type="number" @bind="Options.MonthlyEgressGB" min="0" max="100000" />
                 </div>
                 <div class="option-group">
@@ -145,8 +123,8 @@
                     <input type="number" @bind="Options.HeadroomPercent" min="0" max="100" />
                 </div>
             </div>
-        </details>
-    </div>
+        </div>
+    </details>
 
     <div class="pricing-actions">
         <button class="btn btn-primary" @onclick="CalculateCosts" disabled="@IsCalculating">

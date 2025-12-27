@@ -1,0 +1,270 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+@* Environment Slider - Horizontal slider (left-to-right) for environment configuration *@
+@* Shows one environment at a time with navigation arrows *@
+
+<div class="env-slider">
+    <!-- Header with Mode Description and Stats -->
+    <div class="slider-header">
+        <div class="mode-banner">
+            <span class="mode-icon icon icon-apps"></span>
+            <div class="mode-info">
+                <strong>Multi-Cluster Mode</strong>
+                <span>Configure apps for each environment cluster</span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-value">@GetTotalApps()</span>
+                <span class="stat-label">Apps</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">@GetEstimatedCpu().ToString("F1")</span>
+                <span class="stat-label">Est. CPU</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">@GetEstimatedMemory().ToString("F0")</span>
+                <span class="stat-label">Est. RAM (GB)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Navigation Dots -->
+    <div class="env-nav-dots">
+        @foreach (var env in EnabledEnvironments.OrderBy(e => e))
+        {
+            <button class="env-dot @(env == CurrentEnvironment ? "active" : "") @(IsProdEnv(env) ? "prod" : "nonprod")"
+                    @onclick="() => SelectEnvironment(env)"
+                    title="@env">
+                <span class="dot-icon">@GetEnvIcon(env)</span>
+                <span class="dot-label">@env</span>
+                @if (GetEnvTotalApps(env) > 0)
+                {
+                    <span class="dot-badge">@GetEnvTotalApps(env)</span>
+                }
+            </button>
+        }
+    </div>
+
+    <!-- Slider Container -->
+    <div class="slider-container">
+        <!-- Previous Button -->
+        <button class="slider-nav prev @(CanGoPrevious ? "" : "disabled")"
+                @onclick="GoPrevious"
+                disabled="@(!CanGoPrevious)">
+            <span class="nav-arrow">◀</span>
+        </button>
+
+        <!-- Current Environment Card -->
+        <div class="slider-content">
+            @if (CurrentEnvironment != null)
+            {
+                var config = GetEnvConfig(CurrentEnvironment.Value);
+                <div class="env-slide @GetEnvClass(CurrentEnvironment.Value)">
+                    <div class="slide-header">
+                        <span class="env-icon">@GetEnvIcon(CurrentEnvironment.Value)</span>
+                        <div class="env-info">
+                            <span class="env-name">@CurrentEnvironment</span>
+                            <span class="env-type">@(IsProdEnv(CurrentEnvironment.Value) ? "Production" : "Non-Production") Environment</span>
+                        </div>
+                        <div class="env-total-badge">
+                            <span class="total-count">@GetEnvTotalApps(CurrentEnvironment.Value)</span>
+                            <span class="total-label">apps</span>
+                        </div>
+                    </div>
+
+                    <div class="tier-grid">
+                        <!-- Small Tier -->
+                        <div class="tier-panel small">
+                            <div class="tier-header">
+                                <span class="tier-icon">S</span>
+                                <span class="tier-name">Small</span>
+                            </div>
+                            <div class="tier-spec">@SmallSpec</div>
+                            <input type="number" min="0" class="tier-input"
+                                   value="@config.Small"
+                                   @onchange="@(e => UpdateTier(AppTier.Small, ParseInt(e.Value)))" />
+                        </div>
+
+                        <!-- Medium Tier -->
+                        <div class="tier-panel medium">
+                            <div class="tier-header">
+                                <span class="tier-icon">M</span>
+                                <span class="tier-name">Medium</span>
+                            </div>
+                            <div class="tier-spec">@MediumSpec</div>
+                            <input type="number" min="0" class="tier-input"
+                                   value="@config.Medium"
+                                   @onchange="@(e => UpdateTier(AppTier.Medium, ParseInt(e.Value)))" />
+                        </div>
+
+                        <!-- Large Tier -->
+                        <div class="tier-panel large">
+                            <div class="tier-header">
+                                <span class="tier-icon">L</span>
+                                <span class="tier-name">Large</span>
+                            </div>
+                            <div class="tier-spec">@LargeSpec</div>
+                            <input type="number" min="0" class="tier-input"
+                                   value="@config.Large"
+                                   @onchange="@(e => UpdateTier(AppTier.Large, ParseInt(e.Value)))" />
+                        </div>
+
+                        <!-- XLarge Tier -->
+                        <div class="tier-panel xlarge">
+                            <div class="tier-header">
+                                <span class="tier-icon">XL</span>
+                                <span class="tier-name">XLarge</span>
+                            </div>
+                            <div class="tier-spec">@XLargeSpec</div>
+                            <input type="number" min="0" class="tier-input"
+                                   value="@config.XLarge"
+                                   @onchange="@(e => UpdateTier(AppTier.XLarge, ParseInt(e.Value)))" />
+                        </div>
+                    </div>
+
+                    <!-- Quick Navigation Hint -->
+                    <div class="slide-footer">
+                        <span class="nav-hint">
+                            @(currentIndex + 1) of @EnabledEnvironments.Count environments
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Next Button -->
+        <button class="slider-nav next @(CanGoNext ? "" : "disabled")"
+                @onclick="GoNext"
+                disabled="@(!CanGoNext)">
+            <span class="nav-arrow">▶</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, AppConfig> EnvironmentApps { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, AppConfig>> EnvironmentAppsChanged { get; set; }
+
+    [Parameter] public string SmallSpec { get; set; } = "0.25 CPU, 0.5 GB RAM";
+    [Parameter] public string MediumSpec { get; set; } = "0.5 CPU, 1 GB RAM";
+    [Parameter] public string LargeSpec { get; set; } = "1 CPU, 2 GB RAM";
+    [Parameter] public string XLargeSpec { get; set; } = "2 CPU, 4 GB RAM";
+
+    private int currentIndex = 0;
+
+    private EnvironmentType? CurrentEnvironment =>
+        EnabledEnvironments.OrderBy(e => e).Skip(currentIndex).FirstOrDefault();
+
+    private bool CanGoPrevious => currentIndex > 0;
+    private bool CanGoNext => currentIndex < EnabledEnvironments.Count - 1;
+
+    protected override void OnParametersSet()
+    {
+        // Ensure current index is valid
+        if (currentIndex >= EnabledEnvironments.Count)
+            currentIndex = Math.Max(0, EnabledEnvironments.Count - 1);
+    }
+
+    private void SelectEnvironment(EnvironmentType env)
+    {
+        var orderedEnvs = EnabledEnvironments.OrderBy(e => e).ToList();
+        var index = orderedEnvs.IndexOf(env);
+        if (index >= 0)
+            currentIndex = index;
+    }
+
+    private void GoPrevious()
+    {
+        if (CanGoPrevious) currentIndex--;
+    }
+
+    private void GoNext()
+    {
+        if (CanGoNext) currentIndex++;
+    }
+
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod || env == EnvironmentType.DR;
+
+    private AppConfig GetEnvConfig(EnvironmentType env)
+    {
+        return EnvironmentApps.TryGetValue(env, out var config) ? config : new AppConfig();
+    }
+
+    private int GetEnvTotalApps(EnvironmentType env)
+    {
+        if (!EnvironmentApps.TryGetValue(env, out var config)) return 0;
+        return config.Small + config.Medium + config.Large + config.XLarge;
+    }
+
+    private async Task UpdateTier(AppTier tier, int count)
+    {
+        if (CurrentEnvironment == null) return;
+
+        var env = CurrentEnvironment.Value;
+        if (!EnvironmentApps.ContainsKey(env))
+            EnvironmentApps[env] = new AppConfig();
+
+        switch (tier)
+        {
+            case AppTier.Small: EnvironmentApps[env].Small = count; break;
+            case AppTier.Medium: EnvironmentApps[env].Medium = count; break;
+            case AppTier.Large: EnvironmentApps[env].Large = count; break;
+            case AppTier.XLarge: EnvironmentApps[env].XLarge = count; break;
+        }
+
+        await EnvironmentAppsChanged.InvokeAsync(EnvironmentApps);
+    }
+
+    private int GetTotalApps()
+    {
+        return EnabledEnvironments
+            .Sum(env => GetEnvTotalApps(env));
+    }
+
+    private double GetEstimatedCpu()
+    {
+        return EnabledEnvironments
+            .Sum(env => EnvironmentApps.TryGetValue(env, out var config)
+                ? config.Small * 0.25 + config.Medium * 0.5 + config.Large * 1.0 + config.XLarge * 2.0
+                : 0);
+    }
+
+    private double GetEstimatedMemory()
+    {
+        return EnabledEnvironments
+            .Sum(env => EnvironmentApps.TryGetValue(env, out var config)
+                ? config.Small * 0.5 + config.Medium * 1.0 + config.Large * 2.0 + config.XLarge * 4.0
+                : 0);
+    }
+
+    private string GetEnvIcon(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "D",
+        EnvironmentType.Test => "T",
+        EnvironmentType.Stage => "S",
+        EnvironmentType.Prod => "P",
+        EnvironmentType.DR => "DR",
+        _ => "E"
+    };
+
+    private string GetEnvClass(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "env-dev",
+        EnvironmentType.Test => "env-test",
+        EnvironmentType.Stage => "env-stage",
+        EnvironmentType.Prod => "env-prod",
+        EnvironmentType.DR => "env-dr",
+        _ => ""
+    };
+
+    private int ParseInt(object? value)
+    {
+        if (value == null) return 0;
+        if (int.TryParse(value.ToString(), out var result))
+            return Math.Max(0, result);
+        return 0;
+    }
+}

@@ -1,0 +1,228 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Services
+
+@* VM Server Roles Configuration - Uses Horizontal Accordion for environments *@
+
+<div class="vm-server-roles-config">
+    <div class="server-roles-header">
+        <div class="header-title">
+            <span class="header-icon icon icon-server"></span>
+            <div>
+                <strong>Server Roles Configuration</strong>
+                <span class="header-subtitle">Configure server roles for each environment</span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-value">@GetTotalRoles()</span>
+                <span class="stat-label">Total Roles</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">@GetTotalInstances()</span>
+                <span class="stat-label">Total VMs</span>
+            </div>
+        </div>
+    </div>
+
+    <HorizontalAccordion SingleExpand="true"
+                         ExpandedPanel="@expandedEnv"
+                         ExpandedPanelChanged="@((e) => expandedEnv = e)"
+                         AdditionalClass="server-roles-accordion">
+        @foreach (var env in OrderedEnvironments)
+        {
+            var config = GetEnvConfig(env);
+            var roleCount = config?.Roles.Count ?? 0;
+
+            <HorizontalAccordionPanel Key="@env.ToString()"
+                                      Title="@IconResources.GetEnvDisplayName(env)"
+                                      ShortTitle="@IconResources.GetEnvShortLabel(env)"
+                                      IconClass="@IconResources.GetEnvIconClass(env)"
+                                      Subtitle="@($"{roleCount} roles")"
+                                      AdditionalClass="@GetEnvClass(env)">
+                <div class="env-roles-content">
+                    <div class="env-panel-header">
+                        <span class="env-badge @GetEnvClass(env)">
+                            <span class="badge-count">@roleCount</span>
+                            <span class="badge-label">roles</span>
+                        </span>
+                        <span class="env-type">@(IsProdEnv(env) ? "Production" : "Non-Prod")</span>
+                    </div>
+
+                    <div class="roles-configuration">
+                        <!-- Available Roles Grid -->
+                        <div class="available-roles-section">
+                            <span class="section-label">Toggle Roles</span>
+                            <div class="role-grid">
+                                @if (AvailableTechnologyRoles.Any())
+                                {
+                                    @foreach (var techRole in AvailableTechnologyRoles)
+                                    {
+                                        var existingRole = config?.Roles.FirstOrDefault(r => r.RoleId == techRole.Id);
+                                        var isActive = existingRole != null;
+                                        <button class="role-chip @(isActive ? "active" : "") @(!techRole.Required ? "optional" : "")"
+                                                @onclick="() => OnToggleTechRole(env, techRole)"
+                                                title="@techRole.Description">
+                                            <span class="@IconResources.GetRoleIconClassFromString(techRole.Icon)"></span>
+                                            <span class="role-name">@techRole.Name</span>
+                                            @if (isActive)
+                                            {
+                                                <span class="role-count">@($"x{existingRole!.InstanceCount}")</span>
+                                            }
+                                        </button>
+                                    }
+                                }
+                                else
+                                {
+                                    @foreach (var role in Enum.GetValues<ServerRole>())
+                                    {
+                                        var existingRole = config?.Roles.FirstOrDefault(r => r.Role == role);
+                                        var isActive = existingRole != null;
+                                        <button class="role-chip @(isActive ? "active" : "")"
+                                                @onclick="() => OnToggleRole(env, role)">
+                                            <span class="@IconResources.GetRoleIconClass(role)"></span>
+                                            <span class="role-name">@IconResources.GetRoleDisplayName(role)</span>
+                                            @if (isActive)
+                                            {
+                                                <span class="role-count">@($"x{existingRole!.InstanceCount}")</span>
+                                            }
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Active Roles Configuration -->
+                        @if (config?.Roles.Any() == true)
+                        {
+                            <div class="active-roles-section">
+                                <span class="section-label">Configure Active Roles</span>
+                                <div class="role-details-list">
+                                    @foreach (var roleConfig in config.Roles)
+                                    {
+                                        <div class="role-detail-row">
+                                            <div class="role-info">
+                                                <span class="@IconResources.GetRoleIconClass(roleConfig.Role)"></span>
+                                                <span class="role-name">@(roleConfig.RoleName ?? IconResources.GetRoleDisplayName(roleConfig.Role))</span>
+                                            </div>
+                                            <div class="role-controls">
+                                                <select @bind="roleConfig.Size" @bind:after="() => NotifyConfigChanged()" title="Size">
+                                                    @foreach (var tier in Enum.GetValues<AppTier>())
+                                                    {
+                                                        <option value="@tier">@tier</option>
+                                                    }
+                                                </select>
+                                                @{
+                                                    var maxInstances = GetMaxInstances?.Invoke(roleConfig) ?? 10;
+                                                    var isSingle = maxInstances == 1;
+                                                }
+                                                @if (isSingle)
+                                                {
+                                                    <span class="fixed-count" title="Instances">1</span>
+                                                }
+                                                else
+                                                {
+                                                    <input type="number" min="1" max="@maxInstances"
+                                                           @bind="roleConfig.InstanceCount"
+                                                           @bind:after="() => NotifyConfigChanged()"
+                                                           title="Instances" />
+                                                }
+                                                <button class="role-remove" @onclick="() => OnRemoveRole(env, roleConfig)" title="Remove">×</button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="no-roles-message">
+                                <span class="message-icon">+</span>
+                                <span>Click roles above to add</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </HorizontalAccordionPanel>
+        }
+    </HorizontalAccordion>
+</div>
+
+@code {
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, VMEnvironmentConfig> EnvironmentConfigs { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, VMEnvironmentConfig>> EnvironmentConfigsChanged { get; set; }
+
+    [Parameter] public IEnumerable<TechnologyServerRole> AvailableTechnologyRoles { get; set; } = Enumerable.Empty<TechnologyServerRole>();
+    [Parameter] public Func<VMRoleConfig, int>? GetMaxInstances { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType, TechnologyServerRole)> OnToggleTechRoleRequested { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType, ServerRole)> OnToggleRoleRequested { get; set; }
+    [Parameter] public EventCallback<(EnvironmentType, VMRoleConfig)> OnRemoveRoleRequested { get; set; }
+
+    // LifeTime-specific roles (only used when LifeTime environment is shown)
+    [Parameter] public IEnumerable<TechnologyServerRole> LifeTimeRoles { get; set; } = Enumerable.Empty<TechnologyServerRole>();
+
+    private string? expandedEnv;
+
+    private IEnumerable<EnvironmentType> OrderedEnvironments =>
+        EnabledEnvironments.OrderBy(e => e);
+
+    protected override void OnParametersSet()
+    {
+        // Default to first environment expanded if none selected
+        if (string.IsNullOrEmpty(expandedEnv) && EnabledEnvironments.Any())
+        {
+            expandedEnv = EnabledEnvironments.OrderBy(e => e).First().ToString();
+        }
+    }
+
+    private VMEnvironmentConfig? GetEnvConfig(EnvironmentType env)
+    {
+        return EnvironmentConfigs.TryGetValue(env, out var config) ? config : null;
+    }
+
+    private int GetTotalRoles()
+    {
+        return EnabledEnvironments.Sum(env =>
+            GetEnvConfig(env)?.Roles.Count ?? 0);
+    }
+
+    private int GetTotalInstances()
+    {
+        return EnabledEnvironments.Sum(env =>
+            GetEnvConfig(env)?.Roles.Sum(r => r.InstanceCount) ?? 0);
+    }
+
+    private async Task OnToggleTechRole(EnvironmentType env, TechnologyServerRole techRole)
+    {
+        await OnToggleTechRoleRequested.InvokeAsync((env, techRole));
+    }
+
+    private async Task OnToggleRole(EnvironmentType env, ServerRole role)
+    {
+        await OnToggleRoleRequested.InvokeAsync((env, role));
+    }
+
+    private async Task OnRemoveRole(EnvironmentType env, VMRoleConfig roleConfig)
+    {
+        await OnRemoveRoleRequested.InvokeAsync((env, roleConfig));
+    }
+
+    private async Task NotifyConfigChanged()
+    {
+        await EnvironmentConfigsChanged.InvokeAsync(EnvironmentConfigs);
+    }
+
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod;
+
+    private string GetEnvClass(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "env-dev",
+        EnvironmentType.Test => "env-test",
+        EnvironmentType.Stage => "env-stage",
+        EnvironmentType.Prod => "env-prod",
+        EnvironmentType.LifeTime => "env-lifetime",
+        _ => ""
+    };
+}

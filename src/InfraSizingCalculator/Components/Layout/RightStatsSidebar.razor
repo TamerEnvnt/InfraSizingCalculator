@@ -72,7 +72,7 @@
     else
     {
         <div class="stats-empty">
-            <div class="empty-icon">&#128202;</div>
+            <span class="icon icon-chart" style="font-size:2rem;opacity:0.5;"></span>
             <div class="empty-text">Configure your sizing to see statistics</div>
         </div>
     }
@@ -81,24 +81,24 @@
         <!-- Export Dropdown -->
         <div class="export-dropdown">
             <button class="btn-primary" @onclick="ToggleExportMenu" disabled="@(!HasResults)">
-                <span>&#128229;</span> Export <span class="dropdown-arrow">▼</span>
+                <span class="icon icon-export"></span> Export <span class="dropdown-arrow">▼</span>
             </button>
             @if (_showExportMenu)
             {
                 <div class="export-menu">
-                    <button @onclick="() => ExportAs(ExportFormat.CSV)">📄 CSV</button>
-                    <button @onclick="() => ExportAs(ExportFormat.JSON)">📋 JSON</button>
-                    <button @onclick="() => ExportAs(ExportFormat.Excel)">📊 Excel</button>
-                    <button @onclick="() => ExportAs(ExportFormat.PDF)">📑 PDF</button>
-                    <button @onclick="() => ExportAs(ExportFormat.Diagram)">🖼️ Diagram</button>
+                    <button @onclick="() => ExportAs(ExportFormat.CSV)">CSV</button>
+                    <button @onclick="() => ExportAs(ExportFormat.JSON)">JSON</button>
+                    <button @onclick="() => ExportAs(ExportFormat.Excel)">Excel</button>
+                    <button @onclick="() => ExportAs(ExportFormat.PDF)">PDF</button>
+                    <button @onclick="() => ExportAs(ExportFormat.Diagram)">Diagram</button>
                 </div>
             }
         </div>
         <button class="btn-secondary" @onclick="OnShareClick" disabled="@(!HasResults)">
-            <span>&#128279;</span> Share
+            <span class="icon icon-share"></span> Share
         </button>
         <button class="btn-secondary" @onclick="OnSaveClick" disabled="@(!HasResults)">
-            <span>&#128190;</span> Save Scenario
+            <span class="icon icon-save"></span> Save Scenario
         </button>
     </div>
 </aside>

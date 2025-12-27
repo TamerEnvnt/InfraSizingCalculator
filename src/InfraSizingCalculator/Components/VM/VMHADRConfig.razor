@@ -1,0 +1,270 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Services
+
+@* VM HA & DR Configuration - Uses Horizontal Accordion for environments *@
+
+<div class="vm-ha-dr-config">
+    <div class="ha-dr-header">
+        <div class="header-title">
+            <span class="header-icon icon icon-settings"></span>
+            <div>
+                <strong>High Availability & Disaster Recovery</strong>
+                <span class="header-subtitle">Configure HA and DR patterns for each environment</span>
+            </div>
+        </div>
+    </div>
+
+    <HorizontalAccordion SingleExpand="true"
+                         ExpandedPanel="@expandedEnv"
+                         ExpandedPanelChanged="@((e) => expandedEnv = e)"
+                         AdditionalClass="ha-dr-accordion">
+        @foreach (var env in OrderedEnvironments)
+        {
+            var config = GetEnvConfig(env);
+
+            <HorizontalAccordionPanel Key="@env.ToString()"
+                                      Title="@IconResources.GetEnvDisplayName(env)"
+                                      ShortTitle="@IconResources.GetEnvShortLabel(env)"
+                                      IconClass="@IconResources.GetEnvIconClass(env)"
+                                      Subtitle="@GetEnvSummary(env)"
+                                      AdditionalClass="@GetEnvClass(env)">
+                <div class="env-ha-dr-content">
+                    <!-- Horizontal row: Selectors + Summary -->
+                    <div class="config-row">
+                        <!-- HA Pattern -->
+                        <div class="config-item">
+                            <label class="config-label">
+                                <span class="config-icon">HA</span>
+                                HA Pattern
+                            </label>
+                            <select value="@(config?.HAPattern ?? HAPattern.None)"
+                                    @onchange="@(e => UpdateHAPattern(env, e))">
+                                @foreach (var pattern in Enum.GetValues<HAPattern>())
+                                {
+                                    <option value="@pattern">@GetHAPatternDisplay(pattern)</option>
+                                }
+                            </select>
+                            <span class="config-hint">@GetHAPatternHint(config?.HAPattern ?? HAPattern.None)</span>
+                        </div>
+
+                        <!-- DR Pattern - Available for any environment -->
+                        <div class="config-item">
+                            <label class="config-label">
+                                <span class="config-icon">DR</span>
+                                Disaster Recovery
+                            </label>
+                            <select value="@(config?.DRPattern ?? DRPattern.None)"
+                                    @onchange="@(e => UpdateDRPattern(env, e))">
+                                @foreach (var pattern in Enum.GetValues<DRPattern>())
+                                {
+                                    <option value="@pattern">@GetDRPatternDisplay(pattern)</option>
+                                }
+                            </select>
+                            <span class="config-hint">@GetDRPatternHint(config?.DRPattern ?? DRPattern.None)</span>
+                        </div>
+
+                        <!-- Load Balancer -->
+                        <div class="config-item">
+                            <label class="config-label">
+                                <span class="config-icon">LB</span>
+                                Load Balancer
+                            </label>
+                            <select value="@(config?.LoadBalancer ?? LoadBalancerOption.None)"
+                                    @onchange="@(e => UpdateLoadBalancer(env, e))">
+                                @foreach (var option in Enum.GetValues<LoadBalancerOption>())
+                                {
+                                    <option value="@option">@GetLBOptionDisplay(option)</option>
+                                }
+                            </select>
+                            <span class="config-hint">@GetLBOptionHint(config?.LoadBalancer ?? LoadBalancerOption.None)</span>
+                        </div>
+
+                        <!-- Summary - inline beside selectors -->
+                        <div class="config-summary">
+                            <span class="summary-title">Summary</span>
+                            <div class="summary-items">
+                                @if (config != null && (config.HAPattern != HAPattern.None || config.DRPattern != DRPattern.None || config.LoadBalancer != LoadBalancerOption.None))
+                                {
+                                    @if (config.HAPattern != HAPattern.None)
+                                    {
+                                        <span class="summary-item ha">@GetHAPatternDisplay(config.HAPattern)</span>
+                                    }
+                                    @if (config.DRPattern != DRPattern.None)
+                                    {
+                                        <span class="summary-item dr">@GetDRPatternDisplay(config.DRPattern)</span>
+                                    }
+                                    @if (config.LoadBalancer != LoadBalancerOption.None)
+                                    {
+                                        <span class="summary-item lb">@GetLBOptionDisplay(config.LoadBalancer)</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="summary-item none">No redundancy</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </HorizontalAccordionPanel>
+        }
+    </HorizontalAccordion>
+</div>
+
+@code {
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, VMEnvironmentConfig> EnvironmentConfigs { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, VMEnvironmentConfig>> EnvironmentConfigsChanged { get; set; }
+
+    private string? expandedEnv;
+
+    private IEnumerable<EnvironmentType> OrderedEnvironments =>
+        EnabledEnvironments.OrderBy(e => e);
+
+    protected override void OnParametersSet()
+    {
+        // Default to first environment expanded if none selected
+        if (string.IsNullOrEmpty(expandedEnv) && EnabledEnvironments.Any())
+        {
+            expandedEnv = EnabledEnvironments.OrderBy(e => e).First().ToString();
+        }
+    }
+
+    private VMEnvironmentConfig? GetEnvConfig(EnvironmentType env)
+    {
+        return EnvironmentConfigs.TryGetValue(env, out var config) ? config : null;
+    }
+
+    private string GetEnvSummary(EnvironmentType env)
+    {
+        var config = GetEnvConfig(env);
+        if (config == null) return "Not configured";
+
+        var parts = new List<string>();
+        if (config.HAPattern != HAPattern.None) parts.Add("HA");
+        if (config.DRPattern != DRPattern.None) parts.Add("DR");
+        if (config.LoadBalancer != LoadBalancerOption.None) parts.Add("LB");
+
+        return parts.Count > 0 ? string.Join(" + ", parts) : "No redundancy";
+    }
+
+    private VMEnvironmentConfig GetOrCreateConfig(EnvironmentType env)
+    {
+        if (!EnvironmentConfigs.TryGetValue(env, out var config))
+        {
+            config = new VMEnvironmentConfig
+            {
+                Environment = env,
+                Enabled = true,
+                HAPattern = HAPattern.None,
+                DRPattern = DRPattern.None,
+                LoadBalancer = LoadBalancerOption.None,
+                StorageGB = 100,
+                Roles = new List<VMRoleConfig>()
+            };
+            EnvironmentConfigs[env] = config;
+        }
+        return config;
+    }
+
+    private async Task UpdateHAPattern(EnvironmentType env, ChangeEventArgs e)
+    {
+        if (Enum.TryParse<HAPattern>(e.Value?.ToString(), out var pattern))
+        {
+            var config = GetOrCreateConfig(env);
+            config.HAPattern = pattern;
+            await EnvironmentConfigsChanged.InvokeAsync(EnvironmentConfigs);
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateDRPattern(EnvironmentType env, ChangeEventArgs e)
+    {
+        if (Enum.TryParse<DRPattern>(e.Value?.ToString(), out var pattern))
+        {
+            var config = GetOrCreateConfig(env);
+            config.DRPattern = pattern;
+            await EnvironmentConfigsChanged.InvokeAsync(EnvironmentConfigs);
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateLoadBalancer(EnvironmentType env, ChangeEventArgs e)
+    {
+        if (Enum.TryParse<LoadBalancerOption>(e.Value?.ToString(), out var option))
+        {
+            var config = GetOrCreateConfig(env);
+            config.LoadBalancer = option;
+            await EnvironmentConfigsChanged.InvokeAsync(EnvironmentConfigs);
+            StateHasChanged();
+        }
+    }
+
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod;
+
+    private string GetEnvClass(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "env-dev",
+        EnvironmentType.Test => "env-test",
+        EnvironmentType.Stage => "env-stage",
+        EnvironmentType.Prod => "env-prod",
+        EnvironmentType.LifeTime => "env-lifetime",
+        _ => ""
+    };
+
+    private string GetHAPatternDisplay(HAPattern pattern) => pattern switch
+    {
+        HAPattern.None => "None",
+        HAPattern.ActivePassive => "Active-Passive",
+        HAPattern.ActiveActive => "Active-Active",
+        HAPattern.NPlus1 => "N+1 Redundancy",
+        _ => pattern.ToString()
+    };
+
+    private string GetHAPatternHint(HAPattern pattern) => pattern switch
+    {
+        HAPattern.None => "Single server, no redundancy",
+        HAPattern.ActivePassive => "Primary + standby failover",
+        HAPattern.ActiveActive => "Multiple active servers with load balancing",
+        HAPattern.NPlus1 => "N active servers + 1 spare",
+        _ => ""
+    };
+
+    private string GetDRPatternDisplay(DRPattern pattern) => pattern switch
+    {
+        DRPattern.None => "None",
+        DRPattern.WarmStandby => "Warm Standby",
+        DRPattern.HotStandby => "Hot Standby",
+        DRPattern.MultiRegion => "Multi-Region Active-Active",
+        _ => pattern.ToString()
+    };
+
+    private string GetDRPatternHint(DRPattern pattern) => pattern switch
+    {
+        DRPattern.None => "No disaster recovery configured",
+        DRPattern.WarmStandby => "Minimal resources at DR site, scales up on failover",
+        DRPattern.HotStandby => "Full duplicate environment, instant failover",
+        DRPattern.MultiRegion => "Multiple regions serving traffic simultaneously",
+        _ => ""
+    };
+
+    private string GetLBOptionDisplay(LoadBalancerOption option) => option switch
+    {
+        LoadBalancerOption.None => "None",
+        LoadBalancerOption.Single => "Single LB",
+        LoadBalancerOption.HAPair => "HA Pair",
+        LoadBalancerOption.CloudLB => "Cloud LB",
+        _ => option.ToString()
+    };
+
+    private string GetLBOptionHint(LoadBalancerOption option) => option switch
+    {
+        LoadBalancerOption.None => "No load balancing",
+        LoadBalancerOption.Single => "Single load balancer (non-redundant)",
+        LoadBalancerOption.HAPair => "Two load balancers in active-passive",
+        LoadBalancerOption.CloudLB => "Managed cloud service (AWS/Azure/GCP)",
+        _ => ""
+    };
+}

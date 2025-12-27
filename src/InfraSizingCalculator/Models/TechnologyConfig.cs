@@ -23,4 +23,21 @@ public class TechnologyConfig
     /// Defines the specific server roles needed for VM deployments.
     /// </summary>
     public TechnologyVMRoles? VMRoles { get; init; }
+
+    /// <summary>
+    /// Indicates if this technology requires a separate management environment.
+    /// Example: OutSystems requires LifeTime as a dedicated environment (not a role).
+    /// </summary>
+    public bool HasSeparateManagementEnvironment { get; init; } = false;
+
+    /// <summary>
+    /// Name of the separate management environment (e.g., "LifeTime" for OutSystems).
+    /// </summary>
+    public string ManagementEnvironmentName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// VM server role templates for the management environment.
+    /// This is separate from application environments.
+    /// </summary>
+    public TechnologyVMRoles? ManagementEnvironmentRoles { get; init; }
 }

@@ -6,13 +6,13 @@
 <SectionHeader Title="Select Deployment Model" ShowInfoButton="true" OnInfoClick="@OnInfoClick" />
 
 <div class="selection-grid">
-    <SelectionCard Icon="☸️"
+    <SelectionCard Icon="K8s"
                    Title="Kubernetes"
                    Description="Container orchestration with auto-scaling and self-healing"
                    IsSelected="@(SelectedDeployment == DeploymentModel.Kubernetes)"
                    OnClick="@(() => OnDeploymentSelected(DeploymentModel.Kubernetes))" />
 
-    <SelectionCard Icon="🖥️"
+    <SelectionCard Icon="VM"
                    Title="Virtual Machines"
                    Description="Traditional VM deployment with dedicated servers"
                    IsSelected="@(SelectedDeployment == DeploymentModel.VMs)"

@@ -42,7 +42,7 @@
         <!-- Pricing Options (collapsed by default) -->
         <details class="cost-section">
             <summary class="section-summary">
-                <span class="section-icon">⚙️</span>
+                <span class="section-icon">Cfg</span>
                 <span class="section-title">Pricing Options</span>
                 <span class="section-hint">Recalculate with different settings</span>
             </summary>
@@ -58,7 +58,7 @@
         {
             <details class="cost-section" open>
                 <summary class="section-summary">
-                    <span class="section-icon">📊</span>
+                    <span class="section-icon icon icon-chart"></span>
                     <span class="section-title">Cost Breakdown</span>
                     <span class="section-hint">@CostEstimate.Breakdown.Count categories</span>
                 </summary>
@@ -88,7 +88,7 @@
         {
             <details class="cost-section">
                 <summary class="section-summary">
-                    <span class="section-icon">🏢</span>
+                    <span class="section-icon">Env</span>
                     <span class="section-title">Cost by Environment</span>
                     <span class="section-hint">@CostEstimate.EnvironmentCosts.Count environments</span>
                 </summary>
@@ -120,7 +120,7 @@
         {
             <details class="cost-section">
                 <summary class="section-summary">
-                    <span class="section-icon">📝</span>
+                    <span class="section-icon">Notes</span>
                     <span class="section-title">Notes & Assumptions</span>
                     <span class="section-hint">@CostEstimate.Notes.Count items</span>
                 </summary>
@@ -140,7 +140,7 @@
         <!-- Show pricing selector when no estimate exists -->
         <div class="no-estimate">
             <div class="no-estimate-message">
-                <span class="no-estimate-icon">💰</span>
+                <span class="no-estimate-icon">$</span>
                 <p>Configure pricing options and calculate costs</p>
             </div>
             <PricingSelector Options="@Options"
@@ -151,7 +151,7 @@
     else
     {
         <div class="no-results">
-            <span class="no-results-icon">💰</span>
+            <span class="no-results-icon">$</span>
             <p>Run a sizing calculation first to see cost estimates</p>
         </div>
     }
@@ -186,13 +186,13 @@
     {
         return category switch
         {
-            CostCategory.Compute => "💻",
-            CostCategory.Storage => "💾",
-            CostCategory.Network => "🌐",
-            CostCategory.License => "📜",
-            CostCategory.Support => "🛟",
-            CostCategory.DataCenter => "🏢",
-            _ => "💰"
+            CostCategory.Compute => "CPU",
+            CostCategory.Storage => "Disk",
+            CostCategory.Network => "Net",
+            CostCategory.License => "Lic",
+            CostCategory.Support => "Sup",
+            CostCategory.DataCenter => "DC",
+            _ => "$"
         };
     }
 }

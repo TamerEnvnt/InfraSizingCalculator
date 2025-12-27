@@ -1,0 +1,500 @@
+/* ===========================================
+   CUSTOM SVG ICON SYSTEM
+   Professional icons for InfraSizingCalculator
+   =========================================== */
+
+/* Base Icon Styles */
+.env-icon,
+.role-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+/* ===========================================
+   ENVIRONMENT ICONS
+   Used in accordion panels, sidebars, headers
+   =========================================== */
+
+.env-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background-size: 16px 16px;
+}
+
+.env-icon.sm {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background-size: 12px 12px;
+}
+
+.env-icon.lg {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-size: 20px 20px;
+}
+
+/* Dev Environment - Code/Wrench Icon */
+.env-icon.dev {
+    background-color: #10b981;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E");
+}
+
+/* Test Environment - Flask/Beaker Icon */
+.env-icon.test {
+    background-color: #f59e0b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3h6v5.5l4 6.5v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4l4-6.5V3'/%3E%3Cline x1='9' y1='3' x2='15' y2='3'/%3E%3Cpath d='M8 16h8'/%3E%3C/svg%3E");
+}
+
+/* Stage Environment - Eye/Preview Icon */
+.env-icon.stage {
+    background-color: #8b5cf6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+
+/* Prod Environment - Rocket Icon */
+.env-icon.prod {
+    background-color: #ef4444;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z'/%3E%3Cpath d='M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z'/%3E%3Cpath d='M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0'/%3E%3Cpath d='M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5'/%3E%3C/svg%3E");
+}
+
+/* DR Environment - Sync/Backup Icon */
+.env-icon.dr {
+    background-color: #06b6d4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='23 4 23 10 17 10'/%3E%3Cpolyline points='1 20 1 14 7 14'/%3E%3Cpath d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15'/%3E%3C/svg%3E");
+}
+
+/* LifeTime Environment - Settings/Management Icon (OutSystems) */
+.env-icon.lifetime {
+    background-color: #a855f7;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E");
+}
+
+/* ===========================================
+   SERVER ROLE ICONS
+   Used in VM/K8s configuration panels
+   =========================================== */
+
+.role-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background-size: 14px 14px;
+    background-color: var(--bg-tertiary, #334155);
+}
+
+.role-icon.sm {
+    width: 18px;
+    height: 18px;
+    background-size: 10px 10px;
+}
+
+.role-icon.lg {
+    width: 32px;
+    height: 32px;
+    background-size: 18px 18px;
+    border-radius: 6px;
+}
+
+/* Web Server - Globe Icon */
+.role-icon.web {
+    background-color: #3b82f6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E");
+}
+
+/* App Server - CPU/Chip Icon */
+.role-icon.app {
+    background-color: #8b5cf6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2' ry='2'/%3E%3Crect x='9' y='9' width='6' height='6'/%3E%3Cline x1='9' y1='1' x2='9' y2='4'/%3E%3Cline x1='15' y1='1' x2='15' y2='4'/%3E%3Cline x1='9' y1='20' x2='9' y2='23'/%3E%3Cline x1='15' y1='20' x2='15' y2='23'/%3E%3Cline x1='20' y1='9' x2='23' y2='9'/%3E%3Cline x1='20' y1='14' x2='23' y2='14'/%3E%3Cline x1='1' y1='9' x2='4' y2='9'/%3E%3Cline x1='1' y1='14' x2='4' y2='14'/%3E%3C/svg%3E");
+}
+
+/* Database Server - Cylinder Icon */
+.role-icon.database,
+.role-icon.db {
+    background-color: #f59e0b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cellipse cx='12' cy='5' rx='9' ry='3'/%3E%3Cpath d='M21 12c0 1.66-4 3-9 3s-9-1.34-9-3'/%3E%3Cpath d='M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5'/%3E%3C/svg%3E");
+}
+
+/* Cache Server - Lightning Icon */
+.role-icon.cache {
+    background-color: #ec4899;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'/%3E%3C/svg%3E");
+}
+
+/* Message Queue - Mail/Envelope Icon */
+.role-icon.mq,
+.role-icon.messagequeue {
+    background-color: #14b8a6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'/%3E%3Cpolyline points='22,6 12,13 2,6'/%3E%3C/svg%3E");
+}
+
+/* Search Server - Magnifying Glass Icon */
+.role-icon.search {
+    background-color: #6366f1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+}
+
+/* Storage Server - Hard Drive Icon */
+.role-icon.storage,
+.role-icon.file {
+    background-color: #64748b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='22' y1='12' x2='2' y2='12'/%3E%3Cpath d='M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3Cline x1='6' y1='16' x2='6.01' y2='16'/%3E%3Cline x1='10' y1='16' x2='10.01' y2='16'/%3E%3C/svg%3E");
+}
+
+/* Monitoring Server - Activity Chart Icon */
+.role-icon.monitoring,
+.role-icon.mon {
+    background-color: #22c55e;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 18 12 15 21 9 3 6 12 2 12'/%3E%3C/svg%3E");
+}
+
+/* Bastion Server - Shield Icon */
+.role-icon.bastion {
+    background-color: #ef4444;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E");
+}
+
+/* Generic Server Icon */
+.role-icon.server {
+    background-color: #475569;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='8' rx='2' ry='2'/%3E%3Crect x='2' y='14' width='20' height='8' rx='2' ry='2'/%3E%3Cline x1='6' y1='6' x2='6.01' y2='6'/%3E%3Cline x1='6' y1='18' x2='6.01' y2='18'/%3E%3C/svg%3E");
+}
+
+/* ===========================================
+   NODE TYPE ICONS
+   K8s node types (Control, Infra, Worker)
+   =========================================== */
+
+.node-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Control Plane Node */
+.node-icon.control,
+.node-icon.cp {
+    background-color: #ef4444;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E");
+}
+
+/* Infrastructure Node */
+.node-icon.infra {
+    background-color: #f59e0b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E");
+}
+
+/* Worker Node */
+.node-icon.worker {
+    background-color: #3b82f6;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='2' width='20' height='8' rx='2' ry='2'/%3E%3Crect x='2' y='14' width='20' height='8' rx='2' ry='2'/%3E%3Cline x1='6' y1='6' x2='6.01' y2='6'/%3E%3Cline x1='6' y1='18' x2='6.01' y2='18'/%3E%3C/svg%3E");
+}
+
+/* ===========================================
+   UTILITY ICONS
+   For pricing, settings, etc.
+   =========================================== */
+
+.util-icon {
+    width: 20px;
+    height: 20px;
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-flex;
+}
+
+/* Users Icon */
+.util-icon.users {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
+}
+
+/* Deployment/Package Icon */
+.util-icon.deployment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='16.5' y1='9.4' x2='7.5' y2='4.21'/%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E");
+}
+
+/* Dollar/Cost Icon */
+.util-icon.cost {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='1' x2='12' y2='23'/%3E%3Cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/%3E%3C/svg%3E");
+}
+
+/* ===========================================
+   BRAND ICONS - Official SVG Logos
+   Cloud providers, K8s distributions, technologies
+   =========================================== */
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.brand-icon.small {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background-size: 14px 14px;
+}
+
+.brand-icon.large {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-size: 24px 24px;
+}
+
+/* --- Cloud Providers --- */
+
+/* AWS - Arrow/Smile Logo */
+.brand-icon.aws {
+    background-color: #232F3E;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FF9900' d='M6.763 10.036c0 .296.032.535.088.71.064.176.144.368.256.576.04.063.056.127.056.183 0 .08-.048.16-.152.24l-.503.335a.383.383 0 0 1-.208.072c-.08 0-.16-.04-.239-.112a2.47 2.47 0 0 1-.287-.375 6.18 6.18 0 0 1-.248-.471c-.622.734-1.405 1.101-2.347 1.101-.67 0-1.205-.191-1.596-.574-.391-.384-.59-.894-.59-1.533 0-.678.239-1.23.726-1.644.487-.415 1.133-.623 1.955-.623.272 0 .551.024.846.064.296.04.6.104.918.176v-.583c0-.607-.127-1.03-.375-1.277-.255-.248-.686-.367-1.3-.367-.28 0-.568.031-.863.103-.296.072-.583.16-.862.272a2.04 2.04 0 0 1-.247.096c-.08.024-.144.04-.191.04-.168 0-.256-.12-.256-.367v-.39c0-.192.024-.335.08-.432.056-.096.16-.192.304-.288a6.4 6.4 0 0 1 1.012-.416 4.4 4.4 0 0 1 1.356-.2c.879 0 1.524.2 1.935.6.407.4.614 1.004.614 1.811v2.384zm-3.246 1.212c.263 0 .535-.048.822-.144.288-.096.543-.271.758-.51.128-.152.224-.32.272-.512.048-.191.08-.423.08-.694v-.335a6.8 6.8 0 0 0-.735-.136 6.07 6.07 0 0 0-.75-.048c-.535 0-.926.104-1.19.32-.263.215-.39.518-.39.917 0 .375.096.655.295.846.192.2.471.296.838.296zm6.405.967c-.216 0-.36-.04-.439-.127-.08-.08-.15-.239-.216-.431l-2.418-7.96c-.064-.2-.096-.335-.096-.399 0-.16.08-.248.24-.248h.781c.224 0 .376.04.447.12.08.08.144.239.208.43l1.73 6.819 1.606-6.82c.056-.2.12-.35.2-.43.08-.08.24-.12.455-.12h.638c.224 0 .376.04.455.12.08.08.152.239.2.43l1.622 6.9 1.782-6.9c.064-.2.136-.35.208-.43.08-.08.231-.12.447-.12h.742c.16 0 .248.08.248.248 0 .048-.008.096-.016.152a1.4 1.4 0 0 1-.08.256l-2.482 7.96c-.064.2-.136.35-.216.43-.08.08-.231.127-.447.127h-.687c-.224 0-.375-.04-.455-.127-.08-.088-.152-.24-.2-.44l-1.59-6.636-1.583 6.628c-.056.2-.12.36-.2.447-.08.088-.24.128-.455.128h-.686zm10.233.248c-.415 0-.83-.048-1.229-.143-.4-.096-.71-.2-.918-.32-.128-.071-.216-.152-.248-.239a.573.573 0 0 1-.048-.224v-.407c0-.248.096-.367.28-.367.072 0 .144.008.216.032.072.024.176.072.288.12.39.176.814.263 1.27.263.503 0 .894-.088 1.165-.264a.86.86 0 0 0 .415-.758.777.777 0 0 0-.215-.559c-.144-.151-.416-.287-.807-.415l-1.157-.36c-.583-.183-1.013-.455-1.277-.815a1.9 1.9 0 0 1-.4-1.164c0-.335.073-.631.216-.887.144-.256.336-.48.575-.655.24-.184.51-.32.83-.415.32-.096.655-.144 1.006-.144.176 0 .36.008.534.032.183.024.35.056.518.088.16.04.312.08.455.128.144.048.256.096.336.144a.69.69 0 0 1 .24.2.43.43 0 0 1 .071.263v.375c0 .248-.096.375-.28.375a1.27 1.27 0 0 1-.463-.136 5.6 5.6 0 0 0-1.181-.248 2.4 2.4 0 0 0-1.037.16.776.776 0 0 0-.423.727c0 .224.08.416.24.567.16.152.456.304.878.44l1.134.358c.574.184.99.44 1.237.767.248.327.367.703.367 1.117 0 .343-.072.655-.207.926-.144.272-.336.511-.583.703-.248.2-.543.343-.886.447-.36.111-.743.167-1.142.167z'/%3E%3C/svg%3E");
+}
+
+/* Azure - Window Logo */
+.brand-icon.azure {
+    background-color: #0078D4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M5.483 21.3H24L14.025 4.013l-3.038 8.347 5.836 6.938L5.483 21.3zM13.23 2.7L6.105 8.677 0 19.253h5.505v.014L13.23 2.7z'/%3E%3C/svg%3E");
+}
+
+/* GCP - Google Cloud */
+.brand-icon.gcp {
+    background-color: #4285F4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12.19 2.38a9.34 9.34 0 0 0-9.34 9.34c0 5.16 4.18 9.34 9.34 9.34 5.16 0 9.34-4.18 9.34-9.34 0-5.16-4.18-9.34-9.34-9.34zm0 16.54a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4z'/%3E%3Cpath fill='%23EA4335' d='M12.19 7.28c-2.45 0-4.44 1.99-4.44 4.44h2.22c0-1.22.99-2.22 2.22-2.22V7.28z'/%3E%3Cpath fill='%23FBBC05' d='M12.19 14.16c1.22 0 2.22-.99 2.22-2.22h2.22c0 2.45-1.99 4.44-4.44 4.44v-2.22z'/%3E%3Cpath fill='%2334A853' d='M7.75 11.72c0 1.22.99 2.22 2.22 2.22v2.22c-2.45 0-4.44-1.99-4.44-4.44h2.22z'/%3E%3Cpath fill='%234285F4' d='M14.41 9.5v2.22h2.22c0-2.45-1.99-4.44-4.44-4.44v2.22z'/%3E%3C/svg%3E");
+}
+
+/* Oracle Cloud */
+.brand-icon.oracle {
+    background-color: #C74634;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M7.078 12.003c0 1.986 1.609 3.595 3.595 3.595h2.654c1.986 0 3.595-1.609 3.595-3.595s-1.609-3.595-3.595-3.595h-2.654c-1.986 0-3.595 1.609-3.595 3.595zm8.405 0c0 1.208-.98 2.187-2.187 2.187h-2.654c-1.208 0-2.187-.98-2.187-2.187s.98-2.187 2.187-2.187h2.654c1.208 0 2.187.98 2.187 2.187z'/%3E%3C/svg%3E");
+}
+
+/* --- Kubernetes Distributions --- */
+
+/* Kubernetes - Helm Wheel */
+.brand-icon.kubernetes,
+.brand-icon.k8s {
+    background-color: #326CE5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011-1.776-1.974a5.304 5.304 0 0 0-.172 3.269l2.006-.678-.233.15zm1.65-1.418a.44.44 0 0 0-.66-.336l-.008-.003-1.96 1.18c.456.84 1.122 1.541 1.92 2.05l.71-2.878-.002-.013zm3.965 1.418l2.006.678a5.304 5.304 0 0 0-.172-3.269l-1.776 1.974.002.011a.44.44 0 0 0 .173.756l-.233-.15zm-3.259 2.129l-.004-.005 2.578.437a5.171 5.171 0 0 1-2.075 2.597l-.999-2.413.007-.01a.44.44 0 0 0 .484-.606h.009zm.333-2.129a.44.44 0 0 1-.66.336l-.008.003.71 2.878c.798-.509 1.464-1.21 1.92-2.05l-1.96-1.18-.002.013zM12 5.5c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5 6.5-2.91 6.5-6.5-2.91-6.5-6.5-6.5z'/%3E%3C/svg%3E");
+}
+
+/* OpenShift - Hexagon Logo */
+.brand-icon.openshift {
+    background-color: #EE0000;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M21.665 8.002L12 2.545 2.335 8.002v10.996L12 21.455l9.665-5.457V8.002zM12 16.727L7.273 14V10l4.727-2.727L16.727 10v4L12 16.727z'/%3E%3C/svg%3E");
+}
+
+/* Rancher */
+.brand-icon.rancher,
+.brand-icon.rke,
+.brand-icon.rke2 {
+    background-color: #0075A8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 3L2 9v6l10 6 10-6V9L12 3zm0 2.18L19.09 9 12 12.82 4.91 9 12 5.18zM4 10.82l7 4.2v4.16l-7-4.2v-4.16zm9 8.36v-4.16l7-4.2v4.16l-7 4.2z'/%3E%3C/svg%3E");
+}
+
+/* K3s - Lightweight K8s */
+.brand-icon.k3s {
+    background-color: #FFC61C;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231a1a1a' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
+}
+
+/* MicroK8s - Canonical */
+.brand-icon.microk8s {
+    background-color: #E95420;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='white' cx='12' cy='12' r='8'/%3E%3Ccircle fill='%23E95420' cx='12' cy='12' r='5'/%3E%3C/svg%3E");
+}
+
+/* VMware Tanzu */
+.brand-icon.tanzu {
+    background-color: #1D428A;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* --- Managed Kubernetes Services --- */
+
+/* EKS */
+.brand-icon.eks {
+    background-color: #FF9900;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23232F3E' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E");
+}
+
+/* AKS */
+.brand-icon.aks {
+    background-color: #0078D4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* GKE */
+.brand-icon.gke {
+    background-color: #4285F4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* OKE - Oracle */
+.brand-icon.oke {
+    background-color: #C74634;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* DigitalOcean */
+.brand-icon.doks {
+    background-color: #0080FF;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12.04 2C6.52 2 2.05 6.32 2.05 11.77c0 4.49 3 8.29 7.14 9.55v-3.35h-2.15v-3.35h2.15v-2.56c0-2.12 1.27-3.28 3.19-3.28.93 0 1.89.17 1.89.17v2.07h-1.06c-1.05 0-1.38.65-1.38 1.32v1.58h2.35l-.38 3.35h-1.97v6.57c4.14-1.26 7.14-5.06 7.14-9.55C21.95 6.32 17.52 2 12.04 2z'/%3E%3C/svg%3E");
+}
+
+/* --- Technology Brands --- */
+
+/* .NET */
+.brand-icon.dotnet {
+    background-color: #512BD4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 15h-2v-2h2v2zm0-3h-2V7h2v7zm5 3h-2v-2h2v2zm0-3h-2V7h2v7z'/%3E%3C/svg%3E");
+}
+
+/* Java */
+.brand-icon.java {
+    background-color: #007396;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M8.851 18.56s-.917.534.653.714c1.902.218 2.874.187 4.969-.211 0 0 .552.346 1.321.646-4.699 2.013-10.633-.118-6.943-1.149M8.276 15.933s-1.028.762.542.924c2.032.209 3.636.227 6.413-.308 0 0 .384.389.987.602-5.679 1.661-12.007.13-7.942-1.218M13.116 11.475c1.158 1.333-.304 2.533-.304 2.533s2.939-1.518 1.589-3.418c-1.261-1.772-2.228-2.652 3.007-5.688 0-.001-8.216 2.051-4.292 6.573M19.33 20.504s.679.559-.747.991c-2.712.822-11.288 1.069-13.669.033-.856-.373.75-.89 1.254-.998.527-.114.828-.093.828-.093-.953-.671-6.156 1.317-2.643 1.887 9.58 1.553 17.462-.7 14.977-1.82M9.292 13.21s-4.362 1.036-1.544 1.412c1.189.159 3.561.123 5.77-.062 1.806-.152 3.618-.477 3.618-.477s-.637.272-1.098.587c-4.429 1.165-12.986.623-10.522-.568 2.082-1.006 3.776-.892 3.776-.892M17.116 17.584c4.503-2.34 2.421-4.589.968-4.285-.355.074-.515.138-.515.138s.132-.207.385-.297c2.875-1.011 5.086 2.981-.928 4.562 0-.001.07-.062.09-.118M14.401 0s2.494 2.494-2.365 6.33c-3.896 3.077-.889 4.832 0 6.836-2.274-2.053-3.943-3.858-2.824-5.539 1.644-2.469 6.197-3.665 5.189-7.627M9.734 23.924c4.322.277 10.959-.153 11.116-2.198 0 0-.302.775-3.572 1.391-3.688.694-8.239.613-10.937.168 0-.001.553.457 3.393.639'/%3E%3C/svg%3E");
+}
+
+/* Node.js */
+.brand-icon.nodejs {
+    background-color: #339933;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M11.998 24c-.321 0-.641-.084-.922-.247l-2.936-1.737c-.438-.245-.224-.332-.08-.383.585-.203.703-.25 1.328-.604.065-.037.151-.023.218.017l2.256 1.339a.29.29 0 0 0 .272 0l8.795-5.076a.277.277 0 0 0 .134-.238V6.921a.283.283 0 0 0-.137-.242l-8.791-5.072a.278.278 0 0 0-.271 0L3.075 6.68a.284.284 0 0 0-.139.241v10.15a.27.27 0 0 0 .139.235l2.409 1.392c1.307.654 2.108-.116 2.108-.89V7.787c0-.142.114-.253.256-.253h1.115c.139 0 .255.112.255.253v10.021c0 1.745-.95 2.745-2.604 2.745-.508 0-.909 0-2.026-.551L2.28 18.675a1.857 1.857 0 0 1-.922-1.604V6.921c0-.659.353-1.275.922-1.603l8.795-5.082a1.93 1.93 0 0 1 1.846 0l8.794 5.082c.57.329.924.944.924 1.603v10.15a1.86 1.86 0 0 1-.924 1.604l-8.795 5.076c-.28.163-.6.247-.922.247'/%3E%3C/svg%3E");
+}
+
+/* Python */
+.brand-icon.python {
+    background-color: #3776AB;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFD43B' d='M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.9S0 5.789 0 11.969c0 6.18 3.403 5.96 3.403 5.96h2.03v-2.867s-.109-3.42 3.35-3.42h5.766s3.24.052 3.24-3.148V3.202S18.28 0 11.914 0zM8.708 1.85c.578 0 1.046.47 1.046 1.052 0 .58-.468 1.051-1.046 1.051-.579 0-1.047-.47-1.047-1.051 0-.581.468-1.052 1.047-1.052z'/%3E%3Cpath fill='white' d='M12.086 24c6.094 0 5.714-2.656 5.714-2.656l-.007-2.752h-5.814v-.826h8.121S24 18.211 24 12.031c0-6.18-3.403-5.96-3.403-5.96h-2.03v2.867s.109 3.42-3.35 3.42H9.45s-3.24-.052-3.24 3.148v5.292S5.72 24 12.086 24zm3.206-1.85c-.578 0-1.046-.47-1.046-1.052 0-.58.468-1.051 1.046-1.051.579 0 1.047.47 1.047 1.051 0 .581-.468 1.052-1.047 1.052z'/%3E%3C/svg%3E");
+}
+
+/* Go */
+.brand-icon.go {
+    background-color: #00ADD8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303c-.023.036-.082.07-.117.07l-4.23-.011zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07l-5.527.012zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082l-2.547-.012zm14.789-2.461c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.176-.199-.315-.327-.56-.444-.725-.362-1.426-.257-2.082.129-.775.456-1.17 1.17-1.156 2.033.012.85.561 1.543 1.388 1.73.724.164 1.378-.023 1.916-.561.117-.129.222-.281.351-.457h-2.174c-.245 0-.304-.152-.222-.351.152-.362.432-.968.596-1.274a.32.32 0 0 1 .292-.187h4.05c-.023.304-.023.608-.07.912a5.205 5.205 0 0 1-1.017 2.359 5.085 5.085 0 0 1-2.58 1.718c-.526.14-1.063.175-1.612.117-.843-.082-1.588-.374-2.197-.924-.619-.561-.957-1.262-1.065-2.08-.129-1.052.082-2.02.608-2.909.538-.912 1.308-1.565 2.315-1.95a4.98 4.98 0 0 1 2.383-.386c.817.07 1.553.327 2.186.852.327.269.584.596.77.981.047.094.012.14-.082.164z'/%3E%3C/svg%3E");
+}
+
+/* Mendix */
+.brand-icon.mendix {
+    background-color: #0CABF9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* OutSystems */
+.brand-icon.outsystems {
+    background-color: #FF6B35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='white' cx='12' cy='12' r='8'/%3E%3Ccircle fill='%23FF6B35' cx='12' cy='12' r='4'/%3E%3C/svg%3E");
+}
+
+/* SAP */
+.brand-icon.sap {
+    background-color: #0070F2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M4 4h16v16H4V4zm2 2v12h12V6H6zm2 3h2v6H8V9zm3 0h2v6h-2V9zm3 0h2v6h-2V9z'/%3E%3C/svg%3E");
+}
+
+/* --- Deployment Types --- */
+
+/* Native App */
+.brand-icon.native {
+    background-color: #6366f1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M9 9l3 3-3 3'/%3E%3Cpath d='M15 15h-3'/%3E%3C/svg%3E");
+}
+
+/* Low-Code */
+.brand-icon.lowcode {
+    background-color: #0CABF9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3C/svg%3E");
+}
+
+/* Virtual Machines */
+.brand-icon.vm {
+    background-color: #6366f1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Crect x='2' y='3' width='20' height='14' rx='2'/%3E%3Cline x1='8' y1='21' x2='16' y2='21'/%3E%3Cline x1='12' y1='17' x2='12' y2='21'/%3E%3C/svg%3E");
+}
+
+/* Charmed K8s */
+.brand-icon.charmed {
+    background-color: #772953;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='white' cx='12' cy='12' r='8'/%3E%3Ccircle fill='%23772953' cx='12' cy='12' r='5'/%3E%3C/svg%3E");
+}
+
+/* IKS - IBM */
+.brand-icon.iks {
+    background-color: #054ADA;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* LKE - Linode */
+.brand-icon.lke {
+    background-color: #00A95C;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* VKE - Vultr */
+.brand-icon.vke {
+    background-color: #007BFC;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* Hetzner */
+.brand-icon.hetzner {
+    background-color: #D50C2D;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M4 4h16v16H4V4zm2 2v5h5v-5H6zm7 0v5h5v-5h-5zM6 13v5h5v-5H6zm7 0v5h5v-5h-5z'/%3E%3C/svg%3E");
+}
+
+/* OVH */
+.brand-icon.ovh {
+    background-color: #000E9C;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E");
+}
+
+/* Scaleway */
+.brand-icon.scaleway {
+    background-color: #4F0599;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* ACK - Alibaba */
+.brand-icon.ack,
+.brand-icon.alibaba {
+    background-color: #FF6A00;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* TKE - Tencent */
+.brand-icon.tke {
+    background-color: #00A4FF;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* CCE - Huawei */
+.brand-icon.cce {
+    background-color: #CF0A2C;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L18.82 7.5 12 10.82 5.18 7.5 12 4.18zM4 8.82l7 3.5v6.86l-7-3.5V8.82zm9 10.36v-6.86l7-3.5v6.86l-7 3.5z'/%3E%3C/svg%3E");
+}
+
+/* IBM Cloud */
+.brand-icon.ibm {
+    background-color: #054ADA;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M4 6h16v2H4V6zm0 4h16v2H4v-2zm0 4h16v2H4v-2zm0 4h16v2H4v-2z'/%3E%3C/svg%3E");
+}

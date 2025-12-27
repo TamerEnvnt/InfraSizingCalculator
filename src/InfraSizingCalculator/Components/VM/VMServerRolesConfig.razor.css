@@ -1,0 +1,450 @@
+/* VM Server Roles Configuration Styles */
+.vm-server-roles-config {
+    width: 100%;
+}
+
+/* Server Roles Header */
+.server-roles-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+    border-radius: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    font-size: 1.5rem;
+}
+
+.header-title strong {
+    display: block;
+    color: var(--text-primary, #f8fafc);
+}
+
+.header-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.header-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary, #94a3b8);
+}
+
+/* Horizontal Accordion - Environment Panels */
+.server-roles-accordion {
+    min-height: 380px;
+}
+
+/* Environment-specific panel colors */
+::deep .h-accordion-panel.env-dev { border-color: #10b981; }
+::deep .h-accordion-panel.env-test { border-color: #f59e0b; }
+::deep .h-accordion-panel.env-stage { border-color: #8b5cf6; }
+::deep .h-accordion-panel.env-prod { border-color: #ef4444; }
+::deep .h-accordion-panel.env-lifetime { border-color: #a855f7; }
+
+::deep .h-accordion-panel.env-dev.expanded { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); }
+::deep .h-accordion-panel.env-test.expanded { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), transparent); }
+::deep .h-accordion-panel.env-stage.expanded { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent); }
+::deep .h-accordion-panel.env-prod.expanded { background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent); }
+::deep .h-accordion-panel.env-lifetime.expanded { background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), transparent); }
+
+/* Environment Roles Content */
+.env-roles-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    height: 100%;
+}
+
+.env-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.env-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.env-badge.env-dev { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.env-badge.env-test { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.env-badge.env-stage { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+.env-badge.env-prod { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.env-badge.env-dr { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+.env-badge.env-lifetime { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+
+.badge-count {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.env-type {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #94a3b8);
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+/* Roles Configuration */
+.roles-configuration {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    overflow: visible;
+}
+
+.available-roles-section,
+.active-roles-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Role Grid - Compact chips */
+.role-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.role-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary, #f8fafc);
+    font-size: 0.8rem;
+}
+
+.role-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.role-chip.active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+}
+
+.role-chip .role-icon {
+    font-size: 0.95rem;
+}
+
+.role-chip .role-name {
+    font-weight: 500;
+}
+
+.role-chip .role-count {
+    font-size: 0.65rem;
+    background: #3b82f6;
+    color: white;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Active Roles List - Compact rows */
+.role-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.role-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #334155);
+}
+
+.role-detail-row:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.role-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.role-info .role-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.role-info .role-name {
+    font-weight: 500;
+    color: var(--text-primary, #f8fafc);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.role-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.role-controls select,
+.role-controls input {
+    padding: 5px 8px;
+    background: var(--input-bg, #0f172a);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 5px;
+    color: var(--text-primary, #f8fafc);
+    font-size: 0.8rem;
+    width: 65px;
+}
+
+.role-controls select:focus,
+.role-controls input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.fixed-count {
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 5px;
+    color: var(--text-secondary, #94a3b8);
+    font-weight: 600;
+    font-size: 0.8rem;
+    width: 65px;
+    text-align: center;
+}
+
+.role-remove {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(239, 68, 68, 0.2);
+    border: none;
+    border-radius: 5px;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.role-remove:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* No Roles Message */
+.no-roles-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 2px dashed var(--border-color, #334155);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+}
+
+.message-icon {
+    font-size: 1.25rem;
+}
+
+/* Management Environment Section (e.g., OutSystems LifeTime) - Collapsible */
+.management-env-section {
+    margin-top: 12px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.02));
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-left: 4px solid #8b5cf6;
+    border-radius: 10px;
+}
+
+.management-env-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+    border-radius: 10px;
+}
+
+.management-env-header:hover {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.management-env-section.expanded .management-env-header {
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 10px 10px 0 0;
+}
+
+.management-env-header .icon-management::before {
+    content: "⚙";
+    font-size: 1.1rem;
+}
+
+/* Collapse indicator */
+.collapse-indicator {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.management-env-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.management-env-title strong {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.management-env-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.management-env-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+.management-env-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.management-env-roles .role-chip.management-role {
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.management-env-roles .role-chip.management-role.active {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+}
+
+.management-env-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.management-env-note .note-icon {
+    color: var(--accent-blue);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .server-roles-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-stats {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .env-panel-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .role-detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .role-controls {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .management-env-section {
+        padding: 12px;
+    }
+}

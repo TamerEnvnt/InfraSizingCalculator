@@ -44,21 +44,21 @@
         <div class="nav-section">
             <h3 class="nav-section-title">Results</h3>
             <button class="nav-item @(ActiveResultTab == "sizing" ? "active" : "")" @onclick='() => OnResultTabClicked("sizing")'>
-                <span class="icon">📊</span>
+                <span class="icon icon-chart"></span>
                 <span class="label">Sizing Details</span>
             </button>
             <button class="nav-item @(ActiveResultTab == "cost" ? "active" : "")" @onclick='() => OnResultTabClicked("cost")'>
-                <span class="icon">💰</span>
+                <span class="icon icon-cost"></span>
                 <span class="label">Cost Breakdown</span>
             </button>
             <button class="nav-item @(ActiveResultTab == "growth" ? "active" : "")" @onclick='() => OnResultTabClicked("growth")'>
-                <span class="icon">📈</span>
+                <span class="icon icon-growth"></span>
                 <span class="label">Growth Planning</span>
             </button>
             @if (InsightsCount > 0)
             {
                 <button class="nav-item @(ActiveResultTab == "insights" ? "active" : "")" @onclick='() => OnResultTabClicked("insights")'>
-                    <span class="icon">💡</span>
+                    <span class="icon icon-bulb"></span>
                     <span class="label">Insights</span>
                     <span class="badge @(CriticalCount > 0 ? "critical" : "")">@InsightsCount</span>
                 </button>

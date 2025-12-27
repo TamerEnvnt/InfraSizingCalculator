@@ -41,7 +41,7 @@
     else if (!scenarios.Any())
     {
         <div class="empty-state">
-            <div class="empty-icon">📊</div>
+            <div class="empty-icon icon icon-chart"></div>
             <h3>No saved scenarios</h3>
             <p>Run a sizing calculation and save it as a scenario to compare different configurations.</p>
             <a href="/" class="btn-primary">Go to Calculator</a>
@@ -53,7 +53,7 @@
         <div class="scenario-tabs">
             <button class="scenario-tab @(scenarioTab == "saved" ? "active" : "")"
                     @onclick='() => { scenarioTab = "saved"; selectedScenarios.Clear(); }'>
-                📁 Saved Scenarios
+                Saved Scenarios
                 @if (SavedCount > 0)
                 {
                     <span class="tab-count">@SavedCount</span>
@@ -61,7 +61,7 @@
             </button>
             <button class="scenario-tab @(scenarioTab == "drafts" ? "active" : "")"
                     @onclick='() => { scenarioTab = "drafts"; selectedScenarios.Clear(); }'>
-                📝 Draft Scenarios
+                Draft Scenarios
                 @if (DraftCount > 0)
                 {
                     <span class="tab-count">@DraftCount</span>
@@ -139,10 +139,10 @@
                                 @(scenario.IsFavorite ? "★" : "☆")
                             </button>
                             <button class="action-btn" @onclick="async () => await DuplicateScenario(scenario.Id)" title="Duplicate">
-                                📋
+                                Copy
                             </button>
                             <button class="action-btn danger" @onclick="async () => await DeleteScenario(scenario.Id)" title="Delete">
-                                🗑️
+                                Del
                             </button>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
                         @if (recommended != null)
                         {
                             <div class="recommendation-banner">
-                                <span class="rec-icon">💡</span>
+                                <span class="rec-icon icon icon-bulb"></span>
                                 <span>Recommended: <strong>@recommended.Name</strong> - @comparison.RecommendationReason</span>
                             </div>
                         }

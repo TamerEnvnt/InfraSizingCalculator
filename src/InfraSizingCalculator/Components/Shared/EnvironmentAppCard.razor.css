@@ -1,0 +1,183 @@
+/* Environment App Card - Horizontal layout for Multi-Cluster */
+.env-app-card {
+    background: var(--card-bg, #1e293b);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    min-width: 180px;
+    flex: 1;
+}
+
+.env-app-card:hover {
+    border-color: var(--env-color, #3b82f6);
+}
+
+.env-app-card.expanded {
+    border-color: var(--env-color, #3b82f6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Environment-specific colors */
+.env-app-card.env-dev { --env-color: #10b981; }
+.env-app-card.env-test { --env-color: #f59e0b; }
+.env-app-card.env-stage { --env-color: #8b5cf6; }
+.env-app-card.env-prod { --env-color: #ef4444; }
+.env-app-card.env-dr { --env-color: #06b6d4; }
+
+/* Card Header */
+.env-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.env-card-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.env-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.env-card-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary, #f8fafc);
+}
+
+.env-card-summary {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.expand-icon {
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+/* Card Content */
+.env-card-content {
+    padding: 0 16px 16px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tier Inputs - Horizontal Layout */
+.tier-inputs-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 12px;
+}
+
+.tier-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 80px;
+}
+
+.tier-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+}
+
+.tier-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+.tier-badge.small { background: #10b981; color: white; }
+.tier-badge.medium { background: #3b82f6; color: white; }
+.tier-badge.large { background: #f59e0b; color: white; }
+.tier-badge.xlarge { background: #ef4444; color: white; }
+
+.tier-spec {
+    font-size: 0.65rem;
+    color: var(--text-secondary, #94a3b8);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tier-input {
+    width: 100%;
+    padding: 8px;
+    background: var(--input-bg, #0f172a);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 6px;
+    color: var(--text-primary, #f8fafc);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.tier-input:focus {
+    outline: none;
+    border-color: var(--env-color, #3b82f6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Total Section */
+.tier-total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    min-width: 60px;
+}
+
+.total-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary, #94a3b8);
+    text-transform: uppercase;
+}
+
+.total-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--env-color, #3b82f6);
+}
+
+/* Responsive - Stack on smaller screens */
+@media (max-width: 768px) {
+    .tier-inputs-horizontal {
+        flex-direction: column;
+    }
+
+    .tier-input-group {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .tier-label {
+        flex-direction: row;
+        gap: 8px;
+    }
+}

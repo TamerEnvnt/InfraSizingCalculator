@@ -44,7 +44,7 @@ public static class DefaultPricingData
             },
             Storage = new StoragePricing
             {
-                SsdPerGBMonth = 0.10m,          // gp3 SSD
+                SsdPerGBMonth = 0.08m,          // gp3 SSD (Dec 2024 official AWS pricing)
                 HddPerGBMonth = 0.045m,         // st1 HDD
                 ObjectStoragePerGBMonth = 0.023m, // S3 Standard
                 BackupPerGBMonth = 0.05m,       // EBS Snapshots
@@ -109,7 +109,7 @@ public static class DefaultPricingData
             },
             Storage = new StoragePricing
             {
-                SsdPerGBMonth = 0.10m,          // Premium SSD P10
+                SsdPerGBMonth = 0.075m,         // Premium SSD (Dec 2024 official Azure pricing)
                 HddPerGBMonth = 0.04m,          // Standard HDD
                 ObjectStoragePerGBMonth = 0.0184m, // Blob Storage Hot
                 BackupPerGBMonth = 0.05m,
@@ -174,8 +174,8 @@ public static class DefaultPricingData
             },
             Storage = new StoragePricing
             {
-                SsdPerGBMonth = 0.17m,          // SSD PD
-                HddPerGBMonth = 0.04m,          // Standard PD
+                SsdPerGBMonth = 0.187m,         // SSD PD (Dec 2024 official GCP pricing)
+                HddPerGBMonth = 0.044m,         // Standard PD (Dec 2024 official GCP pricing)
                 ObjectStoragePerGBMonth = 0.020m, // GCS Standard
                 BackupPerGBMonth = 0.05m,
                 RegistryPerGBMonth = 0.026m     // Artifact Registry

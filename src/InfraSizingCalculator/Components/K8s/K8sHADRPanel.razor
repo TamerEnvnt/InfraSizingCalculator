@@ -1,0 +1,471 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Services
+
+@* K8s HA/DR Configuration - High Availability and Disaster Recovery settings *@
+
+<div class="k8s-hadr-config">
+    <div class="hadr-section">
+        <div class="section-header">
+            <span class="section-icon">🛡️</span>
+            <div class="section-title">
+                <strong>High Availability</strong>
+                <span class="section-subtitle">Configure cluster and workload HA</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="hadr-grid">
+                <!-- Control Plane HA (only for self-managed) -->
+                @if (!IsManagedDistribution)
+                {
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">🎛️</span>
+                            Control Plane
+                        </label>
+                        <select value="@Config.ControlPlaneHA" @onchange="UpdateControlPlaneHA">
+                            @foreach (var option in Enum.GetValues<K8sControlPlaneHA>())
+                            {
+                                @if (option != K8sControlPlaneHA.Managed || IsManagedDistribution)
+                                {
+                                    <option value="@option">@GetControlPlaneHADisplay(option)</option>
+                                }
+                            }
+                        </select>
+                        <span class="config-hint">@GetControlPlaneHAHint(Config.ControlPlaneHA)</span>
+                    </div>
+
+                    @if (Config.ControlPlaneHA == K8sControlPlaneHA.StackedHA ||
+                         Config.ControlPlaneHA == K8sControlPlaneHA.ExternalEtcd)
+                    {
+                        <div class="config-item">
+                            <label class="config-label">
+                                <span class="config-icon">#</span>
+                                Control Plane Nodes
+                            </label>
+                            <select value="@Config.ControlPlaneNodes" @onchange="UpdateControlPlaneNodes">
+                                <option value="3">3 nodes (minimum HA)</option>
+                                <option value="5">5 nodes (higher availability)</option>
+                                <option value="7">7 nodes (maximum)</option>
+                            </select>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="config-item managed-note">
+                        <span class="managed-badge">✓ Managed</span>
+                        <span class="managed-text">Control plane HA is managed by @GetProviderName()</span>
+                    </div>
+                }
+
+                <!-- Node Distribution -->
+                <div class="config-item">
+                    <label class="config-label">
+                        <span class="config-icon">🌐</span>
+                        Node Distribution
+                    </label>
+                    <select value="@Config.NodeDistribution" @onchange="UpdateNodeDistribution">
+                        @foreach (var option in Enum.GetValues<K8sNodeDistribution>())
+                        {
+                            <option value="@option">@GetNodeDistributionDisplay(option)</option>
+                        }
+                    </select>
+                    <span class="config-hint">@GetNodeDistributionHint(Config.NodeDistribution)</span>
+                </div>
+
+                @if (Config.NodeDistribution != K8sNodeDistribution.SingleAZ)
+                {
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">🏢</span>
+                            Availability Zones
+                        </label>
+                        <select value="@Config.AvailabilityZones" @onchange="UpdateAZCount">
+                            @if (Config.NodeDistribution == K8sNodeDistribution.DualAZ)
+                            {
+                                <option value="2">2 AZs</option>
+                            }
+                            else
+                            {
+                                <option value="3">3 AZs (recommended)</option>
+                                <option value="4">4 AZs</option>
+                                <option value="5">5 AZs</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <!-- Pod Settings -->
+                <div class="config-item toggle-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" @bind="Config.EnablePodDisruptionBudgets"
+                               @bind:after="OnConfigChanged" />
+                        <span>Pod Disruption Budgets</span>
+                    </label>
+                    <span class="config-hint">Prevent too many pods from being down during maintenance</span>
+                </div>
+
+                <div class="config-item toggle-item">
+                    <label class="toggle-label">
+                        <input type="checkbox" @bind="Config.EnableTopologySpread"
+                               @bind:after="OnConfigChanged" />
+                        <span>Topology Spread Constraints</span>
+                    </label>
+                    <span class="config-hint">Spread pods across zones and nodes automatically</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hadr-section">
+        <div class="section-header">
+            <span class="section-icon">🔄</span>
+            <div class="section-title">
+                <strong>Disaster Recovery</strong>
+                <span class="section-subtitle">Configure DR strategy and backups</span>
+            </div>
+        </div>
+        <div class="section-content">
+            <div class="hadr-grid">
+                <!-- DR Pattern -->
+                <div class="config-item">
+                    <label class="config-label">
+                        <span class="config-icon">🌍</span>
+                        DR Strategy
+                    </label>
+                    <select value="@Config.DRPattern" @onchange="UpdateDRPattern">
+                        @foreach (var option in Enum.GetValues<K8sDRPattern>())
+                        {
+                            <option value="@option">@GetDRPatternDisplay(option)</option>
+                        }
+                    </select>
+                    <span class="config-hint">@GetDRPatternHint(Config.DRPattern)</span>
+                </div>
+
+                @if (Config.DRPattern != K8sDRPattern.None)
+                {
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">📍</span>
+                            DR Region
+                        </label>
+                        <input type="text" placeholder="e.g., us-west-2"
+                               value="@Config.DRRegion"
+                               @onchange="UpdateDRRegion" />
+                    </div>
+
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">⏱️</span>
+                            RTO (Recovery Time)
+                        </label>
+                        <select value="@(Config.RTOMinutes ?? 60)" @onchange="UpdateRTO">
+                            <option value="5">5 minutes (Active-Active)</option>
+                            <option value="15">15 minutes (Hot Standby)</option>
+                            <option value="60">1 hour (Warm Standby)</option>
+                            <option value="240">4 hours</option>
+                            <option value="480">8 hours</option>
+                            <option value="1440">24 hours (Backup/Restore)</option>
+                        </select>
+                    </div>
+                }
+
+                <!-- Backup Strategy -->
+                <div class="config-item">
+                    <label class="config-label">
+                        <span class="config-icon">💾</span>
+                        Backup Strategy
+                    </label>
+                    <select value="@Config.BackupStrategy" @onchange="UpdateBackupStrategy">
+                        @foreach (var option in GetAvailableBackupStrategies())
+                        {
+                            <option value="@option">@GetBackupStrategyDisplay(option)</option>
+                        }
+                    </select>
+                    <span class="config-hint">@GetBackupStrategyHint(Config.BackupStrategy)</span>
+                </div>
+
+                @if (Config.BackupStrategy != K8sBackupStrategy.None)
+                {
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">🔁</span>
+                            Backup Frequency
+                        </label>
+                        <select value="@Config.BackupFrequencyHours" @onchange="UpdateBackupFrequency">
+                            <option value="1">Hourly</option>
+                            <option value="4">Every 4 hours</option>
+                            <option value="12">Every 12 hours</option>
+                            <option value="24">Daily</option>
+                            <option value="168">Weekly</option>
+                        </select>
+                    </div>
+
+                    <div class="config-item">
+                        <label class="config-label">
+                            <span class="config-icon">📆</span>
+                            Retention
+                        </label>
+                        <select value="@Config.BackupRetentionDays" @onchange="UpdateBackupRetention">
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30">30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="365">1 year</option>
+                        </select>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="hadr-summary">
+        <span class="summary-icon">📊</span>
+        <span class="summary-text">@Config.GetSummary()</span>
+        <span class="summary-cost">Cost multiplier: @Config.GetCostMultiplier(Distribution).ToString("0.00")x</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public K8sHADRConfig Config { get; set; } = new();
+    [Parameter] public EventCallback<K8sHADRConfig> ConfigChanged { get; set; }
+    [Parameter] public Distribution Distribution { get; set; } = Distribution.EKS;
+
+    private bool IsManagedDistribution => Distribution switch
+    {
+        Distribution.EKS or Distribution.AKS or Distribution.GKE or
+        Distribution.OKE or Distribution.IKS or Distribution.ACK or
+        Distribution.TKE or Distribution.CCE or Distribution.DOKS or
+        Distribution.LKE or Distribution.VKE or Distribution.HetznerK8s or
+        Distribution.OVHKubernetes or Distribution.ScalewayKapsule or
+        Distribution.OpenShiftROSA or Distribution.OpenShiftARO or
+        Distribution.OpenShiftDedicated or Distribution.OpenShiftIBM => true,
+        _ => false
+    };
+
+    protected override void OnParametersSet()
+    {
+        // Auto-set managed control plane for managed distributions
+        if (IsManagedDistribution && Config.ControlPlaneHA != K8sControlPlaneHA.Managed)
+        {
+            Config.ControlPlaneHA = K8sControlPlaneHA.Managed;
+        }
+    }
+
+    private string GetProviderName() => Distribution switch
+    {
+        Distribution.EKS => "AWS",
+        Distribution.AKS => "Azure",
+        Distribution.GKE => "Google Cloud",
+        Distribution.OKE => "Oracle Cloud",
+        Distribution.IKS => "IBM Cloud",
+        Distribution.DOKS => "DigitalOcean",
+        Distribution.LKE => "Linode",
+        Distribution.OpenShiftROSA => "AWS (ROSA)",
+        Distribution.OpenShiftARO => "Azure (ARO)",
+        _ => "the cloud provider"
+    };
+
+    private IEnumerable<K8sBackupStrategy> GetAvailableBackupStrategies()
+    {
+        yield return K8sBackupStrategy.None;
+        yield return K8sBackupStrategy.Velero;
+        yield return K8sBackupStrategy.Kasten;
+        yield return K8sBackupStrategy.Portworx;
+
+        // Cloud-native backup only for major cloud providers
+        if (Distribution is Distribution.EKS or Distribution.AKS or Distribution.GKE)
+            yield return K8sBackupStrategy.CloudNative;
+
+        yield return K8sBackupStrategy.Custom;
+    }
+
+    private async Task OnConfigChanged()
+    {
+        await ConfigChanged.InvokeAsync(Config);
+    }
+
+    private async Task UpdateControlPlaneHA(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<K8sControlPlaneHA>(e.Value?.ToString(), out var value))
+        {
+            Config.ControlPlaneHA = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateControlPlaneNodes(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.ControlPlaneNodes = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateNodeDistribution(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<K8sNodeDistribution>(e.Value?.ToString(), out var value))
+        {
+            Config.NodeDistribution = value;
+            // Auto-adjust AZ count based on distribution
+            Config.AvailabilityZones = value switch
+            {
+                K8sNodeDistribution.SingleAZ => 1,
+                K8sNodeDistribution.DualAZ => 2,
+                _ => Math.Max(3, Config.AvailabilityZones)
+            };
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateAZCount(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.AvailabilityZones = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateDRPattern(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<K8sDRPattern>(e.Value?.ToString(), out var value))
+        {
+            Config.DRPattern = value;
+            // Auto-set sensible RTO defaults
+            Config.RTOMinutes = value switch
+            {
+                K8sDRPattern.ActiveActive => 5,
+                K8sDRPattern.HotStandby => 15,
+                K8sDRPattern.WarmStandby => 60,
+                K8sDRPattern.BackupRestore => 240,
+                _ => null
+            };
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateDRRegion(ChangeEventArgs e)
+    {
+        Config.DRRegion = e.Value?.ToString();
+        await OnConfigChanged();
+    }
+
+    private async Task UpdateRTO(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.RTOMinutes = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateBackupStrategy(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<K8sBackupStrategy>(e.Value?.ToString(), out var value))
+        {
+            Config.BackupStrategy = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateBackupFrequency(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.BackupFrequencyHours = value;
+            await OnConfigChanged();
+        }
+    }
+
+    private async Task UpdateBackupRetention(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.BackupRetentionDays = value;
+            await OnConfigChanged();
+        }
+    }
+
+    // Display helpers
+    private string GetControlPlaneHADisplay(K8sControlPlaneHA option) => option switch
+    {
+        K8sControlPlaneHA.Managed => "Managed (Cloud Provider)",
+        K8sControlPlaneHA.Single => "Single Node (No HA)",
+        K8sControlPlaneHA.StackedHA => "Stacked HA (3+ nodes)",
+        K8sControlPlaneHA.ExternalEtcd => "External etcd Cluster",
+        _ => option.ToString()
+    };
+
+    private string GetControlPlaneHAHint(K8sControlPlaneHA option) => option switch
+    {
+        K8sControlPlaneHA.Managed => "Cloud provider manages control plane availability",
+        K8sControlPlaneHA.Single => "Not recommended for production",
+        K8sControlPlaneHA.StackedHA => "etcd runs on control plane nodes",
+        K8sControlPlaneHA.ExternalEtcd => "Separate etcd cluster for higher durability",
+        _ => ""
+    };
+
+    private string GetNodeDistributionDisplay(K8sNodeDistribution option) => option switch
+    {
+        K8sNodeDistribution.SingleAZ => "Single Availability Zone",
+        K8sNodeDistribution.DualAZ => "Dual AZ (2 zones)",
+        K8sNodeDistribution.MultiAZ => "Multi-AZ (3+ zones)",
+        K8sNodeDistribution.MultiRegion => "Multi-Region",
+        _ => option.ToString()
+    };
+
+    private string GetNodeDistributionHint(K8sNodeDistribution option) => option switch
+    {
+        K8sNodeDistribution.SingleAZ => "Lowest cost, no AZ redundancy",
+        K8sNodeDistribution.DualAZ => "Basic zone redundancy",
+        K8sNodeDistribution.MultiAZ => "Recommended for production",
+        K8sNodeDistribution.MultiRegion => "Highest availability, cross-region",
+        _ => ""
+    };
+
+    private string GetDRPatternDisplay(K8sDRPattern option) => option switch
+    {
+        K8sDRPattern.None => "None (Multi-AZ only)",
+        K8sDRPattern.BackupRestore => "Backup & Restore",
+        K8sDRPattern.WarmStandby => "Warm Standby",
+        K8sDRPattern.HotStandby => "Hot Standby",
+        K8sDRPattern.ActiveActive => "Active-Active Multi-Region",
+        _ => option.ToString()
+    };
+
+    private string GetDRPatternHint(K8sDRPattern option) => option switch
+    {
+        K8sDRPattern.None => "Rely on multi-AZ for availability",
+        K8sDRPattern.BackupRestore => "Regular backups, manual restore (RTO: hours)",
+        K8sDRPattern.WarmStandby => "Minimal DR cluster, scales on failover (RTO: ~1 hour)",
+        K8sDRPattern.HotStandby => "Full DR cluster ready (RTO: ~15 min)",
+        K8sDRPattern.ActiveActive => "Multiple regions serving traffic (RTO: ~5 min)",
+        _ => ""
+    };
+
+    private string GetBackupStrategyDisplay(K8sBackupStrategy option) => option switch
+    {
+        K8sBackupStrategy.None => "None",
+        K8sBackupStrategy.Velero => "Velero (Open Source)",
+        K8sBackupStrategy.Kasten => "Kasten K10 (Enterprise)",
+        K8sBackupStrategy.Portworx => "Portworx PX-Backup",
+        K8sBackupStrategy.CloudNative => "Cloud Native Backup",
+        K8sBackupStrategy.Custom => "Custom Solution",
+        _ => option.ToString()
+    };
+
+    private string GetBackupStrategyHint(K8sBackupStrategy option) => option switch
+    {
+        K8sBackupStrategy.None => "No automated backup",
+        K8sBackupStrategy.Velero => "CNCF project, broad compatibility, free",
+        K8sBackupStrategy.Kasten => "Application-centric, enterprise features",
+        K8sBackupStrategy.Portworx => "Storage-integrated, high performance",
+        K8sBackupStrategy.CloudNative => "AWS Backup / Azure Backup / GCP Backup",
+        K8sBackupStrategy.Custom => "Organization-specific tooling",
+        _ => ""
+    };
+}

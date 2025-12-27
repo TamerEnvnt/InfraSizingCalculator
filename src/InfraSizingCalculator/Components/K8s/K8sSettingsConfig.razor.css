@@ -1,0 +1,129 @@
+/* K8s Settings Configuration Styles */
+.k8s-settings-config {
+    width: 100%;
+}
+
+.settings-grid-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.settings-section-compact {
+    background: var(--card-bg, #1e293b);
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid var(--border-color, #334155);
+}
+
+.settings-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #f8fafc);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-hint {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #94a3b8);
+    margin: -8px 0 16px 0;
+}
+
+.settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 80px;
+}
+
+.setting-item label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.setting-item input {
+    width: 80px;
+    padding: 10px 12px;
+    background: var(--input-bg, #0f172a);
+    border: 2px solid var(--border-color, #334155);
+    border-radius: 8px;
+    color: var(--text-primary, #f8fafc);
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.setting-item input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.setting-item input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.unit {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #94a3b8);
+    align-self: center;
+}
+
+/* Overcommit Grid */
+.overcommit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.overcommit-group {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.group-title {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary, #f8fafc);
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.overcommit-inputs-compact {
+    display: flex;
+    gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .overcommit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-row {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .overcommit-inputs-compact {
+        flex-direction: column;
+    }
+
+    .setting-item input {
+        width: 100%;
+        max-width: 120px;
+    }
+}

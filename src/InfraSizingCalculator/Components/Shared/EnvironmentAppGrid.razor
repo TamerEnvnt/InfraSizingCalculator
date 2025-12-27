@@ -1,0 +1,169 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+
+@* Environment App Grid - Horizontal layout for Multi-Cluster configuration *@
+@* Displays all environments side-by-side to eliminate scrolling *@
+
+<div class="env-app-grid">
+    <div class="grid-header">
+        <div class="header-title">
+            <span class="header-icon icon icon-apps"></span>
+            <div>
+                <strong>Multi-Cluster Mode</strong>
+                <span class="header-subtitle">Configure apps for each environment cluster</span>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-item">
+                <span class="stat-value">@GetTotalApps()</span>
+                <span class="stat-label">Apps</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">@GetEstimatedCpu()</span>
+                <span class="stat-label">Est. CPU</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">@GetEstimatedMemory()</span>
+                <span class="stat-label">Est. RAM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Environment Toggle Chips -->
+    <div class="env-toggle-section">
+        <div class="env-toggles">
+            @foreach (var env in AllEnvironments)
+            {
+                <label class="env-toggle @(IsEnabled(env) ? "enabled" : "") @(IsProdEnv(env) ? "prod" : "nonprod")">
+                    <input type="checkbox"
+                           checked="@IsEnabled(env)"
+                           disabled="@(env == EnvironmentType.Prod)"
+                           @onchange="@(e => ToggleEnv(env, (bool)e.Value!))" />
+                    <span class="env-toggle-icon">@GetEnvIcon(env)</span>
+                    <span class="env-toggle-name">@env</span>
+                </label>
+            }
+        </div>
+        <span class="toggle-hint">Select clusters to include in sizing</span>
+    </div>
+
+    <!-- Horizontal Environment Cards -->
+    <div class="env-cards-container">
+        @foreach (var env in EnabledEnvironments.OrderBy(e => e))
+        {
+            var config = GetEnvConfig(env);
+            <EnvironmentAppCard Environment="@env"
+                               IsExpanded="@IsCardExpanded(env)"
+                               IsExpandedChanged="@((expanded) => SetCardExpanded(env, expanded))"
+                               SmallCount="@config.Small"
+                               MediumCount="@config.Medium"
+                               LargeCount="@config.Large"
+                               XLargeCount="@config.XLarge"
+                               SmallSpec="@SmallSpec"
+                               MediumSpec="@MediumSpec"
+                               LargeSpec="@LargeSpec"
+                               XLargeSpec="@XLargeSpec"
+                               OnSmallChanged="@((count) => UpdateEnvTier(env, AppTier.Small, count))"
+                               OnMediumChanged="@((count) => UpdateEnvTier(env, AppTier.Medium, count))"
+                               OnLargeChanged="@((count) => UpdateEnvTier(env, AppTier.Large, count))"
+                               OnXLargeChanged="@((count) => UpdateEnvTier(env, AppTier.XLarge, count))" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, AppConfig> EnvironmentApps { get; set; } = new();
+    [Parameter] public EventCallback<HashSet<EnvironmentType>> EnabledEnvironmentsChanged { get; set; }
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, AppConfig>> EnvironmentAppsChanged { get; set; }
+
+    [Parameter] public string SmallSpec { get; set; } = "0.25 CPU, 0.5 GB";
+    [Parameter] public string MediumSpec { get; set; } = "0.5 CPU, 1 GB";
+    [Parameter] public string LargeSpec { get; set; } = "1 CPU, 2 GB";
+    [Parameter] public string XLargeSpec { get; set; } = "2 CPU, 4 GB";
+
+    private static readonly EnvironmentType[] AllEnvironments =
+        { EnvironmentType.Dev, EnvironmentType.Test, EnvironmentType.Stage, EnvironmentType.Prod, EnvironmentType.DR };
+
+    private HashSet<EnvironmentType> expandedCards = new() { EnvironmentType.Prod };
+
+    private bool IsEnabled(EnvironmentType env) => EnabledEnvironments.Contains(env);
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod || env == EnvironmentType.DR;
+    private bool IsCardExpanded(EnvironmentType env) => expandedCards.Contains(env);
+
+    private void SetCardExpanded(EnvironmentType env, bool expanded)
+    {
+        if (expanded)
+            expandedCards.Add(env);
+        else
+            expandedCards.Remove(env);
+        StateHasChanged();
+    }
+
+    private async Task ToggleEnv(EnvironmentType env, bool enabled)
+    {
+        if (env == EnvironmentType.Prod) return; // Prod always enabled
+
+        if (enabled)
+            EnabledEnvironments.Add(env);
+        else
+            EnabledEnvironments.Remove(env);
+
+        await EnabledEnvironmentsChanged.InvokeAsync(EnabledEnvironments);
+    }
+
+    private AppConfig GetEnvConfig(EnvironmentType env)
+    {
+        return EnvironmentApps.TryGetValue(env, out var config) ? config : new AppConfig();
+    }
+
+    private async Task UpdateEnvTier(EnvironmentType env, AppTier tier, int count)
+    {
+        if (!EnvironmentApps.ContainsKey(env))
+            EnvironmentApps[env] = new AppConfig();
+
+        switch (tier)
+        {
+            case AppTier.Small: EnvironmentApps[env].Small = count; break;
+            case AppTier.Medium: EnvironmentApps[env].Medium = count; break;
+            case AppTier.Large: EnvironmentApps[env].Large = count; break;
+            case AppTier.XLarge: EnvironmentApps[env].XLarge = count; break;
+        }
+
+        await EnvironmentAppsChanged.InvokeAsync(EnvironmentApps);
+    }
+
+    private int GetTotalApps()
+    {
+        return EnabledEnvironments
+            .Sum(env => EnvironmentApps.TryGetValue(env, out var config)
+                ? config.Small + config.Medium + config.Large + config.XLarge
+                : 0);
+    }
+
+    private double GetEstimatedCpu()
+    {
+        return EnabledEnvironments
+            .Sum(env => EnvironmentApps.TryGetValue(env, out var config)
+                ? config.Small * 0.25 + config.Medium * 0.5 + config.Large * 1.0 + config.XLarge * 2.0
+                : 0);
+    }
+
+    private double GetEstimatedMemory()
+    {
+        return EnabledEnvironments
+            .Sum(env => EnvironmentApps.TryGetValue(env, out var config)
+                ? config.Small * 0.5 + config.Medium * 1.0 + config.Large * 2.0 + config.XLarge * 4.0
+                : 0);
+    }
+
+    private string GetEnvIcon(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "D",
+        EnvironmentType.Test => "T",
+        EnvironmentType.Stage => "S",
+        EnvironmentType.Prod => "P",
+        EnvironmentType.DR => "DR",
+        _ => "E"
+    };
+}

@@ -6,5 +6,6 @@ public enum EnvironmentType
     Test,
     Stage,
     Prod,
-    DR
+    DR,
+    LifeTime  // OutSystems management environment
 }

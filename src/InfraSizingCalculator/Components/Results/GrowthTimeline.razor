@@ -1,47 +1,174 @@
 @using InfraSizingCalculator.Models.Growth
 
-<div class="growth-timeline @AdditionalClass">
+<div class="growth-timeline-dashboard @AdditionalClass">
     @if (Projection != null)
     {
+        <!-- Summary Stats Row -->
+        <div class="timeline-stats">
+            <div class="stat-card projection">
+                <div class="stat-icon-wrap">
+                    <span class="stat-icon">📅</span>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Projection Period</span>
+                    <span class="stat-value">@Projection.Settings.ProjectionYears Year(s)</span>
+                </div>
+            </div>
+            <div class="stat-card pattern">
+                <div class="stat-icon-wrap">
+                    <span class="stat-icon">📐</span>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Growth Pattern</span>
+                    <span class="stat-value">@Projection.Settings.Pattern</span>
+                </div>
+            </div>
+            <div class="stat-card rate">
+                <div class="stat-icon-wrap">
+                    <span class="stat-icon">📈</span>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Annual Growth</span>
+                    <span class="stat-value highlight">@Projection.Settings.AnnualGrowthRate%</span>
+                </div>
+            </div>
+            <div class="stat-card @(Projection.Summary.CriticalWarningCount > 0 ? "critical" : Projection.Summary.WarningCount > 0 ? "warning" : "success")">
+                <div class="stat-icon-wrap">
+                    <span class="stat-icon">@(Projection.Summary.CriticalWarningCount > 0 ? "🚨" : Projection.Summary.WarningCount > 0 ? "⚠️" : "✅")</span>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Status</span>
+                    <span class="stat-value">
+                        @if (Projection.Summary.CriticalWarningCount > 0)
+                        {
+                            <text>@Projection.Summary.CriticalWarningCount Critical</text>
+                        }
+                        else if (Projection.Summary.WarningCount > 0)
+                        {
+                            <text>@Projection.Summary.WarningCount Warnings</text>
+                        }
+                        else
+                        {
+                            <text>All Clear</text>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Timeline -->
+        @if (Projection.Settings.ProjectionYears > 0)
+        {
+            <div class="visual-timeline-section">
+                <div class="section-header">
+                    <h3>Timeline Overview</h3>
+                    <span class="section-subtitle">Scaling events across your projection period</span>
+                </div>
+                <div class="visual-timeline">
+                    <div class="timeline-track"></div>
+                    <div class="timeline-nodes">
+                        <div class="timeline-node baseline">
+                            <div class="node-dot"></div>
+                            <div class="node-label">Current</div>
+                            <div class="node-info">Baseline</div>
+                        </div>
+                        @foreach (var year in Enumerable.Range(1, Projection.Settings.ProjectionYears))
+                        {
+                            var yearWarnings = Projection.Warnings.Where(w => w.YearTriggered == year).ToList();
+                            var yearRecs = Projection.Recommendations.Where(r => r.RecommendedYear == year).ToList();
+                            var isMajorYear = Projection.Summary.MajorScalingYear == year;
+                            var hasCritical = yearWarnings.Any(w => w.Severity == Models.Growth.WarningSeverity.Critical);
+                            var hasWarning = yearWarnings.Any(w => w.Severity == Models.Growth.WarningSeverity.Warning);
+                            var hasEvents = yearWarnings.Any() || yearRecs.Any();
+
+                            <div class="timeline-node @(hasCritical ? "critical" : hasWarning ? "warning" : hasEvents ? "event" : "") @(isMajorYear ? "major" : "")">
+                                <div class="node-dot">
+                                    @if (hasEvents)
+                                    {
+                                        <span class="event-count">@(yearWarnings.Count + yearRecs.Count)</span>
+                                    }
+                                </div>
+                                <div class="node-label">Year @year</div>
+                                <div class="node-info">
+                                    @if (hasCritical)
+                                    {
+                                        <span class="critical-badge">Critical</span>
+                                    }
+                                    else if (hasWarning)
+                                    {
+                                        <span class="warning-badge">Warning</span>
+                                    }
+                                    else if (hasEvents)
+                                    {
+                                        <span class="event-badge">@yearRecs.Count action(s)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="clear-badge">Clear</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Warnings Section -->
         @if (Projection.Warnings.Any() && Projection.Settings.ShowClusterLimitWarnings)
         {
-            <div class="timeline-section warnings-section">
-                <h4>
-                    <span class="section-icon">⚠️</span>
-                    Cluster Limit Warnings
-                    <span class="warning-count">(@Projection.Warnings.Count)</span>
-                </h4>
-                <div class="warnings-list">
+            <div class="warnings-section">
+                <div class="section-header with-count">
+                    <div>
+                        <h3>⚠️ Capacity Warnings</h3>
+                        <span class="section-subtitle">Issues detected in your growth projection</span>
+                    </div>
+                    <div class="count-badges">
+                        @if (Projection.Summary.CriticalWarningCount > 0)
+                        {
+                            <span class="count-badge critical">@Projection.Summary.CriticalWarningCount Critical</span>
+                        }
+                        @if (Projection.Summary.WarningCount - Projection.Summary.CriticalWarningCount > 0)
+                        {
+                            <span class="count-badge warning">@(Projection.Summary.WarningCount - Projection.Summary.CriticalWarningCount) Warning</span>
+                        }
+                    </div>
+                </div>
+                <div class="warnings-grid">
                     @foreach (var warning in Projection.Warnings.OrderBy(w => w.YearTriggered).ThenByDescending(w => w.Severity))
                     {
-                        <div class="warning-item severity-@warning.Severity.ToString().ToLower()">
-                            <div class="warning-year">
-                                <span class="year-badge">Year @warning.YearTriggered</span>
-                            </div>
-                            <div class="warning-content">
-                                <div class="warning-header">
-                                    <span class="warning-type">@GetWarningTypeIcon(warning.Type) @warning.ResourceType</span>
-                                    <span class="warning-severity">@warning.Severity</span>
+                        <div class="warning-card @warning.Severity.ToString().ToLower()">
+                            <div class="warning-header">
+                                <div class="warning-type">
+                                    <span class="type-icon">@GetWarningTypeIcon(warning.Type)</span>
+                                    <span class="type-name">@warning.ResourceType</span>
                                 </div>
-                                <p class="warning-message">@warning.Message</p>
-                                <div class="warning-details">
-                                    <span class="detail-item">
-                                        <span class="detail-label">Current:</span>
-                                        <span class="detail-value">@warning.CurrentValue.ToString("N0")</span>
-                                    </span>
-                                    <span class="detail-item">
-                                        <span class="detail-label">Projected:</span>
-                                        <span class="detail-value">@warning.ProjectedValue.ToString("N0")</span>
-                                    </span>
-                                    <span class="detail-item">
-                                        <span class="detail-label">Limit:</span>
-                                        <span class="detail-value">@warning.Limit.ToString("N0")</span>
-                                    </span>
-                                    <span class="detail-item highlight">
-                                        <span class="detail-label">% of Limit:</span>
-                                        <span class="detail-value">@warning.PercentageOfLimit.ToString("F0")%</span>
-                                    </span>
+                                <div class="warning-badges">
+                                    <span class="year-badge">Year @warning.YearTriggered</span>
+                                    <span class="severity-badge @warning.Severity.ToString().ToLower()">@warning.Severity</span>
+                                </div>
+                            </div>
+                            <p class="warning-message">@warning.Message</p>
+                            <div class="warning-metrics">
+                                <div class="metric-item">
+                                    <span class="metric-label">Current</span>
+                                    <span class="metric-value">@warning.CurrentValue.ToString("N0")</span>
+                                </div>
+                                <div class="metric-arrow">→</div>
+                                <div class="metric-item projected">
+                                    <span class="metric-label">Projected</span>
+                                    <span class="metric-value">@warning.ProjectedValue.ToString("N0")</span>
+                                </div>
+                                <div class="metric-item limit">
+                                    <span class="metric-label">Limit</span>
+                                    <span class="metric-value">@warning.Limit.ToString("N0")</span>
+                                </div>
+                                <div class="metric-item percent">
+                                    <span class="metric-label">Utilization</span>
+                                    <div class="utilization-bar">
+                                        <div class="utilization-fill @(warning.PercentageOfLimit >= 100 ? "over" : warning.PercentageOfLimit >= 80 ? "high" : "")" style="width: @Math.Min(warning.PercentageOfLimit, 100)%"></div>
+                                    </div>
+                                    <span class="metric-value pct">@warning.PercentageOfLimit.ToString("F0")%</span>
                                 </div>
                             </div>
                         </div>
@@ -53,37 +180,35 @@
         <!-- Recommendations Section -->
         @if (Projection.Recommendations.Any())
         {
-            <div class="timeline-section recommendations-section">
-                <h4>
-                    <span class="section-icon">💡</span>
-                    Scaling Recommendations
-                    <span class="recommendation-count">(@Projection.Recommendations.Count)</span>
-                </h4>
+            <div class="recommendations-section">
+                <div class="section-header">
+                    <h3>💡 Scaling Recommendations</h3>
+                    <span class="section-subtitle">@Projection.Recommendations.Count suggested action(s) to consider</span>
+                </div>
                 <div class="recommendations-list">
                     @foreach (var rec in Projection.Recommendations.OrderBy(r => r.Priority))
                     {
-                        <div class="recommendation-item priority-@rec.Priority">
+                        <div class="recommendation-card priority-@rec.Priority">
                             <div class="rec-priority">
-                                <span class="priority-badge">P@rec.Priority</span>
-                                @if (rec.RecommendedYear > 0)
-                                {
-                                    <span class="rec-year">Year @rec.RecommendedYear</span>
-                                }
+                                <span class="priority-number">@rec.Priority</span>
+                                <span class="priority-label">Priority</span>
                             </div>
                             <div class="rec-content">
                                 <div class="rec-header">
                                     <span class="rec-icon">@rec.Icon</span>
                                     <span class="rec-title">@rec.Title</span>
-                                    <span class="rec-type type-@rec.Type.ToString().ToLower()">@GetRecommendationTypeLabel(rec.Type)</span>
+                                    <span class="rec-type">@GetRecommendationTypeLabel(rec.Type)</span>
+                                    @if (rec.RecommendedYear > 0)
+                                    {
+                                        <span class="rec-year">Year @rec.RecommendedYear</span>
+                                    }
                                 </div>
                                 <p class="rec-description">@rec.Description</p>
                                 @if (rec.EstimatedCostImpact != 0)
                                 {
-                                    <div class="rec-cost-impact @(rec.EstimatedCostImpact > 0 ? "increase" : "savings")">
-                                        <span class="cost-label">Est. Cost Impact:</span>
-                                        <span class="cost-value">
-                                            @(rec.EstimatedCostImpact > 0 ? "+" : "")@FormatCurrency(rec.EstimatedCostImpact)/mo
-                                        </span>
+                                    <div class="rec-impact @(rec.EstimatedCostImpact > 0 ? "increase" : "savings")">
+                                        <span class="impact-icon">@(rec.EstimatedCostImpact > 0 ? "📈" : "📉")</span>
+                                        <span class="impact-text">Estimated Impact: @(rec.EstimatedCostImpact > 0 ? "+" : "")@FormatCurrency(rec.EstimatedCostImpact)/mo</span>
                                     </div>
                                 }
                             </div>
@@ -93,98 +218,27 @@
             </div>
         }
 
-        <!-- Timeline Milestones -->
-        @if (Projection.Summary.MajorScalingYear.HasValue || Projection.Summary.CriticalWarningCount > 0)
-        {
-            <div class="timeline-section milestones-section">
-                <h4>
-                    <span class="section-icon">📅</span>
-                    Key Milestones
-                </h4>
-                <div class="milestones-timeline">
-                    <div class="timeline-line"></div>
-                    @foreach (var year in Enumerable.Range(1, Projection.Settings.ProjectionYears))
-                    {
-                        var yearWarnings = Projection.Warnings.Where(w => w.YearTriggered == year).ToList();
-                        var yearRecs = Projection.Recommendations.Where(r => r.RecommendedYear == year).ToList();
-                        var isMajorYear = Projection.Summary.MajorScalingYear == year;
-                        var hasCritical = yearWarnings.Any(w => w.Severity == Models.Growth.WarningSeverity.Critical);
-
-                        <div class="milestone @(isMajorYear ? "major" : "") @(hasCritical ? "critical" : "") @(yearWarnings.Any() || yearRecs.Any() ? "has-events" : "")">
-                            <div class="milestone-marker"></div>
-                            <div class="milestone-content">
-                                <span class="milestone-year">Year @year</span>
-                                @if (yearWarnings.Any() || yearRecs.Any())
-                                {
-                                    <div class="milestone-events">
-                                        @if (yearWarnings.Any())
-                                        {
-                                            <span class="event-badge warnings">@yearWarnings.Count warning(s)</span>
-                                        }
-                                        @if (yearRecs.Any())
-                                        {
-                                            <span class="event-badge recs">@yearRecs.Count action(s)</span>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
-        <!-- Summary Stats -->
-        <div class="timeline-section summary-section">
-            <h4>
-                <span class="section-icon">📊</span>
-                Projection Summary
-            </h4>
-            <div class="summary-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Projection Period</span>
-                    <span class="stat-value">@Projection.Settings.ProjectionYears Year(s)</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Growth Pattern</span>
-                    <span class="stat-value">@Projection.Settings.Pattern</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Annual Growth Rate</span>
-                    <span class="stat-value">@Projection.Settings.AnnualGrowthRate%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Total Warnings</span>
-                    <span class="stat-value @(Projection.Summary.WarningCount > 0 ? "warning" : "")">@Projection.Summary.WarningCount</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Critical Warnings</span>
-                    <span class="stat-value @(Projection.Summary.CriticalWarningCount > 0 ? "critical" : "")">@Projection.Summary.CriticalWarningCount</span>
-                </div>
-                @if (Projection.Summary.MajorScalingYear.HasValue)
-                {
-                    <div class="stat-item highlight">
-                        <span class="stat-label">Major Scaling Year</span>
-                        <span class="stat-value">Year @Projection.Summary.MajorScalingYear</span>
-                    </div>
-                }
-            </div>
-        </div>
-
+        <!-- All Clear State -->
         @if (!Projection.Warnings.Any() && !Projection.Recommendations.Any())
         {
-            <div class="no-issues">
-                <span class="no-issues-icon">✅</span>
-                <p>No cluster limit warnings or scaling recommendations for the projected period.</p>
-                <p class="no-issues-detail">Your infrastructure should handle the projected growth within cluster limits.</p>
+            <div class="all-clear-section">
+                <div class="all-clear-content">
+                    <span class="all-clear-icon">✅</span>
+                    <h3>All Clear</h3>
+                    <p>Your infrastructure is projected to handle the growth within cluster limits.</p>
+                    <p class="all-clear-detail">No warnings or scaling recommendations for the @Projection.Settings.ProjectionYears-year projection period with @Projection.Settings.AnnualGrowthRate% annual growth.</p>
+                </div>
             </div>
         }
     }
     else
     {
-        <div class="no-projection">
-            <span class="no-projection-icon">📅</span>
-            <p>Calculate a growth projection to see timeline, warnings, and recommendations.</p>
+        <div class="empty-timeline">
+            <div class="empty-content">
+                <span class="empty-icon">📅</span>
+                <h3>No Projection Data</h3>
+                <p>Calculate a growth projection to see timeline, warnings, and recommendations.</p>
+            </div>
         </div>
     }
 </div>
@@ -198,10 +252,10 @@
         WarningType.NodeLimit => "🖥️",
         WarningType.PodLimit => "📦",
         WarningType.CpuCapacity => "⚡",
-        WarningType.MemoryCapacity => "📊",
-        WarningType.StorageCapacity => "💾",
+        WarningType.MemoryCapacity => "💾",
+        WarningType.StorageCapacity => "💿",
         WarningType.CostThreshold => "💰",
-        WarningType.ClusterSplit => "🌐",
+        WarningType.ClusterSplit => "🔀",
         _ => "⚠️"
     };
 
@@ -230,195 +284,471 @@
 }
 
 <style>
-    .growth-timeline {
-        background: var(--background-card);
-        border-radius: 8px;
-        padding: 1.5rem;
-    }
-
-    .timeline-section {
-        margin-bottom: 2rem;
-    }
-
-    .timeline-section:last-child {
-        margin-bottom: 0;
-    }
-
-    .timeline-section h4 {
-        margin: 0 0 1rem 0;
-        color: var(--text-primary);
-        font-size: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .section-icon {
-        font-size: 1.1rem;
-    }
-
-    .warning-count,
-    .recommendation-count {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        font-weight: normal;
-    }
-
-    /* Warnings */
-    .warnings-list {
+    .growth-timeline-dashboard {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 24px;
     }
 
-    .warning-item {
+    /* ═══════════════════════════════════════════════════════════
+       SUMMARY STATS ROW
+       ═══════════════════════════════════════════════════════════ */
+    .timeline-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .stat-card {
         display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 8px;
-        background: var(--background-dark);
-        border-left: 4px solid;
+        gap: 14px;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary, #1a1d21);
+        position: relative;
+        overflow: hidden;
     }
 
-    .warning-item.severity-info {
-        border-left-color: #3498db;
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
     }
 
-    .warning-item.severity-warning {
-        border-left-color: #f39c12;
-        background: rgba(243, 156, 18, 0.1);
-    }
+    .stat-card.projection::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .stat-card.pattern::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .stat-card.rate::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .stat-card.success::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .stat-card.warning::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .stat-card.critical::before { background: linear-gradient(90deg, #ef4444, #f87171); }
 
-    .warning-item.severity-critical {
-        border-left-color: #e74c3c;
-        background: rgba(231, 76, 60, 0.1);
-    }
-
-    .warning-year {
+    .stat-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: var(--bg-tertiary, #13151a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
     }
 
-    .year-badge {
-        display: inline-block;
-        padding: 0.25rem 0.5rem;
-        background: var(--background-card);
-        border-radius: 4px;
+    .stat-icon {
+        font-size: 1.3rem;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+    }
+
+    .stat-label {
         font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
         font-weight: 600;
         color: var(--text-primary);
     }
 
-    .warning-content {
-        flex: 1;
+    .stat-value.highlight { color: #f59e0b; }
+    .stat-card.success .stat-value { color: #10b981; }
+    .stat-card.warning .stat-value { color: #f59e0b; }
+    .stat-card.critical .stat-value { color: #ef4444; }
+
+    /* ═══════════════════════════════════════════════════════════
+       VISUAL TIMELINE
+       ═══════════════════════════════════════════════════════════ */
+    .visual-timeline-section {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+    }
+
+    .section-header {
+        margin-bottom: 20px;
+    }
+
+    .section-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .section-subtitle {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .section-header.with-count {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .count-badges {
+        display: flex;
+        gap: 8px;
+    }
+
+    .count-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .count-badge.critical {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+
+    .count-badge.warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+
+    .visual-timeline {
+        position: relative;
+        padding: 30px 0;
+    }
+
+    .timeline-track {
+        position: absolute;
+        top: 50%;
+        left: 30px;
+        right: 30px;
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        transform: translateY(-50%);
+    }
+
+    .timeline-nodes {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .timeline-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        z-index: 1;
+    }
+
+    .node-dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-tertiary, #13151a);
+        border: 3px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .timeline-node.baseline .node-dot {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .timeline-node.event .node-dot {
+        border-color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+    }
+
+    .timeline-node.warning .node-dot {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.15);
+    }
+
+    .timeline-node.critical .node-dot {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.15);
+    }
+
+    .timeline-node.major .node-dot {
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+    }
+
+    .event-count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .node-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .node-info {
+        font-size: 0.7rem;
+    }
+
+    .clear-badge {
+        color: var(--text-muted);
+    }
+
+    .event-badge {
+        color: #8b5cf6;
+    }
+
+    .warning-badge {
+        padding: 2px 8px;
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .critical-badge {
+        padding: 2px 8px;
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       WARNINGS SECTION
+       ═══════════════════════════════════════════════════════════ */
+    .warnings-section {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+    }
+
+    .warnings-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .warning-card {
+        background: var(--bg-tertiary, #13151a);
+        border-radius: 10px;
+        padding: 18px;
+        border-left: 4px solid var(--border-color);
+    }
+
+    .warning-card.info {
+        border-left-color: #3b82f6;
+    }
+
+    .warning-card.warning {
+        border-left-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.03);
+    }
+
+    .warning-card.critical {
+        border-left-color: #ef4444;
+        background: rgba(239, 68, 68, 0.03);
     }
 
     .warning-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .warning-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .type-icon {
+        font-size: 1.2rem;
+    }
+
+    .type-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .warning-badges {
+        display: flex;
+        gap: 8px;
+    }
+
+    .year-badge {
+        padding: 4px 10px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        font-size: 0.75rem;
         font-weight: 600;
         color: var(--text-primary);
     }
 
-    .warning-severity {
+    .severity-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
         font-size: 0.7rem;
-        padding: 0.15rem 0.4rem;
-        border-radius: 3px;
+        font-weight: 700;
         text-transform: uppercase;
-        font-weight: 600;
     }
 
-    .severity-info .warning-severity {
-        background: rgba(52, 152, 219, 0.2);
-        color: #3498db;
-    }
-
-    .severity-warning .warning-severity {
-        background: rgba(243, 156, 18, 0.2);
-        color: #f39c12;
-    }
-
-    .severity-critical .warning-severity {
-        background: rgba(231, 76, 60, 0.2);
-        color: #e74c3c;
-    }
+    .severity-badge.info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .severity-badge.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .severity-badge.critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 
     .warning-message {
-        margin: 0 0 0.75rem 0;
-        color: var(--text-secondary);
+        margin: 0 0 16px 0;
         font-size: 0.9rem;
-    }
-
-    .warning-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .detail-item {
-        font-size: 0.8rem;
-    }
-
-    .detail-label {
         color: var(--text-secondary);
+        line-height: 1.5;
     }
 
-    .detail-value {
+    .warning-metrics {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .metric-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .metric-value {
+        font-size: 1rem;
+        font-weight: 600;
         color: var(--text-primary);
-        font-weight: 500;
-        margin-left: 0.25rem;
     }
 
-    .detail-item.highlight .detail-value {
-        color: var(--primary-color);
+    .metric-item.projected .metric-value { color: #f59e0b; }
+    .metric-item.limit .metric-value { color: #ef4444; }
+    .metric-item.percent .metric-value { color: var(--text-secondary); }
+
+    .metric-arrow {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        margin-bottom: -12px;
     }
 
-    /* Recommendations */
+    .metric-item.percent {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .utilization-bar {
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 4px 0;
+    }
+
+    .utilization-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #34d399);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .utilization-fill.high {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .utilization-fill.over {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .metric-value.pct {
+        font-size: 0.85rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RECOMMENDATIONS SECTION
+       ═══════════════════════════════════════════════════════════ */
+    .recommendations-section {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 20px;
+    }
+
     .recommendations-list {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 12px;
     }
 
-    .recommendation-item {
+    .recommendation-card {
         display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 8px;
-        background: var(--background-dark);
+        gap: 16px;
+        padding: 16px;
+        background: var(--bg-tertiary, #13151a);
+        border-radius: 10px;
         border: 1px solid var(--border-color);
     }
 
-    .recommendation-item.priority-1 {
-        border-color: var(--primary-color);
+    .recommendation-card.priority-1 {
+        border-color: #3b82f6;
         border-width: 2px;
     }
 
     .rec-priority {
-        flex-shrink: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.25rem;
+        gap: 2px;
+        min-width: 50px;
     }
 
-    .priority-badge {
-        display: inline-block;
-        padding: 0.25rem 0.5rem;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 4px;
-        font-size: 0.7rem;
+    .priority-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
         font-weight: 700;
+        color: white;
+        background: var(--border-color);
     }
 
-    .rec-year {
-        font-size: 0.7rem;
-        color: var(--text-secondary);
+    .priority-1 .priority-number { background: #3b82f6; }
+    .priority-2 .priority-number { background: #8b5cf6; }
+    .priority-3 .priority-number { background: #6b7280; }
+
+    .priority-label {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
     }
 
     .rec-content {
@@ -428,8 +758,9 @@
     .rec-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
     }
 
     .rec-icon {
@@ -439,222 +770,189 @@
     .rec-title {
         font-weight: 600;
         color: var(--text-primary);
+        font-size: 1rem;
     }
 
     .rec-type {
-        font-size: 0.65rem;
-        padding: 0.15rem 0.4rem;
-        border-radius: 3px;
+        padding: 3px 8px;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
         text-transform: uppercase;
         font-weight: 600;
-        background: var(--background-card);
-        color: var(--text-secondary);
     }
 
-    .rec-description {
-        margin: 0 0 0.5rem 0;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-
-    .rec-cost-impact {
-        font-size: 0.8rem;
-        padding: 0.5rem;
+    .rec-year {
+        padding: 3px 8px;
+        background: rgba(59, 130, 246, 0.1);
         border-radius: 4px;
-        display: inline-block;
-    }
-
-    .rec-cost-impact.increase {
-        background: rgba(243, 156, 18, 0.1);
-        color: #f39c12;
-    }
-
-    .rec-cost-impact.savings {
-        background: rgba(39, 174, 96, 0.1);
-        color: #27ae60;
-    }
-
-    .cost-label {
+        font-size: 0.75rem;
+        color: #3b82f6;
         font-weight: 500;
     }
 
-    .cost-value {
-        font-weight: 600;
-        margin-left: 0.25rem;
-    }
-
-    /* Milestones Timeline */
-    .milestones-timeline {
-        position: relative;
-        padding-left: 2rem;
-    }
-
-    .timeline-line {
-        position: absolute;
-        left: 8px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--border-color);
-    }
-
-    .milestone {
-        position: relative;
-        padding: 0.75rem 0;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .milestone-marker {
-        position: absolute;
-        left: -2rem;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--background-card);
-        border: 3px solid var(--border-color);
-        z-index: 1;
-    }
-
-    .milestone.has-events .milestone-marker {
-        border-color: var(--primary-color);
-        background: var(--primary-color);
-    }
-
-    .milestone.critical .milestone-marker {
-        border-color: #e74c3c;
-        background: #e74c3c;
-    }
-
-    .milestone.major .milestone-marker {
-        border-color: #f39c12;
-        background: #f39c12;
-        width: 20px;
-        height: 20px;
-        left: calc(-2rem - 2px);
-    }
-
-    .milestone-content {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .milestone-year {
-        font-weight: 600;
-        color: var(--text-primary);
-        min-width: 60px;
-    }
-
-    .milestone-events {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .event-badge {
-        font-size: 0.7rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-    }
-
-    .event-badge.warnings {
-        background: rgba(243, 156, 18, 0.2);
-        color: #f39c12;
-    }
-
-    .event-badge.recs {
-        background: rgba(52, 152, 219, 0.2);
-        color: #3498db;
-    }
-
-    /* Summary Stats */
-    .summary-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        padding: 0.75rem;
-        background: var(--background-dark);
-        border-radius: 6px;
-    }
-
-    .stat-item.highlight {
-        border: 2px solid var(--primary-color);
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .stat-value.warning {
-        color: #f39c12;
-    }
-
-    .stat-value.critical {
-        color: #e74c3c;
-    }
-
-    /* No Issues State */
-    .no-issues {
-        text-align: center;
-        padding: 2rem;
-        background: rgba(39, 174, 96, 0.1);
-        border-radius: 8px;
-    }
-
-    .no-issues-icon {
-        font-size: 2.5rem;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .no-issues p {
-        margin: 0;
-        color: var(--text-primary);
-    }
-
-    .no-issues-detail {
-        margin-top: 0.5rem !important;
-        color: var(--text-secondary) !important;
+    .rec-description {
+        margin: 0 0 10px 0;
         font-size: 0.9rem;
-    }
-
-    /* No Projection State */
-    .no-projection {
-        text-align: center;
-        padding: 3rem;
         color: var(--text-secondary);
+        line-height: 1.5;
     }
 
-    .no-projection-icon {
-        font-size: 3rem;
+    .rec-impact {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .rec-impact.increase {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .rec-impact.savings {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .impact-icon {
+        font-size: 1rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ALL CLEAR STATE
+       ═══════════════════════════════════════════════════════════ */
+    .all-clear-section {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(52, 211, 153, 0.05));
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        padding: 40px;
+    }
+
+    .all-clear-content {
+        text-align: center;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .all-clear-icon {
+        font-size: 3.5rem;
         display: block;
-        margin-bottom: 1rem;
-        opacity: 0.5;
+        margin-bottom: 16px;
     }
 
-    /* Light theme */
-    [data-theme="light"] .growth-timeline {
-        background: #fff;
+    .all-clear-content h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.5rem;
+        color: #10b981;
+    }
+
+    .all-clear-content p {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-primary);
+        line-height: 1.5;
+    }
+
+    .all-clear-detail {
+        margin-top: 12px !important;
+        font-size: 0.9rem !important;
+        color: var(--text-secondary) !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       EMPTY STATE
+       ═══════════════════════════════════════════════════════════ */
+    .empty-timeline {
+        background: var(--bg-secondary, #1a1d21);
+        border-radius: 12px;
         border: 1px solid var(--border-color);
+        padding: 60px 40px;
     }
 
-    [data-theme="light"] .warning-item,
-    [data-theme="light"] .recommendation-item,
-    [data-theme="light"] .stat-item {
+    .empty-content {
+        text-align: center;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 16px;
+        opacity: 0.4;
+    }
+
+    .empty-content h3 {
+        margin: 0 0 8px 0;
+        font-size: 1.25rem;
+        color: var(--text-primary);
+    }
+
+    .empty-content p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════ */
+    @@media (max-width: 900px) {
+        .timeline-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .warning-metrics {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .metric-arrow {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .timeline-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .timeline-nodes {
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .timeline-track {
+            display: none;
+        }
+
+        .section-header.with-count {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LIGHT THEME
+       ═══════════════════════════════════════════════════════════ */
+    [data-theme="light"] .stat-card,
+    [data-theme="light"] .visual-timeline-section,
+    [data-theme="light"] .warnings-section,
+    [data-theme="light"] .recommendations-section,
+    [data-theme="light"] .empty-timeline {
+        background: #fff;
+    }
+
+    [data-theme="light"] .warning-card,
+    [data-theme="light"] .recommendation-card,
+    [data-theme="light"] .stat-icon-wrap,
+    [data-theme="light"] .node-dot {
         background: #f8f9fa;
     }
 </style>

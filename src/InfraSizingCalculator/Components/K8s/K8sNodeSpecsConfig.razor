@@ -1,0 +1,438 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Services
+
+@* K8s Node Specs Configuration - Uses Horizontal Accordion for multi-cluster environments *@
+
+<div class="k8s-node-specs-config">
+    @if (IsSingleCluster)
+    {
+        <!-- Single Cluster: One set of node specs -->
+        <div class="node-specs-table unified-specs">
+            <div class="node-specs-header">
+                <div class="node-type-col">Node Type</div>
+                <div class="spec-col">CPU</div>
+                <div class="spec-col">RAM (GB)</div>
+                <div class="spec-col">Disk (GB)</div>
+            </div>
+
+            @if (!HasManagedControlPlane)
+            {
+                <div class="node-spec-group">
+                    <div class="node-spec-row">
+                        <div class="node-type-col centered-label"><span class="@IconResources.GetNodeIconClass("control")"></span> Control Plane</div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdMasterCpu" min="1" /></div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdMasterRam" min="1" /></div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdMasterDisk" min="1" /></div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="managed-notice">
+                    <span class="notice-icon icon icon-cloud"></span>
+                    <span>Control Plane is managed by @VendorName - no nodes required</span>
+                </div>
+            }
+
+            @if (HasInfraNodes)
+            {
+                <div class="node-spec-group">
+                    <div class="node-spec-row">
+                        <div class="node-type-col centered-label"><span class="@IconResources.GetNodeIconClass("infra")"></span> Infrastructure</div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdInfraCpu" min="1" /></div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdInfraRam" min="1" /></div>
+                        <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdInfraDisk" min="1" /></div>
+                    </div>
+                </div>
+            }
+
+            <div class="node-spec-group">
+                <div class="node-spec-row">
+                    <div class="node-type-col centered-label"><span class="@IconResources.GetNodeIconClass("worker")"></span> Worker</div>
+                    <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdWorkerCpu" min="1" /></div>
+                    <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdWorkerRam" min="1" /></div>
+                    <div class="spec-col"><input type="number" @bind="NodeSpecs.ProdWorkerDisk" min="1" /></div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Multi-Cluster: Horizontal Accordion with environment panels -->
+        <div class="multi-cluster-header">
+            <div class="header-title">
+                <span class="header-icon icon icon-server"></span>
+                <div>
+                    <strong>Node Specifications</strong>
+                    <span class="header-subtitle">Configure node specs for each environment</span>
+                </div>
+            </div>
+        </div>
+
+        <HorizontalAccordion SingleExpand="true"
+                             ExpandedPanel="@expandedEnv"
+                             ExpandedPanelChanged="@((e) => expandedEnv = e)"
+                             AdditionalClass="node-specs-accordion">
+            @foreach (var env in OrderedEnvironments)
+            {
+                <HorizontalAccordionPanel Key="@env.ToString()"
+                                          Title="@IconResources.GetEnvDisplayName(env)"
+                                          ShortTitle="@IconResources.GetEnvShortLabel(env)"
+                                          IconClass="@IconResources.GetEnvIconClass(env)"
+                                          Subtitle="Node Specs"
+                                          AdditionalClass="@GetEnvClass(env)">
+                    <div class="env-node-content">
+                        <div class="env-node-header">
+                            <span class="env-type-badge @GetEnvClass(env)">
+                                @(IsProdEnv(env) ? "Production" : "Non-Production")
+                            </span>
+                        </div>
+
+                        <div class="node-cards">
+                            @if (!HasManagedControlPlane)
+                            {
+                                <div class="node-card">
+                                    <div class="node-card-header">
+                                        <span class="@IconResources.GetNodeIconClass("control")"></span>
+                                        <span class="node-name">Control Plane</span>
+                                    </div>
+                                    <div class="node-card-specs">
+                                        <div class="spec-field">
+                                            <label>CPU</label>
+                                            <input type="number" value="@GetMasterCpu(env)" @onchange="@(e => SetMasterCpu(env, e))" min="1" />
+                                        </div>
+                                        <div class="spec-field">
+                                            <label>RAM</label>
+                                            <input type="number" value="@GetMasterRam(env)" @onchange="@(e => SetMasterRam(env, e))" min="1" />
+                                        </div>
+                                        <div class="spec-field">
+                                            <label>Disk</label>
+                                            <input type="number" value="@GetMasterDisk(env)" @onchange="@(e => SetMasterDisk(env, e))" min="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="managed-notice compact">
+                                    <span class="notice-icon icon icon-cloud"></span>
+                                    <span>Control Plane managed by @VendorName</span>
+                                </div>
+                            }
+
+                            @if (HasInfraNodes)
+                            {
+                                <div class="node-card">
+                                    <div class="node-card-header">
+                                        <span class="@IconResources.GetNodeIconClass("infra")"></span>
+                                        <span class="node-name">Infrastructure</span>
+                                    </div>
+                                    <div class="node-card-specs">
+                                        <div class="spec-field">
+                                            <label>CPU</label>
+                                            <input type="number" value="@GetInfraCpu(env)" @onchange="@(e => SetInfraCpu(env, e))" min="1" />
+                                        </div>
+                                        <div class="spec-field">
+                                            <label>RAM</label>
+                                            <input type="number" value="@GetInfraRam(env)" @onchange="@(e => SetInfraRam(env, e))" min="1" />
+                                        </div>
+                                        <div class="spec-field">
+                                            <label>Disk</label>
+                                            <input type="number" value="@GetInfraDisk(env)" @onchange="@(e => SetInfraDisk(env, e))" min="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="node-card">
+                                <div class="node-card-header">
+                                    <span class="@IconResources.GetNodeIconClass("worker")"></span>
+                                    <span class="node-name">Worker</span>
+                                </div>
+                                <div class="node-card-specs">
+                                    <div class="spec-field">
+                                        <label>CPU</label>
+                                        <input type="number" value="@GetWorkerCpu(env)" @onchange="@(e => SetWorkerCpu(env, e))" min="1" />
+                                    </div>
+                                    <div class="spec-field">
+                                        <label>RAM</label>
+                                        <input type="number" value="@GetWorkerRam(env)" @onchange="@(e => SetWorkerRam(env, e))" min="1" />
+                                    </div>
+                                    <div class="spec-field">
+                                        <label>Disk</label>
+                                        <input type="number" value="@GetWorkerDisk(env)" @onchange="@(e => SetWorkerDisk(env, e))" min="1" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </HorizontalAccordionPanel>
+            }
+        </HorizontalAccordion>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsSingleCluster { get; set; }
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public NodeSpecsConfig NodeSpecs { get; set; } = new();
+    [Parameter] public EventCallback<NodeSpecsConfig> NodeSpecsChanged { get; set; }
+    [Parameter] public bool HasManagedControlPlane { get; set; }
+    [Parameter] public bool HasInfraNodes { get; set; }
+    [Parameter] public string VendorName { get; set; } = "";
+
+    private string? expandedEnv;
+
+    private IEnumerable<EnvironmentType> OrderedEnvironments =>
+        EnabledEnvironments.OrderBy(e => e);
+
+    protected override void OnParametersSet()
+    {
+        // Default to first environment expanded if none selected
+        if (string.IsNullOrEmpty(expandedEnv) && EnabledEnvironments.Any())
+        {
+            expandedEnv = EnabledEnvironments.OrderBy(e => e).First().ToString();
+        }
+    }
+
+    // Control Plane getters/setters
+    private int GetMasterCpu(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevMasterCpu,
+        EnvironmentType.Test => NodeSpecs.TestMasterCpu,
+        EnvironmentType.Stage => NodeSpecs.StageMasterCpu,
+        EnvironmentType.Prod => NodeSpecs.ProdMasterCpu,
+        EnvironmentType.DR => NodeSpecs.DRMasterCpu,
+        _ => NodeSpecs.ProdMasterCpu
+    };
+
+    private int GetMasterRam(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevMasterRam,
+        EnvironmentType.Test => NodeSpecs.TestMasterRam,
+        EnvironmentType.Stage => NodeSpecs.StageMasterRam,
+        EnvironmentType.Prod => NodeSpecs.ProdMasterRam,
+        EnvironmentType.DR => NodeSpecs.DRMasterRam,
+        _ => NodeSpecs.ProdMasterRam
+    };
+
+    private int GetMasterDisk(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevMasterDisk,
+        EnvironmentType.Test => NodeSpecs.TestMasterDisk,
+        EnvironmentType.Stage => NodeSpecs.StageMasterDisk,
+        EnvironmentType.Prod => NodeSpecs.ProdMasterDisk,
+        EnvironmentType.DR => NodeSpecs.DRMasterDisk,
+        _ => NodeSpecs.ProdMasterDisk
+    };
+
+    private async Task SetMasterCpu(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevMasterCpu = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestMasterCpu = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageMasterCpu = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdMasterCpu = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRMasterCpu = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetMasterRam(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevMasterRam = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestMasterRam = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageMasterRam = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdMasterRam = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRMasterRam = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetMasterDisk(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevMasterDisk = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestMasterDisk = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageMasterDisk = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdMasterDisk = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRMasterDisk = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    // Infrastructure node getters/setters
+    private int GetInfraCpu(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevInfraCpu,
+        EnvironmentType.Test => NodeSpecs.TestInfraCpu,
+        EnvironmentType.Stage => NodeSpecs.StageInfraCpu,
+        EnvironmentType.Prod => NodeSpecs.ProdInfraCpu,
+        EnvironmentType.DR => NodeSpecs.DRInfraCpu,
+        _ => NodeSpecs.ProdInfraCpu
+    };
+
+    private int GetInfraRam(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevInfraRam,
+        EnvironmentType.Test => NodeSpecs.TestInfraRam,
+        EnvironmentType.Stage => NodeSpecs.StageInfraRam,
+        EnvironmentType.Prod => NodeSpecs.ProdInfraRam,
+        EnvironmentType.DR => NodeSpecs.DRInfraRam,
+        _ => NodeSpecs.ProdInfraRam
+    };
+
+    private int GetInfraDisk(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevInfraDisk,
+        EnvironmentType.Test => NodeSpecs.TestInfraDisk,
+        EnvironmentType.Stage => NodeSpecs.StageInfraDisk,
+        EnvironmentType.Prod => NodeSpecs.ProdInfraDisk,
+        EnvironmentType.DR => NodeSpecs.DRInfraDisk,
+        _ => NodeSpecs.ProdInfraDisk
+    };
+
+    private async Task SetInfraCpu(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevInfraCpu = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestInfraCpu = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageInfraCpu = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdInfraCpu = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRInfraCpu = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetInfraRam(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevInfraRam = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestInfraRam = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageInfraRam = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdInfraRam = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRInfraRam = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetInfraDisk(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevInfraDisk = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestInfraDisk = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageInfraDisk = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdInfraDisk = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRInfraDisk = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    // Worker node getters/setters
+    private int GetWorkerCpu(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevWorkerCpu,
+        EnvironmentType.Test => NodeSpecs.TestWorkerCpu,
+        EnvironmentType.Stage => NodeSpecs.StageWorkerCpu,
+        EnvironmentType.Prod => NodeSpecs.ProdWorkerCpu,
+        EnvironmentType.DR => NodeSpecs.DRWorkerCpu,
+        _ => NodeSpecs.ProdWorkerCpu
+    };
+
+    private int GetWorkerRam(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevWorkerRam,
+        EnvironmentType.Test => NodeSpecs.TestWorkerRam,
+        EnvironmentType.Stage => NodeSpecs.StageWorkerRam,
+        EnvironmentType.Prod => NodeSpecs.ProdWorkerRam,
+        EnvironmentType.DR => NodeSpecs.DRWorkerRam,
+        _ => NodeSpecs.ProdWorkerRam
+    };
+
+    private int GetWorkerDisk(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => NodeSpecs.DevWorkerDisk,
+        EnvironmentType.Test => NodeSpecs.TestWorkerDisk,
+        EnvironmentType.Stage => NodeSpecs.StageWorkerDisk,
+        EnvironmentType.Prod => NodeSpecs.ProdWorkerDisk,
+        EnvironmentType.DR => NodeSpecs.DRWorkerDisk,
+        _ => NodeSpecs.ProdWorkerDisk
+    };
+
+    private async Task SetWorkerCpu(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevWorkerCpu = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestWorkerCpu = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageWorkerCpu = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdWorkerCpu = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRWorkerCpu = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetWorkerRam(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevWorkerRam = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestWorkerRam = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageWorkerRam = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdWorkerRam = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRWorkerRam = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private async Task SetWorkerDisk(EnvironmentType env, ChangeEventArgs e)
+    {
+        var val = ParseInt(e.Value);
+        switch (env)
+        {
+            case EnvironmentType.Dev: NodeSpecs.DevWorkerDisk = val; break;
+            case EnvironmentType.Test: NodeSpecs.TestWorkerDisk = val; break;
+            case EnvironmentType.Stage: NodeSpecs.StageWorkerDisk = val; break;
+            case EnvironmentType.Prod: NodeSpecs.ProdWorkerDisk = val; break;
+            case EnvironmentType.DR: NodeSpecs.DRWorkerDisk = val; break;
+        }
+        await NodeSpecsChanged.InvokeAsync(NodeSpecs);
+    }
+
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod || env == EnvironmentType.DR;
+
+    private string GetEnvClass(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "env-dev",
+        EnvironmentType.Test => "env-test",
+        EnvironmentType.Stage => "env-stage",
+        EnvironmentType.Prod => "env-prod",
+        EnvironmentType.DR => "env-dr",
+        _ => ""
+    };
+
+    private int ParseInt(object? value)
+    {
+        if (value == null) return 1;
+        if (int.TryParse(value.ToString(), out var result))
+            return Math.Max(1, result);
+        return 1;
+    }
+}

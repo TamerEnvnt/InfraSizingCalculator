@@ -39,7 +39,27 @@ public class EnvironmentResult
     public int Workers { get; init; }
 
     /// <summary>
-    /// BR-RC005: Total nodes = masters + infra + workers
+    /// External etcd nodes (when using ExternalEtcd control plane HA pattern)
+    /// </summary>
+    public int EtcdNodes { get; init; }
+
+    /// <summary>
+    /// DR site nodes (calculated based on DR pattern: WarmStandby, HotStandby, ActiveActive)
+    /// </summary>
+    public int DRNodes { get; init; }
+
+    /// <summary>
+    /// Cost multiplier from DR configuration (1.0 = no DR, 2.0 = full active-active)
+    /// </summary>
+    public double DRCostMultiplier { get; init; } = 1.0;
+
+    /// <summary>
+    /// Number of availability zones workers are distributed across
+    /// </summary>
+    public int AvailabilityZones { get; init; } = 1;
+
+    /// <summary>
+    /// BR-RC005: Total nodes = masters + infra + workers + etcd
     /// </summary>
     public int TotalNodes { get; init; }
 

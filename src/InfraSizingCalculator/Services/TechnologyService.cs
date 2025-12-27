@@ -17,7 +17,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.DotNet,
             Name = ".NET",
-            Icon = "🟣",
+            Icon = "dotnet",
             BrandColor = "#512BD4",
             Vendor = "Microsoft",
             Description = "Cross-platform framework for building modern applications",
@@ -36,9 +36,9 @@ public class TechnologyService : ITechnologyService
                 Description = "ASP.NET on Windows Server with IIS",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "dotnet-iis", Name = "IIS Web Server", Icon = "🌐", Description = "Windows Server with IIS for hosting ASP.NET applications", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
-                    new() { Id = "dotnet-db", Name = "SQL Server", Icon = "🗄️", Description = "Microsoft SQL Server database", DefaultSize = AppTier.Large, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "dotnet-cache", Name = "Cache Server", Icon = "⚡", Description = "Redis cache for session state and caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
+                    new() { Id = "dotnet-iis", Name = "IIS Web Server", Icon = "web", Description = "Windows Server with IIS for hosting ASP.NET applications", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
+                    new() { Id = "dotnet-db", Name = "SQL Server", Icon = "db", Description = "Microsoft SQL Server database", DefaultSize = AppTier.Large, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
+                    new() { Id = "dotnet-cache", Name = "Cache Server", Icon = "cache", Description = "Redis cache for session state and caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
                 }
             }
         },
@@ -48,7 +48,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.Java,
             Name = "Java",
-            Icon = "☕",
+            Icon = "java",
             BrandColor = "#007396",
             Vendor = "Oracle",
             Description = "Enterprise-grade runtime with extensive ecosystem",
@@ -67,10 +67,10 @@ public class TechnologyService : ITechnologyService
                 Description = "WebLogic, JBoss/WildFly, or Tomcat deployment",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "java-web", Name = "Web Server", Icon = "🌐", Description = "Apache/Nginx reverse proxy for load balancing and SSL termination", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
-                    new() { Id = "java-app", Name = "Application Server", Icon = "☕", Description = "WebLogic, JBoss/WildFly, or Tomcat for running Java applications", DefaultSize = AppTier.Large, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "java-db", Name = "Database Server", Icon = "🗄️", Description = "PostgreSQL, MySQL, or Oracle database", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "java-cache", Name = "Cache Server", Icon = "⚡", Description = "Redis or Memcached for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
+                    new() { Id = "java-web", Name = "Web Server", Icon = "web", Description = "Apache/Nginx reverse proxy for load balancing and SSL termination", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
+                    new() { Id = "java-app", Name = "Application Server", Icon = "app", Description = "WebLogic, JBoss/WildFly, or Tomcat for running Java applications", DefaultSize = AppTier.Large, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 },
+                    new() { Id = "java-db", Name = "Database Server", Icon = "db", Description = "PostgreSQL, MySQL, or Oracle database", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
+                    new() { Id = "java-cache", Name = "Cache Server", Icon = "cache", Description = "Redis or Memcached for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
                 }
             }
         },
@@ -81,7 +81,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.NodeJs,
             Name = "Node.js",
-            Icon = "🟢",
+            Icon = "nodejs",
             BrandColor = "#339933",
             Vendor = "OpenJS Foundation",
             Description = "JavaScript runtime for event-driven applications",
@@ -100,10 +100,10 @@ public class TechnologyService : ITechnologyService
                 Description = "Node.js with PM2 or similar process manager",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "node-web", Name = "Web/Proxy Server", Icon = "🌐", Description = "Nginx reverse proxy for load balancing and static files", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
-                    new() { Id = "node-app", Name = "Application Server", Icon = "🟢", Description = "Node.js runtime with PM2 process manager", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
-                    new() { Id = "node-db", Name = "Database Server", Icon = "🗄️", Description = "MongoDB, PostgreSQL, or MySQL", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
-                    new() { Id = "node-cache", Name = "Cache Server", Icon = "⚡", Description = "Redis for caching and sessions (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
+                    new() { Id = "node-web", Name = "Web/Proxy Server", Icon = "web", Description = "Nginx reverse proxy for load balancing and static files", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
+                    new() { Id = "node-app", Name = "Application Server", Icon = "app", Description = "Node.js runtime with PM2 process manager", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
+                    new() { Id = "node-db", Name = "Database Server", Icon = "db", Description = "MongoDB, PostgreSQL, or MySQL", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
+                    new() { Id = "node-cache", Name = "Cache Server", Icon = "cache", Description = "Redis for caching and sessions (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
                 }
             }
         },
@@ -114,7 +114,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.Python,
             Name = "Python",
-            Icon = "🐍",
+            Icon = "python",
             BrandColor = "#3776AB",
             Vendor = "Python Software Foundation",
             Description = "Versatile language for web, data science, and automation",
@@ -133,10 +133,10 @@ public class TechnologyService : ITechnologyService
                 Description = "Django/Flask with Gunicorn/uWSGI",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "python-web", Name = "Web Server", Icon = "🌐", Description = "Nginx reverse proxy for static files and load balancing", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
-                    new() { Id = "python-app", Name = "Application Server", Icon = "🐍", Description = "Gunicorn/uWSGI running Django or Flask", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
-                    new() { Id = "python-db", Name = "Database Server", Icon = "🗄️", Description = "PostgreSQL or MySQL database", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
-                    new() { Id = "python-cache", Name = "Cache Server", Icon = "⚡", Description = "Redis for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
+                    new() { Id = "python-web", Name = "Web Server", Icon = "web", Description = "Nginx reverse proxy for static files and load balancing", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false },
+                    new() { Id = "python-app", Name = "Application Server", Icon = "app", Description = "Gunicorn/uWSGI running Django or Flask", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true },
+                    new() { Id = "python-db", Name = "Database Server", Icon = "db", Description = "PostgreSQL or MySQL database", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
+                    new() { Id = "python-cache", Name = "Cache Server", Icon = "cache", Description = "Redis for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
                 }
             }
         },
@@ -146,7 +146,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.Go,
             Name = "Go",
-            Icon = "🔵",
+            Icon = "go",
             BrandColor = "#00ADD8",
             Vendor = "Google",
             Description = "Efficient compiled language for microservices",
@@ -165,9 +165,9 @@ public class TechnologyService : ITechnologyService
                 Description = "Compiled Go binary deployment",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "go-app", Name = "Application Server", Icon = "🔵", Description = "Go compiled binary with built-in HTTP server", DefaultSize = AppTier.Medium, DefaultDiskGB = 50, Required = true, ScaleHorizontally = true },
-                    new() { Id = "go-db", Name = "Database Server", Icon = "🗄️", Description = "PostgreSQL, MySQL, or CockroachDB", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
-                    new() { Id = "go-cache", Name = "Cache Server", Icon = "⚡", Description = "Redis for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
+                    new() { Id = "go-app", Name = "Application Server", Icon = "app", Description = "Go compiled binary with built-in HTTP server", DefaultSize = AppTier.Medium, DefaultDiskGB = 50, Required = true, ScaleHorizontally = true },
+                    new() { Id = "go-db", Name = "Database Server", Icon = "db", Description = "PostgreSQL, MySQL, or CockroachDB", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true },
+                    new() { Id = "go-cache", Name = "Cache Server", Icon = "cache", Description = "Redis for caching (optional)", DefaultSize = AppTier.Small, DefaultDiskGB = 50, Required = false }
                 }
             }
         },
@@ -177,7 +177,7 @@ public class TechnologyService : ITechnologyService
         {
             Technology = Technology.Mendix,
             Name = "Mendix",
-            Icon = "🔷",
+            Icon = "mendix",
             BrandColor = "#0CABF9",
             Vendor = "Siemens",
             Description = "Enterprise low-code platform for rapid development",
@@ -196,23 +196,26 @@ public class TechnologyService : ITechnologyService
                 Description = "Traditional VM-based Mendix deployment",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "mendix-app", Name = "Mendix Application Server", Icon = "🔷", Description = "Runs Mendix runtime and applications", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "mendix-db", Name = "Database Server", Icon = "🗄️", Description = "PostgreSQL or SQL Server for application data", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "mendix-file", Name = "File Storage Server", Icon = "💾", Description = "Stores uploaded files and attachments (optional - can use cloud storage)", DefaultSize = AppTier.Small, DefaultDiskGB = 1000, Required = false }
+                    new() { Id = "mendix-app", Name = "Mendix Application Server", Icon = "app", Description = "Runs Mendix runtime and applications", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 },
+                    new() { Id = "mendix-db", Name = "Database Server", Icon = "db", Description = "PostgreSQL or SQL Server for application data", DefaultSize = AppTier.Medium, DefaultDiskGB = 500, Required = true, MemoryMultiplier = 1.5 },
+                    new() { Id = "mendix-file", Name = "File Storage Server", Icon = "file", Description = "Stores uploaded files and attachments (optional - can use cloud storage)", DefaultSize = AppTier.Small, DefaultDiskGB = 1000, Required = false }
                 }
             }
         },
 
         // BR-T008: OutSystems - OutSystems Red #FF6B35
+        // Note: LifeTime is NOT a role - it's a separate dedicated environment (see docs/vendor-specs/technologies/outsystems.md)
         [Technology.OutSystems] = new TechnologyConfig
         {
             Technology = Technology.OutSystems,
             Name = "OutSystems",
-            Icon = "🟠",
+            Icon = "outsystems",
             BrandColor = "#FF6B35",
             Vendor = "OutSystems",
             Description = "Enterprise low-code platform for rapid application development",
             PlatformType = PlatformType.LowCode,
+            HasSeparateManagementEnvironment = true, // LifeTime is a separate environment
+            ManagementEnvironmentName = "LifeTime",
             Tiers = new Dictionary<AppTier, TierSpecs>
             {
                 [AppTier.Small] = new TierSpecs(1, 2),
@@ -227,10 +230,22 @@ public class TechnologyService : ITechnologyService
                 Description = "OutSystems platform on traditional infrastructure",
                 Roles = new List<TechnologyServerRole>
                 {
-                    new() { Id = "os-controller", Name = "Deployment Controller", Icon = "🎛️", Description = "Manages app compilation, staging, and deployment. One per environment.", DefaultSize = AppTier.Large, DefaultDiskGB = 200, Required = true, MaxInstances = 1, MemoryMultiplier = 1.5 },
-                    new() { Id = "os-frontend", Name = "Front-End Server", Icon = "🌐", Description = "Runs applications and serves end users. Scale horizontally for load.", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MinInstances = 2, MemoryMultiplier = 1.5 },
-                    new() { Id = "os-db", Name = "Database Server", Icon = "🗄️", Description = "SQL Server (Always On) or Oracle (RAC) for platform and application data. Can be clustered.", DefaultSize = AppTier.Large, DefaultDiskGB = 500, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 },
-                    new() { Id = "os-lifetime", Name = "LifeTime Server", Icon = "🔄", Description = "Environment management & CI/CD console. Single instance shared across all environments.", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, MaxInstances = 1 }
+                    new() { Id = "os-controller", Name = "Deployment Controller", Icon = "ctrl", Description = "Manages app compilation, staging, and deployment. One per environment.", DefaultSize = AppTier.Large, DefaultDiskGB = 200, Required = true, MaxInstances = 1, MemoryMultiplier = 1.5 },
+                    new() { Id = "os-frontend", Name = "Front-End Server", Icon = "web", Description = "Runs applications and serves end users. Scale horizontally for load.", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, ScaleHorizontally = true, MinInstances = 2, MemoryMultiplier = 1.5 },
+                    new() { Id = "os-db", Name = "Database Server", Icon = "db", Description = "SQL Server (Always On) or Oracle (RAC) for platform and application data. Can be clustered.", DefaultSize = AppTier.Large, DefaultDiskGB = 500, Required = true, ScaleHorizontally = true, MemoryMultiplier = 1.5 }
+                }
+            },
+            // LifeTime is a separate dedicated management environment with its own infrastructure
+            ManagementEnvironmentRoles = new TechnologyVMRoles
+            {
+                Technology = Technology.OutSystems,
+                DeploymentName = "OutSystems LifeTime Environment",
+                Description = "Dedicated management environment (separate from app environments)",
+                Roles = new List<TechnologyServerRole>
+                {
+                    // LifeTime runs DC + Server roles combined on single server (no farm config from OS11+)
+                    new() { Id = "os-lifetime-server", Name = "LifeTime Server", Icon = "ctrl", Description = "Combined Deployment Controller + Server roles. Single server only - no farm configuration supported.", DefaultSize = AppTier.Medium, DefaultDiskGB = 100, Required = true, MaxInstances = 1, MemoryMultiplier = 1.0 },
+                    new() { Id = "os-lifetime-db", Name = "LifeTime Database", Icon = "db", Description = "Dedicated database for LifeTime. Separate catalogs/schemas from app environments.", DefaultSize = AppTier.Small, DefaultDiskGB = 200, Required = true, MaxInstances = 1 }
                 }
             }
         }

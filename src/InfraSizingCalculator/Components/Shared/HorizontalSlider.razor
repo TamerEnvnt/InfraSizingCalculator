@@ -1,0 +1,169 @@
+@typeparam TItem
+
+@* Generic Horizontal Slider - Left-to-Right navigation for any content type *@
+@* Use this for environments, server roles, results sections, etc. *@
+
+<div class="h-slider @AdditionalClass">
+    @if (ShowHeader && HeaderContent != null)
+    {
+        <div class="h-slider-header">
+            @HeaderContent
+        </div>
+    }
+
+    <!-- Navigation Tabs/Dots -->
+    @if (ShowNavDots)
+    {
+        <div class="h-slider-nav-dots">
+            @foreach (var (item, index) in Items.Select((item, i) => (item, i)))
+            {
+                <button class="nav-dot @(index == CurrentIndex ? "active" : "") @GetItemClass(item)"
+                        @onclick="() => GoToIndex(index)"
+                        title="@GetItemTitle(item)">
+                    @if (NavDotTemplate != null)
+                    {
+                        @NavDotTemplate(item)
+                    }
+                    else
+                    {
+                        <span class="dot-label">@GetItemTitle(item)</span>
+                    }
+                </button>
+            }
+        </div>
+    }
+
+    <!-- Slider Container -->
+    <div class="h-slider-container">
+        <!-- Previous Button -->
+        <button class="slider-btn prev @(CanGoPrev ? "" : "disabled")"
+                @onclick="GoPrev"
+                disabled="@(!CanGoPrev)">
+            <span class="btn-icon">◀</span>
+            @if (!string.IsNullOrEmpty(PrevLabel) && CanGoPrev)
+            {
+                <span class="btn-label">@GetPrevItemTitle()</span>
+            }
+        </button>
+
+        <!-- Current Item Content -->
+        <div class="h-slider-content">
+            @if (CurrentItem != null && ItemTemplate != null)
+            {
+                <div class="slide-panel @GetItemClass(CurrentItem)" @key="CurrentIndex">
+                    @ItemTemplate(CurrentItem)
+                </div>
+            }
+        </div>
+
+        <!-- Next Button -->
+        <button class="slider-btn next @(CanGoNext ? "" : "disabled")"
+                @onclick="GoNext"
+                disabled="@(!CanGoNext)">
+            @if (!string.IsNullOrEmpty(NextLabel) && CanGoNext)
+            {
+                <span class="btn-label">@GetNextItemTitle()</span>
+            }
+            <span class="btn-icon">▶</span>
+        </button>
+    </div>
+
+    <!-- Progress Indicator -->
+    @if (ShowProgress)
+    {
+        <div class="h-slider-progress">
+            <span class="progress-text">@(CurrentIndex + 1) of @Items.Count()</span>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @GetProgressPercent()%"></div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
+    [Parameter, EditorRequired] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    [Parameter] public RenderFragment? HeaderContent { get; set; }
+    [Parameter] public RenderFragment<TItem>? NavDotTemplate { get; set; }
+
+    [Parameter] public int CurrentIndex { get; set; } = 0;
+    [Parameter] public EventCallback<int> CurrentIndexChanged { get; set; }
+    [Parameter] public EventCallback<TItem> OnItemChanged { get; set; }
+
+    [Parameter] public Func<TItem, string>? ItemTitleFunc { get; set; }
+    [Parameter] public Func<TItem, string>? ItemCssClassFunc { get; set; }
+
+    [Parameter] public bool ShowHeader { get; set; } = true;
+    [Parameter] public bool ShowNavDots { get; set; } = true;
+    [Parameter] public bool ShowProgress { get; set; } = true;
+    [Parameter] public string? PrevLabel { get; set; }
+    [Parameter] public string? NextLabel { get; set; }
+    [Parameter] public string? AdditionalClass { get; set; }
+
+    private TItem? CurrentItem => Items.ElementAtOrDefault(CurrentIndex);
+    private bool CanGoPrev => CurrentIndex > 0;
+    private bool CanGoNext => CurrentIndex < Items.Count() - 1;
+
+    protected override void OnParametersSet()
+    {
+        // Clamp current index to valid range
+        var count = Items.Count();
+        if (count > 0 && CurrentIndex >= count)
+            CurrentIndex = count - 1;
+        else if (CurrentIndex < 0)
+            CurrentIndex = 0;
+    }
+
+    private async Task GoToIndex(int index)
+    {
+        if (index >= 0 && index < Items.Count())
+        {
+            CurrentIndex = index;
+            await CurrentIndexChanged.InvokeAsync(CurrentIndex);
+            if (CurrentItem != null)
+                await OnItemChanged.InvokeAsync(CurrentItem);
+        }
+    }
+
+    private async Task GoPrev()
+    {
+        if (CanGoPrev)
+            await GoToIndex(CurrentIndex - 1);
+    }
+
+    private async Task GoNext()
+    {
+        if (CanGoNext)
+            await GoToIndex(CurrentIndex + 1);
+    }
+
+    private string GetItemClass(TItem item)
+    {
+        return ItemCssClassFunc?.Invoke(item) ?? "";
+    }
+
+    private string GetItemTitle(TItem item)
+    {
+        return ItemTitleFunc?.Invoke(item) ?? item?.ToString() ?? "";
+    }
+
+    private string GetPrevItemTitle()
+    {
+        var prevItem = Items.ElementAtOrDefault(CurrentIndex - 1);
+        return prevItem != null ? GetItemTitle(prevItem) : "";
+    }
+
+    private string GetNextItemTitle()
+    {
+        var nextItem = Items.ElementAtOrDefault(CurrentIndex + 1);
+        return nextItem != null ? GetItemTitle(nextItem) : "";
+    }
+
+    private double GetProgressPercent()
+    {
+        var count = Items.Count();
+        if (count <= 1) return 100;
+        return ((double)(CurrentIndex + 1) / count) * 100;
+    }
+}

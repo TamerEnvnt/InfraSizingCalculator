@@ -1,0 +1,161 @@
+/* Environment App Grid - Horizontal Multi-Cluster Layout */
+.env-app-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Header Section */
+.grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
+    border-radius: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    font-size: 1.5rem;
+}
+
+.header-title strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-primary, #f8fafc);
+}
+
+.header-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.header-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary, #94a3b8);
+}
+
+/* Environment Toggle Section */
+.env-toggle-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: var(--card-bg, #1e293b);
+    border-radius: 12px;
+}
+
+.env-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.env-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.env-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.env-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.env-toggle.enabled {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+}
+
+.env-toggle.enabled.prod {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+}
+
+.env-toggle-icon {
+    font-size: 1rem;
+}
+
+.env-toggle-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary, #f8fafc);
+}
+
+.toggle-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #94a3b8);
+    padding-left: 4px;
+}
+
+/* Cards Container - Horizontal Grid */
+.env-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* For 5 environments, ensure they all fit on one row on large screens */
+@media (min-width: 1200px) {
+    .env-cards-container {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* For medium screens, show 3 per row */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .env-cards-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* For small screens, show 2 per row */
+@media (min-width: 480px) and (max-width: 767px) {
+    .env-cards-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* For very small screens, stack */
+@media (max-width: 479px) {
+    .env-cards-container {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,158 @@
+@using InfraSizingCalculator.Models.Enums
+
+@* K8s Settings Configuration - Headroom, replicas, and overcommit settings *@
+
+<div class="k8s-settings-config">
+    <div class="settings-grid-compact">
+        <!-- Headroom -->
+        <div class="settings-section-compact">
+            <div class="settings-section-title">Headroom (Buffer %)</div>
+            <div class="settings-row">
+                @foreach (var env in VisibleEnvironments)
+                {
+                    <div class="setting-item">
+                        <label>@env</label>
+                        <input type="number" step="0.5" min="0" max="100"
+                               value="@Headroom.GetValueOrDefault(env, 20)"
+                               disabled="@(!EnabledEnvironments.Contains(env))"
+                               @onchange="@(e => UpdateHeadroom(env, e))" />
+                        <span class="unit">%</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Replicas -->
+        <div class="settings-section-compact">
+            <div class="settings-section-title">Replicas (Pod Instances)</div>
+            <div class="settings-row">
+                @foreach (var env in VisibleEnvironments)
+                {
+                    <div class="setting-item">
+                        <label>@env</label>
+                        <input type="number" min="1" max="10"
+                               value="@Replicas.GetValueOrDefault(env, 1)"
+                               disabled="@(!EnabledEnvironments.Contains(env))"
+                               @onchange="@(e => UpdateReplicas(env, e))" />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Overcommit -->
+        <div class="settings-section-compact">
+            <div class="settings-section-title">Resource Overcommit Ratios</div>
+            <p class="settings-hint">1.0 = no overcommit, higher values allow more workloads per node</p>
+            <div class="overcommit-grid">
+                <div class="overcommit-group">
+                    <span class="group-title">Production</span>
+                    <div class="overcommit-inputs-compact">
+                        <div class="setting-item">
+                            <label>CPU Ratio</label>
+                            <input type="number" step="0.1" min="0.5" max="4.0"
+                                   value="@ProdCpuOvercommit"
+                                   @onchange="@(e => OnProdCpuOvercommitChange(e))" />
+                        </div>
+                        <div class="setting-item">
+                            <label>Memory Ratio</label>
+                            <input type="number" step="0.1" min="0.5" max="4.0"
+                                   value="@ProdMemoryOvercommit"
+                                   @onchange="@(e => OnProdMemoryOvercommitChange(e))" />
+                        </div>
+                    </div>
+                </div>
+                <div class="overcommit-group">
+                    <span class="group-title">Non-Production</span>
+                    <div class="overcommit-inputs-compact">
+                        <div class="setting-item">
+                            <label>CPU Ratio</label>
+                            <input type="number" step="0.1" min="0.5" max="4.0"
+                                   value="@NonProdCpuOvercommit"
+                                   @onchange="@(e => OnNonProdCpuOvercommitChange(e))" />
+                        </div>
+                        <div class="setting-item">
+                            <label>Memory Ratio</label>
+                            <input type="number" step="0.1" min="0.5" max="4.0"
+                                   value="@NonProdMemoryOvercommit"
+                                   @onchange="@(e => OnNonProdMemoryOvercommitChange(e))" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+
+    [Parameter] public Dictionary<EnvironmentType, double> Headroom { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, double>> HeadroomChanged { get; set; }
+
+    [Parameter] public Dictionary<EnvironmentType, int> Replicas { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, int>> ReplicasChanged { get; set; }
+
+    [Parameter] public double ProdCpuOvercommit { get; set; } = 1.0;
+    [Parameter] public EventCallback<double> ProdCpuOvercommitChanged { get; set; }
+
+    [Parameter] public double ProdMemoryOvercommit { get; set; } = 1.0;
+    [Parameter] public EventCallback<double> ProdMemoryOvercommitChanged { get; set; }
+
+    [Parameter] public double NonProdCpuOvercommit { get; set; } = 1.0;
+    [Parameter] public EventCallback<double> NonProdCpuOvercommitChanged { get; set; }
+
+    [Parameter] public double NonProdMemoryOvercommit { get; set; } = 1.0;
+    [Parameter] public EventCallback<double> NonProdMemoryOvercommitChanged { get; set; }
+
+    // Show all environments, not just enabled ones (for visibility)
+    private IEnumerable<EnvironmentType> VisibleEnvironments =>
+        Enum.GetValues<EnvironmentType>().OrderBy(e => e);
+
+    private async Task UpdateHeadroom(EnvironmentType env, ChangeEventArgs e)
+    {
+        Headroom[env] = ParseDouble(e.Value);
+        await HeadroomChanged.InvokeAsync(Headroom);
+    }
+
+    private async Task UpdateReplicas(EnvironmentType env, ChangeEventArgs e)
+    {
+        Replicas[env] = ParseInt(e.Value);
+        await ReplicasChanged.InvokeAsync(Replicas);
+    }
+
+    private async Task OnProdCpuOvercommitChange(ChangeEventArgs e)
+    {
+        await ProdCpuOvercommitChanged.InvokeAsync(ParseDouble(e.Value));
+    }
+
+    private async Task OnProdMemoryOvercommitChange(ChangeEventArgs e)
+    {
+        await ProdMemoryOvercommitChanged.InvokeAsync(ParseDouble(e.Value));
+    }
+
+    private async Task OnNonProdCpuOvercommitChange(ChangeEventArgs e)
+    {
+        await NonProdCpuOvercommitChanged.InvokeAsync(ParseDouble(e.Value));
+    }
+
+    private async Task OnNonProdMemoryOvercommitChange(ChangeEventArgs e)
+    {
+        await NonProdMemoryOvercommitChanged.InvokeAsync(ParseDouble(e.Value));
+    }
+
+    private int ParseInt(object? value)
+    {
+        if (value == null) return 1;
+        if (int.TryParse(value.ToString(), out var result))
+            return Math.Max(1, result);
+        return 1;
+    }
+
+    private double ParseDouble(object? value)
+    {
+        if (value == null) return 0;
+        if (double.TryParse(value.ToString(), out var result))
+            return result;
+        return 0;
+    }
+}

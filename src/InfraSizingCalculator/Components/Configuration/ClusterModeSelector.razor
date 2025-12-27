@@ -11,7 +11,7 @@
     <div class="cluster-mode-options">
         <div class="mode-option @(SelectedMode == ClusterMode.MultiCluster ? "selected" : "")"
              @onclick="() => SelectMode(ClusterMode.MultiCluster)">
-            <span class="mode-icon">🌐</span>
+            <span class="mode-icon icon icon-apps"></span>
             <div class="mode-text">
                 <span class="mode-name">Multi-Cluster</span>
                 <span class="mode-desc">One cluster per env</span>
@@ -19,7 +19,7 @@
         </div>
         <div class="mode-option @(IsSingleClusterMode ? "selected" : "")"
              @onclick="() => SelectMode(ClusterMode.SharedCluster)">
-            <span class="mode-icon">🎯</span>
+            <span class="mode-icon">1</span>
             <div class="mode-text">
                 <span class="mode-name">Single Cluster</span>
                 <span class="mode-desc">One cluster total</span>
@@ -32,12 +32,12 @@
         <div class="single-cluster-selector">
             <label>Cluster Scope:</label>
             <select value="@SingleClusterScope" @onchange="OnScopeChange">
-                <option value="Shared">🔗 Shared (All Environments)</option>
-                <option value="Dev">🔧 Dev Only</option>
-                <option value="Test">🧪 Test Only</option>
-                <option value="Stage">📦 Stage Only</option>
-                <option value="Prod">🔴 Prod Only</option>
-                <option value="DR">🛡️ DR Only</option>
+                <option value="Shared">Shared (All Environments)</option>
+                <option value="Dev">Dev Only</option>
+                <option value="Test">Test Only</option>
+                <option value="Stage">Stage Only</option>
+                <option value="Prod">Prod Only</option>
+                <option value="DR">DR Only</option>
             </select>
         </div>
     }

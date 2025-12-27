@@ -1,0 +1,304 @@
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Components.Shared
+@using InfraSizingCalculator.Services
+
+@* K8s Apps Configuration - Uses Horizontal Accordion for multi-cluster environments *@
+
+<div class="k8s-apps-config">
+    @if (IsSingleCluster)
+    {
+        <!-- Single Cluster: Simple horizontal tier cards -->
+        <div class="tier-cards">
+            <div class="tier-card small">
+                <div class="tier-header">
+                    <span class="tier-icon">S</span>
+                    <span class="tier-name">Small</span>
+                </div>
+                <div class="tier-spec">@GetTierSpec(AppTier.Small)</div>
+                <input type="number" min="0" placeholder="0"
+                       value="@GetTotalApps(AppTier.Small)"
+                       @onchange="@(e => SetTotalApps(AppTier.Small, ParseInt(e.Value)))" />
+                <span class="tier-label">apps</span>
+            </div>
+            <div class="tier-card medium">
+                <div class="tier-header">
+                    <span class="tier-icon">M</span>
+                    <span class="tier-name">Medium</span>
+                </div>
+                <div class="tier-spec">@GetTierSpec(AppTier.Medium)</div>
+                <input type="number" min="0" placeholder="0"
+                       value="@GetTotalApps(AppTier.Medium)"
+                       @onchange="@(e => SetTotalApps(AppTier.Medium, ParseInt(e.Value)))" />
+                <span class="tier-label">apps</span>
+            </div>
+            <div class="tier-card large">
+                <div class="tier-header">
+                    <span class="tier-icon">L</span>
+                    <span class="tier-name">Large</span>
+                </div>
+                <div class="tier-spec">@GetTierSpec(AppTier.Large)</div>
+                <input type="number" min="0" placeholder="0"
+                       value="@GetTotalApps(AppTier.Large)"
+                       @onchange="@(e => SetTotalApps(AppTier.Large, ParseInt(e.Value)))" />
+                <span class="tier-label">apps</span>
+            </div>
+            <div class="tier-card xlarge">
+                <div class="tier-header">
+                    <span class="tier-icon">XL</span>
+                    <span class="tier-name">XLarge</span>
+                </div>
+                <div class="tier-spec">@GetTierSpec(AppTier.XLarge)</div>
+                <input type="number" min="0" placeholder="0"
+                       value="@GetTotalApps(AppTier.XLarge)"
+                       @onchange="@(e => SetTotalApps(AppTier.XLarge, ParseInt(e.Value)))" />
+                <span class="tier-label">apps</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Multi-Cluster: Horizontal Accordion with environment panels -->
+        <div class="multi-cluster-header">
+            <div class="header-title">
+                <span class="header-icon icon icon-apps"></span>
+                <div>
+                    <strong>Multi-Cluster Mode</strong>
+                    <span class="header-subtitle">Configure apps for each environment</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-value">@GetAllEnvsTotalApps()</span>
+                    <span class="stat-label">Total Apps</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">@GetEstimatedCpu().ToString("F1")</span>
+                    <span class="stat-label">Est. CPU</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">@GetEstimatedMemory().ToString("F0")</span>
+                    <span class="stat-label">Est. RAM (GB)</span>
+                </div>
+            </div>
+        </div>
+
+        <HorizontalAccordion SingleExpand="true"
+                             ExpandedPanel="@expandedEnv"
+                             ExpandedPanelChanged="@((e) => expandedEnv = e)"
+                             AdditionalClass="env-apps-accordion">
+            @foreach (var env in OrderedEnvironments)
+            {
+                var config = GetEnvConfig(env);
+                var totalApps = GetEnvTotalApps(env);
+
+                <HorizontalAccordionPanel Key="@env.ToString()"
+                                          Title="@IconResources.GetEnvDisplayName(env)"
+                                          ShortTitle="@IconResources.GetEnvShortLabel(env)"
+                                          IconClass="@IconResources.GetEnvIconClass(env)"
+                                          Subtitle="@($"{totalApps} apps")"
+                                          AdditionalClass="@GetEnvClass(env)">
+                    <div class="env-panel-content">
+                        <div class="env-panel-header">
+                            <span class="env-badge @GetEnvClass(env)">
+                                <span class="badge-count">@totalApps</span>
+                                <span class="badge-label">apps</span>
+                            </span>
+                            <span class="env-type">@(IsProdEnv(env) ? "Production" : "Non-Production")</span>
+                        </div>
+
+                        <div class="tier-grid">
+                            <div class="tier-panel small">
+                                <div class="tier-header">
+                                    <span class="tier-icon">S</span>
+                                    <span class="tier-name">Small</span>
+                                </div>
+                                <div class="tier-spec">@GetTierSpec(AppTier.Small)</div>
+                                <input type="number" min="0" class="tier-input"
+                                       value="@config.Small"
+                                       @onchange="@(e => UpdateEnvTier(env, AppTier.Small, ParseInt(e.Value)))" />
+                            </div>
+
+                            <div class="tier-panel medium">
+                                <div class="tier-header">
+                                    <span class="tier-icon">M</span>
+                                    <span class="tier-name">Medium</span>
+                                </div>
+                                <div class="tier-spec">@GetTierSpec(AppTier.Medium)</div>
+                                <input type="number" min="0" class="tier-input"
+                                       value="@config.Medium"
+                                       @onchange="@(e => UpdateEnvTier(env, AppTier.Medium, ParseInt(e.Value)))" />
+                            </div>
+
+                            <div class="tier-panel large">
+                                <div class="tier-header">
+                                    <span class="tier-icon">L</span>
+                                    <span class="tier-name">Large</span>
+                                </div>
+                                <div class="tier-spec">@GetTierSpec(AppTier.Large)</div>
+                                <input type="number" min="0" class="tier-input"
+                                       value="@config.Large"
+                                       @onchange="@(e => UpdateEnvTier(env, AppTier.Large, ParseInt(e.Value)))" />
+                            </div>
+
+                            <div class="tier-panel xlarge">
+                                <div class="tier-header">
+                                    <span class="tier-icon">XL</span>
+                                    <span class="tier-name">XLarge</span>
+                                </div>
+                                <div class="tier-spec">@GetTierSpec(AppTier.XLarge)</div>
+                                <input type="number" min="0" class="tier-input"
+                                       value="@config.XLarge"
+                                       @onchange="@(e => UpdateEnvTier(env, AppTier.XLarge, ParseInt(e.Value)))" />
+                            </div>
+                        </div>
+                    </div>
+                </HorizontalAccordionPanel>
+            }
+        </HorizontalAccordion>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsSingleCluster { get; set; }
+    [Parameter] public HashSet<EnvironmentType> EnabledEnvironments { get; set; } = new();
+    [Parameter] public Dictionary<EnvironmentType, AppConfig> EnvironmentApps { get; set; } = new();
+    [Parameter] public EventCallback<Dictionary<EnvironmentType, AppConfig>> EnvironmentAppsChanged { get; set; }
+
+    // Tier specifications
+    [Parameter] public Func<AppTier, string>? GetTierSpecFunc { get; set; }
+
+    private string? expandedEnv;
+
+    private IEnumerable<EnvironmentType> OrderedEnvironments =>
+        EnabledEnvironments.OrderBy(e => e);
+
+    protected override void OnParametersSet()
+    {
+        // Default to first environment expanded if none selected
+        if (string.IsNullOrEmpty(expandedEnv) && EnabledEnvironments.Any())
+        {
+            expandedEnv = EnabledEnvironments.OrderBy(e => e).First().ToString();
+        }
+    }
+
+    private string GetTierSpec(AppTier tier)
+    {
+        if (GetTierSpecFunc != null)
+            return GetTierSpecFunc(tier);
+
+        return tier switch
+        {
+            AppTier.Small => "0.25 CPU, 0.5 GB",
+            AppTier.Medium => "0.5 CPU, 1 GB",
+            AppTier.Large => "1 CPU, 2 GB",
+            AppTier.XLarge => "2 CPU, 4 GB",
+            _ => ""
+        };
+    }
+
+    private AppConfig GetEnvConfig(EnvironmentType env)
+    {
+        return EnvironmentApps.TryGetValue(env, out var config) ? config : new AppConfig();
+    }
+
+    private int GetEnvTotalApps(EnvironmentType env)
+    {
+        if (!EnvironmentApps.TryGetValue(env, out var config)) return 0;
+        return config.TotalApps;
+    }
+
+    private int GetAllEnvsTotalApps()
+    {
+        return EnabledEnvironments.Sum(env => GetEnvTotalApps(env));
+    }
+
+    private double GetEstimatedCpu()
+    {
+        return EnabledEnvironments.Sum(env =>
+        {
+            var config = GetEnvConfig(env);
+            return config.Small * 0.25 + config.Medium * 0.5 + config.Large * 1.0 + config.XLarge * 2.0;
+        });
+    }
+
+    private double GetEstimatedMemory()
+    {
+        return EnabledEnvironments.Sum(env =>
+        {
+            var config = GetEnvConfig(env);
+            return config.Small * 0.5 + config.Medium * 1.0 + config.Large * 2.0 + config.XLarge * 4.0;
+        });
+    }
+
+    private async Task UpdateEnvTier(EnvironmentType env, AppTier tier, int count)
+    {
+        if (!EnvironmentApps.ContainsKey(env))
+            EnvironmentApps[env] = new AppConfig();
+
+        switch (tier)
+        {
+            case AppTier.Small: EnvironmentApps[env].Small = count; break;
+            case AppTier.Medium: EnvironmentApps[env].Medium = count; break;
+            case AppTier.Large: EnvironmentApps[env].Large = count; break;
+            case AppTier.XLarge: EnvironmentApps[env].XLarge = count; break;
+        }
+
+        await EnvironmentAppsChanged.InvokeAsync(EnvironmentApps);
+    }
+
+    // Single cluster methods - use Prod as the reference environment
+    private int GetTotalApps(AppTier tier)
+    {
+        if (!EnvironmentApps.TryGetValue(EnvironmentType.Prod, out var config))
+            return 0;
+
+        return tier switch
+        {
+            AppTier.Small => config.Small,
+            AppTier.Medium => config.Medium,
+            AppTier.Large => config.Large,
+            AppTier.XLarge => config.XLarge,
+            _ => 0
+        };
+    }
+
+    private async Task SetTotalApps(AppTier tier, int count)
+    {
+        // Set the same count for ALL enabled environments (single cluster behavior)
+        foreach (var env in EnabledEnvironments)
+        {
+            if (!EnvironmentApps.ContainsKey(env))
+                EnvironmentApps[env] = new AppConfig();
+
+            switch (tier)
+            {
+                case AppTier.Small: EnvironmentApps[env].Small = count; break;
+                case AppTier.Medium: EnvironmentApps[env].Medium = count; break;
+                case AppTier.Large: EnvironmentApps[env].Large = count; break;
+                case AppTier.XLarge: EnvironmentApps[env].XLarge = count; break;
+            }
+        }
+        await EnvironmentAppsChanged.InvokeAsync(EnvironmentApps);
+    }
+
+    private bool IsProdEnv(EnvironmentType env) => env == EnvironmentType.Prod || env == EnvironmentType.DR;
+
+    private string GetEnvClass(EnvironmentType env) => env switch
+    {
+        EnvironmentType.Dev => "env-dev",
+        EnvironmentType.Test => "env-test",
+        EnvironmentType.Stage => "env-stage",
+        EnvironmentType.Prod => "env-prod",
+        EnvironmentType.DR => "env-dr",
+        _ => ""
+    };
+
+    private int ParseInt(object? value)
+    {
+        if (value == null) return 0;
+        if (int.TryParse(value.ToString(), out var result))
+            return Math.Max(0, result);
+        return 0;
+    }
+}

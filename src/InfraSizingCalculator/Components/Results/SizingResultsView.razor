@@ -65,41 +65,41 @@
                                 @if (!IsSharedClusterMode)
                                 {
                                     <div class="env-metric">
-                                        <span class="metric-icon">👑</span>
+                                        <span class="metric-icon">M</span>
                                         <span class="metric-value">@env.Masters</span>
                                         <span class="metric-label">Masters</span>
                                     </div>
                                     <div class="env-metric">
-                                        <span class="metric-icon">🔧</span>
+                                        <span class="metric-icon">I</span>
                                         <span class="metric-value">@env.Infra</span>
                                         <span class="metric-label">Infra</span>
                                     </div>
                                 }
                                 <div class="env-metric">
-                                    <span class="metric-icon">⚙️</span>
+                                    <span class="metric-icon">W</span>
                                     <span class="metric-value">@env.Workers</span>
                                     <span class="metric-label">Workers</span>
                                 </div>
                                 @if (!IsSharedClusterMode)
                                 {
                                     <div class="env-metric highlight">
-                                        <span class="metric-icon">🖥️</span>
+                                        <span class="metric-icon">N</span>
                                         <span class="metric-value">@env.TotalNodes</span>
                                         <span class="metric-label">Total Nodes</span>
                                     </div>
                                 }
                                 <div class="env-metric">
-                                    <span class="metric-icon">💻</span>
+                                    <span class="metric-icon">CPU</span>
                                     <span class="metric-value">@env.TotalCpu</span>
                                     <span class="metric-label">vCPU</span>
                                 </div>
                                 <div class="env-metric">
-                                    <span class="metric-icon">🧠</span>
+                                    <span class="metric-icon">RAM</span>
                                     <span class="metric-value">@env.TotalRam.ToString("N0")</span>
                                     <span class="metric-label">RAM (GB)</span>
                                 </div>
                                 <div class="env-metric">
-                                    <span class="metric-icon">💾</span>
+                                    <span class="metric-icon">Disk</span>
                                     <span class="metric-value">@env.TotalDisk.ToString("N0")</span>
                                     <span class="metric-label">Disk (GB)</span>
                                 </div>
@@ -134,7 +134,7 @@
 
         <!-- VM Mode Banner -->
         <div class="cluster-mode-banner vm-mode">
-            <span class="banner-icon">🖥️</span>
+            <span class="banner-icon">VM</span>
             <span class="banner-text">Virtual Machine Sizing - @VMResults.TechnologyName</span>
         </div>
 
@@ -203,7 +203,7 @@
     else
     {
         <div class="no-results">
-            <span class="no-results-icon">📊</span>
+            <span class="no-results-icon icon icon-chart"></span>
             <p>Run a sizing calculation to see results</p>
         </div>
     }

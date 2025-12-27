@@ -12,22 +12,22 @@
             <span class="summary-desc">@ClusterDescription</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">🖥️</span>
+            <span class="summary-icon icon icon-server"></span>
             <span class="summary-label">Total Nodes</span>
             <span class="summary-value">@K8sResult.GrandTotal.TotalNodes</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">⚡</span>
+            <span class="summary-icon">CPU</span>
             <span class="summary-label">Total CPU</span>
             <span class="summary-value">@K8sResult.GrandTotal.TotalCpu cores</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">📊</span>
+            <span class="summary-icon">RAM</span>
             <span class="summary-label">Total RAM</span>
             <span class="summary-value">@K8sResult.GrandTotal.TotalRam GB</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">💾</span>
+            <span class="summary-icon">Disk</span>
             <span class="summary-label">Total Disk</span>
             <span class="summary-value">@K8sResult.GrandTotal.TotalDisk GB</span>
         </div>
@@ -35,22 +35,22 @@
     else if (VMResult != null)
     {
         <div class="summary-card">
-            <span class="summary-icon">🖥️</span>
+            <span class="summary-icon icon icon-server"></span>
             <span class="summary-label">Total VMs</span>
             <span class="summary-value">@VMResult.GrandTotal.TotalVMs</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">⚡</span>
+            <span class="summary-icon">CPU</span>
             <span class="summary-label">Total CPU</span>
             <span class="summary-value">@VMResult.GrandTotal.TotalCpu cores</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">📊</span>
+            <span class="summary-icon">RAM</span>
             <span class="summary-label">Total RAM</span>
             <span class="summary-value">@VMResult.GrandTotal.TotalRam GB</span>
         </div>
         <div class="summary-card">
-            <span class="summary-icon">💾</span>
+            <span class="summary-icon">Disk</span>
             <span class="summary-label">Total Disk</span>
             <span class="summary-value">@VMResult.GrandTotal.TotalDisk GB</span>
         </div>
@@ -60,7 +60,7 @@
 @code {
     [Parameter] public K8sSizingResult? K8sResult { get; set; }
     [Parameter] public VMSizingResult? VMResult { get; set; }
-    [Parameter] public string ClusterIcon { get; set; } = "🌐";
+    [Parameter] public string ClusterIcon { get; set; } = "K8s";
     [Parameter] public int ClusterCount { get; set; } = 1;
     [Parameter] public string ClusterDescription { get; set; } = "";
     [Parameter] public string? AdditionalClass { get; set; }

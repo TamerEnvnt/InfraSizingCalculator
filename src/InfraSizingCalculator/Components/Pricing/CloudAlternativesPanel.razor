@@ -14,7 +14,7 @@
         <!-- Distribution-Specific Alternatives -->
         <div class="alternatives-section primary">
             <h4 class="section-header">
-                <span class="header-icon">⭐</span>
+                <span class="header-icon icon icon-star"></span>
                 Recommended for @Distribution
             </h4>
             <p class="section-description">
@@ -66,7 +66,7 @@
     <!-- Generic Cloud Options -->
     <div class="alternatives-section secondary">
         <h4 class="section-header">
-            <span class="header-icon">☁️</span>
+            <span class="header-icon icon icon-cloud"></span>
             Other Cloud Options
         </h4>
         <p class="section-description">
@@ -121,7 +121,7 @@
                 <p>Select region and pricing options to compare costs with your on-premises deployment.</p>
                 <!-- Simplified pricing selector would go here -->
                 <div class="comparison-note">
-                    <span class="note-icon">💡</span>
+                    <span class="note-icon icon icon-bulb"></span>
                     <span>Full cost comparison will be available after configuring pricing options.</span>
                 </div>
             </div>
@@ -164,17 +164,17 @@
     {
         return provider switch
         {
-            CloudProvider.AWS => "🟠",
-            CloudProvider.Azure => "🔵",
-            CloudProvider.GCP => "🔴",
-            CloudProvider.OCI => "🟣",
-            CloudProvider.IBM => "🔷",
-            CloudProvider.Alibaba => "🟡",
-            CloudProvider.DigitalOcean => "🐳",
-            CloudProvider.Linode => "💚",
-            CloudProvider.Vultr => "🦅",
-            CloudProvider.Hetzner => "🔶",
-            _ => "☁️"
+            CloudProvider.AWS => "AWS",
+            CloudProvider.Azure => "Azure",
+            CloudProvider.GCP => "GCP",
+            CloudProvider.OCI => "OCI",
+            CloudProvider.IBM => "IBM",
+            CloudProvider.Alibaba => "Ali",
+            CloudProvider.DigitalOcean => "DO",
+            CloudProvider.Linode => "Lin",
+            CloudProvider.Vultr => "Vul",
+            CloudProvider.Hetzner => "Htz",
+            _ => "Cloud"
         };
     }
 }

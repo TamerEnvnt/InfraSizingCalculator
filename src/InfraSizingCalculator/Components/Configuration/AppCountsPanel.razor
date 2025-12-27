@@ -27,7 +27,7 @@
 
             <!-- Production Clusters -->
             <div class="cluster-group prod">
-                <div class="group-label">🔒 Production Clusters</div>
+                <div class="group-label">Production Clusters</div>
                 @foreach (var env in new[] { EnvironmentType.Prod, EnvironmentType.DR })
                 {
                     <div class="cluster-row @(IsEnvironmentEnabled(env) ? "" : "disabled")">
@@ -54,7 +54,7 @@
 
             <!-- Non-Production Clusters -->
             <div class="cluster-group nonprod">
-                <div class="group-label">📊 Non-Production Clusters</div>
+                <div class="group-label">Non-Production Clusters</div>
                 @foreach (var env in new[] { EnvironmentType.Dev, EnvironmentType.Test, EnvironmentType.Stage })
                 {
                     <div class="cluster-row @(IsEnvironmentEnabled(env) ? "" : "disabled")">
@@ -84,7 +84,7 @@
         <!-- Single Cluster / Shared Mode -->
         <div class="shared-cluster-config">
             <div class="shared-cluster-header">
-                <span class="cluster-icon">☸️</span>
+                <span class="cluster-icon brand-icon kubernetes small"></span>
                 <span class="cluster-title">@(IsSharedCluster ? "Single Shared Cluster" : $"{SingleEnvironment} Cluster")</span>
                 @if (IsSharedCluster)
                 {
@@ -149,7 +149,7 @@
     };
 
     private string BannerClass => ClusterMode == ClusterMode.MultiCluster ? "multi" : (IsSharedCluster ? "shared" : "single");
-    private string ModeIcon => ClusterMode == ClusterMode.MultiCluster ? "🌐" : (IsSharedCluster ? "🔗" : "🎯");
+    private string ModeIcon => ClusterMode == ClusterMode.MultiCluster ? "Multi" : (IsSharedCluster ? "Shared" : "Single");
     private string ModeTitle => ClusterMode == ClusterMode.MultiCluster ? "Multi-Cluster Mode" : (IsSharedCluster ? "Shared Cluster" : $"{SingleClusterScope} Cluster Only");
     private string ModeDescription => ClusterMode == ClusterMode.MultiCluster
         ? "Each environment gets its own dedicated cluster with separate control plane and workers."

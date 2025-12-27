@@ -13,8 +13,9 @@
         "header header header"
         "left   main   right";
     height: 100vh;
+    max-height: 100vh;
     width: 100vw;
-    overflow: hidden; /* NO page scroll */
+    overflow: hidden;
     background: var(--bg-primary);
 }
 
@@ -179,7 +180,6 @@
     background: var(--bg-primary);
     display: flex;
     flex-direction: column;
-    min-height: 0;
 }
 
 /* Content Tabs */
@@ -229,7 +229,7 @@
 
 /* Tab panels - Blazor uses conditional rendering so no display:none needed */
 .tab-panel {
-    height: 100%;
+    /* Allow content to determine height, main-content handles scroll */
 }
 
 /* ========================================

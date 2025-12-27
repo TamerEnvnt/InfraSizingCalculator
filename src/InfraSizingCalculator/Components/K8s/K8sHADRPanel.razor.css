@@ -1,0 +1,205 @@
+.k8s-hadr-config {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Section styling */
+.hadr-section {
+    background: var(--bg-secondary, #1a1d21);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #13151a);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-icon {
+    font-size: 1.25rem;
+}
+
+.section-title strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.section-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.section-content {
+    padding: 16px;
+}
+
+/* Grid layout */
+.hadr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Config items */
+.config-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.config-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.config-icon {
+    font-size: 0.9rem;
+}
+
+.config-item select,
+.config-item input[type="text"],
+.config-item input[type="number"] {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary, #13151a);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.config-item select:focus,
+.config-item input:focus {
+    outline: none;
+    border-color: var(--accent-blue, #3b82f6);
+}
+
+.config-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Toggle items */
+.toggle-item {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-blue, #3b82f6);
+}
+
+.toggle-item .config-hint {
+    margin-left: 24px;
+}
+
+/* Managed note */
+.managed-note {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+    grid-column: span 2;
+}
+
+.managed-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--accent-green, #10b981);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.managed-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Summary */
+.hadr-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.summary-icon {
+    font-size: 1rem;
+}
+
+.summary-text {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.summary-cost {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-blue, #3b82f6);
+    padding: 4px 10px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 4px;
+}
+
+/* Responsive */
+@@media (max-width: 600px) {
+    .hadr-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .managed-note {
+        grid-column: span 1;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hadr-summary {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Light theme */
+[data-theme="light"] .hadr-section {
+    background: #fff;
+}
+
+[data-theme="light"] .section-header {
+    background: #f8f9fa;
+}
+
+[data-theme="light"] .hadr-summary {
+    background: #f8f9fa;
+}

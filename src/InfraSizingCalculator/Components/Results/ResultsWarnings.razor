@@ -39,21 +39,21 @@
             {
                 <button class="severity-tab critical @(selectedSeverity == "Critical" ? "active" : "")"
                         @onclick='() => selectedSeverity = "Critical"'>
-                    🚨 Critical (@criticalCount)
+                    Critical (@criticalCount)
                 </button>
             }
             @if (warningCount > 0)
             {
                 <button class="severity-tab warning @(selectedSeverity == "Warning" ? "active" : "")"
                         @onclick='() => selectedSeverity = "Warning"'>
-                    ⚠️ Warnings (@warningCount)
+                    Warnings (@warningCount)
                 </button>
             }
             @if (infoCount > 0)
             {
                 <button class="severity-tab info @(selectedSeverity == "Info" ? "active" : "")"
                         @onclick='() => selectedSeverity = "Info"'>
-                    💡 Tips (@infoCount)
+                    Tips (@infoCount)
                 </button>
             }
         </div>
@@ -75,7 +75,7 @@
                             @if (!string.IsNullOrEmpty(warning.Suggestion))
                             {
                                 <div class="warning-suggestion">
-                                    <strong>💡 Suggestion:</strong> @warning.Suggestion
+                                    <strong>Suggestion:</strong> @warning.Suggestion
                                 </div>
                             }
                         </div>

@@ -514,31 +514,31 @@ public class AppCountsPanelTests : TestContext
     [Fact]
     public void AppCountsPanel_ShowsCorrectBannerIcons()
     {
-        // Multi-cluster
+        // Multi-cluster - now shows text "Multi" instead of emoji
         var multiCut = RenderComponent<AppCountsPanel>(parameters => parameters
             .Add(p => p.ClusterMode, ClusterMode.MultiCluster)
             .Add(p => p.EnvApps, CreateDefaultEnvApps())
             .Add(p => p.EnabledEnvironments, CreateDefaultEnabledEnvironments()));
 
-        multiCut.Find(".banner-icon").TextContent.Should().Be("🌐");
+        multiCut.Find(".banner-icon").TextContent.Should().Be("Multi");
 
-        // Shared cluster
+        // Shared cluster - now shows text "Shared" instead of emoji
         var sharedCut = RenderComponent<AppCountsPanel>(parameters => parameters
             .Add(p => p.ClusterMode, ClusterMode.SharedCluster)
             .Add(p => p.SingleClusterScope, "Shared")
             .Add(p => p.EnvApps, CreateDefaultEnvApps())
             .Add(p => p.EnabledEnvironments, CreateDefaultEnabledEnvironments()));
 
-        sharedCut.Find(".banner-icon").TextContent.Should().Be("🔗");
+        sharedCut.Find(".banner-icon").TextContent.Should().Be("Shared");
 
-        // Single environment cluster
+        // Single environment cluster - now shows text "Single" instead of emoji
         var singleCut = RenderComponent<AppCountsPanel>(parameters => parameters
             .Add(p => p.ClusterMode, ClusterMode.SharedCluster)
             .Add(p => p.SingleClusterScope, "Prod")
             .Add(p => p.EnvApps, CreateDefaultEnvApps())
             .Add(p => p.EnabledEnvironments, CreateDefaultEnabledEnvironments()));
 
-        singleCut.Find(".banner-icon").TextContent.Should().Be("🎯");
+        singleCut.Find(".banner-icon").TextContent.Should().Be("Single");
     }
 
     [Fact]

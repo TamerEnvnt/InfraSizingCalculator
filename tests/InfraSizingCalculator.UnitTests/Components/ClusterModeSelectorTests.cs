@@ -233,32 +233,32 @@ public class ClusterModeSelectorTests : TestContext
     }
 
     [Fact]
-    public void ClusterModeSelector_AllScopeOptionsHaveEmojis()
+    public void ClusterModeSelector_AllScopeOptionsHaveDescriptiveText()
     {
         // Act
         var cut = RenderComponent<ClusterModeSelector>(parameters => parameters
             .Add(p => p.SelectedMode, ClusterMode.SharedCluster));
 
-        // Assert
+        // Assert - Scope options now use plain text instead of emojis
         var options = cut.FindAll(".single-cluster-selector select option");
-        options[0].TextContent.Should().Contain("🔗"); // Shared
-        options[1].TextContent.Should().Contain("🔧"); // Dev
-        options[2].TextContent.Should().Contain("🧪"); // Test
-        options[3].TextContent.Should().Contain("📦"); // Stage
-        options[4].TextContent.Should().Contain("🔴"); // Prod
-        options[5].TextContent.Should().Contain("🛡️"); // DR
+        options[0].TextContent.Should().Contain("Shared");
+        options[1].TextContent.Should().Contain("Dev");
+        options[2].TextContent.Should().Contain("Test");
+        options[3].TextContent.Should().Contain("Stage");
+        options[4].TextContent.Should().Contain("Prod");
+        options[5].TextContent.Should().Contain("DR");
     }
 
     [Fact]
-    public void ClusterModeSelector_ModeOptionsHaveEmojis()
+    public void ClusterModeSelector_ModeOptionsHaveIcons()
     {
         // Act
         var cut = RenderComponent<ClusterModeSelector>();
 
-        // Assert
+        // Assert - Mode icons use CSS classes and text instead of emojis
         var modeIcons = cut.FindAll(".mode-icon");
-        modeIcons[0].TextContent.Should().Be("🌐"); // Multi-Cluster
-        modeIcons[1].TextContent.Should().Be("🎯"); // Single Cluster
+        modeIcons[0].ClassList.Should().Contain("icon"); // Multi-Cluster uses CSS icon class
+        modeIcons[1].TextContent.Should().Be("1"); // Single Cluster uses text "1"
     }
 
     [Fact]

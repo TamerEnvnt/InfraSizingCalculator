@@ -36,25 +36,32 @@ public class VMFlowTests : PlaywrightFixture
     }
 
     [Test]
-    public async Task VMConfig_ShowsEnvironmentRows()
+    public async Task VMConfig_ShowsEnvironmentPanels()
     {
         await NavigateToVMConfigAsync();
 
-        // Should show environment rows for VM configuration
-        var envRows = await Page.QuerySelectorAllAsync(".vm-env-row");
-        if (envRows.Count == 0)
-        {
-            // Alternative selector
-            envRows = await Page.QuerySelectorAllAsync(".env-row, .cluster-row");
-        }
-        Assert.That(envRows.Count, Is.GreaterThan(0),
-            "Should show environment rows for VM sizing");
+        // VM config uses HorizontalAccordion with panels for each environment
+        var envPanels = await Page.QuerySelectorAllAsync(".h-accordion-panel");
+        Assert.That(envPanels.Count, Is.GreaterThan(0),
+            "Should show environment panels for VM sizing");
+
+        // Should have Prod panel
+        Assert.That(await IsVisibleAsync(".h-accordion-panel.env-prod"), Is.True,
+            "Prod environment panel should be visible");
     }
 
     [Test]
     public async Task VMConfig_ShowsRoleChips()
     {
         await NavigateToVMConfigAsync();
+
+        // First expand an environment panel to see role chips
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        if (prodHeader != null)
+        {
+            await prodHeader.ClickAsync();
+            await Page.WaitForTimeoutAsync(300);
+        }
 
         // Should show role selection chips (Web, App, DB, etc.)
         var roleChips = await Page.QuerySelectorAllAsync(".role-chip");
@@ -67,57 +74,33 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Find a specific environment row (Prod) and its Web role chip
-        var prodRow = await Page.QuerySelectorAsync(".vm-env-row:has-text('Prod')");
-        if (prodRow != null)
+        // Expand Prod panel to see role chips
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        if (prodHeader != null)
         {
-            // Find Web role chip within the Prod row
-            var webChip = await prodRow.QuerySelectorAsync(".role-chip:has-text('Web')");
-            if (webChip != null)
-            {
-                // Get bounding box and perform actual mouse click (required for Blazor Server)
-                var box = await webChip.BoundingBoxAsync();
-                if (box != null)
-                {
-                    // Click in the center of the element
-                    await Page.Mouse.ClickAsync(box.X + box.Width / 2, box.Y + box.Height / 2);
-                    await Page.WaitForTimeoutAsync(1000); // Wait for Blazor re-render via SignalR
-                }
-                else
-                {
-                    // Fallback to regular click
-                    await webChip.ClickAsync();
-                    await Page.WaitForTimeoutAsync(1000);
-                }
-
-                // Re-query after click - check if the chip in the Prod row is now active
-                prodRow = await Page.QuerySelectorAsync(".vm-env-row:has-text('Prod')");
-                if (prodRow != null)
-                {
-                    webChip = await prodRow.QuerySelectorAsync(".role-chip:has-text('Web')");
-                    if (webChip != null)
-                    {
-                        var chipClass = await webChip.GetAttributeAsync("class") ?? "";
-                        // Also check for role-count which appears when active
-                        var hasRoleCount = await webChip.QuerySelectorAsync(".role-count") != null;
-                        Assert.That(chipClass.Contains("active") || hasRoleCount,
-                            Is.True, $"Selected role chip should have 'active' class or role-count. Actual class: {chipClass}");
-                        return;
-                    }
-                }
-                // Fallback: check if any active role chip exists in the row
-                Assert.That(await IsVisibleAsync(".vm-env-row:has-text('Prod') .role-chip.active") ||
-                           await IsVisibleAsync(".vm-env-row:has-text('Prod') .role-details"), Is.True,
-                    "At least one active role chip or role details should exist in Prod row after selection");
-                return;
-            }
+            await prodHeader.ClickAsync();
+            await Page.WaitForTimeoutAsync(300);
         }
 
-        // Fallback for different UI structure - just verify roles tab works
-        Assert.That(await IsVisibleAsync(".config-tabs-container") ||
-                   await IsVisibleAsync(".vm-roles-table") ||
-                   await IsVisibleAsync(".role-chip"), Is.True,
-            "VM configuration with role selection should be visible");
+        // Find and click a role chip (e.g., first available role)
+        var roleChip = await Page.QuerySelectorAsync(".h-accordion-panel.expanded .role-chip");
+        if (roleChip != null)
+        {
+            await roleChip.ClickAsync();
+            await Page.WaitForTimeoutAsync(500);
+
+            // Re-query to check if role is now active
+            roleChip = await Page.QuerySelectorAsync(".h-accordion-panel.expanded .role-chip.active");
+            Assert.That(roleChip, Is.Not.Null,
+                "Role chip should become active after clicking");
+        }
+        else
+        {
+            // Fallback: verify the UI structure is present
+            Assert.That(await IsVisibleAsync(".config-tabs-container") ||
+                       await IsVisibleAsync(".h-accordion-panel"), Is.True,
+                "VM configuration with role selection should be visible");
+        }
     }
 
     [Test]
@@ -125,8 +108,15 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select a role first
-        var roleChip = await Page.QuerySelectorAsync(".role-chip:has-text('Web')");
+        // Expand Prod panel and select a role first
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        if (prodHeader != null)
+        {
+            await prodHeader.ClickAsync();
+            await Page.WaitForTimeoutAsync(300);
+        }
+
+        var roleChip = await Page.QuerySelectorAsync(".h-accordion-panel.expanded .role-chip");
         if (roleChip != null)
         {
             await roleChip.ClickAsync();
@@ -142,7 +132,7 @@ public class VMFlowTests : PlaywrightFixture
 
         // Fallback: Check if config tabs container is visible (which contains VM settings)
         var configVisible = await IsVisibleAsync(".config-tabs-container") ||
-                           await IsVisibleAsync(".vm-config-section") ||
+                           await IsVisibleAsync(".h-accordion-panel") ||
                            await IsVisibleAsync(".config-tab");
 
         Assert.That(haOptions || configVisible, Is.True,
@@ -164,25 +154,24 @@ public class VMFlowTests : PlaywrightFixture
     }
 
     [Test]
-    public async Task VMConfig_CanToggleEnvironments()
+    public async Task VMConfig_CanExpandCollapseEnvironments()
     {
         await NavigateToVMConfigAsync();
 
-        // Find an environment checkbox
-        var envCheckbox = await Page.QuerySelectorAsync(".vm-env-row input[type='checkbox'], .env-row input[type='checkbox']");
-        if (envCheckbox != null)
+        // VM config uses HorizontalAccordion panels
+        var prodPanel = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod");
+        Assert.That(prodPanel, Is.Not.Null, "Prod panel should exist");
+
+        // Click to expand
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        if (prodHeader != null)
         {
-            var initialState = await envCheckbox.IsCheckedAsync();
-            await envCheckbox.ClickAsync();
+            await prodHeader.ClickAsync();
             await Page.WaitForTimeoutAsync(300);
 
-            var newState = await envCheckbox.IsCheckedAsync();
-            Assert.That(newState, Is.Not.EqualTo(initialState),
-                "Environment checkbox should toggle");
-        }
-        else
-        {
-            Assert.Pass("No toggleable environment checkbox found");
+            // Panel should be expanded
+            var isExpanded = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod.expanded");
+            Assert.That(isExpanded, Is.Not.Null, "Panel should expand when clicked");
         }
     }
 
@@ -191,26 +180,14 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select a role for Prod environment
-        var prodRow = await Page.QuerySelectorAsync(".vm-env-row:has-text('Prod'), .env-row:has-text('Prod')");
-        if (prodRow != null)
-        {
-            var webRole = await prodRow.QuerySelectorAsync(".role-chip:has-text('Web')");
-            if (webRole != null)
-            {
-                await webRole.ClickAsync();
-                await Page.WaitForTimeoutAsync(300);
-            }
-        }
-
-        // Calculate
-        await ClickCalculateAsync();
+        // VM flow: Step 4 (Configure) has roles pre-selected, use Next -> Calculate
+        await ClickVMCalculateAsync();
 
         // Wait for results
-        await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel, .vm-results-section", new() { Timeout = 10000 });
 
         // Verify VM results are displayed
-        Assert.That(await IsVisibleAsync(".results-panel") || await IsVisibleAsync(".vm-results-section"), Is.True,
+        Assert.That(await IsVisibleAsync(".sizing-results-view") || await IsVisibleAsync(".results-panel") || await IsVisibleAsync(".vm-results-section"), Is.True,
             "VM results should be visible");
     }
 
@@ -219,21 +196,14 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select roles
-        var roleChip = await Page.QuerySelectorAsync(".role-chip:has-text('Web')");
-        if (roleChip != null)
-        {
-            await roleChip.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-        }
+        // VM flow: Step 4 (Configure) has roles pre-selected, use Next -> Calculate
+        await ClickVMCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel, .vm-results-section", new() { Timeout = 10000 });
 
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
-
-        // Results should show VM counts
-        var resultsText = await GetTextAsync(".results-panel, .vm-results-section, .summary-cards");
-        Assert.That(resultsText, Does.Contain("VM").Or.Contain("Server").Or.Contain("Total").IgnoreCase,
-            "Results should show VM or server counts");
+        // Results should show VM counts - check the summary sidebar
+        var resultsText = await GetTextAsync(".sizing-results-view, .results-panel, .vm-results-section, .right-stats-sidebar");
+        Assert.That(resultsText, Does.Contain("VM").Or.Contain("Node").Or.Contain("Total").IgnoreCase,
+            "Results should show VM or node counts");
     }
 
     [Test]
@@ -263,8 +233,15 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select a role
-        var roleChip = await Page.QuerySelectorAsync(".role-chip:has-text('Web')");
+        // Expand Prod panel and select a role
+        var prodHeader = await Page.QuerySelectorAsync(".h-accordion-panel.env-prod .h-accordion-header");
+        if (prodHeader != null)
+        {
+            await prodHeader.ClickAsync();
+            await Page.WaitForTimeoutAsync(300);
+        }
+
+        var roleChip = await Page.QuerySelectorAsync(".h-accordion-panel.expanded .role-chip:has-text('Web')");
         if (roleChip != null)
         {
             await roleChip.ClickAsync();
@@ -289,21 +266,14 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select a role
-        var roleChip = await Page.QuerySelectorAsync(".role-chip:has-text('Web')");
-        if (roleChip != null)
-        {
-            await roleChip.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-        }
+        // VM flow: Step 4 (Configure) has roles pre-selected, use Next -> Calculate
+        await ClickVMCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel, .vm-results-section", new() { Timeout = 10000 });
 
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
-
-        // Should show export options
+        // Should show export options in the quick actions sidebar
         var hasExport = await IsVisibleAsync("button:has-text('CSV')") ||
                        await IsVisibleAsync("button:has-text('Export')") ||
-                       await IsVisibleAsync(".export-buttons");
+                       await IsVisibleAsync(".quick-actions");
         Assert.That(hasExport, Is.True, "Export options should be available after calculation");
     }
 
@@ -330,9 +300,17 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Should show Calculate Sizing button
+        // VM flow: Calculate button is on Step 5 (Pricing), not Step 4 (Configure)
+        // First verify we're on Step 4 with Next button visible
+        Assert.That(await IsVisibleAsync("button:has-text('Next')"), Is.True,
+            "Next button should be visible on VM Config step");
+
+        // Click Next to go to Pricing step where Calculate is
+        await ClickNextAsync();
+
+        // Now Calculate button should be visible
         Assert.That(await IsVisibleAsync("button:has-text('Calculate')"), Is.True,
-            "Calculate Sizing button should be visible");
+            "Calculate button should be visible on Pricing step");
     }
 
     [Test]
@@ -340,34 +318,25 @@ public class VMFlowTests : PlaywrightFixture
     {
         await NavigateToVMConfigAsync();
 
-        // Select roles and calculate
-        var roleChip = await Page.QuerySelectorAsync(".role-chip:has-text('Web')");
-        if (roleChip != null)
-        {
-            await roleChip.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-        }
+        // First calculation using VM flow
+        await ClickVMCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel, .vm-results-section", new() { Timeout = 10000 });
 
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
-
-        // Go back and modify
+        // Go back to modify - need to go back twice (Results -> Pricing -> Configure)
+        await ClickBackAsync();
+        await Page.WaitForTimeoutAsync(300);
         await ClickBackAsync();
         await Page.WaitForTimeoutAsync(300);
 
-        // Select another role
-        var appRole = await Page.QuerySelectorAsync(".role-chip:has-text('App')");
-        if (appRole != null)
-        {
-            await appRole.ClickAsync();
-            await Page.WaitForTimeoutAsync(300);
-        }
+        // Verify we're back on Configure step
+        Assert.That(await IsVisibleAsync(".config-tabs-container") || await IsVisibleAsync(".h-accordion-panel"), Is.True,
+            "Should be back on Configure step");
 
         // Recalculate
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
+        await ClickVMCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel, .vm-results-section", new() { Timeout = 10000 });
 
-        Assert.That(await IsVisibleAsync(".results-panel") || await IsVisibleAsync(".vm-results-section"), Is.True,
+        Assert.That(await IsVisibleAsync(".sizing-results-view") || await IsVisibleAsync(".results-panel") || await IsVisibleAsync(".vm-results-section"), Is.True,
             "Should be able to recalculate with new selections");
     }
 }

@@ -17,9 +17,9 @@ public class WizardFlowTests : PlaywrightFixture
         Assert.That(await IsVisibleAsync(".main-content"), Is.True,
             "Main content should be visible");
 
-        // Verify step 1 is active
-        Assert.That(await IsVisibleAsync(".stepper-step.active"), Is.True,
-            "First step should be active");
+        // Verify step 1 is current (uses nav-step with .current class)
+        Assert.That(await IsVisibleAsync(".nav-step.current"), Is.True,
+            "First step should be current");
     }
 
     [Test]
@@ -192,21 +192,26 @@ public class WizardFlowTests : PlaywrightFixture
     {
         await GoToHomeAsync();
 
-        // Step 1 should be active
-        var step1 = await Page.QuerySelectorAsync(".stepper-step:nth-child(1)");
-        Assert.That(await step1!.GetAttributeAsync("class"), Does.Contain("active"),
-            "Step 1 should be active");
+        // Step 1 should be current (nav-step uses .current class)
+        // Use :nth-of-type to get buttons, not the h3 title
+        var navSteps = await Page.QuerySelectorAllAsync(".nav-section .nav-step");
+        Assert.That(navSteps.Count, Is.GreaterThan(0), "Nav steps should exist");
+
+        var step1 = navSteps[0];
+        Assert.That(await step1.GetAttributeAsync("class"), Does.Contain("current"),
+            "Step 1 should be current");
 
         // Navigate to step 2 (auto-advances on selection)
         await SelectCardAsync("Native");
 
-        // Step 1 should be completed, Step 2 should be active
-        step1 = await Page.QuerySelectorAsync(".stepper-step:nth-child(1)");
-        Assert.That(await step1!.GetAttributeAsync("class"), Does.Contain("completed"),
+        // Step 1 should be completed, Step 2 should be current
+        navSteps = await Page.QuerySelectorAllAsync(".nav-section .nav-step");
+        step1 = navSteps[0];
+        Assert.That(await step1.GetAttributeAsync("class"), Does.Contain("completed"),
             "Step 1 should be completed");
 
-        var step2 = await Page.QuerySelectorAsync(".stepper-step:nth-child(3)"); // Account for line elements
-        Assert.That(await step2!.GetAttributeAsync("class"), Does.Contain("active"),
-            "Step 2 should be active");
+        var step2 = navSteps[1];
+        Assert.That(await step2.GetAttributeAsync("class"), Does.Contain("current"),
+            "Step 2 should be current");
     }
 }

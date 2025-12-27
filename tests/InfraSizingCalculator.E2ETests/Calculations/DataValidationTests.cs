@@ -17,9 +17,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "20");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         // Get environment totals and grand total from the table
         var envNodes = await GetEnvironmentNodeCountsAsync();
@@ -36,9 +36,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "30");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         // Verify breakdown adds up
         var breakdown = await GetNodeBreakdownAsync();
@@ -65,9 +65,9 @@ public class DataValidationTests : PlaywrightFixture
             await Page.WaitForTimeoutAsync(800);
 
             await SetTierAppsAsync("small", "10");
-            await ClickCalculateAsync();
+            await ClickK8sCalculateAsync();
 
-            await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+            await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
             var breakdown = await GetNodeBreakdownAsync();
             Assert.That(breakdown.Masters, Is.EqualTo(0),
@@ -91,9 +91,9 @@ public class DataValidationTests : PlaywrightFixture
             await Page.WaitForTimeoutAsync(800);
 
             await SetTierAppsAsync("medium", "50");
-            await ClickCalculateAsync();
+            await ClickK8sCalculateAsync();
 
-            await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+            await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
             var breakdown = await GetNodeBreakdownAsync();
             Assert.That(breakdown.Infra, Is.GreaterThan(0),
@@ -108,15 +108,16 @@ public class DataValidationTests : PlaywrightFixture
 
         // Calculate with 10 apps
         await SetTierAppsAsync("medium", "10");
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await ClickK8sCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
         var workers10 = (await GetNodeBreakdownAsync()).Workers;
 
         // Go back and calculate with 50 apps
         await ClickBackAsync();
+        await ClickBackAsync();
         await SetTierAppsAsync("medium", "50");
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await ClickK8sCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
         var workers50 = (await GetNodeBreakdownAsync()).Workers;
 
         Assert.That(workers50, Is.GreaterThanOrEqualTo(workers10),
@@ -129,9 +130,9 @@ public class DataValidationTests : PlaywrightFixture
         await NavigateToK8sConfigAsync();
         await SelectClusterModeAsync("Multi");
         await SetTierAppsAsync("small", "10");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         // Should show multiple environment rows
         var envRows = await Page.Locator(".results-table tbody tr").CountAsync();
@@ -146,12 +147,12 @@ public class DataValidationTests : PlaywrightFixture
         await SelectClusterModeAsync("Single");
         await SelectClusterScopeAsync("Shared");
         await SetTierAppsAsync("medium", "20");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         // Should show shared cluster results
-        var clusterInfo = await Page.TextContentAsync(".results-panel");
+        var clusterInfo = await Page.TextContentAsync(".sizing-results-view, .results-panel");
         Assert.That(clusterInfo, Does.Contain("Shared").Or.Not.Null,
             "Single cluster shared mode should indicate shared cluster");
     }
@@ -169,7 +170,7 @@ public class DataValidationTests : PlaywrightFixture
         await EnableVMRoleAsync("Web");
         await EnableVMRoleAsync("App");
 
-        await ClickCalculateAsync();
+        await ClickVMCalculateAsync();
         await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
 
         // Verify results are present
@@ -184,10 +185,11 @@ public class DataValidationTests : PlaywrightFixture
         await EnableVMRoleAsync("Web");
 
         // Calculate without HA
-        await ClickCalculateAsync();
+        await ClickVMCalculateAsync();
         await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
 
         // Go back and enable HA
+        await ClickBackAsync();
         await ClickBackAsync();
 
         // Try to find HA selector
@@ -198,7 +200,7 @@ public class DataValidationTests : PlaywrightFixture
             await Page.WaitForTimeoutAsync(300);
         }
 
-        await ClickCalculateAsync();
+        await ClickVMCalculateAsync();
         await Page.WaitForSelectorAsync(".results-panel, .vm-results-section", new() { Timeout = 10000 });
 
         // Verify results - HA should produce results
@@ -215,9 +217,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "20");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         var cpuValue = await GetTotalCpuAsync();
         Assert.That(cpuValue, Is.GreaterThan(0), "Total CPU should be positive");
@@ -228,9 +230,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "20");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         var ramValue = await GetTotalRamAsync();
         Assert.That(ramValue, Is.GreaterThan(0), "Total RAM should be positive");
@@ -241,9 +243,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "20");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         var diskValue = await GetTotalDiskAsync();
         Assert.That(diskValue, Is.GreaterThan(0), "Total Disk should be positive");
@@ -254,9 +256,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "100");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         var breakdown = await GetNodeBreakdownAsync();
 
@@ -278,14 +280,15 @@ public class DataValidationTests : PlaywrightFixture
         await SetTierAppsAsync("medium", "30");
 
         // First calculation
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await ClickK8sCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
         var firstTotal = await GetGrandTotalNodesAsync();
 
         // Go back and recalculate with same inputs
         await ClickBackAsync();
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await ClickBackAsync();
+        await ClickK8sCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
         var secondTotal = await GetGrandTotalNodesAsync();
 
         Assert.That(secondTotal, Is.EqualTo(firstTotal),
@@ -297,9 +300,9 @@ public class DataValidationTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await SetTierAppsAsync("medium", "25");
-        await ClickCalculateAsync();
+        await ClickK8sCalculateAsync();
 
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 10000 });
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 10000 });
 
         // Summary card total should match table grand total
         var summaryTotal = await GetSummaryCardNodesAsync();
@@ -318,11 +321,44 @@ public class DataValidationTests : PlaywrightFixture
         await ClickTabAsync("Applications");
         await Page.WaitForTimeoutAsync(500);
 
-        var selector = $".tier-card.{tier.ToLower()} input";
-        var element = Page.Locator(selector).First;
-        await element.ScrollIntoViewIfNeededAsync();
-        await element.FillAsync(count);
-        await Page.WaitForTimeoutAsync(300);
+        // Map tier names to display labels
+        var tierLabel = tier.ToLower() switch
+        {
+            "small" => "Small",
+            "medium" => "Medium",
+            "large" => "Large",
+            "xlarge" or "xl" => "XLarge",
+            _ => tier
+        };
+
+        // Try single cluster selector first (.tier-card)
+        var singleClusterSelector = $".tier-card.{tier.ToLower()} input";
+        var singleClusterElement = await Page.QuerySelectorAsync(singleClusterSelector);
+
+        if (singleClusterElement != null)
+        {
+            await singleClusterElement.FillAsync(count);
+            await Page.WaitForTimeoutAsync(300);
+            return;
+        }
+
+        // Multi-cluster mode: Dev panel is expanded by default with spinbuttons
+        // Find the tier spinbutton by looking for the label text and associated spinbutton
+        var tierSpinbutton = Page.Locator($":has-text('{tierLabel}')").Locator("[role='spinbutton']").First;
+
+        try
+        {
+            await tierSpinbutton.WaitForAsync(new LocatorWaitForOptions { Timeout = 3000, State = WaitForSelectorState.Visible });
+            await tierSpinbutton.FillAsync(count);
+            await Page.WaitForTimeoutAsync(300);
+        }
+        catch
+        {
+            // Fallback: just use any visible spinbutton
+            var anySpinbutton = Page.Locator("[role='spinbutton']").First;
+            await anySpinbutton.FillAsync(count);
+            await Page.WaitForTimeoutAsync(300);
+        }
     }
 
     private async Task EnableVMRoleAsync(string roleName)

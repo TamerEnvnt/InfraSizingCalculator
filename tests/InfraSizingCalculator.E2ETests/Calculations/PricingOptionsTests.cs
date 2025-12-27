@@ -19,17 +19,16 @@ public class PricingOptionsTests : PlaywrightFixture
         // Wait for the configuration page to fully load
         await Page.WaitForTimeoutAsync(1000);
 
-        // We're in Multi-Cluster mode by default - find the tier inputs
-        // In multi-cluster mode, inputs have class .tier-input not .tier-card input
-        var tierInput = Page.Locator(".tier-input, .tier-card input[type='number']").First;
-        await tierInput.WaitForAsync(new() { Timeout = 10000, State = WaitForSelectorState.Visible });
-        await tierInput.ScrollIntoViewIfNeededAsync();
-        await tierInput.FillAsync("10");
+        // We're in Multi-Cluster mode by default - Dev panel is expanded
+        // Use the spinbutton for Medium tier (has existing apps)
+        var mediumSpinbutton = Page.Locator(":has-text('Medium')").Locator("[role='spinbutton']").First;
+        await mediumSpinbutton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
+        await mediumSpinbutton.FillAsync("10");
         await Page.WaitForTimeoutAsync(500);
 
-        // Calculate
-        await ClickCalculateAsync();
-        await Page.WaitForSelectorAsync(".results-panel", new() { Timeout = 15000 });
+        // Calculate (K8s: Step 5 Configure -> Step 6 Pricing -> Calculate)
+        await ClickK8sCalculateAsync();
+        await Page.WaitForSelectorAsync(".sizing-results-view, .results-panel", new() { Timeout = 15000 });
 
         // Click Cost Breakdown in sidebar
         var costBreakdownLink = Page.Locator(".left-sidebar").GetByText("Cost Breakdown");

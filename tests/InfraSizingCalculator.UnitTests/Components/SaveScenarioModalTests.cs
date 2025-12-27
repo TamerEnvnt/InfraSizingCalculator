@@ -121,13 +121,16 @@ public class SaveScenarioModalTests : TestContext
     }
 
     [Fact]
-    public void SaveScenarioModal_ShowsFieldError_WhenNameIsEmpty()
+    public void SaveScenarioModal_ShowsFieldError_WhenNameCleared()
     {
-        // Act
+        // Arrange
         var cut = RenderComponent<SaveScenarioModal>(parameters => parameters
             .Add(p => p.IsVisible, true)
             .Add(p => p.K8sInput, CreateTestK8sInput())
             .Add(p => p.K8sResult, CreateTestK8sResult()));
+
+        // Act - Clear the auto-generated name
+        cut.Find("#scenarioName").Input("");
 
         // Assert
         var error = cut.Find(".field-error");
@@ -205,13 +208,16 @@ public class SaveScenarioModalTests : TestContext
     #region Save Functionality Tests
 
     [Fact]
-    public void SaveScenarioModal_SaveButtonIsDisabled_WhenNameIsEmpty()
+    public void SaveScenarioModal_SaveButtonIsDisabled_WhenNameCleared()
     {
-        // Act
+        // Arrange
         var cut = RenderComponent<SaveScenarioModal>(parameters => parameters
             .Add(p => p.IsVisible, true)
             .Add(p => p.K8sInput, CreateTestK8sInput())
             .Add(p => p.K8sResult, CreateTestK8sResult()));
+
+        // Act - Clear the auto-generated name
+        cut.Find("#scenarioName").Input("");
 
         // Assert
         var saveButton = cut.Find(".btn-primary");

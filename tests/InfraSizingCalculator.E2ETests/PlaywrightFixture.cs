@@ -86,6 +86,7 @@ public class PlaywrightFixture
 
     /// <summary>
     /// Navigate to K8s configuration step (Platform -> Deployment -> Technology -> Distribution -> Config)
+    /// By default lands in Multi-Cluster mode
     /// </summary>
     protected async Task NavigateToK8sConfigAsync()
     {
@@ -94,10 +95,23 @@ public class PlaywrightFixture
         await SelectCardAsync("Kubernetes"); // -> Step 3
         await SelectTechCardAsync(".NET"); // -> Step 4
         await SelectDistroCardAsync(); // -> Step 5 (Config)
+        // Wait for config page to fully load
+        await Page.WaitForSelectorAsync(".k8s-apps-config, .config-tabs-container", new() { Timeout = 10000 });
+    }
+
+    /// <summary>
+    /// Navigate to K8s configuration step in Single Cluster (Shared) mode
+    /// </summary>
+    protected async Task NavigateToK8sConfigSingleClusterAsync()
+    {
+        await NavigateToK8sConfigAsync();
+        await SelectClusterModeAsync("Single");
+        await Page.WaitForSelectorAsync(".tier-card", new() { Timeout = 5000 });
     }
 
     /// <summary>
     /// Navigate to VM configuration step (Platform -> Deployment -> Technology -> Config)
+    /// Lands on Step 4 (Configure) where roles can be selected
     /// </summary>
     protected async Task NavigateToVMConfigAsync()
     {
@@ -105,6 +119,32 @@ public class PlaywrightFixture
         await SelectCardAsync("Native"); // -> Step 2
         await SelectCardAsync("Virtual Machines"); // -> Step 3
         await SelectTechCardAsync(".NET"); // -> Step 4 (Config for VMs)
+        // Wait for VM config to load
+        await Page.WaitForSelectorAsync(".config-tabs-container, .h-accordion-panel", new() { Timeout = 10000 });
+    }
+
+    /// <summary>
+    /// For VM flows: Navigate from Config (Step 4) to Pricing (Step 5) and click Calculate
+    /// VM flow: Step 4 has Next -> Step 5 has Calculate -> Step 6 Results
+    /// </summary>
+    protected async Task ClickVMCalculateAsync()
+    {
+        // Click Next to go from Step 4 (Configure) to Step 5 (Pricing)
+        await ClickNextAsync();
+        // Now click Calculate on the Pricing step
+        await ClickCalculateAsync();
+    }
+
+    /// <summary>
+    /// For K8s flows: Navigate from Configure (Step 5) to Pricing (Step 6) and click Calculate
+    /// K8s flow: Step 5 (Configure) has Next -> Step 6 (Pricing) has Calculate -> Step 7 Results
+    /// </summary>
+    protected async Task ClickK8sCalculateAsync()
+    {
+        // Click Next to go from Step 5 (Configure) to Step 6 (Pricing)
+        await ClickNextAsync();
+        // Now click Calculate on the Pricing step
+        await ClickCalculateAsync();
     }
 
     /// <summary>

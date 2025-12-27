@@ -1,4 +1,5 @@
 using FluentAssertions;
+using InfraSizingCalculator.Models.Enums;
 using InfraSizingCalculator.Models.Pricing;
 using InfraSizingCalculator.Services.Pricing;
 using Microsoft.JSInterop;
@@ -518,7 +519,7 @@ public class PricingServiceTests
         var licenses = new LicensePricing { OpenShiftPerNodeYear = 2500m };
 
         // Act
-        var cost = licenses.GetLicensePerNodeYear(Models.Enums.Distribution.OpenShift);
+        var cost = licenses.GetLicensePerNodeYear(Distribution.OpenShift);
 
         // Assert
         cost.Should().Be(2500m);
@@ -535,10 +536,10 @@ public class PricingServiceTests
         };
 
         // Act & Assert
-        licenses.GetLicensePerNodeYear(Models.Enums.Distribution.EKS).Should().Be(0);
-        licenses.GetLicensePerNodeYear(Models.Enums.Distribution.AKS).Should().Be(0);
-        licenses.GetLicensePerNodeYear(Models.Enums.Distribution.GKE).Should().Be(0);
-        licenses.GetLicensePerNodeYear(Models.Enums.Distribution.OKE).Should().Be(0);
+        licenses.GetLicensePerNodeYear(Distribution.EKS).Should().Be(0);
+        licenses.GetLicensePerNodeYear(Distribution.AKS).Should().Be(0);
+        licenses.GetLicensePerNodeYear(Distribution.GKE).Should().Be(0);
+        licenses.GetLicensePerNodeYear(Distribution.OKE).Should().Be(0);
     }
 
     [Fact]

@@ -254,6 +254,9 @@ public class K8sSizingService : IK8sSizingService
         var headroom = GetHeadroomForEnvironment(env, input.Headroom, input.EnableHeadroom);
         var overcommit = isProd ? input.ProdOvercommit : input.NonProdOvercommit;
 
+        // Get HA/DR config for this environment (use env-specific if available, else default)
+        var hadrConfig = GetHADRConfigForEnvironment(env, input);
+
         // BR-RC001, BR-RC002: Calculate app resources
         var (cpuRequired, ramRequired) = CalculateAppResources(apps, techConfig.Tiers, replicas);
 
@@ -269,14 +272,35 @@ public class K8sSizingService : IK8sSizingService
             workers = ApplyHeadroom(workers, headroom);
         }
 
-        // BR-M001 through BR-M004: Calculate masters
-        var masters = CalculateMasterNodes(workers, distroConfig.HasManagedControlPlane);
+        // Apply multi-AZ minimum constraint
+        workers = ApplyAZMinimum(workers, hadrConfig);
+
+        // BR-M001 through BR-M004: Calculate masters (now HA/DR aware)
+        var masters = CalculateMasterNodes(workers, distroConfig.HasManagedControlPlane, hadrConfig);
+
+        // Calculate etcd nodes for external etcd configuration
+        var etcdNodes = CalculateEtcdNodes(hadrConfig);
 
         // BR-I001 through BR-I006: Calculate infra nodes
         var infra = CalculateInfraNodes(apps.TotalApps, isProd, distroConfig.HasInfraNodes);
 
+        // Calculate DR site resources
+        var primaryNodes = masters + infra + workers + etcdNodes;
+        var (drNodes, drCostMultiplier) = CalculateDRResources(primaryNodes, hadrConfig);
+
         // BR-RC005 through BR-RC007, BR-W006: Calculate resources (now per-environment)
         var resources = CalculateClusterResources(masters, infra, workers, distroConfig, env);
+
+        // Add etcd node resources if applicable
+        if (etcdNodes > 0)
+        {
+            // Etcd nodes typically use control plane node specs
+            var etcdSpecs = distroConfig.ProdControlPlane;
+            resources.totalNodes += etcdNodes;
+            resources.totalCpu += etcdNodes * etcdSpecs.Cpu;
+            resources.totalRam += etcdNodes * etcdSpecs.Ram;
+            resources.totalDisk += etcdNodes * etcdSpecs.Disk;
+        }
 
         return new EnvironmentResult
         {
@@ -289,6 +313,10 @@ public class K8sSizingService : IK8sSizingService
             Masters = masters,
             Infra = infra,
             Workers = workers,
+            EtcdNodes = etcdNodes,
+            DRNodes = drNodes,
+            DRCostMultiplier = drCostMultiplier,
+            AvailabilityZones = hadrConfig?.AvailabilityZones ?? 1,
             TotalNodes = resources.totalNodes,
             TotalCpu = resources.totalCpu,
             TotalRam = resources.totalRam,
@@ -297,13 +325,41 @@ public class K8sSizingService : IK8sSizingService
     }
 
     /// <summary>
-    /// BR-M001 through BR-M004: Master node calculation
+    /// Get HA/DR config for a specific environment
     /// </summary>
-    public int CalculateMasterNodes(int workerCount, bool isManagedControlPlane)
+    private K8sHADRConfig? GetHADRConfigForEnvironment(EnvironmentType env, K8sSizingInput input)
+    {
+        // Check for environment-specific override
+        if (input.EnvironmentHADRConfigs?.TryGetValue(env, out var envConfig) == true)
+            return envConfig;
+
+        // Use default HA/DR config
+        return input.HADRConfig;
+    }
+
+    /// <summary>
+    /// BR-M001 through BR-M004: Master node calculation
+    /// Now integrated with K8sHADRConfig for control plane HA settings
+    /// </summary>
+    public int CalculateMasterNodes(int workerCount, bool isManagedControlPlane, K8sHADRConfig? hadrConfig = null)
     {
         // BR-M001: Managed control plane (EKS, AKS, GKE) = 0 masters
         if (isManagedControlPlane)
             return 0;
+
+        // If HADR config specifies control plane settings, use them
+        // BUT: If distribution doesn't support managed control planes, ignore the default "Managed"
+        // setting from HADRConfig (it's just the default value, not an intentional override)
+        if (hadrConfig != null && hadrConfig.ControlPlaneHA != K8sControlPlaneHA.Managed)
+        {
+            return hadrConfig.ControlPlaneHA switch
+            {
+                K8sControlPlaneHA.Single => 1,
+                K8sControlPlaneHA.StackedHA => hadrConfig.ControlPlaneNodes,
+                K8sControlPlaneHA.ExternalEtcd => hadrConfig.ControlPlaneNodes, // etcd nodes counted separately
+                _ => 3
+            };
+        }
 
         // BR-M003: Large clusters (100+ workers) need 5 masters
         if (workerCount > LargeClusterWorkerThreshold)
@@ -311,6 +367,88 @@ public class K8sSizingService : IK8sSizingService
 
         // BR-M002, BR-M004: Standard HA quorum = 3 masters
         return 3;
+    }
+
+    /// <summary>
+    /// Calculate etcd nodes for external etcd configuration
+    /// </summary>
+    public int CalculateEtcdNodes(K8sHADRConfig? hadrConfig)
+    {
+        if (hadrConfig?.ControlPlaneHA != K8sControlPlaneHA.ExternalEtcd)
+            return 0;
+
+        // External etcd requires 3, 5, or 7 nodes for quorum
+        return hadrConfig.ControlPlaneNodes switch
+        {
+            <= 3 => 3,
+            <= 5 => 5,
+            _ => 7
+        };
+    }
+
+    /// <summary>
+    /// Apply multi-AZ minimum worker constraint
+    /// Ensures at least 1 worker per availability zone for proper distribution
+    /// </summary>
+    public int ApplyAZMinimum(int workers, K8sHADRConfig? hadrConfig)
+    {
+        if (hadrConfig == null || hadrConfig.NodeDistribution == K8sNodeDistribution.SingleAZ)
+            return workers;
+
+        // Minimum workers = number of AZs to ensure at least 1 per AZ
+        int minForAZ = hadrConfig.AvailabilityZones;
+        return Math.Max(workers, minForAZ);
+    }
+
+    /// <summary>
+    /// Calculate DR site resources based on DR pattern
+    ///
+    /// DR Pattern resource allocation (researched Dec 2024):
+    /// - Backup/Restore: No standby infrastructure, just backup storage
+    /// - Warm Standby: 20-40% of primary capacity (scaled down, ready to scale up)
+    /// - Hot Standby: 80-100% capacity ready (just not serving traffic)
+    /// - Active-Active: 100% duplication (both sites serving traffic)
+    ///
+    /// Source: AWS Well-Architected DR pillar, Azure Site Recovery docs
+    /// </summary>
+    public (int nodes, double costMultiplier) CalculateDRResources(int primaryNodes, K8sHADRConfig? hadrConfig)
+    {
+        if (hadrConfig == null || hadrConfig.DRPattern == K8sDRPattern.None)
+            return (0, 1.0);
+
+        return hadrConfig.DRPattern switch
+        {
+            // Backup/Restore: No standby infrastructure
+            // Cost is backup storage + potential cloud egress during restore
+            // Typically 5-10% of primary compute cost for storage
+            K8sDRPattern.BackupRestore => (0, 1.08),
+
+            // Warm Standby: Minimal infrastructure running, ready to scale
+            // Typically 25-40% of production, we use 30% as reasonable middle
+            // Cost multiplier includes standby compute + data replication
+            K8sDRPattern.WarmStandby => (
+                Math.Max(3, (int)(primaryNodes * 0.30)), // At least 3 nodes for HA quorum
+                1.40
+            ),
+
+            // Hot Standby: Near-full capacity, just not serving traffic
+            // Typically 80-100% capacity for fast failover (RTO < 15 min)
+            // Higher replication costs for near-real-time sync
+            K8sDRPattern.HotStandby => (
+                (int)(primaryNodes * 0.85), // 85% for near-instant failover
+                1.90
+            ),
+
+            // Active-Active: Full capacity in both regions
+            // Both sites actively serving traffic (geographic load balancing)
+            // Includes global load balancer overhead
+            K8sDRPattern.ActiveActive => (
+                primaryNodes, // Full duplication
+                2.10 // 100% infra + global LB + enhanced replication
+            ),
+
+            _ => (0, 1.0)
+        };
     }
 
     /// <summary>
@@ -507,6 +645,8 @@ public class K8sSizingService : IK8sSizingService
             TotalMasters = results.Sum(r => r.Masters),
             TotalInfra = results.Sum(r => r.Infra),
             TotalWorkers = results.Sum(r => r.Workers),
+            TotalEtcdNodes = results.Sum(r => r.EtcdNodes),
+            TotalDRNodes = results.Sum(r => r.DRNodes),
             TotalCpu = results.Sum(r => r.TotalCpu),
             TotalRam = results.Sum(r => r.TotalRam),
             TotalDisk = results.Sum(r => r.TotalDisk)

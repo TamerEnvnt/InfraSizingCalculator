@@ -2,6 +2,7 @@ using Bunit;
 using FluentAssertions;
 using InfraSizingCalculator.Components.Results;
 using InfraSizingCalculator.Models;
+using InfraSizingCalculator.Models.Enums;
 
 namespace InfraSizingCalculator.UnitTests.Components;
 
@@ -234,9 +235,9 @@ public class SummaryCardsTests : TestContext
             },
             Configuration = new K8sSizingInput
             {
-                Technology = Models.Enums.Technology.Java,
-                Distribution = Models.Enums.Distribution.OpenShift,
-                ClusterMode = Models.Enums.ClusterMode.MultiCluster,
+                Technology = Technology.Java,
+                Distribution = Distribution.OpenShift,
+                ClusterMode = ClusterMode.MultiCluster,
                 ProdApps = new AppConfig(),
                 NonProdApps = new AppConfig()
             }

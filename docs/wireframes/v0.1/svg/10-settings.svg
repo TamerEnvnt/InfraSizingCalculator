@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <title>10 - Settings Page</title>
+  <desc>Application settings: theme, pricing, data management</desc>
+
+  <defs>
+    <style>
+      .bg-primary { fill: #0d1117; }
+      .bg-secondary { fill: #161b22; }
+      .bg-tertiary { fill: #21262d; }
+      .bg-light { fill: #f6f8fa; }
+      .border { stroke: #30363d; stroke-width: 1; fill: none; }
+      .border-accent { stroke: #58a6ff; stroke-width: 2; fill: none; }
+      .border-danger { stroke: #f85149; stroke-width: 1; fill: none; }
+      .text-primary { fill: #f0f6fc; font-family: -apple-system, system-ui, sans-serif; }
+      .text-secondary { fill: #8b949e; font-family: -apple-system, system-ui, sans-serif; }
+      .text-accent { fill: #58a6ff; font-family: -apple-system, system-ui, sans-serif; }
+      .text-dark { fill: #24292f; font-family: -apple-system, system-ui, sans-serif; }
+      .text-danger { fill: #f85149; font-family: -apple-system, system-ui, sans-serif; }
+      .accent-primary { fill: #58a6ff; }
+      .accent-success { fill: #238636; }
+      .accent-danger { fill: #da3633; }
+    </style>
+    <linearGradient id="systemGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#f6f8fa"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" class="bg-primary"/>
+
+  <!-- Header -->
+  <text x="0" y="32" class="text-primary" font-size="24" font-weight="600">Settings</text>
+  <text x="0" y="60" class="text-secondary" font-size="14">Configure application preferences and pricing data</text>
+
+  <!-- Settings Navigation -->
+  <g transform="translate(0, 80)">
+    <!-- Appearance - Active -->
+    <rect width="260" height="48" rx="8" class="bg-tertiary"/>
+    <text x="16" y="30" font-size="18">🎨</text>
+    <text x="48" y="32" class="text-accent" font-size="14" font-weight="500">Appearance</text>
+
+    <!-- Pricing -->
+    <g transform="translate(0, 56)">
+      <rect width="260" height="48" rx="8" fill="transparent"/>
+      <text x="16" y="30" font-size="18">💰</text>
+      <text x="48" y="32" class="text-primary" font-size="14">Pricing Configuration</text>
+    </g>
+
+    <!-- Data -->
+    <g transform="translate(0, 112)">
+      <rect width="260" height="48" rx="8" fill="transparent"/>
+      <text x="16" y="30" font-size="18">💾</text>
+      <text x="48" y="32" class="text-primary" font-size="14">Data Management</text>
+    </g>
+
+    <!-- About -->
+    <g transform="translate(0, 168)">
+      <rect width="260" height="48" rx="8" fill="transparent"/>
+      <text x="16" y="30" font-size="18">ℹ️</text>
+      <text x="48" y="32" class="text-primary" font-size="14">About</text>
+    </g>
+  </g>
+
+  <!-- Settings Content -->
+  <g transform="translate(304, 80)">
+    <!-- Appearance Section -->
+    <text x="0" y="16" class="text-primary" font-size="18" font-weight="600">Appearance</text>
+    <text x="0" y="40" class="text-secondary" font-size="13">Customize the look and feel of the application</text>
+
+    <!-- Theme Selector -->
+    <text x="0" y="80" class="text-primary" font-size="14" font-weight="500">Theme</text>
+
+    <g transform="translate(0, 96)">
+      <!-- Dark Theme - Selected -->
+      <rect width="156" height="80" rx="12" class="bg-primary"/>
+      <rect width="156" height="80" rx="12" class="border-accent"/>
+      <rect x="12" y="12" width="132" height="32" rx="4" class="bg-secondary"/>
+      <text x="78" y="66" class="text-primary" font-size="13" font-weight="500" text-anchor="middle">Dark</text>
+      <circle cx="136" cy="62" r="10" class="accent-primary"/>
+      <text x="136" y="67" class="text-primary" font-size="10" text-anchor="middle">✓</text>
+
+      <!-- Light Theme -->
+      <g transform="translate(172, 0)">
+        <rect width="156" height="80" rx="12" class="bg-light"/>
+        <rect width="156" height="80" rx="12" stroke="#d0d7de" fill="none"/>
+        <rect x="12" y="12" width="132" height="32" rx="4" fill="#ffffff"/>
+        <text x="78" y="66" class="text-dark" font-size="13" font-weight="500" text-anchor="middle">Light</text>
+      </g>
+
+      <!-- System Theme -->
+      <g transform="translate(344, 0)">
+        <rect width="156" height="80" rx="12" fill="url(#systemGradient)"/>
+        <rect width="156" height="80" rx="12" class="border"/>
+        <text x="78" y="66" class="text-secondary" font-size="13" font-weight="500" text-anchor="middle">System</text>
+      </g>
+    </g>
+
+    <!-- Pricing Section -->
+    <text x="0" y="216" class="text-primary" font-size="18" font-weight="600">Pricing Configuration</text>
+    <text x="0" y="240" class="text-secondary" font-size="13">Configure custom pricing rates for cost estimation</text>
+
+    <!-- Pricing Table -->
+    <g transform="translate(0, 260)">
+      <rect width="700" height="240" rx="12" class="bg-secondary"/>
+      <rect width="700" height="240" rx="12" class="border"/>
+
+      <!-- Header -->
+      <rect width="700" height="48" rx="12" class="bg-tertiary"/>
+      <text x="24" y="30" class="text-primary" font-size="13" font-weight="600">Resource</text>
+      <text x="200" y="30" class="text-primary" font-size="13" font-weight="600">AWS</text>
+      <text x="320" y="30" class="text-primary" font-size="13" font-weight="600">Azure</text>
+      <text x="440" y="30" class="text-primary" font-size="13" font-weight="600">GCP</text>
+      <text x="560" y="30" class="text-primary" font-size="13" font-weight="600">On-Prem</text>
+
+      <!-- vCPU Row -->
+      <line x1="0" y1="104" x2="700" y2="104" stroke="#30363d"/>
+      <text x="24" y="82" class="text-primary" font-size="13">vCPU / hour</text>
+      <rect x="180" y="58" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="180" y="58" width="80" height="36" rx="6" class="border"/>
+      <text x="192" y="82" class="text-primary" font-size="13">$0.048</text>
+      <rect x="300" y="58" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="300" y="58" width="80" height="36" rx="6" class="border"/>
+      <text x="312" y="82" class="text-primary" font-size="13">$0.052</text>
+      <rect x="420" y="58" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="420" y="58" width="80" height="36" rx="6" class="border"/>
+      <text x="432" y="82" class="text-primary" font-size="13">$0.050</text>
+      <rect x="540" y="58" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="540" y="58" width="80" height="36" rx="6" class="border"/>
+      <text x="552" y="82" class="text-primary" font-size="13">$0.035</text>
+
+      <!-- Memory Row -->
+      <line x1="0" y1="160" x2="700" y2="160" stroke="#30363d"/>
+      <text x="24" y="138" class="text-primary" font-size="13">GB RAM / hour</text>
+      <rect x="180" y="114" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="180" y="114" width="80" height="36" rx="6" class="border"/>
+      <text x="192" y="138" class="text-primary" font-size="13">$0.006</text>
+      <rect x="300" y="114" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="300" y="114" width="80" height="36" rx="6" class="border"/>
+      <text x="312" y="138" class="text-primary" font-size="13">$0.007</text>
+      <rect x="420" y="114" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="420" y="114" width="80" height="36" rx="6" class="border"/>
+      <text x="432" y="138" class="text-primary" font-size="13">$0.006</text>
+      <rect x="540" y="114" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="540" y="114" width="80" height="36" rx="6" class="border"/>
+      <text x="552" y="138" class="text-primary" font-size="13">$0.004</text>
+
+      <!-- Storage Row -->
+      <text x="24" y="194" class="text-primary" font-size="13">GB Storage / month</text>
+      <rect x="180" y="170" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="180" y="170" width="80" height="36" rx="6" class="border"/>
+      <text x="192" y="194" class="text-primary" font-size="13">$0.10</text>
+      <rect x="300" y="170" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="300" y="170" width="80" height="36" rx="6" class="border"/>
+      <text x="312" y="194" class="text-primary" font-size="13">$0.12</text>
+      <rect x="420" y="170" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="420" y="170" width="80" height="36" rx="6" class="border"/>
+      <text x="432" y="194" class="text-primary" font-size="13">$0.08</text>
+      <rect x="540" y="170" width="80" height="36" rx="6" class="bg-primary"/>
+      <rect x="540" y="170" width="80" height="36" rx="6" class="border"/>
+      <text x="552" y="194" class="text-primary" font-size="13">$0.05</text>
+    </g>
+
+    <!-- Reset Defaults -->
+    <rect x="720" y="260" width="160" height="40" rx="6" class="border"/>
+    <text x="800" y="286" class="text-primary" font-size="13" text-anchor="middle">Reset to Defaults</text>
+
+    <!-- Data Management Section -->
+    <text x="0" y="536" class="text-primary" font-size="18" font-weight="600">Data Management</text>
+    <text x="0" y="560" class="text-secondary" font-size="13">Export and import your data, or reset the application</text>
+
+    <!-- Action Buttons -->
+    <g transform="translate(0, 580)">
+      <rect width="140" height="44" rx="8" class="accent-success"/>
+      <text x="70" y="28" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">↓ Export All</text>
+
+      <rect x="156" y="0" width="140" height="44" rx="8" class="border"/>
+      <text x="226" y="28" class="text-primary" font-size="14" text-anchor="middle">↑ Import Data</text>
+
+      <rect x="312" y="0" width="160" height="44" rx="8" class="border-danger"/>
+      <text x="392" y="28" class="text-danger" font-size="14" text-anchor="middle">Clear All Scenarios</text>
+
+      <rect x="488" y="0" width="120" height="44" rx="8" class="accent-danger"/>
+      <text x="548" y="28" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">Reset App</text>
+    </g>
+  </g>
+</svg>

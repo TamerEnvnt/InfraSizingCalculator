@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4 - Pricing Panel (Guest)</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Guest Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo { font-size: 20px; font-weight: 600; color: var(--accent-blue); text-decoration: none; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
+        .btn-new { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid var(--border-primary); background: var(--bg-tertiary); color: var(--text-secondary); text-decoration: none; }
+        .btn-new:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+        .auth-links { display: flex; gap: 8px; }
+        .btn-signin { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; background: transparent; color: var(--text-secondary); text-decoration: none; }
+        .btn-signup { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid var(--accent-blue); background: transparent; color: var(--accent-blue); text-decoration: none; }
+        .btn-signup:hover { background: var(--accent-blue); color: #000; }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        .dashboard-content { flex: 1; padding: 24px 32px; overflow-y: auto; opacity: 0.5; pointer-events: none; }
+        .summary-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+        .summary-card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 20px; text-align: center; }
+        .card-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+        .card-value.blue { color: var(--accent-blue); }
+        .card-value.green { color: var(--accent-green); }
+        .card-label { font-size: 13px; color: var(--text-secondary); }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .chart-card { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 24px; }
+        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+        .chart-placeholder { height: 200px; background: var(--bg-tertiary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); }
+
+        .slide-panel { width: 480px; background: var(--bg-secondary); border-left: 1px solid var(--border-primary); display: flex; flex-direction: column; }
+        .panel-header { padding: 20px 24px; border-bottom: 1px solid var(--border-primary); display: flex; justify-content: space-between; align-items: center; }
+        .panel-title { font-size: 18px; font-weight: 600; }
+        .close-btn { width: 32px; height: 32px; border-radius: 6px; border: none; background: var(--bg-tertiary); color: var(--text-secondary); cursor: pointer; font-size: 18px; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .panel-tabs { display: flex; border-bottom: 1px solid var(--border-primary); padding: 0; }
+        .panel-tab { flex: 1; padding: 12px 8px; color: var(--text-secondary); text-decoration: none; font-size: 13px; border-bottom: 2px solid transparent; text-align: center; }
+        .panel-tab:hover { color: var(--text-primary); }
+        .panel-tab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+        .panel-content { flex: 1; overflow-y: auto; padding: 24px; }
+        .panel-section { margin-bottom: 28px; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+        /* Pricing Source */
+        .pricing-source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .source-card { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 8px; padding: 16px; cursor: pointer; }
+        .source-card:hover { border-color: var(--text-tertiary); }
+        .source-card.selected { border-color: var(--accent-blue); }
+        .source-icon { font-size: 24px; margin-bottom: 8px; }
+        .source-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .source-desc { font-size: 12px; color: var(--text-secondary); }
+
+        /* Cloud Provider */
+        .provider-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .provider-card { background: var(--bg-tertiary); border: 2px solid var(--border-primary); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; }
+        .provider-card:hover { border-color: var(--text-tertiary); }
+        .provider-card.selected { border-color: var(--accent-blue); }
+        .provider-logo { font-size: 20px; margin-bottom: 4px; }
+        .provider-name { font-size: 12px; font-weight: 600; }
+
+        /* Region */
+        .region-select { width: 100%; padding: 12px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+
+        /* Currency */
+        .currency-options { display: flex; gap: 8px; }
+        .currency-btn { flex: 1; padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 6px; color: var(--text-secondary); font-size: 14px; cursor: pointer; }
+        .currency-btn.selected { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        /* Toggle */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-primary); }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-info { display: flex; flex-direction: column; gap: 2px; }
+        .toggle-label { font-size: 14px; font-weight: 500; }
+        .toggle-desc { font-size: 12px; color: var(--text-secondary); }
+        .toggle-switch { width: 44px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; position: relative; cursor: pointer; border: 1px solid var(--border-primary); }
+        .toggle-switch.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+        .toggle-switch.active::after { transform: translateX(20px); }
+
+        /* Cost Preview */
+        .cost-preview { background: var(--bg-tertiary); border-radius: 8px; padding: 16px; }
+        .cost-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-primary); font-size: 13px; }
+        .cost-row:last-child { border-bottom: none; font-size: 16px; font-weight: 600; padding-top: 12px; }
+        .cost-row span:first-child { color: var(--text-secondary); }
+        .cost-row.total span:last-child { color: var(--accent-green); }
+
+        .panel-footer { padding: 16px 24px; border-top: 1px solid var(--border-primary); display: flex; gap: 12px; }
+        .btn { flex: 1; padding: 12px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; text-align: center; text-decoration: none; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-primary); }
+        .btn-primary { background: var(--accent-blue); color: #000; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="00-landing-guest.html" class="logo">InfraSizing Calculator</a>
+        <div class="header-actions">
+            <a href="00-landing-guest.html" class="btn-new">New Scenario</a>
+            <div class="auth-links">
+                <a href="11-login.html" class="btn-signin">Sign In</a>
+                <a href="12-register.html" class="btn-signup">Sign Up</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <div class="dashboard-content">
+            <div class="summary-cards">
+                <div class="summary-card"><div class="card-value blue">12</div><div class="card-label">Nodes</div></div>
+                <div class="summary-card"><div class="card-value">96</div><div class="card-label">vCPUs</div></div>
+                <div class="summary-card"><div class="card-value">384</div><div class="card-label">GB RAM</div></div>
+                <div class="summary-card"><div class="card-value">2.4</div><div class="card-label">TB Storage</div></div>
+                <div class="summary-card"><div class="card-value green">$4,200</div><div class="card-label">Monthly</div></div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-card"><h3 class="chart-title">Node Architecture</h3><div class="chart-placeholder">[Node Grid]</div></div>
+                <div class="chart-card"><h3 class="chart-title">Cost Breakdown</h3><div class="chart-placeholder">[Pie Chart]</div></div>
+            </div>
+        </div>
+
+        <div class="slide-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Pricing Settings</h2>
+                <a href="01-results-guest.html" class="close-btn">X</a>
+            </div>
+
+            <div class="panel-tabs">
+                <a href="02-configure-guest.html" class="panel-tab">Platform</a>
+                <a href="04-apps-panel-guest.html" class="panel-tab">Apps</a>
+                <a href="05-node-specs-guest.html" class="panel-tab">Nodes</a>
+                <a href="06-pricing-panel-guest.html" class="panel-tab active">Pricing</a>
+                <a href="07-growth-panel-guest.html" class="panel-tab">Growth</a>
+            </div>
+
+            <div class="panel-content">
+                <!-- Pricing Source -->
+                <div class="panel-section">
+                    <h3 class="section-title">Pricing Source</h3>
+                    <div class="pricing-source-grid">
+                        <div class="source-card selected">
+                            <div class="source-icon">[C]</div>
+                            <div class="source-name">Cloud Pricing</div>
+                            <div class="source-desc">Use live cloud provider rates</div>
+                        </div>
+                        <div class="source-card">
+                            <div class="source-icon">[$]</div>
+                            <div class="source-name">Custom Rates</div>
+                            <div class="source-desc">Enter your own pricing</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloud Provider -->
+                <div class="panel-section">
+                    <h3 class="section-title">Cloud Provider</h3>
+                    <div class="provider-grid">
+                        <div class="provider-card selected">
+                            <div class="provider-logo">[A]</div>
+                            <div class="provider-name">Azure</div>
+                        </div>
+                        <div class="provider-card">
+                            <div class="provider-logo">[W]</div>
+                            <div class="provider-name">AWS</div>
+                        </div>
+                        <div class="provider-card">
+                            <div class="provider-logo">[G]</div>
+                            <div class="provider-name">GCP</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Region -->
+                <div class="panel-section">
+                    <h3 class="section-title">Region</h3>
+                    <select class="region-select">
+                        <option>West Europe (Netherlands)</option>
+                        <option>North Europe (Ireland)</option>
+                        <option>UK South (London)</option>
+                        <option>East US (Virginia)</option>
+                        <option>West US 2 (Washington)</option>
+                    </select>
+                </div>
+
+                <!-- Currency -->
+                <div class="panel-section">
+                    <h3 class="section-title">Currency</h3>
+                    <div class="currency-options">
+                        <button class="currency-btn selected">$ USD</button>
+                        <button class="currency-btn">EUR</button>
+                        <button class="currency-btn">GBP</button>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="panel-section">
+                    <h3 class="section-title">Pricing Options</h3>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Include Support</span>
+                            <span class="toggle-desc">Add vendor support costs</span>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Reserved Pricing</span>
+                            <span class="toggle-desc">1-year commitment discount</span>
+                        </div>
+                        <div class="toggle-switch"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Include Networking</span>
+                            <span class="toggle-desc">Egress and load balancer costs</span>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+                </div>
+
+                <!-- Cost Preview -->
+                <div class="panel-section">
+                    <h3 class="section-title">Estimated Costs</h3>
+                    <div class="cost-preview">
+                        <div class="cost-row"><span>Compute (VMs)</span><span>$2,800</span></div>
+                        <div class="cost-row"><span>Storage (SSD)</span><span>$480</span></div>
+                        <div class="cost-row"><span>Networking</span><span>$320</span></div>
+                        <div class="cost-row"><span>AKS Management</span><span>$0</span></div>
+                        <div class="cost-row"><span>Support (Business)</span><span>$600</span></div>
+                        <div class="cost-row total"><span>Monthly Total</span><span>$4,200</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <a href="00-landing-guest.html" class="btn btn-secondary">Reset</a>
+                <a href="01-results-guest.html" class="btn btn-primary">Apply Changes</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

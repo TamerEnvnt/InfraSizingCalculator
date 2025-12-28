@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Wireframes - Infrastructure Sizing Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+    }
+    .header {
+      background: #010409;
+      padding: 20px 40px;
+      border-bottom: 1px solid #30363d;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 { font-size: 24px; }
+    .header p { color: #8b949e; margin-top: 4px; font-size: 14px; }
+    .nav-bar {
+      background: #161b22;
+      padding: 12px 40px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 72px;
+      z-index: 99;
+    }
+    .nav-btn {
+      padding: 8px 16px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #8b949e;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: #58a6ff;
+      border-color: #58a6ff;
+      color: #0d1117;
+    }
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin-left: auto;
+      align-items: center;
+    }
+    .control-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .control-btn:hover { border-color: #58a6ff; }
+    .viewer {
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+    .viewer object {
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #0d1117;
+    }
+    .info-bar {
+      background: #161b22;
+      padding: 12px 40px;
+      border-top: 1px solid #30363d;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #8b949e;
+    }
+    .info-bar a { color: #58a6ff; text-decoration: none; }
+    .info-bar a:hover { text-decoration: underline; }
+    .category {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #6e7681;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>SVG Wireframes - Infrastructure Sizing Calculator</h1>
+    <p>10 vector wireframes following WIREFRAME_SPEC.md specification</p>
+  </div>
+
+  <div class="nav-bar">
+    <span class="category">Layouts:</span>
+    <a href="#" class="nav-btn active" data-src="01-layout-desktop.svg" data-w="1440" data-h="900">01 Desktop</a>
+    <a href="#" class="nav-btn" data-src="02-layout-tablet.svg" data-w="1024" data-h="800">02 Tablet</a>
+    <a href="#" class="nav-btn" data-src="03-layout-mobile.svg" data-w="375" data-h="812">03 Mobile</a>
+
+    <span class="category" style="margin-left: 16px;">Wizard:</span>
+    <a href="#" class="nav-btn" data-src="04-platform-selection.svg" data-w="1440" data-h="900">04 Platform</a>
+    <a href="#" class="nav-btn" data-src="05-applications-config.svg" data-w="1440" data-h="900">05 Applications</a>
+
+    <span class="category" style="margin-left: 16px;">Results:</span>
+    <a href="#" class="nav-btn" data-src="06-sizing-results.svg" data-w="1440" data-h="900">06 Sizing</a>
+    <a href="#" class="nav-btn" data-src="07-cost-analysis.svg" data-w="1440" data-h="900">07 Costs</a>
+    <a href="#" class="nav-btn" data-src="08-growth-planning.svg" data-w="1440" data-h="900">08 Growth</a>
+
+    <span class="category" style="margin-left: 16px;">Other:</span>
+    <a href="#" class="nav-btn" data-src="09-scenarios.svg" data-w="1440" data-h="900">09 Scenarios</a>
+    <a href="#" class="nav-btn" data-src="10-settings.svg" data-w="1440" data-h="900">10 Settings</a>
+
+    <div class="controls">
+      <button class="control-btn" id="open-new">Open in New Tab</button>
+      <button class="control-btn" id="download">Download SVG</button>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <object id="svg-frame" data="01-layout-desktop.svg" type="image/svg+xml" width="1440" height="900"></object>
+  </div>
+
+  <div class="info-bar">
+    <div>
+      <strong>Current:</strong> <span id="current-name">01-layout-desktop.svg</span>
+      | <strong>Dimensions:</strong> <span id="dimensions">1440x900</span>
+    </div>
+    <div>
+      <a href="../WIREFRAME_SPEC.md" target="_blank">View Specification</a>
+    </div>
+  </div>
+
+  <script>
+    const svgFrame = document.getElementById('svg-frame');
+    const currentName = document.getElementById('current-name');
+    const dimensions = document.getElementById('dimensions');
+    const navBtns = document.querySelectorAll('.nav-btn[data-src]');
+    let currentSrc = '01-layout-desktop.svg';
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const src = btn.dataset.src;
+        const w = btn.dataset.w;
+        const h = btn.dataset.h;
+        currentSrc = src;
+
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        svgFrame.data = src;
+        svgFrame.width = w;
+        svgFrame.height = h;
+
+        currentName.textContent = src;
+        dimensions.textContent = `${w}x${h}`;
+      });
+    });
+
+    document.getElementById('open-new').addEventListener('click', () => {
+      window.open(currentSrc, '_blank');
+    });
+
+    document.getElementById('download').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.href = currentSrc;
+      link.download = currentSrc;
+      link.click();
+    });
+  </script>
+</body>
+</html>

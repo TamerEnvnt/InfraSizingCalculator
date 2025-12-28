@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.8 Results - Growth Planning | UX Wireframes</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .growth-config {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+    .config-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    .config-row:last-child {
+      margin-bottom: 0;
+    }
+    .config-label {
+      width: 150px;
+      font-size: var(--font-sm);
+      color: var(--color-text-secondary);
+    }
+    .slider-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .slider-track {
+      flex: 1;
+      height: 8px;
+      background: var(--color-bg-tertiary);
+      border-radius: var(--radius-full);
+      position: relative;
+    }
+    .slider-fill {
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: var(--radius-full);
+      width: 50%;
+    }
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: var(--color-primary);
+      border: 3px solid var(--color-bg-primary);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+    }
+    .slider-value {
+      width: 60px;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary);
+    }
+    .horizon-buttons {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .horizon-btn {
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .horizon-btn:hover {
+      background: var(--color-bg-elevated);
+    }
+    .horizon-btn.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+    .chart-container {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-5);
+    }
+    .chart-placeholder {
+      height: 250px;
+      background: var(--color-bg-primary);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-line {
+      position: absolute;
+      bottom: 20%;
+      left: 5%;
+      right: 5%;
+      height: 60%;
+      background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) 100%);
+      clip-path: polygon(0 100%, 15% 85%, 30% 70%, 45% 55%, 60% 40%, 75% 25%, 90% 15%, 100% 5%, 100% 100%);
+      opacity: 0.2;
+    }
+    .chart-path {
+      position: absolute;
+      bottom: 20%;
+      left: 5%;
+      width: 90%;
+      height: 60%;
+      border-bottom: 3px solid var(--color-primary);
+      border-left: 3px solid var(--color-primary);
+      /* This is a simplified representation */
+    }
+    .chart-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-3);
+      font-size: var(--font-xs);
+      color: var(--color-text-muted);
+    }
+    .chart-y-axis {
+      position: absolute;
+      left: var(--space-3);
+      top: var(--space-3);
+      bottom: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: var(--font-xs);
+      color: var(--color-text-muted);
+    }
+    .milestone-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+    }
+    .milestone-card {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      text-align: center;
+      position: relative;
+    }
+    .milestone-card::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: -20px;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 10px solid var(--color-border-default);
+    }
+    .milestone-card:last-child::after {
+      display: none;
+    }
+    .milestone-label {
+      font-size: var(--font-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+    .milestone-value {
+      font-size: var(--font-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-primary);
+      margin-bottom: var(--space-1);
+    }
+    .milestone-metric {
+      font-size: var(--font-sm);
+      color: var(--color-text-secondary);
+    }
+    .insight-box {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+    }
+    .insight-icon {
+      font-size: var(--font-2xl);
+    }
+    .insight-text {
+      color: var(--color-text-secondary);
+    }
+    .insight-text strong {
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="wireframe-page">
+    <a href="index.html" class="btn btn-secondary mb-5">Back to Index</a>
+
+    <h1 class="wireframe-title">3.8 Results View - Growth Planning</h1>
+    <p class="wireframe-subtitle">Growth configuration, projection chart, and scaling milestones timeline.</p>
+
+    <div class="wireframe-container" style="padding: var(--space-6);">
+      <!-- Results Tabs -->
+      <div class="tabs">
+        <div class="tab">Overview</div>
+        <div class="tab">Costs</div>
+        <div class="tab active">Growth</div>
+      </div>
+
+      <h2 style="font-size: var(--font-2xl); margin-bottom: var(--space-5);">Growth Planning</h2>
+      <p class="text-muted mb-5">Plan your infrastructure scaling over time</p>
+
+      <!-- Growth Configuration -->
+      <div class="growth-config">
+        <h3 class="card-title mb-4">Growth Configuration</h3>
+
+        <div class="config-row">
+          <span class="config-label">Annual Growth Rate:</span>
+          <div class="slider-container">
+            <div class="slider-track">
+              <div class="slider-fill"></div>
+              <div class="slider-thumb"></div>
+            </div>
+            <span class="slider-value">25%</span>
+          </div>
+        </div>
+
+        <div class="config-row">
+          <span class="config-label">Planning Horizon:</span>
+          <div class="horizon-buttons">
+            <button class="horizon-btn">1yr</button>
+            <button class="horizon-btn">2yr</button>
+            <button class="horizon-btn active">3yr</button>
+            <button class="horizon-btn">5yr</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projection Chart -->
+      <div class="chart-container">
+        <h3 class="card-title mb-4">Growth Projection Chart</h3>
+
+        <div class="chart-placeholder">
+          <div class="chart-y-axis">
+            <span>30</span>
+            <span>25</span>
+            <span>20</span>
+            <span>15</span>
+            <span>12</span>
+          </div>
+          <div class="chart-line"></div>
+          <!-- Simplified chart representation -->
+          <svg style="position: absolute; width: 100%; height: 100%;" viewBox="0 0 400 200" preserveAspectRatio="none">
+            <polyline
+              points="40,160 80,145 120,130 160,115 200,100 240,85 280,70 320,55 360,40"
+              fill="none"
+              stroke="#58a6ff"
+              stroke-width="3"
+            />
+            <circle cx="40" cy="160" r="6" fill="#58a6ff"/>
+          </svg>
+        </div>
+        <div class="chart-labels">
+          <span>Now</span>
+          <span>Q1</span>
+          <span>Q2</span>
+          <span>Q3</span>
+          <span>Q4</span>
+          <span>Y2</span>
+          <span>Y2</span>
+          <span>Y2</span>
+          <span>Y3</span>
+        </div>
+      </div>
+
+      <!-- Scaling Milestones -->
+      <h3 class="card-title mb-4">Scaling Milestones</h3>
+      <div class="milestone-grid mb-5">
+        <div class="milestone-card">
+          <div class="milestone-label">TODAY</div>
+          <div class="milestone-value">12</div>
+          <div class="milestone-metric">nodes</div>
+          <div class="text-sm text-muted mt-3">30 apps</div>
+          <div class="text-sm" style="color: var(--color-primary);">$4,200/mo</div>
+        </div>
+        <div class="milestone-card">
+          <div class="milestone-label">YEAR 1</div>
+          <div class="milestone-value">15</div>
+          <div class="milestone-metric">nodes</div>
+          <div class="text-sm text-muted mt-3">38 apps</div>
+          <div class="text-sm" style="color: var(--color-primary);">$5,300/mo</div>
+        </div>
+        <div class="milestone-card">
+          <div class="milestone-label">YEAR 3</div>
+          <div class="milestone-value">24</div>
+          <div class="milestone-metric">nodes</div>
+          <div class="text-sm text-muted mt-3">59 apps</div>
+          <div class="text-sm" style="color: var(--color-primary);">$8,400/mo</div>
+        </div>
+      </div>
+
+      <!-- Insight Box -->
+      <div class="insight-box">
+        <span class="insight-icon">Insight</span>
+        <div class="insight-text">
+          <strong>Plan to add 4 worker nodes by end of Year 1</strong> to maintain 20% headroom with projected growth.
+          Consider scheduling infrastructure reviews quarterly to adjust projections based on actual growth.
+        </div>
+      </div>
+    </div>
+
+    <!-- Component Specifications -->
+    <div class="card mt-6">
+      <h3 class="card-title">Growth Planning Components</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Interaction</th>
+            <th>Updates</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Growth Rate Slider</td>
+            <td>Drag to adjust (5%-100%)</td>
+            <td>Recalculates chart and milestones</td>
+          </tr>
+          <tr>
+            <td>Horizon Buttons</td>
+            <td>Click to select period</td>
+            <td>Changes chart X-axis range</td>
+          </tr>
+          <tr>
+            <td>Projection Chart</td>
+            <td>Hover for data points</td>
+            <td>Animated on parameter change</td>
+          </tr>
+          <tr>
+            <td>Milestone Cards</td>
+            <td>Static display</td>
+            <td>Updates based on horizon selection</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4 - Dashboard with Growth Panel</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-purple: #a371f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Fixed Height SPA Layout - Header/Footer always visible */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header - Always visible at top */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 20px; font-weight: 600; color: var(--accent-blue); text-decoration: none; }
+
+        a.nav-btn, a.btn, a.close-btn { text-decoration: none; }
+        .header-nav { display: flex; gap: 8px; }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+        .dashboard-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+        .card-value.blue { color: var(--accent-blue); }
+        .card-value.green { color: var(--accent-green); }
+        .card-label { font-size: 13px; color: var(--text-secondary); }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+        .chart-placeholder {
+            height: 200px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+        }
+
+        /* Panel */
+        .slide-panel {
+            width: 480px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title { font-size: 18px; font-weight: 600; }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .panel-content { flex: 1; overflow-y: auto; padding: 24px; }
+        .panel-section { margin-bottom: 28px; }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        /* Growth Rate */
+        .growth-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .growth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .growth-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .growth-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .growth-slider {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .slider-input {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, var(--accent-green) 0%, var(--accent-orange) 50%, var(--accent-blue) 100%);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* Timeline */
+        .timeline-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .timeline-btn {
+            padding: 10px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .timeline-btn.selected {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        /* Growth Chart Preview */
+        .growth-chart {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            height: 180px;
+            position: relative;
+        }
+
+        .chart-line {
+            position: absolute;
+            bottom: 40px;
+            left: 16px;
+            right: 16px;
+            height: 100px;
+            border-left: 1px solid var(--border-primary);
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .chart-bars {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 0 20px;
+        }
+
+        .chart-bar {
+            width: 40px;
+            background: var(--accent-blue);
+            border-radius: 4px 4px 0 0;
+            opacity: 0.8;
+        }
+
+        .chart-labels {
+            position: absolute;
+            bottom: 8px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        /* Projection Table */
+        .projection-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .projection-table th,
+        .projection-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-primary);
+            font-size: 13px;
+        }
+
+        .projection-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .projection-table td:last-child {
+            text-align: right;
+        }
+
+        .projection-table tr:last-child td {
+            border-bottom: none;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .change-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .change-up {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+        }
+
+        /* Alerts */
+        .alert-card {
+            background: rgba(240, 136, 62, 0.1);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+            color: var(--accent-orange);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .panel-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-primary { background: var(--accent-blue); color: #000; }
+
+        /* Action Bar - Always visible at bottom */
+        .action-bar {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 64px;
+        }
+
+        .action-info { color: var(--text-secondary); font-size: 13px; }
+        .action-buttons { display: flex; gap: 12px; }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .action-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .action-btn-primary { background: var(--accent-blue); color: #000; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="00-landing.html" class="logo">InfraSizing Calculator</a>
+        <nav class="header-nav">
+            <a href="02-dashboard-with-panel.html" class="nav-btn active">New Scenario</a>
+            <a href="08-scenarios.html" class="nav-btn">Scenarios</a>
+            <a href="10-settings.html" class="nav-btn">[@]</a>
+        </nav>
+    </header>
+
+    <div class="main-layout">
+        <div class="dashboard-content">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-value blue">12</div>
+                    <div class="card-label">Nodes</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">96</div>
+                    <div class="card-label">vCPUs</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">384</div>
+                    <div class="card-label">GB RAM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">2.4</div>
+                    <div class="card-label">TB Storage</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value green">$4,200</div>
+                    <div class="card-label">Monthly</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Node Architecture</h3>
+                    <div class="chart-placeholder">[Node Grid]</div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Cost Breakdown</h3>
+                    <div class="chart-placeholder">[Pie Chart]</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Growth Planning</h2>
+                <a href="01-dashboard.html" class="close-btn">X</a>
+            </div>
+
+            <!-- Panel Tabs -->
+            <div class="panel-tabs" style="display: flex; border-bottom: 1px solid var(--border-primary); padding: 0 16px;">
+                <a href="02-dashboard-with-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Platform</a>
+                <a href="04-apps-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Apps</a>
+                <a href="05-node-specs-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Nodes</a>
+                <a href="06-pricing-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Pricing</a>
+                <a href="07-growth-panel.html" style="padding: 12px 16px; color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); text-decoration: none; font-size: 13px;">Growth</a>
+            </div>
+
+            <div class="panel-content">
+                <!-- Growth Rate -->
+                <div class="panel-section">
+                    <h3 class="section-title">Annual Growth Rate</h3>
+                    <div class="growth-card">
+                        <div class="growth-header">
+                            <div>
+                                <div class="growth-value">25%</div>
+                                <div class="growth-label">per year</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 14px; color: var(--text-secondary);">+6 apps</div>
+                                <div style="font-size: 12px; color: var(--text-tertiary);">yearly</div>
+                            </div>
+                        </div>
+                        <div class="growth-slider">
+                            <input type="range" class="slider-input" min="0" max="100" value="25">
+                        </div>
+                        <div class="slider-labels">
+                            <span>0%</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span>75%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="panel-section">
+                    <h3 class="section-title">Planning Horizon</h3>
+                    <div class="timeline-options">
+                        <button class="timeline-btn">1 Year</button>
+                        <button class="timeline-btn selected">2 Years</button>
+                        <button class="timeline-btn">3 Years</button>
+                        <button class="timeline-btn">5 Years</button>
+                    </div>
+                </div>
+
+                <!-- Growth Chart -->
+                <div class="panel-section">
+                    <h3 class="section-title">Projected Growth</h3>
+                    <div class="growth-chart">
+                        <div class="chart-line">
+                            <div class="chart-bars">
+                                <div class="chart-bar" style="height: 40%;"></div>
+                                <div class="chart-bar" style="height: 55%;"></div>
+                                <div class="chart-bar" style="height: 70%;"></div>
+                                <div class="chart-bar" style="height: 88%;"></div>
+                                <div class="chart-bar" style="height: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="chart-labels">
+                            <span>Now</span>
+                            <span>6mo</span>
+                            <span>1yr</span>
+                            <span>18mo</span>
+                            <span>2yr</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projections -->
+                <div class="panel-section">
+                    <h3 class="section-title">Resource Projections</h3>
+                    <table class="projection-table">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Now</th>
+                            <th>2 Years</th>
+                        </tr>
+                        <tr>
+                            <td>Applications</td>
+                            <td>24</td>
+                            <td>38 <span class="change-indicator change-up">+58%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Nodes</td>
+                            <td>12</td>
+                            <td>18 <span class="change-indicator change-up">+50%</span></td>
+                        </tr>
+                        <tr>
+                            <td>vCPUs</td>
+                            <td>96</td>
+                            <td>144 <span class="change-indicator change-up">+50%</span></td>
+                        </tr>
+                        <tr>
+                            <td>RAM (GB)</td>
+                            <td>384</td>
+                            <td>576 <span class="change-indicator change-up">+50%</span></td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Cost</td>
+                            <td>$4,200</td>
+                            <td>$6,300</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Alert -->
+                <div class="panel-section">
+                    <div class="alert-card">
+                        <div class="alert-icon">[!]</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Capacity Planning Note</div>
+                            <div class="alert-desc">
+                                At 25% growth, you'll need to add 6 worker nodes
+                                within 18 months to maintain performance.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <button class="btn btn-secondary">Reset</button>
+                <a href="01-dashboard.html" class="btn btn-primary">Apply Growth Plan</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="action-bar">
+        <div class="action-info">Planning for 25% annual growth over 2 years</div>
+        <div class="action-buttons">
+            <button class="action-btn action-btn-secondary">Save Scenario</button>
+            <button class="action-btn action-btn-secondary">Compare</button>
+            <button class="action-btn action-btn-primary">Export</button>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infrastructure Sizing Calculator - Wireframes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #010409;
+      padding: 20px 40px;
+      border-bottom: 1px solid #30363d;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header p {
+      color: #8b949e;
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .nav-bar {
+      background: #161b22;
+      padding: 12px 40px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 72px;
+      z-index: 99;
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #8b949e;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: #58a6ff;
+      border-color: #58a6ff;
+      color: #0d1117;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin-left: auto;
+      align-items: center;
+    }
+
+    .control-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .control-btn:hover {
+      border-color: #58a6ff;
+    }
+
+    .viewer {
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    iframe {
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #0d1117;
+    }
+
+    .scale-50 iframe {
+      transform: scale(0.5);
+      transform-origin: top left;
+    }
+
+    .scale-75 iframe {
+      transform: scale(0.75);
+      transform-origin: top left;
+    }
+
+    .info-bar {
+      background: #161b22;
+      padding: 12px 40px;
+      border-top: 1px solid #30363d;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #8b949e;
+    }
+
+    .info-bar a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    .info-bar a:hover {
+      text-decoration: underline;
+    }
+
+    .category {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #6e7681;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Infrastructure Sizing Calculator - Wireframes</h1>
+    <p>10 screens following WIREFRAME_SPEC.md specification</p>
+  </div>
+
+  <div class="nav-bar">
+    <span class="category">Layouts:</span>
+    <a href="#" class="nav-btn active" data-src="01-layout-desktop.html">01 Desktop</a>
+    <a href="#" class="nav-btn" data-src="02-layout-tablet.html">02 Tablet</a>
+    <a href="#" class="nav-btn" data-src="03-layout-mobile.html">03 Mobile</a>
+
+    <span class="category" style="margin-left: 16px;">Wizard:</span>
+    <a href="#" class="nav-btn" data-src="04-platform-selection.html">04 Platform</a>
+    <a href="#" class="nav-btn" data-src="05-applications-config.html">05 Applications</a>
+
+    <span class="category" style="margin-left: 16px;">Results:</span>
+    <a href="#" class="nav-btn" data-src="06-sizing-results.html">06 Sizing</a>
+    <a href="#" class="nav-btn" data-src="07-cost-analysis.html">07 Costs</a>
+    <a href="#" class="nav-btn" data-src="08-growth-planning.html">08 Growth</a>
+
+    <span class="category" style="margin-left: 16px;">Other:</span>
+    <a href="#" class="nav-btn" data-src="09-scenarios.html">09 Scenarios</a>
+    <a href="#" class="nav-btn" data-src="10-settings.html">10 Settings</a>
+
+    <div class="controls">
+      <button class="control-btn" id="scale-toggle">Scale: 100%</button>
+      <button class="control-btn" id="open-new">Open in New Tab</button>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <iframe id="wireframe" src="01-layout-desktop.html" width="1440" height="900" scrolling="no"></iframe>
+  </div>
+
+  <div class="info-bar">
+    <div>
+      <strong>Current:</strong> <span id="current-name">01-layout-desktop.html</span>
+      | <strong>Dimensions:</strong> <span id="dimensions">1440x900</span>
+    </div>
+    <div>
+      <a href="../WIREFRAME_SPEC.md" target="_blank">View Specification</a>
+    </div>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('wireframe');
+    const viewer = document.getElementById('viewer');
+    const currentName = document.getElementById('current-name');
+    const dimensions = document.getElementById('dimensions');
+    const navBtns = document.querySelectorAll('.nav-btn[data-src]');
+    const scaleToggle = document.getElementById('scale-toggle');
+    const openNew = document.getElementById('open-new');
+
+    const screenSizes = {
+      '01-layout-desktop.html': { w: 1440, h: 900 },
+      '02-layout-tablet.html': { w: 1024, h: 800 },
+      '03-layout-mobile.html': { w: 375, h: 812 },
+      '04-platform-selection.html': { w: 1440, h: 900 },
+      '05-applications-config.html': { w: 1440, h: 900 },
+      '06-sizing-results.html': { w: 1440, h: 900 },
+      '07-cost-analysis.html': { w: 1440, h: 900 },
+      '08-growth-planning.html': { w: 1440, h: 900 },
+      '09-scenarios.html': { w: 1440, h: 900 },
+      '10-settings.html': { w: 1440, h: 900 }
+    };
+
+    let currentScale = 100;
+    let currentSrc = '01-layout-desktop.html';
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const src = btn.dataset.src;
+        currentSrc = src;
+
+        // Update active state
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update iframe
+        const size = screenSizes[src];
+        iframe.src = src;
+        iframe.width = size.w;
+        iframe.height = size.h;
+
+        // Update info
+        currentName.textContent = src;
+        dimensions.textContent = `${size.w}x${size.h}`;
+      });
+    });
+
+    scaleToggle.addEventListener('click', () => {
+      currentScale = currentScale === 100 ? 75 : currentScale === 75 ? 50 : 100;
+      scaleToggle.textContent = `Scale: ${currentScale}%`;
+
+      viewer.classList.remove('scale-50', 'scale-75');
+      if (currentScale === 50) viewer.classList.add('scale-50');
+      if (currentScale === 75) viewer.classList.add('scale-75');
+    });
+
+    openNew.addEventListener('click', () => {
+      window.open(currentSrc, '_blank');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1440">
+  <title>07 - Cost Analysis</title>
+  <link rel="stylesheet" href="wireframe-tokens.css">
+</head>
+<body>
+  <div class="wireframe-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <div class="header-logo-icon">ISC</div>
+        <span class="header-title">Infrastructure Sizing Calculator</span>
+      </div>
+      <div class="header-actions">
+        <div class="header-icon" title="Theme">T</div>
+        <div class="header-icon" title="Settings">S</div>
+        <div class="header-avatar"></div>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="progress-dots">
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Wizard Steps</div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Platform</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Technology</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Distribution</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Applications</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Pricing</span>
+          </div>
+        </div>
+
+        <div class="sidebar-results">
+          <div class="sidebar-section-title">Results</div>
+          <a href="#" class="result-link">Sizing</a>
+          <a href="#" class="result-link" style="background: var(--bg-tertiary); color: var(--text-primary);">Costs</a>
+          <a href="#" class="result-link">Growth</a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="content-header">
+          <h1 class="content-title">Cost Analysis</h1>
+          <div class="tabs">
+            <div class="tab active">On-Prem</div>
+            <div class="tab">AWS</div>
+            <div class="tab">Azure</div>
+            <div class="tab">GCP</div>
+            <div class="tab" style="border-left: 1px solid var(--border-default); margin-left: 16px; padding-left: 20px;">Compare All</div>
+          </div>
+        </div>
+
+        <div class="content-body">
+          <!-- Monthly Cost Breakdown Chart -->
+          <div class="cost-chart">
+            <h3 style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">MONTHLY COST BREAKDOWN</h3>
+
+            <div class="chart-bar">
+              <div class="chart-label">Compute</div>
+              <div class="chart-track">
+                <div class="chart-fill" style="width: 76%;"></div>
+              </div>
+              <div class="chart-value">$3,200 (76%)</div>
+            </div>
+
+            <div class="chart-bar">
+              <div class="chart-label">Storage</div>
+              <div class="chart-track">
+                <div class="chart-fill" style="width: 19%; background: var(--accent-green);"></div>
+              </div>
+              <div class="chart-value">$800 (19%)</div>
+            </div>
+
+            <div class="chart-bar">
+              <div class="chart-label">Licensing</div>
+              <div class="chart-track">
+                <div class="chart-fill" style="width: 5%; background: var(--accent-purple);"></div>
+              </div>
+              <div class="chart-value">$200 (5%)</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-default);">
+              <div>
+                <span style="color: var(--text-muted);">TOTAL:</span>
+                <span style="font-size: 24px; font-weight: 600; color: var(--accent-blue); margin-left: 8px;">$4,200/month</span>
+                <span style="color: var(--text-secondary); margin-left: 8px;">($50,400/year)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cloud Provider Comparison Table -->
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Monthly</th>
+                <th>vs On-Prem</th>
+                <th>3-Year TCO</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>On-Premises</strong></td>
+                <td>$4,200</td>
+                <td>--</td>
+                <td>$151,200</td>
+              </tr>
+              <tr>
+                <td>AWS EKS</td>
+                <td>$5,100</td>
+                <td class="negative">+21%</td>
+                <td>$183,600</td>
+              </tr>
+              <tr>
+                <td>Azure AKS</td>
+                <td>$4,800</td>
+                <td class="negative">+14%</td>
+                <td>$172,800</td>
+              </tr>
+              <tr style="background: rgba(63, 185, 80, 0.1);">
+                <td>Google GKE</td>
+                <td>$4,600</td>
+                <td class="negative">+10%</td>
+                <td><span class="highlight">$165,600</span> <span style="font-size: 12px; color: var(--accent-green);">Lowest</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-secondary">Back to Sizing</button>
+          <div class="nav-dots">
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+          </div>
+          <button class="btn btn-primary">View Growth</button>
+        </div>
+      </main>
+
+      <!-- Context Panel -->
+      <aside class="context-panel">
+        <h2 class="panel-header">Quick Summary</h2>
+
+        <div class="stat-card">
+          <div class="stat-label">Platform</div>
+          <div class="stat-value">Kubernetes</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total Nodes</div>
+          <div class="stat-value">12</div>
+          <div class="stat-subtext">+2 HA</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total vCPUs</div>
+          <div class="stat-value">96</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total RAM</div>
+          <div class="stat-value">384 GB</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Monthly Cost</div>
+          <div class="stat-value">$4,200</div>
+          <div class="stat-subtext">/month</div>
+        </div>
+
+        <div class="quick-actions">
+          <div class="quick-actions-title">Quick Actions</div>
+          <button class="action-btn primary">Save Scenario</button>
+          <button class="action-btn secondary">Export</button>
+          <button class="action-btn secondary">Share</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

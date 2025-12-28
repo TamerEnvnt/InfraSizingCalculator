@@ -1,0 +1,382 @@
+{
+  "name": "10 - Settings Page",
+  "description": "Application settings with theme, pricing, and data management",
+  "viewport": { "width": 1200, "height": 900 },
+  "artboard": {
+    "background": "#0d1117"
+  },
+
+  "frames": [
+    {
+      "name": "Settings Header",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 80,
+      "children": [
+        { "name": "Title", "type": "TEXT", "x": 0, "y": 0, "text": "Settings", "fontSize": 24, "fontWeight": 600, "color": "#f0f6fc" },
+        { "name": "Description", "type": "TEXT", "x": 0, "y": 36, "text": "Configure application preferences and pricing data", "fontSize": 14, "color": "#8b949e" }
+      ]
+    },
+
+    {
+      "name": "Settings Nav",
+      "type": "FRAME",
+      "x": 0,
+      "y": 96,
+      "width": 280,
+      "height": 500,
+      "children": [
+        {
+          "name": "Nav Items",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 260,
+          "height": 220,
+          "children": [
+            {
+              "name": "Appearance Nav",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 260,
+              "height": 48,
+              "cornerRadius": 8,
+              "fills": [{ "type": "SOLID", "color": "#21262d" }],
+              "children": [
+                { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "🎨", "fontSize": 18 },
+                { "name": "Label", "type": "TEXT", "x": 48, "y": 14, "text": "Appearance", "fontSize": 14, "fontWeight": 500, "color": "#58a6ff" }
+              ]
+            },
+            {
+              "name": "Pricing Nav",
+              "type": "FRAME",
+              "x": 0,
+              "y": 56,
+              "width": 260,
+              "height": 48,
+              "cornerRadius": 8,
+              "children": [
+                { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "💰", "fontSize": 18 },
+                { "name": "Label", "type": "TEXT", "x": 48, "y": 14, "text": "Pricing Configuration", "fontSize": 14, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "Data Nav",
+              "type": "FRAME",
+              "x": 0,
+              "y": 112,
+              "width": 260,
+              "height": 48,
+              "cornerRadius": 8,
+              "children": [
+                { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "💾", "fontSize": 18 },
+                { "name": "Label", "type": "TEXT", "x": 48, "y": 14, "text": "Data Management", "fontSize": 14, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "About Nav",
+              "type": "FRAME",
+              "x": 0,
+              "y": 168,
+              "width": 260,
+              "height": 48,
+              "cornerRadius": 8,
+              "children": [
+                { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "ℹ️", "fontSize": 18 },
+                { "name": "Label", "type": "TEXT", "x": 48, "y": 14, "text": "About", "fontSize": 14, "color": "#f0f6fc" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Settings Content",
+      "type": "FRAME",
+      "x": 304,
+      "y": 96,
+      "width": 896,
+      "height": 700,
+      "children": [
+        {
+          "name": "Appearance Section",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 896,
+          "height": 200,
+          "children": [
+            { "name": "Section Title", "type": "TEXT", "x": 0, "y": 0, "text": "Appearance", "fontSize": 18, "fontWeight": 600, "color": "#f0f6fc" },
+            { "name": "Section Desc", "type": "TEXT", "x": 0, "y": 28, "text": "Customize the look and feel of the application", "fontSize": 13, "color": "#8b949e" },
+
+            {
+              "name": "Theme Selector",
+              "type": "FRAME",
+              "x": 0,
+              "y": 64,
+              "width": 896,
+              "height": 120,
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 0, "y": 0, "text": "Theme", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+
+                {
+                  "name": "Theme Cards",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 32,
+                  "width": 500,
+                  "height": 80,
+                  "layoutMode": "HORIZONTAL",
+                  "itemSpacing": 16,
+                  "children": [
+                    {
+                      "name": "Dark Theme Card",
+                      "type": "FRAME",
+                      "width": 156,
+                      "height": 80,
+                      "cornerRadius": 12,
+                      "fills": [{ "type": "SOLID", "color": "#0d1117" }],
+                      "stroke": { "color": "#58a6ff", "width": 2 },
+                      "children": [
+                        { "name": "Preview", "type": "FRAME", "x": 12, "y": 12, "width": 132, "height": 32, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#161b22"}] },
+                        { "name": "Label", "type": "TEXT", "x": 48, "y": 54, "text": "Dark", "fontSize": 13, "fontWeight": 500, "color": "#f0f6fc" },
+                        { "name": "Check", "type": "FRAME", "x": 120, "y": 52, "width": 20, "height": 20, "cornerRadius": 10, "fills": [{"type": "SOLID", "color": "#58a6ff"}], "children": [{ "name": "Icon", "type": "TEXT", "x": 4, "y": 2, "text": "✓", "fontSize": 10, "color": "#ffffff" }] }
+                      ]
+                    },
+                    {
+                      "name": "Light Theme Card",
+                      "type": "FRAME",
+                      "width": 156,
+                      "height": 80,
+                      "cornerRadius": 12,
+                      "fills": [{ "type": "SOLID", "color": "#f6f8fa" }],
+                      "stroke": { "color": "#d0d7de", "width": 1 },
+                      "children": [
+                        { "name": "Preview", "type": "FRAME", "x": 12, "y": 12, "width": 132, "height": 32, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#ffffff"}] },
+                        { "name": "Label", "type": "TEXT", "x": 48, "y": 54, "text": "Light", "fontSize": 13, "fontWeight": 500, "color": "#24292f" }
+                      ]
+                    },
+                    {
+                      "name": "System Theme Card",
+                      "type": "FRAME",
+                      "width": 156,
+                      "height": 80,
+                      "cornerRadius": 12,
+                      "fills": [{ "type": "GRADIENT_LINEAR", "colors": ["#0d1117", "#f6f8fa"] }],
+                      "stroke": { "color": "#30363d", "width": 1 },
+                      "children": [
+                        { "name": "Label", "type": "TEXT", "x": 40, "y": 54, "text": "System", "fontSize": 13, "fontWeight": 500, "color": "#8b949e" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+
+        {
+          "name": "Pricing Section",
+          "type": "FRAME",
+          "x": 0,
+          "y": 220,
+          "width": 896,
+          "height": 320,
+          "children": [
+            { "name": "Section Title", "type": "TEXT", "x": 0, "y": 0, "text": "Pricing Configuration", "fontSize": 18, "fontWeight": 600, "color": "#f0f6fc" },
+            { "name": "Section Desc", "type": "TEXT", "x": 0, "y": 28, "text": "Configure custom pricing rates for cost estimation", "fontSize": 13, "color": "#8b949e" },
+
+            {
+              "name": "Pricing Table",
+              "type": "FRAME",
+              "x": 0,
+              "y": 64,
+              "width": 700,
+              "height": 240,
+              "cornerRadius": 12,
+              "fills": [{ "type": "SOLID", "color": "#161b22" }],
+              "stroke": { "color": "#30363d", "width": 1 },
+              "children": [
+                {
+                  "name": "Table Header",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 0,
+                  "width": 700,
+                  "height": 48,
+                  "fills": [{ "type": "SOLID", "color": "#21262d" }],
+                  "cornerRadius": { "topLeft": 12, "topRight": 12 },
+                  "children": [
+                    { "name": "Resource Col", "type": "TEXT", "x": 24, "y": 14, "text": "Resource", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                    { "name": "AWS Col", "type": "TEXT", "x": 200, "y": 14, "text": "AWS", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                    { "name": "Azure Col", "type": "TEXT", "x": 320, "y": 14, "text": "Azure", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                    { "name": "GCP Col", "type": "TEXT", "x": 440, "y": 14, "text": "GCP", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                    { "name": "OnPrem Col", "type": "TEXT", "x": 560, "y": 14, "text": "On-Prem", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" }
+                  ]
+                },
+
+                {
+                  "name": "vCPU Row",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 48,
+                  "width": 700,
+                  "height": 56,
+                  "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+                  "children": [
+                    { "name": "Label", "type": "TEXT", "x": 24, "y": 18, "text": "vCPU / hour", "fontSize": 13, "color": "#f0f6fc" },
+                    { "name": "AWS Input", "type": "FRAME", "x": 180, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.048", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "Azure Input", "type": "FRAME", "x": 300, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.052", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "GCP Input", "type": "FRAME", "x": 420, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.050", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "OnPrem Input", "type": "FRAME", "x": 540, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.035", "fontSize": 13, "color": "#f0f6fc" }] }
+                  ]
+                },
+
+                {
+                  "name": "Memory Row",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 104,
+                  "width": 700,
+                  "height": 56,
+                  "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+                  "children": [
+                    { "name": "Label", "type": "TEXT", "x": 24, "y": 18, "text": "GB RAM / hour", "fontSize": 13, "color": "#f0f6fc" },
+                    { "name": "AWS Input", "type": "FRAME", "x": 180, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.006", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "Azure Input", "type": "FRAME", "x": 300, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.007", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "GCP Input", "type": "FRAME", "x": 420, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.006", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "OnPrem Input", "type": "FRAME", "x": 540, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.004", "fontSize": 13, "color": "#f0f6fc" }] }
+                  ]
+                },
+
+                {
+                  "name": "Storage Row",
+                  "type": "FRAME",
+                  "x": 0,
+                  "y": 160,
+                  "width": 700,
+                  "height": 56,
+                  "children": [
+                    { "name": "Label", "type": "TEXT", "x": 24, "y": 18, "text": "GB Storage / month", "fontSize": 13, "color": "#f0f6fc" },
+                    { "name": "AWS Input", "type": "FRAME", "x": 180, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.10", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "Azure Input", "type": "FRAME", "x": 300, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.12", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "GCP Input", "type": "FRAME", "x": 420, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.08", "fontSize": 13, "color": "#f0f6fc" }] },
+                    { "name": "OnPrem Input", "type": "FRAME", "x": 540, "y": 10, "width": 80, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#0d1117"}], "stroke": {"color": "#30363d", "width": 1}, "children": [{ "name": "Value", "type": "TEXT", "x": 12, "y": 8, "text": "$0.05", "fontSize": 13, "color": "#f0f6fc" }] }
+                  ]
+                }
+              ]
+            },
+
+            {
+              "name": "Reset Defaults Btn",
+              "type": "FRAME",
+              "x": 720,
+              "y": 64,
+              "width": 160,
+              "height": 40,
+              "cornerRadius": 6,
+              "stroke": { "color": "#30363d", "width": 1 },
+              "fills": [],
+              "children": [
+                { "name": "Text", "type": "TEXT", "x": 20, "y": 10, "text": "Reset to Defaults", "fontSize": 13, "color": "#f0f6fc" }
+              ]
+            }
+          ]
+        },
+
+        {
+          "name": "Data Management Section",
+          "type": "FRAME",
+          "x": 0,
+          "y": 560,
+          "width": 896,
+          "height": 140,
+          "children": [
+            { "name": "Section Title", "type": "TEXT", "x": 0, "y": 0, "text": "Data Management", "fontSize": 18, "fontWeight": 600, "color": "#f0f6fc" },
+            { "name": "Section Desc", "type": "TEXT", "x": 0, "y": 28, "text": "Export and import your data, or reset the application", "fontSize": 13, "color": "#8b949e" },
+
+            {
+              "name": "Action Buttons",
+              "type": "FRAME",
+              "x": 0,
+              "y": 64,
+              "width": 700,
+              "height": 56,
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 16,
+              "children": [
+                {
+                  "name": "Export Data Btn",
+                  "type": "FRAME",
+                  "width": 140,
+                  "height": 44,
+                  "cornerRadius": 8,
+                  "fills": [{ "type": "SOLID", "color": "#238636" }],
+                  "children": [
+                    { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "↓", "fontSize": 16, "color": "#ffffff" },
+                    { "name": "Label", "type": "TEXT", "x": 36, "y": 12, "text": "Export All", "fontSize": 14, "fontWeight": 500, "color": "#ffffff" }
+                  ]
+                },
+                {
+                  "name": "Import Data Btn",
+                  "type": "FRAME",
+                  "width": 140,
+                  "height": 44,
+                  "cornerRadius": 8,
+                  "stroke": { "color": "#30363d", "width": 1 },
+                  "fills": [],
+                  "children": [
+                    { "name": "Icon", "type": "TEXT", "x": 16, "y": 12, "text": "↑", "fontSize": 16, "color": "#f0f6fc" },
+                    { "name": "Label", "type": "TEXT", "x": 36, "y": 12, "text": "Import Data", "fontSize": 14, "color": "#f0f6fc" }
+                  ]
+                },
+                {
+                  "name": "Clear Scenarios Btn",
+                  "type": "FRAME",
+                  "width": 160,
+                  "height": 44,
+                  "cornerRadius": 8,
+                  "stroke": { "color": "#f85149", "width": 1 },
+                  "fills": [],
+                  "children": [
+                    { "name": "Label", "type": "TEXT", "x": 20, "y": 12, "text": "Clear All Scenarios", "fontSize": 14, "color": "#f85149" }
+                  ]
+                },
+                {
+                  "name": "Reset App Btn",
+                  "type": "FRAME",
+                  "width": 120,
+                  "height": 44,
+                  "cornerRadius": 8,
+                  "fills": [{ "type": "SOLID", "color": "#da3633" }],
+                  "children": [
+                    { "name": "Label", "type": "TEXT", "x": 20, "y": 12, "text": "Reset App", "fontSize": 14, "fontWeight": 500, "color": "#ffffff" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "interactions": [
+    { "trigger": "click", "target": "Theme Cards", "action": "Switch theme immediately" },
+    { "trigger": "change", "target": "Pricing Inputs", "action": "Update pricing and recalculate costs" },
+    { "trigger": "click", "target": "Export All", "action": "Download JSON with all scenarios and settings" },
+    { "trigger": "click", "target": "Import Data", "action": "Open file picker for JSON import" },
+    { "trigger": "click", "target": "Reset App", "action": "Show confirmation dialog before reset" }
+  ],
+
+  "notes": [
+    "Theme changes take effect immediately",
+    "Pricing changes affect all cost calculations",
+    "Reset App requires confirmation dialog",
+    "Export creates JSON file with all user data"
+  ]
+}

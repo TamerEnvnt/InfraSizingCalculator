@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.1 Master Layout - Desktop | UX Wireframes</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .layout-demo {
+      height: 700px;
+    }
+    .annotation {
+      position: absolute;
+      background: var(--color-warning);
+      color: #000;
+      padding: var(--space-1) var(--space-2);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-semibold);
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+    }
+    .dimension {
+      position: absolute;
+      font-size: var(--font-xs);
+      color: var(--color-text-muted);
+      background: var(--color-bg-tertiary);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="wireframe-page">
+    <a href="index.html" class="btn btn-secondary mb-5">Back to Index</a>
+
+    <h1 class="wireframe-title">3.1 Master Layout - Desktop (1440px+)</h1>
+    <p class="wireframe-subtitle">Full 3-panel layout with sidebar navigation, main content area, and context panel for summary statistics.</p>
+
+    <div class="wireframe-container layout-demo">
+      <div class="app-shell">
+        <!-- Header -->
+        <header class="header">
+          <div class="header-logo">
+            <div class="icon">ISC</div>
+            <span>Infrastructure Sizing Calculator</span>
+          </div>
+          <div class="header-actions">
+            <button class="header-btn" title="Toggle Theme">Theme</button>
+            <button class="header-btn" title="Settings">Settings</button>
+            <button class="header-btn" title="User">User</button>
+          </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+          <!-- Left Sidebar -->
+          <aside class="sidebar">
+            <div class="sidebar-section">
+              <div class="sidebar-title">Progress</div>
+              <div class="progress-dots">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+              </div>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-title">Wizard Steps</div>
+              <div class="sidebar-item completed">
+                <span class="step-number">1</span>
+                Platform
+              </div>
+              <div class="sidebar-item active">
+                <span class="step-number">2</span>
+                Technology
+              </div>
+              <div class="sidebar-item">
+                <span class="step-number">3</span>
+                Distribution
+              </div>
+              <div class="sidebar-item">
+                <span class="step-number">4</span>
+                Applications
+              </div>
+              <div class="sidebar-item">
+                <span class="step-number">5</span>
+                Pricing
+              </div>
+            </div>
+
+            <div class="sidebar-section" style="margin-top: auto;">
+              <div class="sidebar-title">Results</div>
+              <div class="sidebar-item">
+                <span>Sizing</span>
+              </div>
+              <div class="sidebar-item">
+                <span>Costs</span>
+              </div>
+              <div class="sidebar-item">
+                <span>Growth</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Content Area -->
+          <main class="content-area">
+            <div class="card">
+              <h2 class="card-title">Main Content Area</h2>
+              <p class="text-muted mb-5">This flexible area displays wizard steps, configuration panels, or results views.</p>
+
+              <div class="grid-2">
+                <div class="selection-card">
+                  <div class="selection-card-icon">Native</div>
+                  <div class="selection-card-title">Native Applications</div>
+                  <div class="selection-card-desc">.NET, Java, Node.js, Python, Go</div>
+                </div>
+                <div class="selection-card selected">
+                  <div class="selection-card-icon">LowCode</div>
+                  <div class="selection-card-title">Low-Code Platform</div>
+                  <div class="selection-card-desc">Mendix, OutSystems</div>
+                </div>
+              </div>
+
+              <div class="alert alert-info mt-5">
+                <span class="alert-icon">i</span>
+                <div>
+                  <strong>TIP:</strong> Choose based on your development team's skills and your organization's existing technology stack.
+                </div>
+              </div>
+            </div>
+
+            <!-- Wizard Navigation -->
+            <div class="wizard-nav mt-5">
+              <button class="btn btn-secondary">Back</button>
+              <div class="progress-dots">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+              </div>
+              <button class="btn btn-primary">Next Step</button>
+            </div>
+          </main>
+
+          <!-- Right Context Panel -->
+          <aside class="context-panel">
+            <div class="sidebar-section">
+              <div class="sidebar-title">Summary</div>
+              <div class="stat-card mb-4">
+                <div class="stat-card-value">12</div>
+                <div class="stat-card-label">Total Nodes</div>
+                <div class="stat-card-sublabel">+2 for HA</div>
+              </div>
+              <div class="stat-card mb-4">
+                <div class="stat-card-value">96</div>
+                <div class="stat-card-label">Total vCPUs</div>
+              </div>
+              <div class="stat-card mb-4">
+                <div class="stat-card-value">$4,200</div>
+                <div class="stat-card-label">Monthly Cost</div>
+              </div>
+            </div>
+
+            <div class="sidebar-section mt-5">
+              <div class="sidebar-title">Quick Actions</div>
+              <button class="btn btn-primary" style="width: 100%; margin-bottom: var(--space-2);">
+                Save Scenario
+              </button>
+              <button class="btn btn-secondary" style="width: 100%; margin-bottom: var(--space-2);">
+                Export
+              </button>
+              <button class="btn btn-secondary" style="width: 100%;">
+                Share
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout Specifications -->
+    <div class="card mt-6">
+      <h3 class="card-title">Layout Specifications</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Width</th>
+            <th>Height</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Header</td>
+            <td>100%</td>
+            <td>64px</td>
+            <td>Fixed position, contains logo, title, and action buttons</td>
+          </tr>
+          <tr>
+            <td>Left Sidebar</td>
+            <td>240px</td>
+            <td>calc(100vh - 64px)</td>
+            <td>Fixed width, scrollable content, sticky positioning</td>
+          </tr>
+          <tr>
+            <td>Content Area</td>
+            <td>flex (fill remaining)</td>
+            <td>calc(100vh - 64px)</td>
+            <td>Scrollable, contains wizard steps or results</td>
+          </tr>
+          <tr>
+            <td>Context Panel</td>
+            <td>280px</td>
+            <td>calc(100vh - 64px)</td>
+            <td>Fixed width, shows summary stats and quick actions</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

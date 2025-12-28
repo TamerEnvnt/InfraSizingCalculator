@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.7 Results - Cost Breakdown | UX Wireframes</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .provider-tabs {
+      display: flex;
+      gap: var(--space-1);
+      margin-bottom: var(--space-5);
+    }
+    .provider-tab {
+      padding: var(--space-3) var(--space-5);
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      color: var(--color-text-secondary);
+    }
+    .provider-tab:hover {
+      background: var(--color-bg-tertiary);
+    }
+    .provider-tab.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+    .cost-breakdown {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-5);
+    }
+    .cost-bar {
+      margin-bottom: var(--space-4);
+    }
+    .cost-bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+    .cost-bar-label {
+      font-size: var(--font-sm);
+      color: var(--color-text-secondary);
+    }
+    .cost-bar-value {
+      font-weight: var(--font-weight-semibold);
+    }
+    .cost-bar-track {
+      height: 24px;
+      background: var(--color-bg-tertiary);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .cost-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-sm);
+    }
+    .cost-bar-fill.compute {
+      background: var(--color-primary);
+    }
+    .cost-bar-fill.storage {
+      background: var(--color-success);
+    }
+    .cost-bar-fill.licensing {
+      background: var(--color-warning);
+    }
+    .cost-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--space-4);
+      border-top: 2px solid var(--color-border-default);
+      margin-top: var(--space-4);
+    }
+    .cost-total-label {
+      font-size: var(--font-lg);
+      font-weight: var(--font-weight-semibold);
+    }
+    .cost-total-values {
+      text-align: right;
+    }
+    .cost-total-monthly {
+      font-size: var(--font-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-primary);
+    }
+    .cost-total-yearly {
+      font-size: var(--font-sm);
+      color: var(--color-text-muted);
+    }
+    .comparison-table {
+      width: 100%;
+    }
+    .comparison-table th,
+    .comparison-table td {
+      padding: var(--space-4);
+      text-align: left;
+      border-bottom: 1px solid var(--color-border-default);
+    }
+    .comparison-table th {
+      font-size: var(--font-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+      background: var(--color-bg-tertiary);
+    }
+    .comparison-table tbody tr:hover {
+      background: var(--color-bg-tertiary);
+    }
+    .provider-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .provider-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-bold);
+      color: white;
+    }
+    .diff-positive {
+      color: var(--color-error);
+    }
+    .diff-neutral {
+      color: var(--color-text-muted);
+    }
+    .best-value {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-success);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-semibold);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="wireframe-page">
+    <a href="index.html" class="btn btn-secondary mb-5">Back to Index</a>
+
+    <h1 class="wireframe-title">3.7 Results View - Cost Breakdown</h1>
+    <p class="wireframe-subtitle">Monthly cost breakdown with bar chart and cloud provider comparison table.</p>
+
+    <div class="wireframe-container" style="padding: var(--space-6);">
+      <!-- Results Tabs -->
+      <div class="tabs">
+        <div class="tab">Overview</div>
+        <div class="tab active">Costs</div>
+        <div class="tab">Growth</div>
+      </div>
+
+      <!-- Provider Tabs -->
+      <div class="provider-tabs">
+        <div class="provider-tab active">On-Prem</div>
+        <div class="provider-tab">AWS</div>
+        <div class="provider-tab">Azure</div>
+        <div class="provider-tab">GCP</div>
+        <button class="btn btn-secondary" style="margin-left: auto;">Compare All</button>
+      </div>
+
+      <!-- Cost Breakdown -->
+      <div class="cost-breakdown">
+        <h3 class="card-title mb-5">Monthly Cost Breakdown</h3>
+
+        <div class="cost-bar">
+          <div class="cost-bar-header">
+            <span class="cost-bar-label">Compute</span>
+            <span class="cost-bar-value">$3,200</span>
+          </div>
+          <div class="cost-bar-track">
+            <div class="cost-bar-fill compute" style="width: 76%;"></div>
+          </div>
+        </div>
+
+        <div class="cost-bar">
+          <div class="cost-bar-header">
+            <span class="cost-bar-label">Storage</span>
+            <span class="cost-bar-value">$800</span>
+          </div>
+          <div class="cost-bar-track">
+            <div class="cost-bar-fill storage" style="width: 19%;"></div>
+          </div>
+        </div>
+
+        <div class="cost-bar">
+          <div class="cost-bar-header">
+            <span class="cost-bar-label">Licensing</span>
+            <span class="cost-bar-value">$200</span>
+          </div>
+          <div class="cost-bar-track">
+            <div class="cost-bar-fill licensing" style="width: 5%;"></div>
+          </div>
+        </div>
+
+        <div class="cost-total">
+          <span class="cost-total-label">TOTAL</span>
+          <div class="cost-total-values">
+            <div class="cost-total-monthly">$4,200/month</div>
+            <div class="cost-total-yearly">$50,400/year</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cloud Comparison -->
+      <div class="card">
+        <h3 class="card-title mb-5">Cloud Comparison</h3>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Monthly</th>
+              <th>vs On-Prem</th>
+              <th>3-Year TCO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="provider-logo">
+                  <div class="provider-icon" style="background: #666;">On</div>
+                  <span>On-Premises</span>
+                </div>
+              </td>
+              <td><strong>$4,200</strong></td>
+              <td class="diff-neutral">--</td>
+              <td>$151,200</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="provider-logo">
+                  <div class="provider-icon" style="background: var(--color-brand-aws);">AWS</div>
+                  <span>AWS EKS</span>
+                </div>
+              </td>
+              <td>$5,100</td>
+              <td class="diff-positive">+21%</td>
+              <td>$183,600</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="provider-logo">
+                  <div class="provider-icon" style="background: var(--color-brand-azure);">Az</div>
+                  <span>Azure AKS</span>
+                </div>
+              </td>
+              <td>$4,800</td>
+              <td class="diff-positive">+14%</td>
+              <td>$172,800</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="provider-logo">
+                  <div class="provider-icon" style="background: var(--color-brand-gcp);">GC</div>
+                  <span>Google GKE</span>
+                </div>
+              </td>
+              <td>$4,600</td>
+              <td class="diff-positive">+10%</td>
+              <td>
+                $165,600
+                <span class="best-value">Best Value</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Component Specifications -->
+    <div class="card mt-6">
+      <h3 class="card-title">Cost Visualization Specifications</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Purpose</th>
+            <th>Color Coding</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cost Bars</td>
+            <td>Show relative cost distribution</td>
+            <td>Blue=Compute, Green=Storage, Yellow=Licensing</td>
+          </tr>
+          <tr>
+            <td>Comparison Table</td>
+            <td>Compare cloud providers</td>
+            <td>Red=Higher cost, Green=Best value</td>
+          </tr>
+          <tr>
+            <td>Provider Tabs</td>
+            <td>Switch between detailed views</td>
+            <td>Brand colors for recognition</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

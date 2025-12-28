@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.3 Master Layout - Mobile | UX Wireframes</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .mobile-frame {
+      max-width: 375px;
+      margin: 0 auto;
+      border: 3px solid var(--color-border-strong);
+      border-radius: 32px;
+      overflow: hidden;
+      background: var(--color-bg-primary);
+    }
+    .mobile-header {
+      height: 56px;
+      background: var(--color-bg-tertiary);
+      border-bottom: 1px solid var(--color-border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+    }
+    .hamburger {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--color-text-primary);
+    }
+    .mobile-title {
+      font-size: var(--font-sm);
+      font-weight: var(--font-weight-semibold);
+    }
+    .step-indicator {
+      text-align: center;
+      padding: var(--space-4);
+      background: var(--color-bg-secondary);
+    }
+    .step-dots {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+    .step-text {
+      font-size: var(--font-sm);
+      color: var(--color-text-secondary);
+    }
+    .mobile-content {
+      padding: var(--space-4);
+      min-height: 400px;
+    }
+    .mobile-card {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    .mobile-card-title {
+      font-size: var(--font-md);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--space-2);
+    }
+    .bottom-nav {
+      background: var(--color-bg-tertiary);
+      border-top: 1px solid var(--color-border-default);
+      padding: var(--space-3) var(--space-4);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-2);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: var(--font-xs);
+      color: var(--color-text-secondary);
+    }
+    .nav-item:hover {
+      background: var(--color-bg-elevated);
+    }
+    .nav-item.active {
+      color: var(--color-primary);
+    }
+    .nav-icon {
+      font-size: var(--font-lg);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="wireframe-page">
+    <a href="index.html" class="btn btn-secondary mb-5">Back to Index</a>
+
+    <h1 class="wireframe-title">3.3 Master Layout - Mobile (&lt; 768px)</h1>
+    <p class="wireframe-subtitle">Single column layout with step indicator, stacked cards, and bottom navigation bar.</p>
+
+    <div class="mobile-frame wireframe-container">
+      <!-- Mobile Header -->
+      <header class="mobile-header">
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="mobile-title">InfraSizing</div>
+        <button class="header-btn" style="width: 32px; height: 32px;">More</button>
+      </header>
+
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step-dots">
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot active"></div>
+          <div class="progress-dot"></div>
+          <div class="progress-dot"></div>
+          <div class="progress-dot"></div>
+        </div>
+        <div class="step-text">Step 2 of 5</div>
+      </div>
+
+      <!-- Mobile Content -->
+      <div class="mobile-content">
+        <h2 style="font-size: var(--font-lg); margin-bottom: var(--space-4);">Select Technology</h2>
+
+        <div class="mobile-card">
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div style="width: 48px; height: 48px; background: var(--color-brand-mendix); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">Mx</div>
+            <div>
+              <div class="mobile-card-title">Mendix</div>
+              <div class="text-sm text-muted">Low-code platform</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-card" style="border-color: var(--color-primary); background: rgba(88, 166, 255, 0.1);">
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div style="width: 48px; height: 48px; background: var(--color-brand-outsystems); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">OS</div>
+            <div>
+              <div class="mobile-card-title">OutSystems</div>
+              <div class="text-sm text-muted">Low-code platform</div>
+            </div>
+            <div style="margin-left: auto; color: var(--color-primary);">Selected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav">
+        <div class="nav-item">
+          <span class="nav-icon">&lt;</span>
+          <span>Back</span>
+        </div>
+        <div class="nav-item active">
+          <span class="nav-icon">Stats</span>
+          <span>Summary</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">&gt;</span>
+          <span>Next</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon">Menu</span>
+          <span>Menu</span>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Layout Specifications -->
+    <div class="card mt-6">
+      <h3 class="card-title">Mobile Layout Adaptations</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Desktop Element</th>
+            <th>Mobile Adaptation</th>
+            <th>Interaction</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Header (64px)</td>
+            <td>Compact header (56px)</td>
+            <td>Hamburger menu, abbreviated title</td>
+          </tr>
+          <tr>
+            <td>Left Sidebar</td>
+            <td>Slide-out drawer</td>
+            <td>Opens from hamburger menu</td>
+          </tr>
+          <tr>
+            <td>Selection Cards (grid)</td>
+            <td>Stacked list cards</td>
+            <td>Full width, horizontal layout</td>
+          </tr>
+          <tr>
+            <td>Context Panel</td>
+            <td>Bottom sheet</td>
+            <td>Slides up from Summary button</td>
+          </tr>
+          <tr>
+            <td>Wizard Navigation</td>
+            <td>Bottom nav bar (64px)</td>
+            <td>Fixed, always visible</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Touch Target Guidelines -->
+    <div class="card mt-5">
+      <h3 class="card-title">Touch Target Guidelines</h3>
+      <ul style="list-style: disc; padding-left: var(--space-5); color: var(--color-text-secondary);">
+        <li>Minimum touch target: 44x44px (Apple HIG)</li>
+        <li>Spacing between targets: minimum 8px</li>
+        <li>Bottom nav icons: 48x48px tap area</li>
+        <li>List items: full-width tap area</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

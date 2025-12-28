@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1440">
+  <title>06 - Sizing Results</title>
+  <link rel="stylesheet" href="wireframe-tokens.css">
+</head>
+<body>
+  <div class="wireframe-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <div class="header-logo-icon">ISC</div>
+        <span class="header-title">Infrastructure Sizing Calculator</span>
+      </div>
+      <div class="header-actions">
+        <div class="header-icon" title="Theme">T</div>
+        <div class="header-icon" title="Settings">S</div>
+        <div class="header-avatar"></div>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="progress-dots">
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Wizard Steps</div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Platform</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Technology</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Distribution</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Applications</span>
+          </div>
+
+          <div class="wizard-step completed">
+            <div class="step-indicator completed"><span class="checkmark"></span></div>
+            <span class="step-label">Pricing</span>
+          </div>
+        </div>
+
+        <div class="sidebar-results">
+          <div class="sidebar-section-title">Results</div>
+          <a href="#" class="result-link" style="background: var(--bg-tertiary); color: var(--text-primary);">Sizing</a>
+          <a href="#" class="result-link">Costs</a>
+          <a href="#" class="result-link">Growth</a>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="content-header">
+          <h1 class="content-title">Sizing Results</h1>
+          <div class="tabs">
+            <div class="tab active">Overview</div>
+            <div class="tab">Nodes</div>
+            <div class="tab">Resources</div>
+            <div class="tab">By Environment</div>
+          </div>
+        </div>
+
+        <div class="content-body">
+          <!-- Summary Cards -->
+          <div class="summary-cards">
+            <div class="summary-card">
+              <div class="summary-card-value">12</div>
+              <div class="summary-card-label">NODES (+2 HA)</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-card-value">96</div>
+              <div class="summary-card-label">vCPUs</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-card-value">384</div>
+              <div class="summary-card-label">GB RAM</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-card-value">$4,200</div>
+              <div class="summary-card-label">/MONTH</div>
+            </div>
+          </div>
+
+          <!-- Cluster Architecture Diagram -->
+          <div class="architecture-diagram">
+            <div class="diagram-section">
+              <div class="diagram-label">CONTROL PLANE (3 nodes)</div>
+              <div class="node-row">
+                <div class="node master">M1</div>
+                <div class="node master">M2</div>
+                <div class="node master">M3</div>
+              </div>
+              <div class="node-specs">4 vCPU / 16GB each</div>
+            </div>
+
+            <div class="diagram-connector">|</div>
+
+            <div class="diagram-section">
+              <div class="diagram-label">WORKER NODES (9 nodes)</div>
+              <div class="node-row">
+                <div class="node worker">W1</div>
+                <div class="node worker">W2</div>
+                <div class="node worker">W3</div>
+                <div class="node worker">W4</div>
+                <div class="node worker">W5</div>
+                <div class="node worker">W6</div>
+                <div class="node worker">W7</div>
+                <div class="node worker">W8</div>
+                <div class="node worker">W9</div>
+              </div>
+              <div class="node-specs">8 vCPU / 32GB each</div>
+            </div>
+          </div>
+
+          <!-- Recommendations -->
+          <div class="recommendation-box">
+            <ul>
+              <li>Consider adding 1 more worker node for 20% headroom</li>
+              <li>Enable pod disruption budgets for high availability</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-secondary">Back</button>
+          <div class="nav-dots">
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+            <div class="nav-dot completed"></div>
+          </div>
+          <button class="btn btn-primary">View Costs</button>
+        </div>
+      </main>
+
+      <!-- Context Panel -->
+      <aside class="context-panel">
+        <h2 class="panel-header">Quick Summary</h2>
+
+        <div class="stat-card">
+          <div class="stat-label">Platform</div>
+          <div class="stat-value">Kubernetes</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total Nodes</div>
+          <div class="stat-value">12</div>
+          <div class="stat-subtext">+2 HA</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total vCPUs</div>
+          <div class="stat-value">96</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total RAM</div>
+          <div class="stat-value">384 GB</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Monthly Cost</div>
+          <div class="stat-value">$4,200</div>
+          <div class="stat-subtext">/month</div>
+        </div>
+
+        <div class="quick-actions">
+          <div class="quick-actions-title">Quick Actions</div>
+          <button class="action-btn primary">Save Scenario</button>
+          <button class="action-btn secondary">Export</button>
+          <button class="action-btn secondary">Share</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

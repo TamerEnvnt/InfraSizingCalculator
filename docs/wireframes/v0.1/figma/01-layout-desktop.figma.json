@@ -1,0 +1,271 @@
+{
+  "name": "01 - Desktop Layout (1440px+)",
+  "description": "Three-panel layout with header, collapsible sidebar, main content, and context panel",
+  "viewport": { "width": 1440, "height": 900 },
+  "artboard": {
+    "background": "#0d1117"
+  },
+
+  "frames": [
+    {
+      "name": "Header",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 64,
+      "fills": [{ "type": "SOLID", "color": "#010409" }],
+      "children": [
+        {
+          "name": "Logo",
+          "type": "TEXT",
+          "x": 24,
+          "y": 20,
+          "text": "InfraSizing Calculator",
+          "fontSize": 18,
+          "fontWeight": 600,
+          "color": "#f0f6fc"
+        },
+        {
+          "name": "User Menu",
+          "type": "FRAME",
+          "x": 1340,
+          "y": 16,
+          "width": 80,
+          "height": 32,
+          "cornerRadius": 6,
+          "fills": [{ "type": "SOLID", "color": "#21262d" }],
+          "children": [
+            {
+              "name": "Avatar",
+              "type": "ELLIPSE",
+              "x": 8,
+              "y": 4,
+              "width": 24,
+              "height": 24,
+              "fills": [{ "type": "SOLID", "color": "#58a6ff" }]
+            },
+            {
+              "name": "Dropdown Icon",
+              "type": "TEXT",
+              "x": 56,
+              "y": 8,
+              "text": "▼",
+              "fontSize": 10,
+              "color": "#8b949e"
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Sidebar",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 280,
+      "height": 836,
+      "fills": [{ "type": "SOLID", "color": "#161b22" }],
+      "children": [
+        {
+          "name": "Wizard Steps Container",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 280,
+          "height": 400,
+          "children": [
+            {
+              "name": "Step 1 - Platform",
+              "type": "FRAME",
+              "x": 16,
+              "y": 24,
+              "width": 248,
+              "height": 56,
+              "children": [
+                { "name": "Step Number", "type": "ELLIPSE", "x": 0, "y": 8, "width": 40, "height": 40, "fills": [{"type": "SOLID", "color": "#238636"}] },
+                { "name": "Step Label", "type": "TEXT", "x": 56, "y": 8, "text": "Platform Selection", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Step Status", "type": "TEXT", "x": 56, "y": 28, "text": "Completed", "fontSize": 12, "color": "#3fb950" }
+              ]
+            },
+            {
+              "name": "Step 2 - Applications",
+              "type": "FRAME",
+              "x": 16,
+              "y": 96,
+              "width": 248,
+              "height": 56,
+              "children": [
+                { "name": "Step Number", "type": "ELLIPSE", "x": 0, "y": 8, "width": 40, "height": 40, "fills": [{"type": "SOLID", "color": "#58a6ff"}] },
+                { "name": "Step Label", "type": "TEXT", "x": 56, "y": 8, "text": "Applications", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Step Status", "type": "TEXT", "x": 56, "y": 28, "text": "In Progress", "fontSize": 12, "color": "#58a6ff" }
+              ]
+            },
+            {
+              "name": "Step 3 - Infrastructure",
+              "type": "FRAME",
+              "x": 16,
+              "y": 168,
+              "width": 248,
+              "height": 56,
+              "children": [
+                { "name": "Step Number", "type": "ELLIPSE", "x": 0, "y": 8, "width": 40, "height": 40, "stroke": {"color": "#30363d"}, "fills": [] },
+                { "name": "Step Label", "type": "TEXT", "x": 56, "y": 8, "text": "Infrastructure", "fontSize": 14, "fontWeight": 500, "color": "#8b949e" },
+                { "name": "Step Status", "type": "TEXT", "x": 56, "y": 28, "text": "Pending", "fontSize": 12, "color": "#484f58" }
+              ]
+            },
+            {
+              "name": "Step 4 - Results",
+              "type": "FRAME",
+              "x": 16,
+              "y": 240,
+              "width": 248,
+              "height": 56,
+              "children": [
+                { "name": "Step Number", "type": "ELLIPSE", "x": 0, "y": 8, "width": 40, "height": 40, "stroke": {"color": "#30363d"}, "fills": [] },
+                { "name": "Step Label", "type": "TEXT", "x": 56, "y": 8, "text": "Results", "fontSize": 14, "fontWeight": 500, "color": "#8b949e" },
+                { "name": "Step Status", "type": "TEXT", "x": 56, "y": 28, "text": "Pending", "fontSize": 12, "color": "#484f58" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Collapse Button",
+          "type": "FRAME",
+          "x": 240,
+          "y": 400,
+          "width": 24,
+          "height": 24,
+          "cornerRadius": 4,
+          "fills": [{ "type": "SOLID", "color": "#21262d" }],
+          "children": [
+            { "name": "Icon", "type": "TEXT", "x": 7, "y": 4, "text": "◀", "fontSize": 12, "color": "#8b949e" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Main Content",
+      "type": "FRAME",
+      "x": 280,
+      "y": 64,
+      "width": 840,
+      "height": 836,
+      "fills": [{ "type": "SOLID", "color": "#0d1117" }],
+      "padding": 32,
+      "children": [
+        {
+          "name": "Content Header",
+          "type": "FRAME",
+          "x": 32,
+          "y": 32,
+          "width": 776,
+          "height": 80,
+          "children": [
+            { "name": "Title", "type": "TEXT", "x": 0, "y": 0, "text": "Application Configuration", "fontSize": 24, "fontWeight": 600, "color": "#f0f6fc" },
+            { "name": "Subtitle", "type": "TEXT", "x": 0, "y": 36, "text": "Define your application workloads and environment requirements", "fontSize": 14, "color": "#8b949e" }
+          ]
+        },
+        {
+          "name": "Content Area",
+          "type": "FRAME",
+          "x": 32,
+          "y": 128,
+          "width": 776,
+          "height": 600,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "cornerRadius": 8,
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            { "name": "Placeholder Text", "type": "TEXT", "x": 300, "y": 280, "text": "Wizard Step Content", "fontSize": 16, "color": "#8b949e" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Context Panel",
+      "type": "FRAME",
+      "x": 1120,
+      "y": 64,
+      "width": 320,
+      "height": 836,
+      "fills": [{ "type": "SOLID", "color": "#161b22" }],
+      "children": [
+        {
+          "name": "Panel Header",
+          "type": "FRAME",
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 56,
+          "fills": [{ "type": "SOLID", "color": "#21262d" }],
+          "children": [
+            { "name": "Title", "type": "TEXT", "x": 16, "y": 18, "text": "Quick Summary", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" }
+          ]
+        },
+        {
+          "name": "Summary Cards",
+          "type": "FRAME",
+          "x": 16,
+          "y": 72,
+          "width": 288,
+          "height": 300,
+          "children": [
+            {
+              "name": "Platform Card",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 288,
+              "height": 72,
+              "cornerRadius": 6,
+              "fills": [{ "type": "SOLID", "color": "#21262d" }],
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 12, "y": 12, "text": "Platform", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Value", "type": "TEXT", "x": 12, "y": 32, "text": "Kubernetes", "fontSize": 16, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "Apps Card",
+              "type": "FRAME",
+              "x": 0,
+              "y": 88,
+              "width": 288,
+              "height": 72,
+              "cornerRadius": 6,
+              "fills": [{ "type": "SOLID", "color": "#21262d" }],
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 12, "y": 12, "text": "Total Applications", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Value", "type": "TEXT", "x": 12, "y": 32, "text": "24", "fontSize": 24, "fontWeight": 700, "color": "#58a6ff" }
+              ]
+            },
+            {
+              "name": "Environments Card",
+              "type": "FRAME",
+              "x": 0,
+              "y": 176,
+              "width": 288,
+              "height": 72,
+              "cornerRadius": 6,
+              "fills": [{ "type": "SOLID", "color": "#21262d" }],
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 12, "y": 12, "text": "Environments", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Value", "type": "TEXT", "x": 12, "y": 32, "text": "Dev, Test, Prod", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "notes": [
+    "Sidebar collapses to 64px icon-only mode on toggle",
+    "Context panel can be hidden on smaller desktops",
+    "Header remains fixed during scroll",
+    "Main content area scrolls independently"
+  ]
+}

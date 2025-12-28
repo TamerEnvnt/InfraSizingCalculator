@@ -1,0 +1,233 @@
+{
+  "name": "02 - Tablet Layout (768-1024px)",
+  "description": "Two-panel layout with horizontal progress bar replacing sidebar",
+  "viewport": { "width": 1024, "height": 768 },
+  "artboard": {
+    "background": "#0d1117"
+  },
+
+  "frames": [
+    {
+      "name": "Header",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 64,
+      "fills": [{ "type": "SOLID", "color": "#010409" }],
+      "children": [
+        {
+          "name": "Menu Button",
+          "type": "FRAME",
+          "x": 16,
+          "y": 16,
+          "width": 32,
+          "height": 32,
+          "cornerRadius": 6,
+          "fills": [{ "type": "SOLID", "color": "#21262d" }],
+          "children": [
+            { "name": "Icon", "type": "TEXT", "x": 8, "y": 6, "text": "☰", "fontSize": 16, "color": "#f0f6fc" }
+          ]
+        },
+        {
+          "name": "Logo",
+          "type": "TEXT",
+          "x": 64,
+          "y": 20,
+          "text": "InfraSizing",
+          "fontSize": 18,
+          "fontWeight": 600,
+          "color": "#f0f6fc"
+        },
+        {
+          "name": "User Avatar",
+          "type": "ELLIPSE",
+          "x": 976,
+          "y": 16,
+          "width": 32,
+          "height": 32,
+          "fills": [{ "type": "SOLID", "color": "#58a6ff" }]
+        }
+      ]
+    },
+
+    {
+      "name": "Progress Bar",
+      "type": "FRAME",
+      "x": 0,
+      "y": 64,
+      "width": 1024,
+      "height": 72,
+      "fills": [{ "type": "SOLID", "color": "#161b22" }],
+      "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+      "children": [
+        {
+          "name": "Steps Container",
+          "type": "FRAME",
+          "x": 32,
+          "y": 16,
+          "width": 960,
+          "height": 40,
+          "layoutMode": "HORIZONTAL",
+          "itemSpacing": 0,
+          "children": [
+            {
+              "name": "Step 1",
+              "type": "FRAME",
+              "width": 240,
+              "height": 40,
+              "children": [
+                { "name": "Circle", "type": "ELLIPSE", "x": 100, "y": 4, "width": 32, "height": 32, "fills": [{"type": "SOLID", "color": "#238636"}] },
+                { "name": "Check", "type": "TEXT", "x": 108, "y": 10, "text": "✓", "fontSize": 14, "color": "#ffffff" },
+                { "name": "Label", "type": "TEXT", "x": 84, "y": 44, "text": "Platform", "fontSize": 12, "color": "#3fb950" }
+              ]
+            },
+            {
+              "name": "Connector 1-2",
+              "type": "LINE",
+              "x": 0,
+              "y": 20,
+              "width": 120,
+              "stroke": { "color": "#238636", "width": 2 }
+            },
+            {
+              "name": "Step 2",
+              "type": "FRAME",
+              "width": 240,
+              "height": 40,
+              "children": [
+                { "name": "Circle", "type": "ELLIPSE", "x": 100, "y": 4, "width": 32, "height": 32, "fills": [{"type": "SOLID", "color": "#58a6ff"}] },
+                { "name": "Number", "type": "TEXT", "x": 112, "y": 10, "text": "2", "fontSize": 14, "fontWeight": 600, "color": "#ffffff" },
+                { "name": "Label", "type": "TEXT", "x": 76, "y": 44, "text": "Applications", "fontSize": 12, "color": "#58a6ff" }
+              ]
+            },
+            {
+              "name": "Connector 2-3",
+              "type": "LINE",
+              "x": 0,
+              "y": 20,
+              "width": 120,
+              "stroke": { "color": "#30363d", "width": 2 }
+            },
+            {
+              "name": "Step 3",
+              "type": "FRAME",
+              "width": 240,
+              "height": 40,
+              "children": [
+                { "name": "Circle", "type": "ELLIPSE", "x": 100, "y": 4, "width": 32, "height": 32, "stroke": {"color": "#30363d", "width": 2}, "fills": [] },
+                { "name": "Number", "type": "TEXT", "x": 112, "y": 10, "text": "3", "fontSize": 14, "fontWeight": 600, "color": "#8b949e" },
+                { "name": "Label", "type": "TEXT", "x": 72, "y": 44, "text": "Infrastructure", "fontSize": 12, "color": "#8b949e" }
+              ]
+            },
+            {
+              "name": "Connector 3-4",
+              "type": "LINE",
+              "x": 0,
+              "y": 20,
+              "width": 120,
+              "stroke": { "color": "#30363d", "width": 2 }
+            },
+            {
+              "name": "Step 4",
+              "type": "FRAME",
+              "width": 240,
+              "height": 40,
+              "children": [
+                { "name": "Circle", "type": "ELLIPSE", "x": 100, "y": 4, "width": 32, "height": 32, "stroke": {"color": "#30363d", "width": 2}, "fills": [] },
+                { "name": "Number", "type": "TEXT", "x": 112, "y": 10, "text": "4", "fontSize": 14, "fontWeight": 600, "color": "#8b949e" },
+                { "name": "Label", "type": "TEXT", "x": 92, "y": 44, "text": "Results", "fontSize": 12, "color": "#8b949e" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Main Content",
+      "type": "FRAME",
+      "x": 0,
+      "y": 136,
+      "width": 1024,
+      "height": 632,
+      "fills": [{ "type": "SOLID", "color": "#0d1117" }],
+      "padding": 24,
+      "children": [
+        {
+          "name": "Content Header",
+          "type": "FRAME",
+          "x": 24,
+          "y": 24,
+          "width": 976,
+          "height": 64,
+          "children": [
+            { "name": "Title", "type": "TEXT", "x": 0, "y": 0, "text": "Application Configuration", "fontSize": 20, "fontWeight": 600, "color": "#f0f6fc" },
+            { "name": "Subtitle", "type": "TEXT", "x": 0, "y": 28, "text": "Define your application workloads", "fontSize": 14, "color": "#8b949e" }
+          ]
+        },
+        {
+          "name": "Content Card",
+          "type": "FRAME",
+          "x": 24,
+          "y": 104,
+          "width": 976,
+          "height": 480,
+          "cornerRadius": 8,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            { "name": "Placeholder", "type": "TEXT", "x": 420, "y": 220, "text": "Step Content", "fontSize": 16, "color": "#8b949e" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Navigation Footer",
+      "type": "FRAME",
+      "x": 0,
+      "y": 704,
+      "width": 1024,
+      "height": 64,
+      "fills": [{ "type": "SOLID", "color": "#161b22" }],
+      "stroke": { "color": "#30363d", "width": 1, "side": "top" },
+      "children": [
+        {
+          "name": "Back Button",
+          "type": "FRAME",
+          "x": 24,
+          "y": 12,
+          "width": 100,
+          "height": 40,
+          "cornerRadius": 6,
+          "stroke": { "color": "#30363d", "width": 1 },
+          "fills": [],
+          "children": [
+            { "name": "Label", "type": "TEXT", "x": 28, "y": 10, "text": "← Back", "fontSize": 14, "color": "#f0f6fc" }
+          ]
+        },
+        {
+          "name": "Next Button",
+          "type": "FRAME",
+          "x": 900,
+          "y": 12,
+          "width": 100,
+          "height": 40,
+          "cornerRadius": 6,
+          "fills": [{ "type": "SOLID", "color": "#238636" }],
+          "children": [
+            { "name": "Label", "type": "TEXT", "x": 24, "y": 10, "text": "Next →", "fontSize": 14, "fontWeight": 600, "color": "#ffffff" }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "notes": [
+    "Progress bar replaces sidebar for horizontal orientation",
+    "Menu button opens slide-out drawer with full navigation",
+    "Footer navigation provides primary Back/Next actions",
+    "Context panel becomes collapsible drawer"
+  ]
+}

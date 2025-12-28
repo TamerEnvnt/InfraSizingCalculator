@@ -1,0 +1,305 @@
+{
+  "name": "07 - Results: Cost Analysis",
+  "description": "Cost breakdown and cloud provider comparison",
+  "viewport": { "width": 1200, "height": 900 },
+  "artboard": {
+    "background": "#0d1117"
+  },
+
+  "frames": [
+    {
+      "name": "Cost Header",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 80,
+      "children": [
+        { "name": "Title", "type": "TEXT", "x": 0, "y": 0, "text": "Cost Analysis", "fontSize": 24, "fontWeight": 600, "color": "#f0f6fc" },
+        { "name": "Description", "type": "TEXT", "x": 0, "y": 36, "text": "Estimated monthly and annual costs across cloud providers", "fontSize": 14, "color": "#8b949e" }
+      ]
+    },
+
+    {
+      "name": "Cost Summary Cards",
+      "type": "FRAME",
+      "x": 0,
+      "y": 96,
+      "width": 1200,
+      "height": 120,
+      "layoutMode": "HORIZONTAL",
+      "itemSpacing": 24,
+      "children": [
+        {
+          "name": "Monthly Cost Card",
+          "type": "FRAME",
+          "width": 280,
+          "height": 100,
+          "cornerRadius": 12,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#58a6ff", "width": 2 },
+          "children": [
+            { "name": "Label", "type": "TEXT", "x": 20, "y": 16, "text": "Estimated Monthly", "fontSize": 13, "color": "#8b949e" },
+            { "name": "Currency", "type": "TEXT", "x": 20, "y": 44, "text": "$", "fontSize": 20, "color": "#58a6ff" },
+            { "name": "Value", "type": "TEXT", "x": 36, "y": 40, "text": "12,450", "fontSize": 32, "fontWeight": 700, "color": "#58a6ff" },
+            { "name": "Period", "type": "TEXT", "x": 165, "y": 52, "text": "/month", "fontSize": 14, "color": "#8b949e" }
+          ]
+        },
+        {
+          "name": "Annual Cost Card",
+          "type": "FRAME",
+          "width": 280,
+          "height": 100,
+          "cornerRadius": 12,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            { "name": "Label", "type": "TEXT", "x": 20, "y": 16, "text": "Estimated Annual", "fontSize": 13, "color": "#8b949e" },
+            { "name": "Currency", "type": "TEXT", "x": 20, "y": 44, "text": "$", "fontSize": 20, "color": "#3fb950" },
+            { "name": "Value", "type": "TEXT", "x": 36, "y": 40, "text": "149,400", "fontSize": 32, "fontWeight": 700, "color": "#3fb950" },
+            { "name": "Period", "type": "TEXT", "x": 180, "y": 52, "text": "/year", "fontSize": 14, "color": "#8b949e" }
+          ]
+        },
+        {
+          "name": "RI Savings Card",
+          "type": "FRAME",
+          "width": 280,
+          "height": 100,
+          "cornerRadius": 12,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            { "name": "Label", "type": "TEXT", "x": 20, "y": 16, "text": "With Reserved Instances", "fontSize": 13, "color": "#8b949e" },
+            { "name": "Currency", "type": "TEXT", "x": 20, "y": 44, "text": "$", "fontSize": 20, "color": "#a371f7" },
+            { "name": "Value", "type": "TEXT", "x": 36, "y": 40, "text": "104,580", "fontSize": 32, "fontWeight": 700, "color": "#a371f7" },
+            { "name": "Savings", "type": "TEXT", "x": 170, "y": 52, "text": "(-30%)", "fontSize": 14, "fontWeight": 600, "color": "#3fb950" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Cost Breakdown Section",
+      "type": "FRAME",
+      "x": 0,
+      "y": 240,
+      "width": 580,
+      "height": 400,
+      "children": [
+        { "name": "Section Title", "type": "TEXT", "x": 0, "y": 0, "text": "Cost Breakdown", "fontSize": 18, "fontWeight": 600, "color": "#f0f6fc" },
+
+        {
+          "name": "Breakdown Chart",
+          "type": "FRAME",
+          "x": 0,
+          "y": 40,
+          "width": 580,
+          "height": 340,
+          "cornerRadius": 12,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            {
+              "name": "Compute Row",
+              "type": "FRAME",
+              "x": 24,
+              "y": 24,
+              "width": 532,
+              "height": 64,
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 0, "y": 8, "text": "Compute", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Percentage", "type": "TEXT", "x": 0, "y": 28, "text": "65%", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Bar BG", "type": "FRAME", "x": 100, "y": 12, "width": 340, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#21262d"}] },
+                { "name": "Bar Fill", "type": "FRAME", "x": 100, "y": 12, "width": 221, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#58a6ff"}] },
+                { "name": "Amount", "type": "TEXT", "x": 456, "y": 14, "text": "$8,093", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "Memory Row",
+              "type": "FRAME",
+              "x": 24,
+              "y": 104,
+              "width": 532,
+              "height": 64,
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 0, "y": 8, "text": "Memory", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Percentage", "type": "TEXT", "x": 0, "y": 28, "text": "20%", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Bar BG", "type": "FRAME", "x": 100, "y": 12, "width": 340, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#21262d"}] },
+                { "name": "Bar Fill", "type": "FRAME", "x": 100, "y": 12, "width": 68, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#3fb950"}] },
+                { "name": "Amount", "type": "TEXT", "x": 456, "y": 14, "text": "$2,490", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "Storage Row",
+              "type": "FRAME",
+              "x": 24,
+              "y": 184,
+              "width": 532,
+              "height": 64,
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 0, "y": 8, "text": "Storage", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Percentage", "type": "TEXT", "x": 0, "y": 28, "text": "10%", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Bar BG", "type": "FRAME", "x": 100, "y": 12, "width": 340, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#21262d"}] },
+                { "name": "Bar Fill", "type": "FRAME", "x": 100, "y": 12, "width": 34, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#a371f7"}] },
+                { "name": "Amount", "type": "TEXT", "x": 456, "y": 14, "text": "$1,245", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            },
+            {
+              "name": "Networking Row",
+              "type": "FRAME",
+              "x": 24,
+              "y": 264,
+              "width": 532,
+              "height": 64,
+              "children": [
+                { "name": "Label", "type": "TEXT", "x": 0, "y": 8, "text": "Networking", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Percentage", "type": "TEXT", "x": 0, "y": 28, "text": "5%", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Bar BG", "type": "FRAME", "x": 100, "y": 12, "width": 340, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#21262d"}] },
+                { "name": "Bar Fill", "type": "FRAME", "x": 100, "y": 12, "width": 17, "height": 24, "cornerRadius": 4, "fills": [{"type": "SOLID", "color": "#f0883e"}] },
+                { "name": "Amount", "type": "TEXT", "x": 464, "y": 14, "text": "$622", "fontSize": 14, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Cloud Comparison Section",
+      "type": "FRAME",
+      "x": 620,
+      "y": 240,
+      "width": 580,
+      "height": 400,
+      "children": [
+        { "name": "Section Title", "type": "TEXT", "x": 0, "y": 0, "text": "Cloud Provider Comparison", "fontSize": 18, "fontWeight": 600, "color": "#f0f6fc" },
+
+        {
+          "name": "Comparison Table",
+          "type": "FRAME",
+          "x": 0,
+          "y": 40,
+          "width": 580,
+          "height": 340,
+          "cornerRadius": 12,
+          "fills": [{ "type": "SOLID", "color": "#161b22" }],
+          "stroke": { "color": "#30363d", "width": 1 },
+          "children": [
+            {
+              "name": "Table Header",
+              "type": "FRAME",
+              "x": 0,
+              "y": 0,
+              "width": 580,
+              "height": 48,
+              "fills": [{ "type": "SOLID", "color": "#21262d" }],
+              "cornerRadius": { "topLeft": 12, "topRight": 12 },
+              "children": [
+                { "name": "Provider Col", "type": "TEXT", "x": 24, "y": 14, "text": "Provider", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Monthly Col", "type": "TEXT", "x": 200, "y": 14, "text": "Monthly", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Savings Col", "type": "TEXT", "x": 320, "y": 14, "text": "vs Baseline", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Action Col", "type": "TEXT", "x": 480, "y": 14, "text": "Action", "fontSize": 13, "fontWeight": 600, "color": "#f0f6fc" }
+              ]
+            },
+
+            {
+              "name": "AWS Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 48,
+              "width": 580,
+              "height": 72,
+              "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+              "children": [
+                { "name": "Logo BG", "type": "FRAME", "x": 24, "y": 16, "width": 40, "height": 40, "cornerRadius": 8, "fills": [{"type": "SOLID", "color": "#ff9900"}] },
+                { "name": "Name", "type": "TEXT", "x": 76, "y": 16, "text": "AWS (EKS)", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Region", "type": "TEXT", "x": 76, "y": 36, "text": "us-east-1", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Price", "type": "TEXT", "x": 200, "y": 24, "text": "$11,890", "fontSize": 16, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Savings", "type": "TEXT", "x": 320, "y": 24, "text": "-4.5%", "fontSize": 14, "fontWeight": 500, "color": "#3fb950" },
+                { "name": "Best Badge", "type": "FRAME", "x": 380, "y": 20, "width": 50, "height": 24, "cornerRadius": 12, "fills": [{"type": "SOLID", "color": "#238636"}], "children": [{ "name": "Text", "type": "TEXT", "x": 10, "y": 4, "text": "Best", "fontSize": 11, "color": "#ffffff" }] },
+                { "name": "Select Btn", "type": "FRAME", "x": 468, "y": 18, "width": 88, "height": 36, "cornerRadius": 6, "fills": [{"type": "SOLID", "color": "#238636"}], "children": [{ "name": "Text", "type": "TEXT", "x": 24, "y": 8, "text": "Select", "fontSize": 13, "color": "#ffffff" }] }
+              ]
+            },
+
+            {
+              "name": "Azure Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 120,
+              "width": 580,
+              "height": 72,
+              "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+              "fills": [{ "type": "SOLID", "color": "#1f3a5f", "opacity": 0.3 }],
+              "children": [
+                { "name": "Logo BG", "type": "FRAME", "x": 24, "y": 16, "width": 40, "height": 40, "cornerRadius": 8, "fills": [{"type": "SOLID", "color": "#0078d4"}] },
+                { "name": "Name", "type": "TEXT", "x": 76, "y": 16, "text": "Azure (AKS)", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Selected", "type": "TEXT", "x": 76, "y": 36, "text": "Currently selected", "fontSize": 12, "color": "#58a6ff" },
+                { "name": "Price", "type": "TEXT", "x": 200, "y": 24, "text": "$12,450", "fontSize": 16, "fontWeight": 600, "color": "#58a6ff" },
+                { "name": "Baseline", "type": "TEXT", "x": 320, "y": 24, "text": "Baseline", "fontSize": 14, "color": "#8b949e" },
+                { "name": "Current", "type": "FRAME", "x": 468, "y": 18, "width": 88, "height": 36, "cornerRadius": 6, "stroke": {"color": "#58a6ff", "width": 2}, "fills": [], "children": [{ "name": "Text", "type": "TEXT", "x": 16, "y": 8, "text": "Current", "fontSize": 13, "color": "#58a6ff" }] }
+              ]
+            },
+
+            {
+              "name": "GCP Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 192,
+              "width": 580,
+              "height": 72,
+              "stroke": { "color": "#30363d", "width": 1, "side": "bottom" },
+              "children": [
+                { "name": "Logo BG", "type": "FRAME", "x": 24, "y": 16, "width": 40, "height": 40, "cornerRadius": 8, "fills": [{"type": "SOLID", "color": "#4285f4"}] },
+                { "name": "Name", "type": "TEXT", "x": 76, "y": 16, "text": "GCP (GKE)", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Region", "type": "TEXT", "x": 76, "y": 36, "text": "us-central1", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Price", "type": "TEXT", "x": 200, "y": 24, "text": "$12,100", "fontSize": 16, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Savings", "type": "TEXT", "x": 320, "y": 24, "text": "-2.8%", "fontSize": 14, "fontWeight": 500, "color": "#3fb950" },
+                { "name": "Select Btn", "type": "FRAME", "x": 468, "y": 18, "width": 88, "height": 36, "cornerRadius": 6, "stroke": {"color": "#30363d", "width": 1}, "fills": [], "children": [{ "name": "Text", "type": "TEXT", "x": 24, "y": 8, "text": "Select", "fontSize": 13, "color": "#f0f6fc" }] }
+              ]
+            },
+
+            {
+              "name": "On-Prem Row",
+              "type": "FRAME",
+              "x": 0,
+              "y": 264,
+              "width": 580,
+              "height": 72,
+              "children": [
+                { "name": "Logo BG", "type": "FRAME", "x": 24, "y": 16, "width": 40, "height": 40, "cornerRadius": 8, "fills": [{"type": "SOLID", "color": "#6e7681"}] },
+                { "name": "Name", "type": "TEXT", "x": 76, "y": 16, "text": "On-Premises", "fontSize": 14, "fontWeight": 500, "color": "#f0f6fc" },
+                { "name": "Note", "type": "TEXT", "x": 76, "y": 36, "text": "Hardware costs only", "fontSize": 12, "color": "#8b949e" },
+                { "name": "Price", "type": "TEXT", "x": 200, "y": 24, "text": "$8,200", "fontSize": 16, "fontWeight": 600, "color": "#f0f6fc" },
+                { "name": "Savings", "type": "TEXT", "x": 320, "y": 24, "text": "-34%", "fontSize": 14, "fontWeight": 500, "color": "#3fb950" },
+                { "name": "Select Btn", "type": "FRAME", "x": 468, "y": 18, "width": 88, "height": 36, "cornerRadius": 6, "stroke": {"color": "#30363d", "width": 1}, "fills": [], "children": [{ "name": "Text", "type": "TEXT", "x": 24, "y": 8, "text": "Select", "fontSize": 13, "color": "#f0f6fc" }] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Pricing Notes",
+      "type": "FRAME",
+      "x": 0,
+      "y": 680,
+      "width": 1200,
+      "height": 80,
+      "cornerRadius": 8,
+      "fills": [{ "type": "SOLID", "color": "#161b22" }],
+      "stroke": { "color": "#d29922", "width": 1 },
+      "children": [
+        { "name": "Info Icon", "type": "TEXT", "x": 20, "y": 28, "text": "ℹ", "fontSize": 20, "color": "#d29922" },
+        { "name": "Note Text", "type": "TEXT", "x": 52, "y": 16, "text": "Prices are estimates based on on-demand pricing and may vary. Reserved instances and spot pricing can reduce costs by 30-70%.\nLicensing costs for Mendix/OutSystems are not included and are based on your subscription agreement.", "fontSize": 13, "color": "#8b949e", "lineHeight": 1.6 }
+      ]
+    }
+  ],
+
+  "notes": [
+    "Cost breakdown shows proportional bars for each category",
+    "Cloud comparison highlights best option and current selection",
+    "On-premises option excludes operational costs",
+    "Pricing notes provide important disclaimers"
+  ]
+}

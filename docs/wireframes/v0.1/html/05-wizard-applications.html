@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3.5 Wizard - Application Counts | UX Wireframes</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .env-toggles {
+      display: flex;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+      justify-content: center;
+    }
+    .env-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-bg-elevated);
+      border: 2px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .env-toggle.active {
+      border-color: var(--color-primary);
+      background: rgba(88, 166, 255, 0.1);
+    }
+    .env-toggle .checkbox {
+      width: 20px;
+      height: 20px;
+    }
+    .env-toggle.active .checkbox {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    .app-matrix {
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .matrix-header {
+      display: grid;
+      grid-template-columns: 120px repeat(4, 1fr) 60px;
+      background: var(--color-bg-tertiary);
+      border-bottom: 1px solid var(--color-border-default);
+    }
+    .matrix-header-cell {
+      padding: var(--space-4);
+      text-align: center;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-sm);
+    }
+    .matrix-header-cell.env-dev { color: var(--color-env-dev); }
+    .matrix-header-cell.env-test { color: var(--color-env-test); }
+    .matrix-header-cell.env-staging { color: var(--color-env-staging); }
+    .matrix-header-cell.env-prod { color: var(--color-env-prod); }
+    .matrix-row {
+      display: grid;
+      grid-template-columns: 120px repeat(4, 1fr) 60px;
+      border-bottom: 1px solid var(--color-border-default);
+    }
+    .matrix-row:last-child {
+      border-bottom: none;
+    }
+    .matrix-row.totals {
+      background: var(--color-bg-tertiary);
+      font-weight: var(--font-weight-semibold);
+    }
+    .matrix-cell {
+      padding: var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .matrix-cell.label {
+      justify-content: flex-start;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .size-label {
+      font-weight: var(--font-weight-semibold);
+    }
+    .size-spec {
+      font-size: var(--font-xs);
+      color: var(--color-text-muted);
+    }
+    .matrix-input {
+      width: 60px;
+      padding: var(--space-2);
+      background: var(--color-bg-primary);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      text-align: center;
+      font-size: var(--font-md);
+    }
+    .matrix-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+    }
+    .info-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-default);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: var(--font-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .presets {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      margin-top: var(--space-5);
+    }
+    .preset-btn {
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-full);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: var(--font-sm);
+      transition: var(--transition-fast);
+    }
+    .preset-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .total-summary {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+      padding: var(--space-4);
+      background: var(--color-bg-tertiary);
+      border-radius: var(--radius-md);
+    }
+    .total-item {
+      text-align: center;
+    }
+    .total-value {
+      font-size: var(--font-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-primary);
+    }
+    .total-label {
+      font-size: var(--font-xs);
+      color: var(--color-text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <div class="wireframe-page">
+    <a href="index.html" class="btn btn-secondary mb-5">Back to Index</a>
+
+    <h1 class="wireframe-title">3.5 Wizard Step - Application Counts</h1>
+    <p class="wireframe-subtitle">Environment grid for configuring application counts by size per environment.</p>
+
+    <div class="wireframe-container" style="padding: var(--space-7);">
+      <!-- Step Header -->
+      <div class="step-header" style="text-align: center; margin-bottom: var(--space-6);">
+        <h1 style="font-size: var(--font-3xl); margin-bottom: var(--space-3);">Configure Applications</h1>
+        <p style="color: var(--color-text-secondary);">Set the number of applications per environment and size</p>
+      </div>
+
+      <!-- Environment Toggles -->
+      <div class="env-toggles">
+        <div class="env-toggle active">
+          <div class="checkbox checked">Check</div>
+          <span style="color: var(--color-env-dev);">DEV</span>
+        </div>
+        <div class="env-toggle active">
+          <div class="checkbox checked">Check</div>
+          <span style="color: var(--color-env-test);">TEST</span>
+        </div>
+        <div class="env-toggle active">
+          <div class="checkbox checked">Check</div>
+          <span style="color: var(--color-env-staging);">STAGING</span>
+        </div>
+        <div class="env-toggle active">
+          <div class="checkbox checked">Check</div>
+          <span style="color: var(--color-env-prod);">PROD</span>
+        </div>
+      </div>
+
+      <!-- Application Size Matrix -->
+      <div class="app-matrix">
+        <!-- Header Row -->
+        <div class="matrix-header">
+          <div class="matrix-header-cell"></div>
+          <div class="matrix-header-cell env-dev">DEV</div>
+          <div class="matrix-header-cell env-test">TEST</div>
+          <div class="matrix-header-cell env-staging">STAGING</div>
+          <div class="matrix-header-cell env-prod">PROD</div>
+          <div class="matrix-header-cell"></div>
+        </div>
+
+        <!-- Small Apps Row -->
+        <div class="matrix-row">
+          <div class="matrix-cell label">
+            <span class="size-label">SMALL</span>
+            <span class="size-spec">1 core / 2GB</span>
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="5" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="5" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="3" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="3" min="0">
+          </div>
+          <div class="matrix-cell">
+            <button class="info-btn">?</button>
+          </div>
+        </div>
+
+        <!-- Medium Apps Row -->
+        <div class="matrix-row">
+          <div class="matrix-cell label">
+            <span class="size-label">MEDIUM</span>
+            <span class="size-spec">2 cores / 4GB</span>
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="3" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="3" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="2" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="2" min="0">
+          </div>
+          <div class="matrix-cell">
+            <button class="info-btn">?</button>
+          </div>
+        </div>
+
+        <!-- Large Apps Row -->
+        <div class="matrix-row">
+          <div class="matrix-cell label">
+            <span class="size-label">LARGE</span>
+            <span class="size-spec">4 cores / 8GB</span>
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="1" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="1" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="1" min="0">
+          </div>
+          <div class="matrix-cell">
+            <input type="number" class="matrix-input" value="1" min="0">
+          </div>
+          <div class="matrix-cell">
+            <button class="info-btn">?</button>
+          </div>
+        </div>
+
+        <!-- Totals Row -->
+        <div class="matrix-row totals">
+          <div class="matrix-cell label">
+            <span class="size-label">TOTAL</span>
+          </div>
+          <div class="matrix-cell" style="color: var(--color-env-dev);">9</div>
+          <div class="matrix-cell" style="color: var(--color-env-test);">9</div>
+          <div class="matrix-cell" style="color: var(--color-env-staging);">6</div>
+          <div class="matrix-cell" style="color: var(--color-env-prod);">6</div>
+          <div class="matrix-cell" style="color: var(--color-primary); font-size: var(--font-lg);">= 30</div>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="presets">
+        <span style="color: var(--color-text-muted); font-size: var(--font-sm);">QUICK PRESETS:</span>
+        <button class="preset-btn">Startup (10 apps)</button>
+        <button class="preset-btn">Medium (50 apps)</button>
+        <button class="preset-btn">Enterprise (100+ apps)</button>
+      </div>
+
+      <!-- Total Summary -->
+      <div class="total-summary">
+        <div class="total-item">
+          <div class="total-value">30</div>
+          <div class="total-label">Total Apps</div>
+        </div>
+        <div class="total-item">
+          <div class="total-value">48</div>
+          <div class="total-label">Total Cores</div>
+        </div>
+        <div class="total-item">
+          <div class="total-value">96 GB</div>
+          <div class="total-label">Total Memory</div>
+        </div>
+      </div>
+
+      <!-- Wizard Navigation -->
+      <div class="wizard-nav mt-6">
+        <button class="btn btn-secondary">Back: Distribution</button>
+        <div class="progress-dots">
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot completed"></div>
+          <div class="progress-dot active"></div>
+          <div class="progress-dot"></div>
+        </div>
+        <button class="btn btn-primary">Next: Pricing</button>
+      </div>
+    </div>
+
+    <!-- Component Specifications -->
+    <div class="card mt-6">
+      <h3 class="card-title">Matrix Component Specifications</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Specifications</th>
+            <th>Validation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Number Input</td>
+            <td>60px width, centered text, number type</td>
+            <td>Min: 0, Max: 999, Integers only</td>
+          </tr>
+          <tr>
+            <td>Environment Toggle</td>
+            <td>Checkbox + label, color-coded</td>
+            <td>At least one environment required</td>
+          </tr>
+          <tr>
+            <td>Preset Buttons</td>
+            <td>Pill buttons, secondary style</td>
+            <td>Fills matrix with predefined values</td>
+          </tr>
+          <tr>
+            <td>Totals Row</td>
+            <td>Auto-calculated, bold text</td>
+            <td>Sum of column values</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

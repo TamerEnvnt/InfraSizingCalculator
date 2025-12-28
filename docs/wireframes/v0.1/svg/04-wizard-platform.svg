@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <title>04 - Wizard: Platform Selection</title>
+  <desc>Platform type and technology stack selection</desc>
+
+  <defs>
+    <style>
+      .bg-primary { fill: #0d1117; }
+      .bg-secondary { fill: #161b22; }
+      .bg-tertiary { fill: #21262d; }
+      .border { stroke: #30363d; stroke-width: 1; fill: none; }
+      .border-accent { stroke: #58a6ff; stroke-width: 2; fill: none; }
+      .text-primary { fill: #f0f6fc; font-family: -apple-system, system-ui, sans-serif; }
+      .text-secondary { fill: #8b949e; font-family: -apple-system, system-ui, sans-serif; }
+      .text-accent { fill: #58a6ff; font-family: -apple-system, system-ui, sans-serif; }
+      .accent-primary { fill: #58a6ff; }
+      .accent-success { fill: #238636; }
+      .k8s-blue { fill: #326ce5; }
+      .dotnet-purple { fill: #512bd4; }
+      .java-orange { fill: #f89820; }
+      .node-green { fill: #339933; }
+      .python-blue { fill: #3776ab; }
+      .mendix-blue { fill: #0595db; }
+      .outsystems-red { fill: #cf1d32; }
+    </style>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feFlood flood-color="#58a6ff" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" class="bg-primary"/>
+
+  <!-- Section Header -->
+  <text x="0" y="32" class="text-primary" font-size="24" font-weight="600">Platform Selection</text>
+  <text x="0" y="60" class="text-secondary" font-size="14">Choose your deployment type and technology stack</text>
+
+  <!-- Deployment Type Section -->
+  <text x="0" y="112" class="text-primary" font-size="16" font-weight="600">Deployment Type</text>
+
+  <!-- Kubernetes Card - Selected -->
+  <g transform="translate(0, 136)" filter="url(#glow)">
+    <rect width="380" height="240" rx="12" class="bg-secondary"/>
+    <rect width="380" height="240" rx="12" class="border-accent"/>
+
+    <!-- Selected Badge -->
+    <rect x="320" y="16" width="44" height="24" rx="12" class="accent-success"/>
+    <text x="342" y="33" class="text-primary" font-size="12" text-anchor="middle">✓</text>
+
+    <!-- Icon -->
+    <text x="24" y="64" class="k8s-blue" font-size="48">☸</text>
+
+    <!-- Content -->
+    <text x="24" y="112" class="text-primary" font-size="20" font-weight="600">Kubernetes</text>
+    <text x="24" y="140" class="text-secondary" font-size="14">Container orchestration platform for</text>
+    <text x="24" y="160" class="text-secondary" font-size="14">scalable, cloud-native deployments</text>
+
+    <!-- Tags -->
+    <rect x="24" y="184" width="90" height="24" rx="12" class="bg-tertiary"/>
+    <text x="69" y="201" class="text-secondary" font-size="11" text-anchor="middle">Auto-scaling</text>
+
+    <rect x="122" y="184" width="80" height="24" rx="12" class="bg-tertiary"/>
+    <text x="162" y="201" class="text-secondary" font-size="11" text-anchor="middle">HA Support</text>
+
+    <rect x="210" y="184" width="100" height="24" rx="12" class="bg-tertiary"/>
+    <text x="260" y="201" class="text-secondary" font-size="11" text-anchor="middle">46 Distributions</text>
+  </g>
+
+  <!-- VM Card -->
+  <g transform="translate(404, 136)">
+    <rect width="380" height="240" rx="12" class="bg-secondary"/>
+    <rect width="380" height="240" rx="12" class="border"/>
+
+    <!-- Icon -->
+    <text x="24" y="64" font-size="48">🖥</text>
+
+    <!-- Content -->
+    <text x="24" y="112" class="text-primary" font-size="20" font-weight="600">Virtual Machines</text>
+    <text x="24" y="140" class="text-secondary" font-size="14">Traditional VM-based deployments</text>
+    <text x="24" y="160" class="text-secondary" font-size="14">for simpler infrastructure needs</text>
+
+    <!-- Tags -->
+    <rect x="24" y="184" width="70" height="24" rx="12" class="bg-tertiary"/>
+    <text x="59" y="201" class="text-secondary" font-size="11" text-anchor="middle">Simpler</text>
+
+    <rect x="102" y="184" width="80" height="24" rx="12" class="bg-tertiary"/>
+    <text x="142" y="201" class="text-secondary" font-size="11" text-anchor="middle">Predictable</text>
+  </g>
+
+  <!-- Technology Stack Section -->
+  <text x="0" y="416" class="text-primary" font-size="16" font-weight="600">Technology Stack</text>
+  <text x="0" y="440" class="text-secondary" font-size="13">Select your primary development platform</text>
+
+  <!-- Native Row -->
+  <text x="0" y="492" class="text-secondary" font-size="12" font-weight="500">Native</text>
+
+  <!-- .NET Card - Selected -->
+  <g transform="translate(80, 456)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border-accent"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="dotnet-purple"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">.NET</text>
+  </g>
+
+  <!-- Java Card -->
+  <g transform="translate(256, 456)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="java-orange"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">Java</text>
+  </g>
+
+  <!-- Node.js Card -->
+  <g transform="translate(432, 456)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="node-green"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">Node.js</text>
+  </g>
+
+  <!-- Python Card -->
+  <g transform="translate(608, 456)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="python-blue"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">Python</text>
+  </g>
+
+  <!-- Low-Code Row -->
+  <text x="0" y="612" class="text-secondary" font-size="12" font-weight="500">Low-Code</text>
+
+  <!-- Mendix Card -->
+  <g transform="translate(80, 576)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="mendix-blue"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">Mendix</text>
+  </g>
+
+  <!-- OutSystems Card -->
+  <g transform="translate(256, 576)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" class="outsystems-red"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">OutSystems</text>
+  </g>
+
+  <!-- PowerApps Card -->
+  <g transform="translate(432, 576)">
+    <rect width="160" height="100" rx="8" class="bg-secondary"/>
+    <rect width="160" height="100" rx="8" class="border"/>
+    <rect x="56" y="16" width="48" height="48" rx="8" fill="#742774"/>
+    <text x="80" y="92" class="text-primary" font-size="14" font-weight="500" text-anchor="middle">PowerApps</text>
+  </g>
+</svg>

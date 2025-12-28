@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <title>10 - Settings</title>
+  <desc>Infrastructure Sizing Calculator - Settings Page (Full Page)</desc>
+
+  <defs>
+    <style>
+      .bg-primary { fill: #0d1117; }
+      .bg-secondary { fill: #161b22; }
+      .bg-tertiary { fill: #21262d; }
+      .bg-header { fill: #010409; }
+      .text-primary { fill: #e6edf3; font-family: -apple-system, sans-serif; }
+      .text-secondary { fill: #8b949e; font-family: -apple-system, sans-serif; }
+      .text-muted { fill: #6e7681; font-family: -apple-system, sans-serif; }
+      .accent-blue { fill: #58a6ff; }
+      .accent-red { fill: #f85149; }
+      .font-xs { font-size: 12px; }
+      .font-sm { font-size: 14px; }
+      .font-lg { font-size: 18px; }
+      .font-xl { font-size: 20px; }
+      .font-2xl { font-size: 24px; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1440" height="900" class="bg-primary"/>
+
+  <!-- Header -->
+  <rect width="1440" height="64" class="bg-header"/>
+  <line x1="0" y1="64" x2="1440" y2="64" stroke="#30363d"/>
+  <rect x="24" y="16" width="32" height="32" rx="4" class="accent-blue"/>
+  <text x="40" y="38" class="text-primary font-sm" text-anchor="middle">ISC</text>
+  <text x="72" y="38" class="text-primary font-lg">Infrastructure Sizing Calculator</text>
+
+  <!-- Settings Icon Active -->
+  <rect x="1356" y="16" width="32" height="32" rx="4" class="accent-blue"/>
+  <text x="1372" y="38" class="bg-primary font-sm" text-anchor="middle">S</text>
+
+  <!-- Full Page Content -->
+  <text x="120" y="120" class="text-primary font-2xl">Settings</text>
+  <text x="120" y="148" class="text-secondary font-sm">Configure application preferences</text>
+
+  <!-- Section 1: Appearance -->
+  <rect x="120" y="180" width="1200" height="160" rx="8" class="bg-secondary"/>
+  <text x="152" y="216" class="text-primary font-lg">Appearance</text>
+
+  <!-- Theme Options -->
+  <circle cx="172" cy="260" r="8" class="bg-tertiary" stroke="#30363d"/>
+  <text x="192" y="265" class="text-primary font-sm">Light</text>
+
+  <circle cx="282" cy="260" r="8" class="accent-blue"/>
+  <text x="302" y="265" class="text-primary font-sm">Dark</text>
+
+  <circle cx="392" cy="260" r="8" class="bg-tertiary" stroke="#30363d"/>
+  <text x="412" y="265" class="text-primary font-sm">System</text>
+
+  <!-- Theme Preview -->
+  <rect x="152" y="288" width="1136" height="40" rx="4" class="bg-tertiary"/>
+  <text x="172" y="314" class="text-muted font-xs">Theme Preview</text>
+
+  <!-- Section 2: Pricing Configuration -->
+  <rect x="120" y="360" width="1200" height="280" rx="8" class="bg-secondary"/>
+  <text x="152" y="396" class="text-primary font-lg">Pricing Configuration</text>
+
+  <!-- Table Header -->
+  <text x="172" y="436" class="text-muted font-xs">COMPONENT</text>
+  <text x="500" y="436" class="text-muted font-xs">UNIT</text>
+  <text x="750" y="436" class="text-muted font-xs">MONTHLY COST</text>
+  <line x1="152" y1="452" x2="1288" y2="452" stroke="#30363d"/>
+
+  <!-- Row 1 -->
+  <text x="172" y="484" class="text-primary font-sm">Compute (vCPU)</text>
+  <text x="500" y="484" class="text-secondary font-sm">per core</text>
+  <rect x="730" y="464" width="100" height="32" rx="4" class="bg-tertiary"/>
+  <text x="780" y="486" class="text-primary font-sm" text-anchor="middle">$35.00</text>
+
+  <!-- Row 2 -->
+  <text x="172" y="524" class="text-primary font-sm">Memory (RAM)</text>
+  <text x="500" y="524" class="text-secondary font-sm">per GB</text>
+  <rect x="730" y="504" width="100" height="32" rx="4" class="bg-tertiary"/>
+  <text x="780" y="526" class="text-primary font-sm" text-anchor="middle">$5.00</text>
+
+  <!-- Row 3 -->
+  <text x="172" y="564" class="text-primary font-sm">Storage (Disk)</text>
+  <text x="500" y="564" class="text-secondary font-sm">per GB</text>
+  <rect x="730" y="544" width="100" height="32" rx="4" class="bg-tertiary"/>
+  <text x="780" y="566" class="text-primary font-sm" text-anchor="middle">$0.10</text>
+
+  <!-- Row 4 -->
+  <text x="172" y="604" class="text-primary font-sm">Licensing</text>
+  <text x="500" y="604" class="text-secondary font-sm">flat</text>
+  <rect x="730" y="584" width="100" height="32" rx="4" class="bg-tertiary"/>
+  <text x="780" y="606" class="text-primary font-sm" text-anchor="middle">$200.00</text>
+
+  <!-- Reset Button -->
+  <rect x="152" y="620" width="140" height="32" rx="4" class="bg-tertiary"/>
+  <text x="222" y="642" class="text-secondary font-sm" text-anchor="middle">Reset to Defaults</text>
+
+  <!-- Section 3: Data Management -->
+  <rect x="120" y="660" width="1200" height="120" rx="8" class="bg-secondary"/>
+  <text x="152" y="696" class="text-primary font-lg">Data Management</text>
+
+  <rect x="152" y="720" width="160" height="36" rx="4" class="bg-tertiary"/>
+  <text x="232" y="744" class="text-primary font-sm" text-anchor="middle">Import Configuration</text>
+
+  <rect x="332" y="720" width="180" height="36" rx="4" class="bg-tertiary"/>
+  <text x="422" y="744" class="text-primary font-sm" text-anchor="middle">Export All Scenarios</text>
+
+  <rect x="532" y="720" width="140" height="36" rx="4" class="accent-red"/>
+  <text x="602" y="744" class="text-primary font-sm" text-anchor="middle">Clear All Data</text>
+
+  <!-- Footer -->
+  <line x1="120" y1="820" x2="1320" y2="820" stroke="#30363d"/>
+  <rect x="1180" y="840" width="140" height="40" rx="8" class="accent-blue"/>
+  <text x="1250" y="866" class="bg-primary font-sm" text-anchor="middle">Save Changes</text>
+</svg>

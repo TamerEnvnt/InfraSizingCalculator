@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=375">
+  <title>03 - Mobile Layout (375x812)</title>
+  <link rel="stylesheet" href="wireframe-tokens.css">
+  <style>
+    /* Force mobile layout */
+    .wireframe-container {
+      width: 375px;
+      height: 812px;
+    }
+    .header {
+      height: 56px;
+    }
+    .header-title {
+      font-size: 14px;
+    }
+    .sidebar, .context-panel {
+      display: none;
+    }
+    .main-layout {
+      flex-direction: column;
+    }
+    .step-indicator-bar {
+      display: flex !important;
+    }
+    .bottom-nav {
+      display: flex !important;
+    }
+    .wizard-nav {
+      display: none;
+    }
+    .selection-cards {
+      grid-template-columns: 1fr;
+    }
+  </style>
+</head>
+<body>
+  <div class="wireframe-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <div class="header-icon" title="Menu">M</div>
+        <span class="header-title">InfraSiz</span>
+      </div>
+      <div class="header-actions">
+        <div class="header-icon" title="More">...</div>
+      </div>
+    </header>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator-bar">
+      <div class="step-dots-mobile">
+        <div class="progress-dot completed"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+      <span class="step-text">Step 2 of 5</span>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout" style="flex: 1; overflow: hidden;">
+      <!-- Main Content -->
+      <main class="main-content" style="height: calc(812px - 56px - 48px - 64px); overflow-y: auto; padding: 16px;">
+        <div class="content-header">
+          <h1 class="content-title" style="font-size: 20px;">Select Technology</h1>
+          <p class="content-subtitle">Choose your technology stack</p>
+        </div>
+
+        <div class="content-body">
+          <div class="selection-cards" style="gap: 16px;">
+            <div class="selection-card" style="padding: 16px;">
+              <div class="card-icon" style="width: 40px; height: 40px;">N</div>
+              <h3 class="card-title" style="font-size: 16px;">Native Applications</h3>
+              <p class="card-description">.NET, Java, Node.js, Python, Go</p>
+              <p class="card-subtext">Standard container workloads</p>
+              <button class="card-button" style="width: 100%; margin-top: 12px;">SELECT</button>
+            </div>
+
+            <div class="selection-card selected" style="padding: 16px;">
+              <div class="card-icon" style="width: 40px; height: 40px;">L</div>
+              <h3 class="card-title" style="font-size: 16px;">Low-Code Platform</h3>
+              <p class="card-description">Mendix, OutSystems</p>
+              <p class="card-subtext">Platform-specific runtime</p>
+              <button class="card-button selected" style="width: 100%; margin-top: 12px;">SELECTED</button>
+            </div>
+          </div>
+
+          <div class="info-tip" style="margin-top: 16px;">
+            <strong>TIP:</strong> Choose based on your team's skills.
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="bottom-nav-item">
+        <span>B</span>
+        <span>Back</span>
+      </div>
+      <div class="bottom-nav-item active">
+        <span>S</span>
+        <span>Summary</span>
+      </div>
+      <div class="bottom-nav-item">
+        <span>N</span>
+        <span>Next</span>
+      </div>
+      <div class="bottom-nav-item">
+        <span>M</span>
+        <span>Menu</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

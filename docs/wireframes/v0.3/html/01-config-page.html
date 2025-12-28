@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.3 - Configuration Page (Progressive Accordion)</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 16px;
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 72px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 32px;
+            position: sticky;
+            top: 64px;
+            z-index: 99;
+        }
+
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            max-width: 800px;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .step-circle.completed {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .step-circle.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .step-circle.pending {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .step-connector {
+            width: 60px;
+            height: 2px;
+            background: var(--border-primary);
+            margin-bottom: 24px;
+        }
+
+        .step-connector.completed {
+            background: var(--accent-green);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Accordion Sections */
+        .accordion-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .accordion-section:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .accordion-section.active {
+            border-color: var(--accent-blue);
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 24px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .accordion-chevron {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            margin-right: 16px;
+            transition: transform 0.3s;
+        }
+
+        .accordion-section.active .accordion-chevron {
+            transform: rotate(90deg);
+        }
+
+        .accordion-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 16px;
+        }
+
+        .accordion-number.completed {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .accordion-number.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .accordion-number.pending {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+        }
+
+        .accordion-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .accordion-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-right: 16px;
+        }
+
+        .accordion-status {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .accordion-status.completed {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+        }
+
+        .accordion-status.active {
+            background: rgba(88, 166, 255, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .accordion-status.pending {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-section.active .accordion-content {
+            max-height: 600px;
+        }
+
+        .accordion-body {
+            padding: 0 24px 24px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        /* Content Cards */
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding-top: 24px;
+        }
+
+        .selection-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .selection-card:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .selection-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .selection-card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .selection-card-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .selection-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Distribution Grid */
+        .distribution-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding-top: 24px;
+        }
+
+        .distribution-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .distribution-card:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .distribution-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .distribution-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .distribution-type {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* App Matrix */
+        .app-matrix {
+            padding-top: 24px;
+        }
+
+        .env-toggles {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .env-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .env-toggle.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .matrix-table th {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .matrix-table td:first-child {
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .matrix-input {
+            width: 60px;
+            height: 32px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .matrix-total {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        /* Pricing Section */
+        .pricing-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding-top: 24px;
+        }
+
+        .pricing-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .pricing-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .pricing-value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Floating Summary Bar */
+        .floating-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 72px;
+            background: rgba(22, 27, 34, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 100;
+        }
+
+        .summary-metrics {
+            display: flex;
+            gap: 32px;
+        }
+
+        .metric-item {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .calculate-btn {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .calculate-btn:hover {
+            background: #2ea043;
+        }
+
+        /* Page Title */
+        .page-title {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">InfraSizing Calculator</div>
+        <div class="header-icons">
+            <span title="Theme">☼</span>
+            <span title="Settings">⚙</span>
+            <span title="User">👤</span>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-steps">
+            <div class="progress-step">
+                <div class="step-circle completed">✓</div>
+                <div class="step-label">Platform</div>
+            </div>
+            <div class="step-connector completed"></div>
+            <div class="progress-step">
+                <div class="step-circle completed">✓</div>
+                <div class="step-label">Technology</div>
+            </div>
+            <div class="step-connector completed"></div>
+            <div class="progress-step">
+                <div class="step-circle active">3</div>
+                <div class="step-label">Distribution</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="progress-step">
+                <div class="step-circle pending">4</div>
+                <div class="step-label">Applications</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="progress-step">
+                <div class="step-circle pending">5</div>
+                <div class="step-label">Pricing</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-title">
+            <h1>Configure Your Infrastructure</h1>
+            <p>Complete all sections below to calculate your sizing requirements</p>
+        </div>
+
+        <!-- Section 1: Platform -->
+        <div class="accordion-section">
+            <div class="accordion-header">
+                <div class="accordion-chevron">▶</div>
+                <div class="accordion-number completed">✓</div>
+                <div class="accordion-title">Platform Selection</div>
+                <div class="accordion-summary">Low-Code Platform</div>
+                <div class="accordion-status completed">Complete</div>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <div class="selection-grid">
+                        <div class="selection-card">
+                            <div class="selection-card-icon">🔧</div>
+                            <div class="selection-card-title">Native Applications</div>
+                            <div class="selection-card-desc">.NET, Java, Node.js, Python, Go</div>
+                        </div>
+                        <div class="selection-card selected">
+                            <div class="selection-card-icon">⚡</div>
+                            <div class="selection-card-title">Low-Code Platform</div>
+                            <div class="selection-card-desc">Mendix, OutSystems</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Technology -->
+        <div class="accordion-section">
+            <div class="accordion-header">
+                <div class="accordion-chevron">▶</div>
+                <div class="accordion-number completed">✓</div>
+                <div class="accordion-title">Technology Selection</div>
+                <div class="accordion-summary">Mendix</div>
+                <div class="accordion-status completed">Complete</div>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <div class="selection-grid">
+                        <div class="selection-card selected">
+                            <div class="selection-card-icon">🟠</div>
+                            <div class="selection-card-title">Mendix</div>
+                            <div class="selection-card-desc">Low-code app platform</div>
+                        </div>
+                        <div class="selection-card">
+                            <div class="selection-card-icon">🔴</div>
+                            <div class="selection-card-title">OutSystems</div>
+                            <div class="selection-card-desc">Enterprise low-code</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Distribution (Active/Expanded) -->
+        <div class="accordion-section active">
+            <div class="accordion-header">
+                <div class="accordion-chevron">▶</div>
+                <div class="accordion-number active">3</div>
+                <div class="accordion-title">Distribution Selection</div>
+                <div class="accordion-summary"></div>
+                <div class="accordion-status active">Current</div>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color: var(--text-secondary); margin-bottom: 16px; padding-top: 16px;">Select your Kubernetes distribution</p>
+                    <div class="distribution-grid">
+                        <div class="distribution-card">
+                            <div class="distribution-name">Kubernetes</div>
+                            <div class="distribution-type">Vanilla</div>
+                        </div>
+                        <div class="distribution-card selected">
+                            <div class="distribution-name">OpenShift</div>
+                            <div class="distribution-type">Enterprise</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">Rancher RKE2</div>
+                            <div class="distribution-type">Enterprise</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">K3s</div>
+                            <div class="distribution-type">Lightweight</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">AWS EKS</div>
+                            <div class="distribution-type">Managed</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">Azure AKS</div>
+                            <div class="distribution-type">Managed</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">Google GKE</div>
+                            <div class="distribution-type">Managed</div>
+                        </div>
+                        <div class="distribution-card">
+                            <div class="distribution-name">VMware Tanzu</div>
+                            <div class="distribution-type">Enterprise</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Applications -->
+        <div class="accordion-section">
+            <div class="accordion-header">
+                <div class="accordion-chevron">▶</div>
+                <div class="accordion-number pending">4</div>
+                <div class="accordion-title">Applications Configuration</div>
+                <div class="accordion-summary"></div>
+                <div class="accordion-status pending">Pending</div>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <div class="app-matrix">
+                        <div class="env-toggles">
+                            <div class="env-toggle active">✓ DEV</div>
+                            <div class="env-toggle active">✓ TEST</div>
+                            <div class="env-toggle active">✓ STAGING</div>
+                            <div class="env-toggle active">✓ PROD</div>
+                        </div>
+                        <table class="matrix-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Size</th>
+                                    <th>DEV</th>
+                                    <th>TEST</th>
+                                    <th>STAGING</th>
+                                    <th>PROD</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Small (1 vCPU)</td>
+                                    <td><input type="number" class="matrix-input" value="5"></td>
+                                    <td><input type="number" class="matrix-input" value="5"></td>
+                                    <td><input type="number" class="matrix-input" value="3"></td>
+                                    <td><input type="number" class="matrix-input" value="3"></td>
+                                    <td class="matrix-total">16</td>
+                                </tr>
+                                <tr>
+                                    <td>Medium (2 vCPU)</td>
+                                    <td><input type="number" class="matrix-input" value="3"></td>
+                                    <td><input type="number" class="matrix-input" value="3"></td>
+                                    <td><input type="number" class="matrix-input" value="2"></td>
+                                    <td><input type="number" class="matrix-input" value="2"></td>
+                                    <td class="matrix-total">10</td>
+                                </tr>
+                                <tr>
+                                    <td>Large (4 vCPU)</td>
+                                    <td><input type="number" class="matrix-input" value="1"></td>
+                                    <td><input type="number" class="matrix-input" value="1"></td>
+                                    <td><input type="number" class="matrix-input" value="1"></td>
+                                    <td><input type="number" class="matrix-input" value="1"></td>
+                                    <td class="matrix-total">4</td>
+                                </tr>
+                                <tr style="font-weight: 600;">
+                                    <td>TOTAL</td>
+                                    <td>9</td>
+                                    <td>9</td>
+                                    <td>6</td>
+                                    <td>6</td>
+                                    <td class="matrix-total" style="font-size: 18px;">30</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Pricing -->
+        <div class="accordion-section">
+            <div class="accordion-header">
+                <div class="accordion-chevron">▶</div>
+                <div class="accordion-number pending">5</div>
+                <div class="accordion-title">Pricing Options</div>
+                <div class="accordion-summary"></div>
+                <div class="accordion-status pending">Pending</div>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <div class="pricing-options">
+                        <div class="pricing-card">
+                            <div class="pricing-label">Compute (per vCPU)</div>
+                            <div class="pricing-value">$35.00</div>
+                        </div>
+                        <div class="pricing-card">
+                            <div class="pricing-label">Memory (per GB)</div>
+                            <div class="pricing-value">$5.00</div>
+                        </div>
+                        <div class="pricing-card">
+                            <div class="pricing-label">Storage (per GB)</div>
+                            <div class="pricing-value">$0.10</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Summary Bar -->
+    <div class="floating-bar">
+        <div class="summary-metrics">
+            <div class="metric-item">
+                <span class="metric-value">12</span>
+                <span class="metric-label">Nodes</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">96</span>
+                <span class="metric-label">vCPUs</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value">384</span>
+                <span class="metric-label">GB RAM</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-value" style="color: var(--accent-green);">$4,200</span>
+                <span class="metric-label">/month</span>
+            </div>
+        </div>
+        <button class="calculate-btn">
+            Calculate Results
+            <span>→</span>
+        </button>
+    </div>
+
+    <script>
+        // Accordion toggle functionality
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const wasActive = section.classList.contains('active');
+
+                // Close all sections
+                document.querySelectorAll('.accordion-section').forEach(s => {
+                    s.classList.remove('active');
+                });
+
+                // Toggle clicked section
+                if (!wasActive) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

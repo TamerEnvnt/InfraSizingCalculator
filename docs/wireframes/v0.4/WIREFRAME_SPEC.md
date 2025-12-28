@@ -6,6 +6,68 @@
 
 ---
 
+## Architecture Overview
+
+### Two-State Design Pattern
+
+The application supports two distinct user states with different UI layouts:
+
+| State | Header | Features | Restrictions |
+|-------|--------|----------|--------------|
+| **Guest** | Logo + New Scenario + Sign In/Sign Up | Full calculations, limited export | No saving, no scenarios list |
+| **Logged-in** | Logo + Full navigation | All features | None |
+
+### Navigation Flow
+
+```
+Landing Page (Entry Point)
+    ├── Guest Flow
+    │   └── Create Scenario → Configure → Results (with save prompt)
+    │       └── Limited Export (summary only)
+    │
+    └── Logged-in Flow
+        ├── Create Scenario → Configure → Results → Save/Export
+        ├── Scenarios List → Load/Compare
+        └── Settings
+```
+
+---
+
+## Page Inventory
+
+### Guest Pages (7 files)
+
+| File | Purpose | Key Elements |
+|------|---------|--------------|
+| `00-landing-guest.html` | Entry point for guests | Single "Create New Scenario" card, sign-in prompts |
+| `01-results-guest.html` | Full results display | Save banner with sign-in CTA |
+| `02-configure-guest.html` | Platform configuration panel | Platform/mode selection |
+| `04-apps-panel-guest.html` | App count configuration | Environment sliders |
+| `05-node-specs-guest.html` | Node specifications | Master/Infra/Worker config |
+| `06-pricing-panel-guest.html` | Pricing settings | Cloud provider, region, currency |
+| `07-growth-panel-guest.html` | Growth planning | Timeline, projections |
+| `09-export-guest.html` | Limited export modal | PDF summary only, PRO badges on locked features |
+
+### Logged-in Pages (12 files)
+
+| File | Purpose |
+|------|---------|
+| `00-landing.html` | Entry with Create + Load options |
+| `01-dashboard.html` | Scenario details view (no panel) |
+| `02-dashboard-with-panel.html` | Platform configuration |
+| `03-comparison-dashboard.html` | Side-by-side comparison |
+| `04-apps-panel.html` | App configuration |
+| `05-node-specs-panel.html` | Node specifications |
+| `06-pricing-panel.html` | Pricing settings |
+| `07-growth-panel.html` | Growth planning |
+| `08-scenarios.html` | Saved scenarios list |
+| `09-export-modal.html` | Full export options |
+| `10-settings.html` | User settings |
+| `11-login.html` | Login page |
+| `12-register.html` | Registration page |
+
+---
+
 ## Design Philosophy
 
 This version uses a **Dashboard-First** pattern where users see results immediately and can adjust configuration through side panels. Based on the principle that users want to see outcomes first, then refine their inputs.
@@ -513,9 +575,41 @@ These wireframes are desktop-focused (1440px). Mobile adaptations needed:
 
 ---
 
+## Implementation Checklist
+
+### Phase 1: Core Components
+- [ ] `GuestHeader.razor`
+- [ ] `AuthenticatedHeader.razor`
+- [ ] `PanelTabs.razor`
+- [ ] `SummaryCards.razor`
+- [ ] `SlidePanel.razor` (container)
+
+### Phase 2: Guest Flow
+- [ ] `GuestLanding.razor`
+- [ ] `GuestResults.razor` with save banner
+- [ ] `GuestExportModal.razor` with restrictions
+- [ ] Configuration panels (guest versions)
+
+### Phase 3: Authenticated Flow
+- [ ] `AuthenticatedLanding.razor`
+- [ ] `ScenarioDetails.razor`
+- [ ] `ScenariosListPage.razor`
+- [ ] `SettingsPage.razor`
+- [ ] Full export functionality
+
+### Phase 4: Shared Panels
+- [ ] `PlatformConfigPanel.razor`
+- [ ] `AppsConfigPanel.razor`
+- [ ] `NodeSpecsPanel.razor`
+- [ ] `PricingPanel.razor`
+- [ ] `GrowthPlanningPanel.razor`
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.4.0 | Dec 28, 2024 | Initial 3 screens (Dashboard pattern) |
 | 0.4.1 | Dec 28, 2024 | Complete 12-screen set for handoff |
+| 0.4.2 | Dec 28, 2024 | Consolidated spec files, added implementation checklist |

@@ -49,7 +49,7 @@
       "y": 24,
       "width": 200,
       "height": 16,
-      "text": "Dashboard   Configure   Scenarios",
+      "text": "New Scenario   Scenarios",
       "fontSize": 12,
       "fontFamily": 2,
       "strokeColor": "#8b949e"

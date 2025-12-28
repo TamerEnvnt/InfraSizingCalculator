@@ -532,9 +532,14 @@ For large selection lists (46 distributions, scenarios, etc.):
 ## UX/UI Handoff Notes
 
 ### File Formats
-- **HTML wireframes** (`html/` folder): Interactive, viewable in browser
+- **HTML wireframes** (`html/` folder): Interactive, viewable in browser - **SOURCE OF TRUTH**
 - **Excalidraw wireframes** (`excalidraw/` folder): Editable source files for [excalidraw.com](https://excalidraw.com)
 - **Index files**: Quick navigation to all screens
+
+**Important:** HTML files are the authoritative source. Excalidraw files cover logged-in screens only (12 files). Guest flow screens (8 files) are HTML-only:
+- `00-landing-guest.html`, `01-results-guest.html`, `02-configure-guest.html`
+- `04-apps-panel-guest.html`, `05-node-specs-guest.html`, `06-pricing-panel-guest.html`
+- `07-growth-panel-guest.html`, `09-export-guest.html`
 
 ### Design System Reference
 All wireframes use consistent tokens defined in the Design Tokens section above. When implementing:
@@ -613,3 +618,4 @@ These wireframes are desktop-focused (1440px). Mobile adaptations needed:
 | 0.4.0 | Dec 28, 2024 | Initial 3 screens (Dashboard pattern) |
 | 0.4.1 | Dec 28, 2024 | Complete 12-screen set for handoff |
 | 0.4.2 | Dec 28, 2024 | Consolidated spec files, added implementation checklist |
+| 0.4.3 | Dec 28, 2024 | Updated Excalidraw navigation (New Scenario, Scenarios), documented HTML as source of truth |

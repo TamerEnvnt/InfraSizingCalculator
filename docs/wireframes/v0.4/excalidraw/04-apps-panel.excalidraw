@@ -42,25 +42,13 @@
       "strokeColor": "#58a6ff"
     },
     {
-      "id": "nav-dashboard",
-      "type": "text",
-      "x": 1100,
-      "y": 22,
-      "width": 80,
-      "height": 20,
-      "text": "Dashboard",
-      "fontSize": 14,
-      "fontFamily": 2,
-      "strokeColor": "#58a6ff"
-    },
-    {
       "id": "nav-config",
       "type": "text",
       "x": 1200,
       "y": 22,
       "width": 70,
       "height": 20,
-      "text": "Configure",
+      "text": "New Scenario",
       "fontSize": 14,
       "fontFamily": 2,
       "strokeColor": "#8b949e"

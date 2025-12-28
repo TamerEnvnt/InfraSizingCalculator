@@ -42,18 +42,6 @@
       "strokeColor": "#58a6ff"
     },
     {
-      "id": "nav-dashboard",
-      "type": "text",
-      "x": 1100,
-      "y": 22,
-      "width": 80,
-      "height": 20,
-      "text": "Dashboard",
-      "fontSize": 14,
-      "fontFamily": 2,
-      "strokeColor": "#8b949e"
-    },
-    {
       "id": "nav-scenarios",
       "type": "text",
       "x": 1200,

@@ -43,38 +43,13 @@
       "strokeColor": "#58a6ff"
     },
     {
-      "type": "rectangle",
-      "id": "nav-dashboard",
-      "x": 1040,
-      "y": 16,
-      "width": 100,
-      "height": 32,
-      "strokeColor": "#30363d",
-      "backgroundColor": "#21262d",
-      "fillStyle": "solid",
-      "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 6 }
-    },
-    {
-      "type": "text",
-      "id": "nav-dashboard-text",
-      "x": 1060,
-      "y": 24,
-      "width": 60,
-      "height": 16,
-      "text": "Dashboard",
-      "fontSize": 12,
-      "fontFamily": 2,
-      "strokeColor": "#58a6ff"
-    },
-    {
       "type": "text",
       "id": "nav-config",
       "x": 1160,
       "y": 24,
       "width": 60,
       "height": 16,
-      "text": "Configure",
+      "text": "New Scenario",
       "fontSize": 12,
       "fontFamily": 2,
       "strokeColor": "#8b949e"
@@ -114,7 +89,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -153,7 +131,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -192,7 +173,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -231,7 +215,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -270,7 +257,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 2,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -309,7 +299,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -332,7 +325,16 @@
       "height": 0,
       "strokeColor": "#30363d",
       "strokeWidth": 1,
-      "points": [[0, 0], [752, 0]]
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          752,
+          0
+        ]
+      ]
     },
     {
       "type": "rectangle",
@@ -345,7 +347,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 8 }
+      "roundness": {
+        "type": 3,
+        "value": 8
+      }
     },
     {
       "type": "text",
@@ -370,7 +375,10 @@
       "backgroundColor": "#58a6ff",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 4 }
+      "roundness": {
+        "type": 3,
+        "value": 4
+      }
     },
     {
       "type": "text",
@@ -407,7 +415,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 8 }
+      "roundness": {
+        "type": 3,
+        "value": 8
+      }
     },
     {
       "type": "text",
@@ -432,7 +443,10 @@
       "backgroundColor": "#58a6ff",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 4 }
+      "roundness": {
+        "type": 3,
+        "value": 4
+      }
     },
     {
       "type": "text",
@@ -469,7 +483,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 8 }
+      "roundness": {
+        "type": 3,
+        "value": 8
+      }
     },
     {
       "type": "text",
@@ -494,7 +511,10 @@
       "backgroundColor": "#58a6ff",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 4 }
+      "roundness": {
+        "type": 3,
+        "value": 4
+      }
     },
     {
       "type": "text",
@@ -531,7 +551,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -554,7 +577,16 @@
       "height": 0,
       "strokeColor": "#30363d",
       "strokeWidth": 1,
-      "points": [[0, 0], [512, 0]]
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          512,
+          0
+        ]
+      ]
     },
     {
       "type": "ellipse",
@@ -575,7 +607,7 @@
       "y": 280,
       "width": 280,
       "height": 180,
-      "text": "● Compute      $2,800\n\n● Storage      $480\n\n● Networking   $320\n\n  Licensing    $600\n\n  ─────────────────\n  Total        $4,200",
+      "text": "\u25cf Compute      $2,800\n\n\u25cf Storage      $480\n\n\u25cf Networking   $320\n\n  Licensing    $600\n\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  Total        $4,200",
       "fontSize": 13,
       "fontFamily": 2,
       "strokeColor": "#c9d1d9"
@@ -591,7 +623,10 @@
       "backgroundColor": "#161b22",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 12 }
+      "roundness": {
+        "type": 3,
+        "value": 12
+      }
     },
     {
       "type": "text",
@@ -616,7 +651,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 6 }
+      "roundness": {
+        "type": 3,
+        "value": 6
+      }
     },
     {
       "type": "text",
@@ -666,7 +704,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 6 }
+      "roundness": {
+        "type": 3,
+        "value": 6
+      }
     },
     {
       "type": "text",
@@ -691,7 +732,10 @@
       "backgroundColor": "#21262d",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 6 }
+      "roundness": {
+        "type": 3,
+        "value": 6
+      }
     },
     {
       "type": "text",
@@ -716,7 +760,10 @@
       "backgroundColor": "#3fb950",
       "fillStyle": "solid",
       "strokeWidth": 1,
-      "roundness": { "type": 3, "value": 6 }
+      "roundness": {
+        "type": 3,
+        "value": 6
+      }
     },
     {
       "type": "text",

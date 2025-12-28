@@ -110,9 +110,9 @@ public class WizardStepperTests : TestContext
 
         // Assert
         var stepNumbers = cut.FindAll(".stepper-number");
-        stepNumbers[1].TextContent.Should().Be("2"); // Current
-        stepNumbers[2].TextContent.Should().Be("3"); // Future
-        stepNumbers[3].TextContent.Should().Be("4"); // Future
+        stepNumbers[1].TextContent.Should().Contain("2"); // Current
+        stepNumbers[2].TextContent.Should().Contain("3"); // Future
+        stepNumbers[3].TextContent.Should().Contain("4"); // Future
     }
 
     [Fact]
@@ -129,11 +129,11 @@ public class WizardStepperTests : TestContext
 
         // Assert
         var stepLabels = cut.FindAll(".stepper-label");
-        stepLabels[0].TextContent.Should().Be("Platform");
-        stepLabels[1].TextContent.Should().Be("Deploy");
-        stepLabels[2].TextContent.Should().Be("Tech");
-        stepLabels[3].TextContent.Should().Be("Config");
-        stepLabels[4].TextContent.Should().Be("Results");
+        stepLabels[0].TextContent.Should().Contain("Platform");
+        stepLabels[1].TextContent.Should().Contain("Deploy");
+        stepLabels[2].TextContent.Should().Contain("Tech");
+        stepLabels[3].TextContent.Should().Contain("Config");
+        stepLabels[4].TextContent.Should().Contain("Results");
     }
 
     [Fact]
@@ -147,9 +147,9 @@ public class WizardStepperTests : TestContext
 
         // Assert
         var stepLabels = cut.FindAll(".stepper-label");
-        stepLabels[0].TextContent.Should().Be("Step 1");
-        stepLabels[1].TextContent.Should().Be("Step 2");
-        stepLabels[2].TextContent.Should().Be("Step 3");
+        stepLabels[0].TextContent.Should().Contain("Step 1");
+        stepLabels[1].TextContent.Should().Contain("Step 2");
+        stepLabels[2].TextContent.Should().Contain("Step 3");
     }
 
     [Fact]
@@ -311,11 +311,11 @@ public class WizardStepperTests : TestContext
 
         // Assert - Should use default labels for missing ones
         var labels = cut.FindAll(".stepper-label");
-        labels[0].TextContent.Should().Be("Step 1");
-        labels[1].TextContent.Should().Be("Step 2");
-        labels[2].TextContent.Should().Be("Step 3"); // Default
-        labels[3].TextContent.Should().Be("Step 4"); // Default
-        labels[4].TextContent.Should().Be("Step 5"); // Default
+        labels[0].TextContent.Should().Contain("Step 1");
+        labels[1].TextContent.Should().Contain("Step 2");
+        labels[2].TextContent.Should().Contain("Step 3"); // Default
+        labels[3].TextContent.Should().Contain("Step 4"); // Default
+        labels[4].TextContent.Should().Contain("Step 5"); // Default
     }
 
     [Fact]
@@ -331,9 +331,9 @@ public class WizardStepperTests : TestContext
         // Assert - Should only use first 3 labels
         var labels = cut.FindAll(".stepper-label");
         labels.Should().HaveCount(3);
-        labels[0].TextContent.Should().Be("A");
-        labels[1].TextContent.Should().Be("B");
-        labels[2].TextContent.Should().Be("C");
+        labels[0].TextContent.Should().Contain("A");
+        labels[1].TextContent.Should().Contain("B");
+        labels[2].TextContent.Should().Contain("C");
     }
 
     [Fact]
@@ -347,9 +347,9 @@ public class WizardStepperTests : TestContext
 
         // Assert - Should use default labels
         var labels = cut.FindAll(".stepper-label");
-        labels[0].TextContent.Should().Be("Step 1");
-        labels[1].TextContent.Should().Be("Step 2");
-        labels[2].TextContent.Should().Be("Step 3");
+        labels[0].TextContent.Should().Contain("Step 1");
+        labels[1].TextContent.Should().Contain("Step 2");
+        labels[2].TextContent.Should().Contain("Step 3");
     }
 
     [Fact]

@@ -63,13 +63,15 @@ public class LoadingSpinnerTests : TestContext
     }
 
     [Fact]
-    public void LoadingSpinner_DoesNotRenderMessage_WhenNotProvided()
+    public void LoadingSpinner_ShowsDefaultAccessibleMessage_WhenNotProvided()
     {
         // Arrange & Act
         var cut = RenderComponent<LoadingSpinner>();
 
-        // Assert
-        cut.FindAll(".loading-message").Should().BeEmpty();
+        // Assert - Always renders message for screen readers (visually hidden by default)
+        var message = cut.Find(".loading-message");
+        message.TextContent.Should().Contain("Loading...");
+        message.ClassList.Should().Contain("visually-hidden");
     }
 
     [Fact]

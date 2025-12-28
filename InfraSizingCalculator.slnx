@@ -4,5 +4,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/InfraSizingCalculator.UnitTests/InfraSizingCalculator.UnitTests.csproj" />
+    <Project Path="tests/InfraSizingCalculator.Benchmarks/InfraSizingCalculator.Benchmarks.csproj" />
+    <Project Path="tests/InfraSizingCalculator.E2ETests/InfraSizingCalculator.E2ETests.csproj" />
   </Folder>
 </Solution>

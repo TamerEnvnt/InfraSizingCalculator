@@ -2,10 +2,14 @@
 
 <div class="selection-card @(IsSelected ? "selected" : "") @AdditionalClass"
      style="@(BrandColor != null ? $"--brand-color: {BrandColor}" : "")"
-     @onclick="OnClick">
+     @onclick="OnClick"
+     @onkeydown="HandleKeyDown"
+     role="option"
+     aria-selected="@IsSelected.ToString().ToLowerInvariant()"
+     tabindex="0">
     @if (!string.IsNullOrEmpty(Icon))
     {
-        <span class="card-icon">@Icon</span>
+        <span class="card-icon" aria-hidden="true">@Icon</span>
     }
     <div class="card-content">
         <span class="card-title">@Title</span>
@@ -19,7 +23,7 @@
         }
         @if (Tags != null && Tags.Any())
         {
-            <div class="card-tags">
+            <div class="card-tags" aria-label="Tags">
                 @foreach (var tag in Tags)
                 {
                     <span class="tag @tag.CssClass">@tag.Label</span>
@@ -29,7 +33,8 @@
     </div>
     @if (IsSelected)
     {
-        <span class="check-mark icon icon-check"></span>
+        <span class="check-mark icon icon-check" aria-hidden="true"></span>
+        <span class="visually-hidden">Selected</span>
     }
 </div>
 
@@ -43,6 +48,15 @@
     [Parameter] public string? AdditionalClass { get; set; }
     [Parameter] public IEnumerable<TagInfo>? Tags { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        // Activate on Enter or Space (WCAG 2.1 keyboard accessibility)
+        if ((e.Key == "Enter" || e.Key == " ") && OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
 
     public record TagInfo(string CssClass, string Label);
 }

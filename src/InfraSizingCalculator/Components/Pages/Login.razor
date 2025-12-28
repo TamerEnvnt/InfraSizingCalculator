@@ -1,0 +1,122 @@
+@page "/login"
+@using InfraSizingCalculator.Services.Auth
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject ILogger<Login> Logger
+
+<PageTitle>Login - Infrastructure Sizing Calculator</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        <h1>Sign In</h1>
+        <p class="subtitle">Infrastructure Sizing Calculator</p>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-error" role="alert">
+                <span class="alert-icon">⚠</span>
+                @_errorMessage
+            </div>
+        }
+
+        <EditForm Model="_loginModel" OnValidSubmit="HandleLogin" FormName="login">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email"
+                           @bind-Value="_loginModel.Email"
+                           class="form-control"
+                           placeholder="your@email.com"
+                           autocomplete="email" />
+                <ValidationMessage For="@(() => _loginModel.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password"
+                           @bind-Value="_loginModel.Password"
+                           type="password"
+                           class="form-control"
+                           placeholder="Enter your password"
+                           autocomplete="current-password" />
+                <ValidationMessage For="@(() => _loginModel.Password)" />
+            </div>
+
+            <div class="form-group checkbox-group">
+                <InputCheckbox id="rememberMe" @bind-Value="_loginModel.RememberMe" />
+                <label for="rememberMe">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="login-footer">
+            <p>Don't have an account? <a href="/register">Create one</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel _loginModel = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private async Task HandleLogin()
+    {
+        _errorMessage = null;
+        _isLoading = true;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(
+                _loginModel.Email,
+                _loginModel.Password,
+                _loginModel.RememberMe);
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User {Email} logged in successfully", _loginModel.Email);
+                Navigation.NavigateTo(ReturnUrl ?? "/", forceLoad: true);
+            }
+            else
+            {
+                _errorMessage = result.ErrorMessage ?? "Login failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Login error for user {Email}", _loginModel.Email);
+            _errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}

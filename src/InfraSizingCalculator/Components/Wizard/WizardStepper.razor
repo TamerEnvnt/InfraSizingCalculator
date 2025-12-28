@@ -1,31 +1,54 @@
 @* Wizard stepper component showing step progress *@
 
-<div class="wizard-stepper @AdditionalClass">
-    @for (int i = 1; i <= TotalSteps; i++)
-    {
-        var step = i;
-        var stepClass = step < CurrentStep ? "completed" : (step == CurrentStep ? "active" : "");
-        var isClickable = step < CurrentStep;
-        <div class="stepper-step @stepClass @(isClickable ? "" : "disabled")"
-             @onclick="() => OnStepClicked(step)">
-            <div class="stepper-number">
-                @if (step < CurrentStep)
-                {
-                    <span class="icon icon-check"></span>
-                }
-                else
-                {
-                    <span>@step</span>
-                }
-            </div>
-            <span class="stepper-label">@GetStepLabel(step)</span>
-        </div>
-        @if (i < TotalSteps)
+<nav class="wizard-stepper @AdditionalClass"
+     role="navigation"
+     aria-label="Wizard progress">
+    <ol class="stepper-list" role="list">
+        @for (int i = 1; i <= TotalSteps; i++)
         {
-            <div class="stepper-line @(step < CurrentStep ? "completed" : "")"></div>
+            var step = i;
+            var stepClass = step < CurrentStep ? "completed" : (step == CurrentStep ? "active" : "");
+            var isClickable = step < CurrentStep;
+            var isCurrent = step == CurrentStep;
+            <li class="stepper-step @stepClass @(isClickable ? "" : "disabled")"
+                @onclick="() => OnStepClicked(step)"
+                @onkeydown="(e) => HandleStepKeyDown(e, step)"
+                role="listitem"
+                tabindex="@(isClickable ? 0 : -1)"
+                aria-current="@(isCurrent ? "step" : null)"
+                aria-disabled="@(!isClickable && !isCurrent)">
+                <div class="stepper-number" aria-hidden="true">
+                    @if (step < CurrentStep)
+                    {
+                        <span class="icon icon-check"></span>
+                    }
+                    else
+                    {
+                        <span>@step</span>
+                    }
+                </div>
+                <span class="stepper-label">
+                    <span class="visually-hidden">Step @step of @TotalSteps: </span>
+                    @GetStepLabel(step)
+                    @if (step < CurrentStep)
+                    {
+                        <span class="visually-hidden">(completed, click to return)</span>
+                    }
+                    else if (isCurrent)
+                    {
+                        <span class="visually-hidden">(current step)</span>
+                    }
+                </span>
+            </li>
+            @if (i < TotalSteps)
+            {
+                <li class="stepper-line @(step < CurrentStep ? "completed" : "")"
+                    role="presentation"
+                    aria-hidden="true"></li>
+            }
         }
-    }
-</div>
+    </ol>
+</nav>
 
 @code {
     [Parameter] public int CurrentStep { get; set; } = 1;
@@ -41,6 +64,15 @@
             return StepLabels[step - 1];
         }
         return $"Step {step}";
+    }
+
+    private async Task HandleStepKeyDown(KeyboardEventArgs e, int step)
+    {
+        // Activate on Enter or Space (WCAG 2.1 keyboard accessibility)
+        if ((e.Key == "Enter" || e.Key == " ") && step < CurrentStep && OnStepSelected.HasDelegate)
+        {
+            await OnStepSelected.InvokeAsync(step);
+        }
     }
 
     private async Task OnStepClicked(int step)

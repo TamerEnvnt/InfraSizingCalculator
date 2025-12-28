@@ -1,11 +1,13 @@
 @* Reusable loading spinner component *@
 
-<div class="loading-container @AdditionalClass">
-    <div class="loading-spinner @Size"></div>
-    @if (!string.IsNullOrEmpty(Message))
-    {
-        <span class="loading-message">@Message</span>
-    }
+<div class="loading-container @AdditionalClass"
+     role="status"
+     aria-live="polite"
+     aria-busy="true">
+    <div class="loading-spinner @Size" aria-hidden="true"></div>
+    <span class="loading-message @(string.IsNullOrEmpty(Message) ? "visually-hidden" : "")">
+        @(string.IsNullOrEmpty(Message) ? "Loading..." : Message)
+    </span>
 </div>
 
 @code {

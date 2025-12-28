@@ -1,0 +1,161 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore InfraSizingCalculator.slnx
+
+      - name: Build
+        run: dotnet build InfraSizingCalculator.slnx --no-restore --configuration Release
+
+      - name: Run Unit Tests with Coverage
+        run: |
+          dotnet test tests/InfraSizingCalculator.UnitTests \
+            --no-build \
+            --configuration Release \
+            --logger trx \
+            --results-directory TestResults \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/**/*
+          retention-days: 30
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: TestResults/**/coverage.cobertura.xml
+          retention-days: 30
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Check Code Formatting
+        run: dotnet format InfraSizingCalculator.slnx --verify-no-changes --verbosity diagnostic
+        continue-on-error: true
+
+      - name: Run .NET Analyzers
+        run: |
+          dotnet build InfraSizingCalculator.slnx \
+            --configuration Release \
+            /p:TreatWarningsAsErrors=false \
+            /p:RunAnalyzersDuringBuild=true \
+            /p:EnforceCodeStyleInBuild=true
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore InfraSizingCalculator.slnx
+
+      - name: Check for Vulnerable Packages
+        run: |
+          dotnet list src/InfraSizingCalculator package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+          if grep -q "Critical\|High" vulnerability-report.txt; then
+            echo "::error::Critical or High severity vulnerabilities detected!"
+            exit 1
+          fi
+          echo "No critical vulnerabilities detected"
+
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Stryker
+        run: dotnet tool install --global dotnet-stryker
+
+      - name: Run Mutation Tests
+        run: dotnet stryker --config-file stryker-config.json || true
+
+      - name: Upload Mutation Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: StrykerOutput/**/*
+          retention-days: 30
+
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run Benchmarks
+        run: |
+          cd tests/InfraSizingCalculator.Benchmarks
+          dotnet run -c Release -- --job short --exporters json --artifacts ../BenchmarkResults
+
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: tests/BenchmarkResults/**/*
+          retention-days: 30

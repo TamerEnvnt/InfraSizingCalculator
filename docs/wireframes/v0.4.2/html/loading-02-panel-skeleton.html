@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - LOADING-02: Panel Skeleton</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Skeleton Animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -200px 0;
+            }
+            100% {
+                background-position: calc(200px + 100%) 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-tertiary) 0px,
+                #2d333b 40px,
+                var(--bg-tertiary) 80px
+            );
+            background-size: 200px 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        /* Dashboard Content (Dimmed) */
+        .dashboard-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            opacity: 0.4;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--accent-blue);
+        }
+
+        .card-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Panel Overlay */
+        .panel-overlay {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 480px;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Slide Panel */
+        .slide-panel {
+            width: 480px;
+            background: var(--bg-primary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .panel-header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* Panel Tabs (Loaded) */
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-primary);
+            padding: 0 24px;
+        }
+
+        .panel-tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .panel-tab.active {
+            color: var(--accent-blue);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-blue);
+        }
+
+        /* Panel Content (Skeleton) */
+        .panel-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* Loading Message */
+        .loading-message {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--bg-tertiary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-message span {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Form Section Skeleton */
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title-skeleton {
+            height: 18px;
+            width: 180px;
+            margin-bottom: 20px;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        .label-skeleton {
+            height: 14px;
+            width: 140px;
+            margin-bottom: 10px;
+        }
+
+        .input-skeleton {
+            height: 44px;
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        .hint-skeleton {
+            height: 12px;
+            width: 200px;
+            margin-top: 8px;
+        }
+
+        /* Radio Group Skeleton */
+        .radio-group-skeleton {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option-skeleton {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .radio-circle-skeleton {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .radio-content-skeleton {
+            flex: 1;
+        }
+
+        .radio-title-skeleton {
+            height: 16px;
+            width: 120px;
+            margin-bottom: 6px;
+        }
+
+        .radio-desc-skeleton {
+            height: 12px;
+            width: 200px;
+        }
+
+        /* Slider Skeleton */
+        .slider-skeleton {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .slider-track-skeleton {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .slider-value-skeleton {
+            width: 50px;
+            height: 20px;
+        }
+
+        /* Panel Footer */
+        .panel-footer {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-skeleton {
+            width: 100px;
+            height: 44px;
+            border-radius: 6px;
+        }
+
+        .btn-skeleton.wide {
+            width: 140px;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 20px;
+            left: 32px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 350px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn active">New Scenario</button>
+            <button class="nav-btn">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Dashboard (Dimmed) -->
+        <div class="dashboard-content">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-value">12</div>
+                    <div class="card-label">Total Nodes</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">96</div>
+                    <div class="card-label">vCPUs</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">384</div>
+                    <div class="card-label">GB RAM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">4.8</div>
+                    <div class="card-label">TB Storage</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">$12,450</div>
+                    <div class="card-label">/month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Overlay -->
+        <div class="panel-overlay"></div>
+
+        <!-- Slide Panel with Skeleton -->
+        <aside class="slide-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Configure Platform</h2>
+                <button class="btn-close">×</button>
+            </div>
+
+            <div class="panel-tabs">
+                <button class="panel-tab active">Platform</button>
+                <button class="panel-tab">Apps</button>
+                <button class="panel-tab">Nodes</button>
+                <button class="panel-tab">Pricing</button>
+            </div>
+
+            <div class="panel-content">
+                <!-- Loading Message -->
+                <div class="loading-message">
+                    <div class="spinner-small"></div>
+                    <span>Loading platform options...</span>
+                </div>
+
+                <!-- Form Section 1: Radio Group -->
+                <div class="form-section">
+                    <div class="skeleton section-title-skeleton"></div>
+                    <div class="radio-group-skeleton">
+                        <div class="radio-option-skeleton">
+                            <div class="skeleton radio-circle-skeleton"></div>
+                            <div class="radio-content-skeleton">
+                                <div class="skeleton radio-title-skeleton"></div>
+                                <div class="skeleton radio-desc-skeleton"></div>
+                            </div>
+                        </div>
+                        <div class="radio-option-skeleton">
+                            <div class="skeleton radio-circle-skeleton"></div>
+                            <div class="radio-content-skeleton">
+                                <div class="skeleton radio-title-skeleton"></div>
+                                <div class="skeleton radio-desc-skeleton"></div>
+                            </div>
+                        </div>
+                        <div class="radio-option-skeleton">
+                            <div class="skeleton radio-circle-skeleton"></div>
+                            <div class="radio-content-skeleton">
+                                <div class="skeleton radio-title-skeleton"></div>
+                                <div class="skeleton radio-desc-skeleton"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Section 2: Input Fields -->
+                <div class="form-section">
+                    <div class="skeleton section-title-skeleton"></div>
+
+                    <div class="field-group">
+                        <div class="skeleton label-skeleton"></div>
+                        <div class="skeleton input-skeleton"></div>
+                        <div class="skeleton hint-skeleton"></div>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="skeleton label-skeleton"></div>
+                        <div class="slider-skeleton">
+                            <div class="skeleton slider-track-skeleton"></div>
+                            <div class="skeleton slider-value-skeleton"></div>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <div class="skeleton label-skeleton"></div>
+                        <div class="skeleton input-skeleton"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <div class="skeleton btn-skeleton"></div>
+                <div class="skeleton btn-skeleton wide"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Panel skeleton shows exact form layout before data loads. Tabs are visible and functional. Loading message provides context. Form structure prevents layout shift when content appears.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="loading-01-dashboard-skeleton.html" class="nav-link">Prev: Dashboard Skeleton</a>
+        <a href="loading-03-calculating.html" class="nav-link">Next: Calculating</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=375, initial-scale=1.0">
+    <title>v0.4.2 - MOBILE-03: Fullscreen Panel</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-primary);
+        }
+
+        /* Panel Header */
+        .panel-header {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--accent-blue);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-back::before {
+            content: '<';
+            font-size: 16px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .step {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+        }
+
+        .step.completed {
+            background: var(--accent-green);
+        }
+
+        .step.active {
+            background: var(--accent-blue);
+        }
+
+        /* Panel Content */
+        .panel-content {
+            flex: 1;
+            padding: 20px 16px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .section-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* Radio Cards */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .radio-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .radio-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .radio-circle {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-primary);
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radio-card.selected .radio-circle {
+            border-color: var(--accent-blue);
+        }
+
+        .radio-card.selected .radio-circle::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+        }
+
+        .radio-content {
+            flex: 1;
+        }
+
+        .radio-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .radio-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .radio-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+            border-radius: 4px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* Form Fields */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .field-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 14px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Stepper Input */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .stepper-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .stepper-btn:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .stepper-btn:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .stepper-value {
+            flex: 1;
+            height: 48px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Toggle */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-label {
+            font-size: 15px;
+        }
+
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle.on {
+            background: var(--accent-green);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle.on::after {
+            transform: translateX(22px);
+        }
+
+        /* Panel Footer */
+        .panel-footer {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            top: 70px;
+            right: -180px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 160px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 200;
+        }
+
+        .annotation::before {
+            content: 'Mobile Design';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 10px;
+            left: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Panel Header -->
+    <header class="panel-header">
+        <button class="btn-back">Back</button>
+        <span class="panel-title">Platform</span>
+        <button class="btn-reset">Reset</button>
+    </header>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+        <div class="step"></div>
+    </div>
+
+    <!-- Panel Content -->
+    <main class="panel-content">
+        <h2 class="section-title">Choose Platform Type</h2>
+        <p class="section-desc">Select the deployment platform for your infrastructure. This determines available distributions and configuration options.</p>
+
+        <!-- Radio Cards -->
+        <div class="radio-group">
+            <div class="radio-card selected">
+                <div class="radio-circle"></div>
+                <div class="radio-content">
+                    <div class="radio-title">Kubernetes</div>
+                    <div class="radio-desc">Container orchestration platform for managing containerized workloads.</div>
+                    <span class="radio-badge">Recommended</span>
+                </div>
+            </div>
+            <div class="radio-card">
+                <div class="radio-circle"></div>
+                <div class="radio-content">
+                    <div class="radio-title">Virtual Machines</div>
+                    <div class="radio-desc">Traditional VM-based deployment with full OS isolation.</div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Distribution</h2>
+        <p class="section-desc">Select your preferred Kubernetes distribution.</p>
+
+        <div class="field-group">
+            <label class="field-label">Kubernetes Distribution</label>
+            <select class="field-input">
+                <option>OpenShift</option>
+                <option>Rancher RKE2</option>
+                <option>K3s</option>
+                <option>GKE</option>
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Number of Environments</label>
+            <div class="stepper">
+                <button class="stepper-btn">-</button>
+                <div class="stepper-value">4</div>
+                <button class="stepper-btn">+</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="toggle-row">
+                <span class="toggle-label">High Availability</span>
+                <div class="toggle on"></div>
+            </div>
+            <div class="toggle-row">
+                <span class="toggle-label">Multi-region</span>
+                <div class="toggle"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Panel Footer -->
+    <div class="panel-footer">
+        <button class="btn btn-secondary">Cancel</button>
+        <button class="btn btn-primary">Next: Apps</button>
+    </div>
+
+    <!-- Annotation -->
+    <div class="annotation">
+        Fullscreen config panel on mobile. Progress bar shows current step. Large touch targets. Fixed footer with navigation. Scrollable content area.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="mobile-02-fab-expanded.html" class="nav-link">Prev: FAB Expanded</a>
+        <a href="mobile-04-scenarios.html" class="nav-link">Next: Scenarios List</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

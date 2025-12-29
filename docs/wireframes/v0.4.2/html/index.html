@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 Interactive Wireframe Prototype</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            padding: 20px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .version-badge {
+            background: var(--accent-green);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Flow Diagram Section */
+        .flow-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .flow-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .flow-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+        }
+
+        .flow-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Interactive Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .flow-node:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+        }
+
+        .flow-node.start {
+            border-color: var(--accent-green);
+            background: rgba(63, 185, 80, 0.1);
+        }
+
+        .flow-node.error {
+            border-color: var(--accent-red);
+        }
+
+        .flow-node.loading {
+            border-color: var(--accent-orange);
+        }
+
+        .flow-node.mobile {
+            border-color: var(--accent-purple);
+        }
+
+        .flow-node-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .flow-node-id {
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        .flow-arrow {
+            color: var(--text-tertiary);
+            font-size: 20px;
+        }
+
+        .flow-branch {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-left: 40px;
+            border-left: 2px dashed var(--border-primary);
+            margin-left: 20px;
+        }
+
+        .flow-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        /* Screen Categories */
+        .category {
+            margin-bottom: 48px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-core { background: var(--accent-blue); color: white; }
+        .badge-guest { background: var(--accent-orange); color: white; }
+        .badge-auth { background: var(--accent-green); color: white; }
+        .badge-error { background: var(--accent-red); color: white; }
+        .badge-loading { background: var(--accent-orange); color: white; }
+        .badge-mobile { background: var(--accent-purple); color: white; }
+        .badge-micro { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        /* Screen Grid */
+        .screen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .screen-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .screen-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .screen-preview {
+            height: 140px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .screen-info {
+            padding: 16px;
+        }
+
+        .screen-id {
+            font-size: 11px;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .screen-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .screen-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .screen-flows {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .flow-link {
+            font-size: 10px;
+            padding: 3px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        .flow-link.next { color: var(--accent-green); }
+        .flow-link.error { color: var(--accent-red); }
+        .flow-link.back { color: var(--accent-orange); }
+
+        /* Quick Navigation */
+        .quick-nav {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .quick-nav-item {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-nav-item:hover {
+            border-color: var(--accent-blue);
+            transform: scale(1.2);
+        }
+
+        .quick-nav-item.core { border-color: var(--accent-blue); }
+        .quick-nav-item.guest { border-color: var(--accent-orange); }
+        .quick-nav-item.auth { border-color: var(--accent-green); }
+        .quick-nav-item.error { border-color: var(--accent-red); }
+        .quick-nav-item.loading { border-color: var(--accent-orange); }
+        .quick-nav-item.mobile { border-color: var(--accent-purple); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <span class="version-badge">v0.4.2</span>
+                <h1>Interactive Wireframe Prototype</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat">
+                    <span class="stat-value">40</span>
+                    <span>Screens</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">6</span>
+                    <span>User Flows</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">2</span>
+                    <span>User Types</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- User Flow Diagram -->
+        <section class="flow-section">
+            <h2 class="flow-title">Primary User Flows</h2>
+            <p class="flow-desc">Click any node to open that screen. Arrows show the primary navigation paths.</p>
+
+            <div class="flow-diagram">
+                <!-- Flow 1: Guest User Journey -->
+                <div>
+                    <div class="flow-label">Guest User Flow</div>
+                    <div class="flow-row">
+                        <a href="00-landing-guest.html" class="flow-node start">
+                            <div class="flow-node-label">Landing (Guest)</div>
+                            <div class="flow-node-id">00-landing-guest</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="01-results-guest.html" class="flow-node">
+                            <div class="flow-node-label">Results (Guest)</div>
+                            <div class="flow-node-id">01-results-guest</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="02-configure-guest.html" class="flow-node">
+                            <div class="flow-node-label">Configure (Guest)</div>
+                            <div class="flow-node-id">02-configure-guest</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="09-export-guest.html" class="flow-node">
+                            <div class="flow-node-label">Export (Limited)</div>
+                            <div class="flow-node-id">09-export-guest</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="12-register.html" class="flow-node">
+                            <div class="flow-node-label">Register</div>
+                            <div class="flow-node-id">12-register</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Flow 2: Authenticated User Journey -->
+                <div>
+                    <div class="flow-label">Authenticated User Flow</div>
+                    <div class="flow-row">
+                        <a href="11-login.html" class="flow-node">
+                            <div class="flow-node-label">Login</div>
+                            <div class="flow-node-id">11-login</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="01-dashboard.html" class="flow-node start">
+                            <div class="flow-node-label">Dashboard</div>
+                            <div class="flow-node-id">01-dashboard</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="02-dashboard-with-panel.html" class="flow-node">
+                            <div class="flow-node-label">Config Panel</div>
+                            <div class="flow-node-id">02-dashboard-panel</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="08-scenarios.html" class="flow-node">
+                            <div class="flow-node-label">Scenarios</div>
+                            <div class="flow-node-id">08-scenarios</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="03-comparison-dashboard.html" class="flow-node">
+                            <div class="flow-node-label">Compare</div>
+                            <div class="flow-node-id">03-comparison</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Flow 3: Error Paths -->
+                <div>
+                    <div class="flow-label">Error Handling Flows</div>
+                    <div class="flow-row">
+                        <a href="01-dashboard.html" class="flow-node">
+                            <div class="flow-node-label">Dashboard</div>
+                            <div class="flow-node-id">01-dashboard</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="error-01-api-failure.html" class="flow-node error">
+                            <div class="flow-node-label">API Failure</div>
+                            <div class="flow-node-id">error-01</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="loading-03-calculating.html" class="flow-node loading">
+                            <div class="flow-node-label">Retry Loading</div>
+                            <div class="flow-node-id">loading-03</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="01-dashboard.html" class="flow-node">
+                            <div class="flow-node-label">Dashboard</div>
+                            <div class="flow-node-id">01-dashboard</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Flow 4: Mobile Flow -->
+                <div>
+                    <div class="flow-label">Mobile User Flow</div>
+                    <div class="flow-row">
+                        <a href="mobile-01-dashboard.html" class="flow-node mobile">
+                            <div class="flow-node-label">Mobile Dashboard</div>
+                            <div class="flow-node-id">mobile-01</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="mobile-02-fab-expanded.html" class="flow-node mobile">
+                            <div class="flow-node-label">FAB Menu</div>
+                            <div class="flow-node-id">mobile-02</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="mobile-03-fullscreen-panel.html" class="flow-node mobile">
+                            <div class="flow-node-label">Config Panel</div>
+                            <div class="flow-node-id">mobile-03</div>
+                        </a>
+                        <span class="flow-arrow">→</span>
+                        <a href="mobile-04-scenarios.html" class="flow-node mobile">
+                            <div class="flow-node-label">Scenarios</div>
+                            <div class="flow-node-id">mobile-04</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Screens -->
+        <section class="category" id="core">
+            <div class="category-header">
+                <h2 class="category-title">Core Screens</h2>
+                <span class="category-badge badge-core">8 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="00-landing.html" class="screen-card">
+                    <div class="screen-preview">🏠</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-00</div>
+                        <div class="screen-name">Landing Page</div>
+                        <div class="screen-desc">Entry point with hero, features, and CTA</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                            <span class="flow-link next">→ Register</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="01-dashboard.html" class="screen-card">
+                    <div class="screen-preview">📊</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-01</div>
+                        <div class="screen-name">Dashboard</div>
+                        <div class="screen-desc">Main results view with summary cards and visualizations</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Config Panel</span>
+                            <span class="flow-link next">→ Scenarios</span>
+                            <span class="flow-link error">⚠ API Error</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="02-dashboard-with-panel.html" class="screen-card">
+                    <div class="screen-preview">📊⚙</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-02</div>
+                        <div class="screen-name">Dashboard + Config Panel</div>
+                        <div class="screen-desc">Dashboard with slide-out configuration panel open</div>
+                        <div class="screen-flows">
+                            <span class="flow-link back">← Dashboard</span>
+                            <span class="flow-link error">⚠ Validation</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="03-comparison-dashboard.html" class="screen-card">
+                    <div class="screen-preview">⚖️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-03</div>
+                        <div class="screen-name">Comparison View</div>
+                        <div class="screen-desc">Side-by-side scenario comparison dashboard</div>
+                        <div class="screen-flows">
+                            <span class="flow-link back">← Scenarios</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="08-scenarios.html" class="screen-card">
+                    <div class="screen-preview">📁</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-08</div>
+                        <div class="screen-name">Scenarios List</div>
+                        <div class="screen-desc">Saved scenarios with search and management</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Compare</span>
+                            <span class="flow-link next">→ Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="09-export-modal.html" class="screen-card">
+                    <div class="screen-preview">📤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-09</div>
+                        <div class="screen-name">Export Modal</div>
+                        <div class="screen-desc">PDF/Excel export options with watermark preview</div>
+                        <div class="screen-flows">
+                            <span class="flow-link error">⚠ Export Failed</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="10-settings.html" class="screen-card">
+                    <div class="screen-preview">⚙️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-10</div>
+                        <div class="screen-name">Settings</div>
+                        <div class="screen-desc">User preferences and application settings</div>
+                    </div>
+                </a>
+                <a href="13-ux-states-review.html" class="screen-card">
+                    <div class="screen-preview">🎨</div>
+                    <div class="screen-info">
+                        <div class="screen-id">CORE-13</div>
+                        <div class="screen-name">UX States Review</div>
+                        <div class="screen-desc">Comprehensive UX patterns and component library</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Guest Flow Screens -->
+        <section class="category" id="guest">
+            <div class="category-header">
+                <h2 class="category-title">Guest User Screens</h2>
+                <span class="category-badge badge-guest">8 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="00-landing-guest.html" class="screen-card">
+                    <div class="screen-preview">🏠👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-00</div>
+                        <div class="screen-name">Landing (Guest)</div>
+                        <div class="screen-desc">Guest entry with limited feature preview</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Results (Guest)</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="01-results-guest.html" class="screen-card">
+                    <div class="screen-preview">📊👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-01</div>
+                        <div class="screen-name">Results (Guest)</div>
+                        <div class="screen-desc">Guest results with save prompt banner</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Register</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="02-configure-guest.html" class="screen-card">
+                    <div class="screen-preview">⚙️👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-02</div>
+                        <div class="screen-name">Configure (Guest)</div>
+                        <div class="screen-desc">Limited configuration panel for guests</div>
+                    </div>
+                </a>
+                <a href="04-apps-panel-guest.html" class="screen-card">
+                    <div class="screen-preview">📱👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-04</div>
+                        <div class="screen-name">Apps Panel (Guest)</div>
+                        <div class="screen-desc">App configuration with feature limitations</div>
+                    </div>
+                </a>
+                <a href="05-node-specs-guest.html" class="screen-card">
+                    <div class="screen-preview">💻👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-05</div>
+                        <div class="screen-name">Node Specs (Guest)</div>
+                        <div class="screen-desc">Basic node specification panel</div>
+                    </div>
+                </a>
+                <a href="06-pricing-panel-guest.html" class="screen-card">
+                    <div class="screen-preview">💰👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-06</div>
+                        <div class="screen-name">Pricing (Guest)</div>
+                        <div class="screen-desc">Limited pricing configuration</div>
+                    </div>
+                </a>
+                <a href="07-growth-panel-guest.html" class="screen-card">
+                    <div class="screen-preview">📈👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-07</div>
+                        <div class="screen-name">Growth (Guest)</div>
+                        <div class="screen-desc">Basic growth planning preview</div>
+                    </div>
+                </a>
+                <a href="09-export-guest.html" class="screen-card">
+                    <div class="screen-preview">📤👤</div>
+                    <div class="screen-info">
+                        <div class="screen-id">GUEST-09</div>
+                        <div class="screen-name">Export (Guest)</div>
+                        <div class="screen-desc">Limited export with registration prompt</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Register</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Authenticated Panels -->
+        <section class="category" id="auth">
+            <div class="category-header">
+                <h2 class="category-title">Authenticated Panels</h2>
+                <span class="category-badge badge-auth">6 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="04-apps-panel.html" class="screen-card">
+                    <div class="screen-preview">📱</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-04</div>
+                        <div class="screen-name">Apps Panel</div>
+                        <div class="screen-desc">Full application configuration with all environments</div>
+                    </div>
+                </a>
+                <a href="05-node-specs-panel.html" class="screen-card">
+                    <div class="screen-preview">💻</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-05</div>
+                        <div class="screen-name">Node Specs Panel</div>
+                        <div class="screen-desc">Advanced node specification with custom configs</div>
+                    </div>
+                </a>
+                <a href="06-pricing-panel.html" class="screen-card">
+                    <div class="screen-preview">💰</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-06</div>
+                        <div class="screen-name">Pricing Panel</div>
+                        <div class="screen-desc">Full pricing configuration with cloud alternatives</div>
+                    </div>
+                </a>
+                <a href="07-growth-panel.html" class="screen-card">
+                    <div class="screen-preview">📈</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-07</div>
+                        <div class="screen-name">Growth Panel</div>
+                        <div class="screen-desc">Growth planning with projections and timeline</div>
+                    </div>
+                </a>
+                <a href="11-login.html" class="screen-card">
+                    <div class="screen-preview">🔐</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-11</div>
+                        <div class="screen-name">Login</div>
+                        <div class="screen-desc">User authentication with remember me option</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="12-register.html" class="screen-card">
+                    <div class="screen-preview">📝</div>
+                    <div class="screen-info">
+                        <div class="screen-id">AUTH-12</div>
+                        <div class="screen-name">Register</div>
+                        <div class="screen-desc">New user registration with plan selection</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Error States -->
+        <section class="category" id="error">
+            <div class="category-header">
+                <h2 class="category-title">Error States</h2>
+                <span class="category-badge badge-error">5 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="error-01-api-failure.html" class="screen-card">
+                    <div class="screen-preview">⚠️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">ERROR-01</div>
+                        <div class="screen-name">API Failure</div>
+                        <div class="screen-desc">Dashboard with API error banner, retry option, stale data</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Retry (Loading)</span>
+                            <span class="flow-link back">← Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="error-02-validation.html" class="screen-card">
+                    <div class="screen-preview">❌</div>
+                    <div class="screen-info">
+                        <div class="screen-id">ERROR-02</div>
+                        <div class="screen-name">Validation Errors</div>
+                        <div class="screen-desc">Config panel with inline validation errors</div>
+                        <div class="screen-flows">
+                            <span class="flow-link back">← Fix & Retry</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="error-03-session-timeout.html" class="screen-card">
+                    <div class="screen-preview">⏱️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">ERROR-03</div>
+                        <div class="screen-name">Session Timeout</div>
+                        <div class="screen-desc">Modal with countdown timer and extend option</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Login</span>
+                            <span class="flow-link back">← Extend</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="error-04-empty-scenarios.html" class="screen-card">
+                    <div class="screen-preview">📭</div>
+                    <div class="screen-info">
+                        <div class="screen-id">ERROR-04</div>
+                        <div class="screen-name">Empty Scenarios</div>
+                        <div class="screen-desc">Scenarios page with no saved data, friendly CTA</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="error-05-export-failed.html" class="screen-card">
+                    <div class="screen-preview">📤❌</div>
+                    <div class="screen-info">
+                        <div class="screen-id">ERROR-05</div>
+                        <div class="screen-name">Export Failed</div>
+                        <div class="screen-desc">Export modal showing failure with retry option</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Retry</span>
+                            <span class="flow-link next">→ Try Excel</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Loading States -->
+        <section class="category" id="loading">
+            <div class="category-header">
+                <h2 class="category-title">Loading States</h2>
+                <span class="category-badge badge-loading">4 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="loading-01-dashboard-skeleton.html" class="screen-card">
+                    <div class="screen-preview">⏳📊</div>
+                    <div class="screen-info">
+                        <div class="screen-id">LOAD-01</div>
+                        <div class="screen-name">Dashboard Skeleton</div>
+                        <div class="screen-desc">Initial page load with shimmer animation</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="loading-02-panel-skeleton.html" class="screen-card">
+                    <div class="screen-preview">⏳⚙️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">LOAD-02</div>
+                        <div class="screen-name">Panel Skeleton</div>
+                        <div class="screen-desc">Config panel loading with form placeholders</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Panel Ready</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="loading-03-calculating.html" class="screen-card">
+                    <div class="screen-preview">🔄</div>
+                    <div class="screen-info">
+                        <div class="screen-id">LOAD-03</div>
+                        <div class="screen-name">Recalculating</div>
+                        <div class="screen-desc">Dashboard during recalculation with previous values</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Dashboard</span>
+                            <span class="flow-link error">⚠ API Error</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="loading-04-charts.html" class="screen-card">
+                    <div class="screen-preview">📊⏳</div>
+                    <div class="screen-info">
+                        <div class="screen-id">LOAD-04</div>
+                        <div class="screen-name">Charts Loading</div>
+                        <div class="screen-desc">Progressive chart loading with data animation</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Charts Ready</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Mobile Screens -->
+        <section class="category" id="mobile">
+            <div class="category-header">
+                <h2 class="category-title">Mobile Screens (&lt; 768px)</h2>
+                <span class="category-badge badge-mobile">6 SCREENS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="mobile-01-dashboard.html" class="screen-card">
+                    <div class="screen-preview">📱📊</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-01</div>
+                        <div class="screen-name">Mobile Dashboard</div>
+                        <div class="screen-desc">Responsive dashboard with FAB and tab bar</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ FAB Menu</span>
+                            <span class="flow-link next">→ Nav Menu</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="mobile-02-fab-expanded.html" class="screen-card">
+                    <div class="screen-preview">📱➕</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-02</div>
+                        <div class="screen-name">FAB Expanded</div>
+                        <div class="screen-desc">Floating action button menu expanded</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Save/Export</span>
+                            <span class="flow-link back">← Close</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="mobile-03-fullscreen-panel.html" class="screen-card">
+                    <div class="screen-preview">📱⚙️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-03</div>
+                        <div class="screen-name">Fullscreen Panel</div>
+                        <div class="screen-desc">Config panel takes full screen on mobile</div>
+                        <div class="screen-flows">
+                            <span class="flow-link back">← Back to Dashboard</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="mobile-04-scenarios.html" class="screen-card">
+                    <div class="screen-preview">📱📁</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-04</div>
+                        <div class="screen-name">Mobile Scenarios</div>
+                        <div class="screen-desc">Scenario list with swipe actions</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Load Scenario</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="mobile-05-error.html" class="screen-card">
+                    <div class="screen-preview">📱⚠️</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-05</div>
+                        <div class="screen-name">Mobile Error</div>
+                        <div class="screen-desc">Error state adapted for small screens</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Retry</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="mobile-06-nav-menu.html" class="screen-card">
+                    <div class="screen-preview">📱☰</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MOBILE-06</div>
+                        <div class="screen-name">Navigation Menu</div>
+                        <div class="screen-desc">Slide-in drawer with all navigation options</div>
+                        <div class="screen-flows">
+                            <span class="flow-link next">→ Any Screen</span>
+                            <span class="flow-link back">← Close</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Micro Interactions -->
+        <section class="category" id="micro">
+            <div class="category-header">
+                <h2 class="category-title">Micro-Interactions</h2>
+                <span class="category-badge badge-micro">INTERACTIVE DEMOS</span>
+            </div>
+            <div class="screen-grid">
+                <a href="micro-01-hover-effects.html" class="screen-card">
+                    <div class="screen-preview">👆</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MICRO-01</div>
+                        <div class="screen-name">Hover & Click Effects</div>
+                        <div class="screen-desc">Interactive demo of hover states, click feedback, and transitions</div>
+                    </div>
+                </a>
+                <a href="micro-02-success-progress.html" class="screen-card">
+                    <div class="screen-preview">✓</div>
+                    <div class="screen-info">
+                        <div class="screen-id">MICRO-02</div>
+                        <div class="screen-name">Success & Progress</div>
+                        <div class="screen-desc">Animated success states, progress bars, and celebration effects</div>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Quick Navigation -->
+    <nav class="quick-nav">
+        <a href="#core" class="quick-nav-item core" title="Core Screens"></a>
+        <a href="#guest" class="quick-nav-item guest" title="Guest Screens"></a>
+        <a href="#auth" class="quick-nav-item auth" title="Auth Screens"></a>
+        <a href="#error" class="quick-nav-item error" title="Error States"></a>
+        <a href="#loading" class="quick-nav-item loading" title="Loading States"></a>
+        <a href="#mobile" class="quick-nav-item mobile" title="Mobile Screens"></a>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>v0.4.2 Wireframe Prototype | <a href="WIREFRAME_SPEC.md">Specification</a> | <a href="IMPLEMENTATION_PLAN.md">Implementation Plan</a></p>
+        <p style="margin-top: 8px;">InfraSizing Calculator - Dashboard-First Design</p>
+    </footer>
+</body>
+</html>

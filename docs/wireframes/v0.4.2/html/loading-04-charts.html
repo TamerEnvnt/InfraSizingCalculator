@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - LOADING-04: Chart Loading States</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Animations */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes drawLine {
+            from { stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes growBar {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-tertiary) 0px,
+                #2d333b 40px,
+                var(--bg-tertiary) 80px
+            );
+            background-size: 200px 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        /* Chart Grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .chart-status.loading {
+            color: var(--accent-blue);
+        }
+
+        .chart-status.loaded {
+            color: var(--accent-green);
+        }
+
+        .spinner-tiny {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--bg-tertiary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-content {
+            padding: 24px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Chart State 1: Pure Skeleton */
+        .skeleton-chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .skeleton-legend {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .skeleton-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skeleton-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .skeleton-label {
+            width: 60px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .skeleton-bars {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .skeleton-bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skeleton-bar {
+            width: 40px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .skeleton-x-label {
+            width: 40px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        /* Chart State 2: Axes Loaded, Bars Loading */
+        .loading-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .chart-axes {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 20px;
+            top: 20px;
+        }
+
+        .y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--border-primary);
+        }
+
+        .x-axis {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            background: var(--border-primary);
+        }
+
+        .y-labels {
+            position: absolute;
+            left: -35px;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .x-labels {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -25px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .loading-bars {
+            position: absolute;
+            left: 20px;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+
+        .loading-bar {
+            width: 30px;
+            background: var(--bg-tertiary);
+            border-radius: 4px 4px 0 0;
+            transform-origin: bottom;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+        .loading-bar:nth-child(2) { height: 80%; animation-delay: 0.2s; }
+        .loading-bar:nth-child(3) { height: 45%; animation-delay: 0.4s; }
+        .loading-bar:nth-child(4) { height: 90%; animation-delay: 0.6s; }
+        .loading-bar:nth-child(5) { height: 55%; animation-delay: 0.8s; }
+
+        /* Chart State 3: Animating In */
+        .animating-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .animated-bars {
+            position: absolute;
+            left: 60px;
+            right: 20px;
+            bottom: 30px;
+            top: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+
+        .animated-bar {
+            width: 30px;
+            border-radius: 4px 4px 0 0;
+            transform-origin: bottom;
+            animation: growBar 0.6s ease-out forwards;
+        }
+
+        .animated-bar:nth-child(1) {
+            height: 60%;
+            background: var(--accent-blue);
+            animation-delay: 0s;
+        }
+        .animated-bar:nth-child(2) {
+            height: 80%;
+            background: var(--accent-green);
+            animation-delay: 0.1s;
+        }
+        .animated-bar:nth-child(3) {
+            height: 45%;
+            background: var(--accent-orange);
+            animation-delay: 0.2s;
+        }
+        .animated-bar:nth-child(4) {
+            height: 90%;
+            background: var(--accent-purple);
+            animation-delay: 0.3s;
+        }
+        .animated-bar:nth-child(5) {
+            height: 55%;
+            background: var(--accent-red);
+            animation-delay: 0.4s;
+        }
+
+        .bar-values {
+            position: absolute;
+            left: 60px;
+            right: 20px;
+            bottom: 30px;
+            top: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+
+        .bar-value {
+            width: 30px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .bar-value:nth-child(1) { animation-delay: 0.6s; margin-bottom: calc(60% + 5px); }
+        .bar-value:nth-child(2) { animation-delay: 0.7s; margin-bottom: calc(80% + 5px); }
+        .bar-value:nth-child(3) { animation-delay: 0.8s; margin-bottom: calc(45% + 5px); }
+        .bar-value:nth-child(4) { animation-delay: 0.9s; margin-bottom: calc(90% + 5px); }
+        .bar-value:nth-child(5) { animation-delay: 1s; margin-bottom: calc(55% + 5px); }
+
+        /* Chart State 4: Fully Loaded */
+        .loaded-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.blue { background: var(--accent-blue); }
+        .legend-dot.green { background: var(--accent-green); }
+        .legend-dot.orange { background: var(--accent-orange); }
+
+        .pie-chart-container {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            height: calc(100% - 40px);
+        }
+
+        .pie-chart {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--accent-blue) 0deg 144deg,
+                var(--accent-green) 144deg 252deg,
+                var(--accent-orange) 252deg 360deg
+            );
+            position: relative;
+        }
+
+        .pie-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pie-total {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .pie-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .pie-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pie-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .detail-color {
+            width: 4px;
+            height: 32px;
+            border-radius: 2px;
+        }
+
+        .detail-color.blue { background: var(--accent-blue); }
+        .detail-color.green { background: var(--accent-green); }
+        .detail-color.orange { background: var(--accent-orange); }
+
+        .detail-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn active">New Scenario</button>
+            <button class="nav-btn">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1 class="page-title">Chart Loading States</h1>
+
+        <div class="chart-grid">
+            <!-- State 1: Pure Skeleton -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Cost by Category (Skeleton)</span>
+                    <div class="chart-status loading">
+                        <div class="spinner-tiny"></div>
+                        <span>Loading...</span>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <div class="skeleton-chart">
+                        <div class="skeleton-legend">
+                            <div class="skeleton-legend-item">
+                                <div class="skeleton skeleton-dot"></div>
+                                <div class="skeleton skeleton-label"></div>
+                            </div>
+                            <div class="skeleton-legend-item">
+                                <div class="skeleton skeleton-dot"></div>
+                                <div class="skeleton skeleton-label"></div>
+                            </div>
+                            <div class="skeleton-legend-item">
+                                <div class="skeleton skeleton-dot"></div>
+                                <div class="skeleton skeleton-label"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-bars">
+                            <div class="skeleton-bar-group">
+                                <div class="skeleton skeleton-bar" style="height: 120px;"></div>
+                                <div class="skeleton skeleton-x-label"></div>
+                            </div>
+                            <div class="skeleton-bar-group">
+                                <div class="skeleton skeleton-bar" style="height: 160px;"></div>
+                                <div class="skeleton skeleton-x-label"></div>
+                            </div>
+                            <div class="skeleton-bar-group">
+                                <div class="skeleton skeleton-bar" style="height: 90px;"></div>
+                                <div class="skeleton skeleton-x-label"></div>
+                            </div>
+                            <div class="skeleton-bar-group">
+                                <div class="skeleton skeleton-bar" style="height: 180px;"></div>
+                                <div class="skeleton skeleton-x-label"></div>
+                            </div>
+                            <div class="skeleton-bar-group">
+                                <div class="skeleton skeleton-bar" style="height: 110px;"></div>
+                                <div class="skeleton skeleton-x-label"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State 2: Axes Loaded, Data Loading -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Resource Usage (Data Loading)</span>
+                    <div class="chart-status loading">
+                        <div class="spinner-tiny"></div>
+                        <span>Fetching data...</span>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <div class="loading-chart">
+                        <div class="chart-axes">
+                            <div class="y-axis"></div>
+                            <div class="x-axis"></div>
+                            <div class="y-labels">
+                                <span>100%</span>
+                                <span>75%</span>
+                                <span>50%</span>
+                                <span>25%</span>
+                                <span>0%</span>
+                            </div>
+                            <div class="x-labels">
+                                <span>CPU</span>
+                                <span>RAM</span>
+                                <span>Storage</span>
+                                <span>Network</span>
+                                <span>GPU</span>
+                            </div>
+                            <div class="loading-bars">
+                                <div class="loading-bar"></div>
+                                <div class="loading-bar"></div>
+                                <div class="loading-bar"></div>
+                                <div class="loading-bar"></div>
+                                <div class="loading-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State 3: Data Animating In -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Monthly Costs (Animating)</span>
+                    <div class="chart-status loading">
+                        <div class="spinner-tiny"></div>
+                        <span>Rendering...</span>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <div class="animating-chart">
+                        <div class="chart-axes" style="bottom: 30px; left: 60px;">
+                            <div class="y-axis"></div>
+                            <div class="x-axis"></div>
+                            <div class="y-labels">
+                                <span>$20K</span>
+                                <span>$15K</span>
+                                <span>$10K</span>
+                                <span>$5K</span>
+                                <span>$0</span>
+                            </div>
+                            <div class="x-labels">
+                                <span>Jan</span>
+                                <span>Feb</span>
+                                <span>Mar</span>
+                                <span>Apr</span>
+                                <span>May</span>
+                            </div>
+                        </div>
+                        <div class="animated-bars">
+                            <div class="animated-bar"></div>
+                            <div class="animated-bar"></div>
+                            <div class="animated-bar"></div>
+                            <div class="animated-bar"></div>
+                            <div class="animated-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State 4: Fully Loaded -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">Cost Distribution (Loaded)</span>
+                    <div class="chart-status loaded">
+                        <span>Updated just now</span>
+                    </div>
+                </div>
+                <div class="chart-content">
+                    <div class="loaded-chart">
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot blue"></div>
+                                <span>Compute</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot green"></div>
+                                <span>Storage</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot orange"></div>
+                                <span>Network</span>
+                            </div>
+                        </div>
+                        <div class="pie-chart-container">
+                            <div class="pie-chart">
+                                <div class="pie-center">
+                                    <span class="pie-total">$12.4K</span>
+                                    <span class="pie-label">per month</span>
+                                </div>
+                            </div>
+                            <div class="pie-details">
+                                <div class="pie-detail-row">
+                                    <div class="detail-color blue"></div>
+                                    <div class="detail-info">
+                                        <span class="detail-value">$4,960</span>
+                                        <span class="detail-label">Compute (40%)</span>
+                                    </div>
+                                </div>
+                                <div class="pie-detail-row">
+                                    <div class="detail-color green"></div>
+                                    <div class="detail-info">
+                                        <span class="detail-value">$3,720</span>
+                                        <span class="detail-label">Storage (30%)</span>
+                                    </div>
+                                </div>
+                                <div class="pie-detail-row">
+                                    <div class="detail-color orange"></div>
+                                    <div class="detail-info">
+                                        <span class="detail-value">$3,720</span>
+                                        <span class="detail-label">Network (30%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Four chart loading states: 1) Pure skeleton 2) Axes visible, data loading 3) Data animating in with staggered bars 4) Fully loaded with data. Each shows progressive disclosure.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="loading-03-calculating.html" class="nav-link">Prev: Calculating</a>
+        <a href="mobile-01-dashboard.html" class="nav-link">Next: Mobile Dashboard</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=375, initial-scale=1.0">
+    <title>v0.4.2 - MOBILE-05: Error State</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-primary);
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .menu-btn span {
+            width: 20px;
+            height: 2px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .profile-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Error Banner */
+        .error-banner {
+            background: linear-gradient(180deg, rgba(248, 81, 73, 0.15) 0%, rgba(248, 81, 73, 0.05) 100%);
+            border-bottom: 1px solid rgba(248, 81, 73, 0.3);
+            padding: 16px;
+        }
+
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .error-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .error-title {
+            color: var(--accent-red);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-retry {
+            flex: 1;
+            padding: 12px;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-dismiss {
+            padding: 12px 16px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .retry-info {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--accent-orange);
+        }
+
+        /* Main Content (Dimmed) */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 80px;
+            overflow-y: auto;
+            opacity: 0.5;
+        }
+
+        .stale-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(240, 136, 62, 0.1);
+            border: 1px solid rgba(240, 136, 62, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+        }
+
+        .summary-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            margin: 0 -16px;
+            padding: 0 16px 16px;
+        }
+
+        .summary-card {
+            flex-shrink: 0;
+            width: 140px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .summary-card::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .content-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+            height: 100px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(375px - 32px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-red);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 200;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* Bottom Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 56px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            z-index: 50;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .tab-item.active {
+            color: var(--accent-blue);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            top: 70px;
+            right: -180px;
+            background: var(--accent-red);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 160px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 300;
+        }
+
+        .annotation::before {
+            content: 'Mobile Design';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 10px;
+            left: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="menu-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <span class="logo">InfraSizing</span>
+        <button class="profile-btn">T</button>
+    </header>
+
+    <!-- Error Banner -->
+    <div class="error-banner">
+        <div class="error-header">
+            <div class="error-icon">!</div>
+            <span class="error-title">Connection Error</span>
+        </div>
+        <p class="error-message">Unable to connect to the sizing service. Your data is saved locally and will sync when connection is restored.</p>
+        <div class="error-actions">
+            <button class="btn-retry">Retry Now</button>
+            <button class="btn-dismiss">Dismiss</button>
+        </div>
+        <div class="retry-info">Auto-retry in 28 seconds</div>
+    </div>
+
+    <!-- Main Content (Dimmed - Stale Data) -->
+    <main class="main-content">
+        <div class="stale-badge">
+            <span>⚠</span>
+            <span>Showing cached data from 14:30</span>
+        </div>
+
+        <div class="summary-scroll">
+            <div class="summary-card">
+                <div class="card-value">12</div>
+                <div class="card-label">Total Nodes</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">96</div>
+                <div class="card-label">vCPUs</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">384</div>
+                <div class="card-label">GB RAM</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Configuration</h2>
+            </div>
+            <div class="content-card"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Nodes</h2>
+            </div>
+            <div class="content-card"></div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast">
+        <div class="toast-icon">!</div>
+        <div class="toast-content">
+            <div class="toast-title">Offline Mode</div>
+            <div class="toast-message">Changes will sync when online</div>
+        </div>
+        <button class="toast-close">×</button>
+    </div>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tab-bar">
+        <button class="tab-item active">
+            <span class="tab-icon">⬡</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">☰</span>
+            <span>Scenarios</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">⚙</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Annotation -->
+    <div class="annotation">
+        Mobile error: prominent banner with retry, toast for ongoing status, dimmed stale data. Offline-first approach - data saved locally. Auto-retry countdown visible.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="mobile-04-scenarios.html" class="nav-link">Prev: Scenarios List</a>
+        <a href="mobile-06-nav-menu.html" class="nav-link">Next: Nav Menu</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

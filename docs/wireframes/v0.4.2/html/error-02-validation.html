@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - ERROR-02: Validation Errors Panel</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        /* Dashboard Content (Dimmed) */
+        .dashboard-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            opacity: 0.4;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--accent-blue);
+        }
+
+        .card-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Panel Overlay */
+        .panel-overlay {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 480px;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Slide Panel */
+        .slide-panel {
+            width: 480px;
+            background: var(--bg-primary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .panel-header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .btn-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Panel Tabs */
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-primary);
+            padding: 0 24px;
+        }
+
+        .panel-tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .panel-tab.active {
+            color: var(--accent-blue);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-blue);
+        }
+
+        .panel-tab.has-error::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-red);
+            border-radius: 50%;
+        }
+
+        /* Panel Content */
+        .panel-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* Validation Summary */
+        .validation-summary {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .validation-summary h4 {
+            color: var(--accent-red);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .validation-summary h4::before {
+            content: '!';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .validation-list {
+            list-style: none;
+        }
+
+        .validation-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(248, 81, 73, 0.2);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .validation-list li:last-child {
+            border-bottom: none;
+        }
+
+        .validation-list li::before {
+            content: '>';
+            color: var(--accent-red);
+            flex-shrink: 0;
+        }
+
+        .error-link {
+            color: var(--accent-red);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Form Fields */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .field-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            padding: 12px 14px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .field-input.error {
+            border-color: var(--accent-red);
+            background: rgba(248, 81, 73, 0.1);
+        }
+
+        .field-error {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            color: var(--accent-red);
+            font-size: 12px;
+        }
+
+        .field-error::before {
+            content: '!';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-red);
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .field-hint {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .field-input.valid {
+            border-color: var(--accent-green);
+        }
+
+        .field-success {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            color: var(--accent-green);
+            font-size: 12px;
+        }
+
+        /* Slider Field */
+        .slider-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-track {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: var(--accent-red);
+            border-radius: 3px;
+            width: 150%; /* Overfilled to show error */
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-red);
+        }
+
+        /* Panel Footer */
+        .panel-footer {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-apply {
+            background: var(--bg-tertiary);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-primary);
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .btn-apply.enabled {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .error-count {
+            color: var(--accent-red);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 20px;
+            left: 32px;
+            background: var(--accent-red);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 350px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            left: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn active">New Scenario</button>
+            <button class="nav-btn">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Dashboard (Dimmed) -->
+        <div class="dashboard-content">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-value">12</div>
+                    <div class="card-label">Total Nodes</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">96</div>
+                    <div class="card-label">vCPUs</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">384</div>
+                    <div class="card-label">GB RAM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">4.8</div>
+                    <div class="card-label">TB Storage</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">$12,450</div>
+                    <div class="card-label">/month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Overlay -->
+        <div class="panel-overlay"></div>
+
+        <!-- Slide Panel with Errors -->
+        <aside class="slide-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Configure Apps</h2>
+                <button class="btn-close">x</button>
+            </div>
+
+            <div class="panel-tabs">
+                <button class="panel-tab">Platform</button>
+                <button class="panel-tab active has-error">Apps</button>
+                <button class="panel-tab">Nodes</button>
+                <button class="panel-tab">Pricing</button>
+            </div>
+
+            <div class="panel-content">
+                <!-- Validation Summary -->
+                <div class="validation-summary">
+                    <h4>Please fix 2 issues to continue</h4>
+                    <ul class="validation-list">
+                        <li>
+                            <span class="error-link">Small apps</span> count exceeds maximum allowed (100)
+                        </li>
+                        <li>
+                            <span class="error-link">Total apps</span> exceed node capacity for selected configuration
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Application Counts by Size</h3>
+
+                    <div class="field-group">
+                        <label class="field-label">Small Apps (0.5 vCPU, 512MB RAM)</label>
+                        <input type="number" class="field-input error" value="150">
+                        <div class="field-error">
+                            Maximum allowed: 100. Current value exceeds limit by 50.
+                        </div>
+                        <div class="field-hint">Typical: API services, workers, cron jobs</div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Medium Apps (1 vCPU, 1GB RAM)</label>
+                        <input type="number" class="field-input valid" value="20">
+                        <div class="field-success">Valid</div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Large Apps (2 vCPU, 2GB RAM)</label>
+                        <input type="number" class="field-input" value="5">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Capacity Check</h3>
+
+                    <div class="field-group">
+                        <label class="field-label">Total App Load</label>
+                        <div class="slider-field">
+                            <div class="slider-track">
+                                <div class="slider-fill"></div>
+                            </div>
+                            <span class="slider-value">175/100</span>
+                        </div>
+                        <div class="field-error">
+                            Apps require 12 worker nodes, but configuration allows only 8.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <div class="error-count">
+                    <span>!</span>
+                    <span>2 errors must be fixed</span>
+                </div>
+                <button class="btn-apply" disabled>Apply Changes</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Validation summary at top shows all errors. Inline errors appear below each invalid field. Apply button disabled until all errors resolved. Tab shows error indicator dot.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="error-01-api-failure.html" class="nav-link">Prev: API Failure</a>
+        <a href="error-03-session-timeout.html" class="nav-link">Next: Session Timeout</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

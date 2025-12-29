@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - InfraSizing Calculator (Guest)</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-login {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-login:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-register {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-register:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        .landing-container {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .landing-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            line-height: 1.6;
+        }
+
+        /* Single Action Card for Guest */
+        .action-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 48px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            max-width: 400px;
+            margin: 0 auto 32px;
+        }
+
+        .action-card:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(63, 185, 80, 0.15);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--text-tertiary);
+        }
+
+        .action-card:hover .card-icon {
+            background: rgba(63, 185, 80, 0.1);
+            color: var(--accent-green);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Login Prompt */
+        .login-prompt {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 24px 32px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .login-prompt-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .login-prompt-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .login-prompt-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .login-prompt .btn-login {
+            flex: 1;
+        }
+
+        .login-prompt .btn-register {
+            flex: 1;
+        }
+
+        /* Features List */
+        .features-list {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .feature-icon {
+            color: var(--accent-green);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 16px 24px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 12px;
+        }
+
+        footer a:hover {
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <div class="header-actions">
+            <a href="11-login.html" class="btn-login">Sign In</a>
+            <a href="12-register.html" class="btn-register">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="landing-container">
+            <h1 class="landing-title">Infrastructure Sizing Calculator</h1>
+            <p class="landing-subtitle">
+                Calculate optimal infrastructure sizing for Kubernetes and VM deployments.<br>
+                Support for 46 distributions, 7 low-code platforms, and comprehensive cost estimation.
+            </p>
+
+            <a href="02-dashboard-with-panel.html" class="action-card">
+                <div class="card-icon">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                </div>
+                <h3 class="card-title">Create New Scenario</h3>
+                <p class="card-desc">Start fresh with a new infrastructure sizing calculation. No account required to explore.</p>
+            </a>
+
+            <div class="login-prompt">
+                <div class="login-prompt-title">Want to save your scenarios?</div>
+                <p class="login-prompt-desc">
+                    Sign in to save, compare, and export your infrastructure sizing calculations.
+                </p>
+                <div class="login-prompt-actions">
+                    <a href="11-login.html" class="btn-login">Sign In</a>
+                    <a href="12-register.html" class="btn-register">Create Account</a>
+                </div>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-item">
+                    <span class="feature-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    46 K8s Distributions
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    7 Low-Code Platforms
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    Cost Estimation
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <a href="#">Documentation</a>
+        <a href="#">Support</a>
+        <a href="#">Privacy Policy</a>
+    </footer>
+
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

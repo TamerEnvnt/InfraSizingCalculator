@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - ERROR-01: API Failure Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Error Banner */
+        .error-banner {
+            background: linear-gradient(90deg, rgba(248, 81, 73, 0.15) 0%, rgba(248, 81, 73, 0.05) 100%);
+            border-bottom: 1px solid rgba(248, 81, 73, 0.3);
+            padding: 16px 32px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .error-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .error-content {
+            flex: 1;
+        }
+
+        .error-content h3 {
+            color: var(--accent-red);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .error-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-retry {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-retry:hover {
+            background: #da3633;
+        }
+
+        .btn-dismiss {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-dismiss:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .error-meta {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .error-meta .timestamp {
+            margin-bottom: 4px;
+        }
+
+        .retry-countdown {
+            color: var(--accent-orange);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            min-height: 0;
+            opacity: 0.7; /* Dimmed to indicate stale data */
+        }
+
+        /* Stale Data Indicator */
+        .stale-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(240, 136, 62, 0.1);
+            border: 1px solid rgba(240, 136, 62, 0.3);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .summary-card.stale::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-orange);
+            border-radius: 50%;
+        }
+
+        .card-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-value.green { color: var(--accent-green); }
+        .card-value.blue { color: var(--accent-blue); }
+        .card-value.orange { color: var(--accent-orange); }
+        .card-value.dimmed { color: var(--text-tertiary); }
+
+        .card-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-content {
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+        }
+
+        /* Config Bar */
+        .config-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .config-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .config-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 32px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 80px;
+            left: 32px;
+            background: var(--accent-red);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn active">New Scenario</button>
+            <button class="nav-btn">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Error Banner -->
+    <div class="error-banner">
+        <div class="error-icon">!</div>
+        <div class="error-content">
+            <h3>Unable to calculate sizing</h3>
+            <p>The calculation service is temporarily unavailable. Your configuration has been saved and will be used when the service recovers. The values shown below are from your last successful calculation.</p>
+            <div class="error-actions">
+                <button class="btn-retry">
+                    <span>Retry Now</span>
+                </button>
+                <button class="btn-dismiss">Dismiss</button>
+            </div>
+        </div>
+        <div class="error-meta">
+            <div class="timestamp">Failed at 14:32:15</div>
+            <div class="retry-countdown">Auto-retry in 28s</div>
+        </div>
+    </div>
+
+    <!-- Main Content (Dimmed - showing stale data) -->
+    <main class="main-content">
+        <div class="stale-indicator">
+            <span>!</span>
+            <span>Showing cached results from 14:30:42</span>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card stale">
+                <div class="card-value dimmed">12</div>
+                <div class="card-label">Total Nodes</div>
+            </div>
+            <div class="summary-card stale">
+                <div class="card-value dimmed">96</div>
+                <div class="card-label">vCPUs</div>
+            </div>
+            <div class="summary-card stale">
+                <div class="card-value dimmed">384</div>
+                <div class="card-label">GB RAM</div>
+            </div>
+            <div class="summary-card stale">
+                <div class="card-value dimmed">4.8</div>
+                <div class="card-label">TB Storage</div>
+            </div>
+            <div class="summary-card stale">
+                <div class="card-value dimmed">$12,450</div>
+                <div class="card-label">/month</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <span class="card-title">Node Architecture</span>
+                </div>
+                <div class="card-content">
+                    [Node visualization - cached data]
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <span class="card-title">Cost Breakdown</span>
+                </div>
+                <div class="card-content">
+                    [Cost chart - cached data]
+                </div>
+            </div>
+        </div>
+
+        <div class="config-bar">
+            <div class="config-item">
+                <span class="config-label">Platform</span>
+                <span class="config-value">Kubernetes</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Distribution</span>
+                <span class="config-value">OpenShift</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Total Apps</span>
+                <span class="config-value">45</span>
+            </div>
+            <div class="config-item">
+                <span class="config-label">Cluster Mode</span>
+                <span class="config-value">HA Production</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Action Bar (Disabled during error) -->
+    <div class="action-bar">
+        <button class="action-btn" disabled>Save Scenario</button>
+        <button class="action-btn" disabled>Compare</button>
+        <button class="action-btn" disabled>Export PDF</button>
+        <button class="action-btn" disabled>Export Excel</button>
+    </div>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Dashboard remains visible with stale data. Action buttons disabled until service recovers. Auto-retry with countdown visible.
+    </div>
+
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

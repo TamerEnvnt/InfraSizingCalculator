@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=375, initial-scale=1.0">
+    <title>v0.4.2 - MOBILE-02: FAB Expanded</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-primary);
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .menu-btn span {
+            width: 20px;
+            height: 2px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .profile-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content (Dimmed) */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 80px;
+            overflow-y: auto;
+            opacity: 0.3;
+            filter: blur(2px);
+        }
+
+        .scenario-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .summary-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            margin: 0 -16px;
+            padding: 0 16px 16px;
+        }
+
+        .summary-card {
+            flex-shrink: 0;
+            width: 140px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .config-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+            height: 100px;
+        }
+
+        /* FAB Overlay */
+        .fab-overlay {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 150;
+        }
+
+        /* FAB Menu */
+        .fab-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 200;
+        }
+
+        .fab-action {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .fab-label {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .fab-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .fab-btn.save { background: var(--accent-green); }
+        .fab-btn.compare { background: var(--accent-purple); }
+        .fab-btn.export { background: var(--accent-orange); }
+        .fab-btn.share { background: var(--accent-blue); }
+
+        /* Main FAB (Close state) */
+        .fab-close {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent-red);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(248, 81, 73, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transform: rotate(45deg);
+        }
+
+        /* Bottom Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 56px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            z-index: 50;
+            opacity: 0.3;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .tab-item.active {
+            color: var(--accent-blue);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+        }
+
+        /* Gesture Hint */
+        .gesture-hint {
+            position: fixed;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            z-index: 200;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            top: 70px;
+            right: -180px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 160px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 300;
+        }
+
+        .annotation::before {
+            content: 'Mobile Design';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 10px;
+            left: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="menu-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <span class="logo">InfraSizing</span>
+        <button class="profile-btn">T</button>
+    </header>
+
+    <!-- Main Content (Dimmed) -->
+    <main class="main-content">
+        <div class="scenario-badge">Production K8s Cluster</div>
+
+        <div class="summary-scroll">
+            <div class="summary-card">
+                <div class="card-value">12</div>
+                <div class="card-label">Total Nodes</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">96</div>
+                <div class="card-label">vCPUs</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">384</div>
+                <div class="card-label">GB RAM</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Configuration</h2>
+            </div>
+            <div class="config-card"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Nodes</h2>
+            </div>
+            <div class="config-card"></div>
+        </div>
+    </main>
+
+    <!-- FAB Overlay -->
+    <div class="fab-overlay"></div>
+
+    <!-- FAB Menu -->
+    <div class="fab-menu">
+        <div class="fab-action">
+            <span class="fab-label">Save Scenario</span>
+            <button class="fab-btn save">💾</button>
+        </div>
+        <div class="fab-action">
+            <span class="fab-label">Compare</span>
+            <button class="fab-btn compare">⇄</button>
+        </div>
+        <div class="fab-action">
+            <span class="fab-label">Export PDF</span>
+            <button class="fab-btn export">↓</button>
+        </div>
+        <div class="fab-action">
+            <span class="fab-label">Share</span>
+            <button class="fab-btn share">↗</button>
+        </div>
+    </div>
+
+    <!-- Gesture Hint -->
+    <div class="gesture-hint">Tap outside or X to close</div>
+
+    <!-- Main FAB (Close) -->
+    <button class="fab-close">+</button>
+
+    <!-- Bottom Tab Bar (Dimmed) -->
+    <nav class="tab-bar">
+        <button class="tab-item active">
+            <span class="tab-icon">⬡</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">☰</span>
+            <span>Scenarios</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">⚙</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Annotation -->
+    <div class="annotation">
+        FAB expanded shows action menu with labels. Background dimmed. X icon rotates from +. Tap anywhere to dismiss. Each action has distinct color.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="mobile-01-dashboard.html" class="nav-link">Prev: Mobile Dashboard</a>
+        <a href="mobile-03-fullscreen-panel.html" class="nav-link">Next: Fullscreen Panel</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

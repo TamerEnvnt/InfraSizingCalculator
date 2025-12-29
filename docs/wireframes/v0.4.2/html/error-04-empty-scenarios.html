@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - ERROR-04: Empty Scenarios Page</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Page Header */
+        .page-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-new {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-new:hover {
+            background: #4c9aed;
+        }
+
+        .search-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            padding: 10px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+            width: 280px;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            max-width: 480px;
+        }
+
+        .empty-illustration {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 32px;
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border-primary);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .empty-illustration::before {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 2px solid var(--border-primary);
+        }
+
+        .empty-illustration::after {
+            content: '+';
+            position: absolute;
+            font-size: 32px;
+            color: var(--accent-blue);
+            bottom: 40px;
+            right: 50px;
+        }
+
+        .folder-stack {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .folder {
+            width: 100px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+        }
+
+        .folder:nth-child(1) {
+            transform: translateY(0);
+            opacity: 0.3;
+        }
+
+        .folder:nth-child(2) {
+            transform: translateY(-4px);
+            opacity: 0.5;
+        }
+
+        .folder:nth-child(3) {
+            transform: translateY(-8px);
+            opacity: 0.7;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .empty-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn-create {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-create:hover {
+            background: #4c9aed;
+        }
+
+        .btn-create::before {
+            content: '+';
+            font-size: 20px;
+        }
+
+        .quick-start {
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+
+        .quick-start a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .quick-start a:hover {
+            text-decoration: underline;
+        }
+
+        /* Feature Highlights */
+        .features {
+            display: flex;
+            gap: 24px;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .feature {
+            flex: 1;
+            text-align: left;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 18px;
+            color: var(--accent-blue);
+        }
+
+        .feature h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .feature p {
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 20px;
+            left: 32px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 350px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn">New Scenario</button>
+            <button class="nav-btn active">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Saved Scenarios</h1>
+        <div class="page-actions">
+            <input type="text" class="search-box" placeholder="Search scenarios..." disabled>
+            <button class="btn-new">
+                <span>+</span>
+                New Scenario
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content - Empty State -->
+    <main class="main-content">
+        <div class="empty-state">
+            <div class="empty-illustration">
+                <div class="folder-stack">
+                    <div class="folder"></div>
+                    <div class="folder"></div>
+                    <div class="folder"></div>
+                </div>
+            </div>
+
+            <h2>No saved scenarios yet</h2>
+            <p>Create your first infrastructure sizing scenario to start comparing configurations, track changes over time, and export reports.</p>
+
+            <div class="empty-actions">
+                <button class="btn-create">Create Your First Scenario</button>
+                <div class="quick-start">
+                    Or <a href="#">import from file</a> to get started quickly
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">=</div>
+                    <h4>Compare Configs</h4>
+                    <p>Side-by-side comparison of different infrastructure configurations</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">></div>
+                    <h4>Export Reports</h4>
+                    <p>PDF and Excel exports for stakeholder presentations</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">~</div>
+                    <h4>Track Changes</h4>
+                    <p>Version history to see how your requirements evolve</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Empty state uses illustration, clear CTA, and feature highlights to guide new users. Search is disabled when empty. Import option provides alternative path.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="error-03-session-timeout.html" class="nav-link">Prev: Session Timeout</a>
+        <a href="error-05-export-failed.html" class="nav-link">Next: Export Failed</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

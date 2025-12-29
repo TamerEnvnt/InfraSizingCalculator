@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=375, initial-scale=1.0">
+    <title>v0.4.2 - MOBILE-01: Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            max-width: 375px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-primary);
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .menu-btn span {
+            width: 20px;
+            height: 2px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .profile-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        /* Scenario Badge */
+        .scenario-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .scenario-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+        }
+
+        /* Summary Cards - Horizontal Scroll */
+        .summary-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            margin: 0 -16px;
+            padding: 0 16px 16px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .summary-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .summary-card {
+            flex-shrink: 0;
+            width: 140px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+            scroll-snap-align: start;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-link {
+            font-size: 13px;
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* Config Summary Card */
+        .config-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .config-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+
+        .config-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Node Preview */
+        .node-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .node-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .node-row:last-child {
+            border-bottom: none;
+        }
+
+        .node-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent-blue);
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-type {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .node-specs {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .node-count {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        /* Cost Card */
+        .cost-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .cost-row:last-child {
+            border-bottom: none;
+        }
+
+        .cost-category {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cost-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .cost-dot.blue { background: var(--accent-blue); }
+        .cost-dot.green { background: var(--accent-green); }
+        .cost-dot.orange { background: var(--accent-orange); }
+
+        .cost-label {
+            font-size: 14px;
+        }
+
+        .cost-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .cost-total {
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .cost-total .cost-label {
+            font-weight: 600;
+        }
+
+        .cost-total .cost-value {
+            font-size: 18px;
+            color: var(--accent-blue);
+        }
+
+        /* FAB (Floating Action Button) */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        /* Bottom Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 56px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            z-index: 50;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .tab-item.active {
+            color: var(--accent-blue);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            top: 70px;
+            right: -180px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 160px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 200;
+        }
+
+        .annotation::before {
+            content: 'Mobile Design';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 10px;
+            left: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="menu-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <span class="logo">InfraSizing</span>
+        <button class="profile-btn">T</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="scenario-badge">Production K8s Cluster</div>
+
+        <!-- Summary Cards - Horizontal Scroll -->
+        <div class="summary-scroll">
+            <div class="summary-card">
+                <div class="card-value">12</div>
+                <div class="card-label">Total Nodes</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">96</div>
+                <div class="card-label">vCPUs</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">384</div>
+                <div class="card-label">GB RAM</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">4.8</div>
+                <div class="card-label">TB Storage</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value">$12.4K</div>
+                <div class="card-label">Monthly</div>
+            </div>
+        </div>
+
+        <!-- Configuration Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Configuration</h2>
+                <a href="#" class="section-link">Edit</a>
+            </div>
+            <div class="config-card">
+                <div class="config-grid">
+                    <div class="config-item">
+                        <span class="config-label">Platform</span>
+                        <span class="config-value">Kubernetes</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Distribution</span>
+                        <span class="config-value">OpenShift</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Total Apps</span>
+                        <span class="config-value">45</span>
+                    </div>
+                    <div class="config-item">
+                        <span class="config-label">Cluster Mode</span>
+                        <span class="config-value">HA Prod</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nodes Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Nodes</h2>
+                <a href="#" class="section-link">View All</a>
+            </div>
+            <div class="node-preview">
+                <div class="node-row">
+                    <div class="node-icon">M</div>
+                    <div class="node-info">
+                        <div class="node-type">Master Nodes</div>
+                        <div class="node-specs">8 vCPU, 32GB RAM</div>
+                    </div>
+                    <div class="node-count">3</div>
+                </div>
+                <div class="node-row">
+                    <div class="node-icon">I</div>
+                    <div class="node-info">
+                        <div class="node-type">Infra Nodes</div>
+                        <div class="node-specs">4 vCPU, 16GB RAM</div>
+                    </div>
+                    <div class="node-count">3</div>
+                </div>
+                <div class="node-row">
+                    <div class="node-icon">W</div>
+                    <div class="node-info">
+                        <div class="node-type">Worker Nodes</div>
+                        <div class="node-specs">8 vCPU, 32GB RAM</div>
+                    </div>
+                    <div class="node-count">6</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Monthly Cost</h2>
+                <a href="#" class="section-link">Details</a>
+            </div>
+            <div class="cost-card">
+                <div class="cost-row">
+                    <div class="cost-category">
+                        <span class="cost-dot blue"></span>
+                        <span class="cost-label">Compute</span>
+                    </div>
+                    <span class="cost-value">$4,960</span>
+                </div>
+                <div class="cost-row">
+                    <div class="cost-category">
+                        <span class="cost-dot green"></span>
+                        <span class="cost-label">Storage</span>
+                    </div>
+                    <span class="cost-value">$3,720</span>
+                </div>
+                <div class="cost-row">
+                    <div class="cost-category">
+                        <span class="cost-dot orange"></span>
+                        <span class="cost-label">Licensing</span>
+                    </div>
+                    <span class="cost-value">$3,720</span>
+                </div>
+                <div class="cost-row cost-total">
+                    <span class="cost-label">Total</span>
+                    <span class="cost-value">$12,400</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FAB -->
+    <button class="fab">+</button>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tab-bar">
+        <button class="tab-item active">
+            <span class="tab-icon">⬡</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">☰</span>
+            <span>Scenarios</span>
+        </button>
+        <button class="tab-item">
+            <span class="tab-icon">⚙</span>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Annotation -->
+    <div class="annotation">
+        Mobile dashboard: stacked layout, horizontal card scroll, FAB for quick actions, bottom tab bar for navigation. Touch-friendly spacing.
+    </div>
+
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

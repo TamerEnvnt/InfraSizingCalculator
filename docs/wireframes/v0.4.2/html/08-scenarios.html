@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - Scenarios Management</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Fixed Height SPA Layout - Header/Footer always visible */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header - Always visible at top */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 20px; font-weight: 600; color: var(--accent-blue); }
+        .header-nav { display: flex; gap: 8px; }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        a.nav-btn, a.btn, a.action-btn {
+            text-decoration: none;
+        }
+
+        /* Main Content - Scrollable area */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        /* Search and Filters */
+        .toolbar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Scenarios Grid */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        .scenario-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .scenario-card.selected {
+            border-color: var(--accent-green);
+            border-width: 2px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title-section {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .card-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-k8s { background: var(--accent-blue); color: #000; }
+        .badge-vm { background: var(--accent-orange); color: #000; }
+        .badge-default { background: var(--accent-green); color: #000; }
+
+        .card-body {
+            padding: 16px 20px;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .metric-value.cost {
+            color: var(--accent-green);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .config-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .config-tag {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .card-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .action-btn.danger:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-primary);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .checkbox.checked {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .checkbox-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            background: var(--bg-secondary);
+            border: 1px dashed var(--border-primary);
+            border-radius: 12px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Bulk Actions Bar - Always visible at bottom */
+        .bulk-actions {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 64px;
+        }
+
+        .bulk-actions.hidden {
+            display: none;
+        }
+
+        .bulk-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .bulk-info strong {
+            color: var(--accent-blue);
+        }
+
+        .bulk-buttons {
+            display: flex;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="00-landing.html" class="logo">InfraSizing Calculator</a>
+        <nav class="header-nav">
+            <a href="02-dashboard-with-panel.html" class="nav-btn">New Scenario</a>
+            <a href="08-scenarios.html" class="nav-btn active">Scenarios</a>
+            <a href="10-settings.html" class="nav-btn">[@]</a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Saved Scenarios</h1>
+                <p class="page-subtitle">Manage and compare your infrastructure configurations</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary">Import</button>
+                <a href="02-dashboard-with-panel.html" class="btn btn-primary">+ New Scenario</a>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">[Q]</span>
+                <input type="text" class="search-input" placeholder="Search scenarios...">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active">All</button>
+                <button class="filter-btn">Kubernetes</button>
+                <button class="filter-btn">VM</button>
+                <button class="filter-btn">Favorites</button>
+            </div>
+        </div>
+
+        <div class="scenarios-grid">
+            <!-- Scenario 1 - Default -->
+            <div class="scenario-card selected">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <h3 class="card-title">Production AKS - Mendix</h3>
+                        <p class="card-meta">Updated 2 hours ago</p>
+                    </div>
+                    <div class="card-badges">
+                        <span class="badge badge-k8s">K8s</span>
+                        <span class="badge badge-default">Default</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">12</div>
+                            <div class="metric-label">Nodes</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">96</div>
+                            <div class="metric-label">vCPUs</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">384</div>
+                            <div class="metric-label">GB RAM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value cost">$4,200</div>
+                            <div class="metric-label">Monthly</div>
+                        </div>
+                    </div>
+                    <div class="config-summary">
+                        <span class="config-tag">Azure AKS</span>
+                        <span class="config-tag">Mendix</span>
+                        <span class="config-tag">24 Apps</span>
+                        <span class="config-tag">West Europe</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox checked"></div>
+                        <span class="checkbox-label">Compare</span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="01-dashboard.html" class="action-btn">Load</a>
+                        <button class="action-btn">Duplicate</button>
+                        <a href="09-export-modal.html" class="action-btn">Export</a>
+                        <button class="action-btn danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenario 2 -->
+            <div class="scenario-card">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <h3 class="card-title">Production EKS - Mendix</h3>
+                        <p class="card-meta">Updated yesterday</p>
+                    </div>
+                    <div class="card-badges">
+                        <span class="badge badge-k8s">K8s</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">14</div>
+                            <div class="metric-label">Nodes</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">112</div>
+                            <div class="metric-label">vCPUs</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">448</div>
+                            <div class="metric-label">GB RAM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value cost">$4,850</div>
+                            <div class="metric-label">Monthly</div>
+                        </div>
+                    </div>
+                    <div class="config-summary">
+                        <span class="config-tag">Amazon EKS</span>
+                        <span class="config-tag">Mendix</span>
+                        <span class="config-tag">24 Apps</span>
+                        <span class="config-tag">EU West 1</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox checked"></div>
+                        <span class="checkbox-label">Compare</span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="01-dashboard.html" class="action-btn">Load</a>
+                        <button class="action-btn">Duplicate</button>
+                        <a href="09-export-modal.html" class="action-btn">Export</a>
+                        <button class="action-btn danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenario 3 -->
+            <div class="scenario-card">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <h3 class="card-title">Development - OutSystems</h3>
+                        <p class="card-meta">Updated 3 days ago</p>
+                    </div>
+                    <div class="card-badges">
+                        <span class="badge badge-vm">VM</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">6</div>
+                            <div class="metric-label">VMs</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">48</div>
+                            <div class="metric-label">vCPUs</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">192</div>
+                            <div class="metric-label">GB RAM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value cost">$1,800</div>
+                            <div class="metric-label">Monthly</div>
+                        </div>
+                    </div>
+                    <div class="config-summary">
+                        <span class="config-tag">Azure VMs</span>
+                        <span class="config-tag">OutSystems</span>
+                        <span class="config-tag">12 Apps</span>
+                        <span class="config-tag">West Europe</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                        <span class="checkbox-label">Compare</span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="01-dashboard.html" class="action-btn">Load</a>
+                        <button class="action-btn">Duplicate</button>
+                        <a href="09-export-modal.html" class="action-btn">Export</a>
+                        <button class="action-btn danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenario 4 -->
+            <div class="scenario-card">
+                <div class="card-header">
+                    <div class="card-title-section">
+                        <h3 class="card-title">GKE Production - Betty Blocks</h3>
+                        <p class="card-meta">Updated 1 week ago</p>
+                    </div>
+                    <div class="card-badges">
+                        <span class="badge badge-k8s">K8s</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-row">
+                        <div class="metric">
+                            <div class="metric-value">10</div>
+                            <div class="metric-label">Nodes</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">80</div>
+                            <div class="metric-label">vCPUs</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">320</div>
+                            <div class="metric-label">GB RAM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value cost">$3,600</div>
+                            <div class="metric-label">Monthly</div>
+                        </div>
+                    </div>
+                    <div class="config-summary">
+                        <span class="config-tag">Google GKE</span>
+                        <span class="config-tag">Betty Blocks</span>
+                        <span class="config-tag">18 Apps</span>
+                        <span class="config-tag">Europe West 4</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                        <span class="checkbox-label">Compare</span>
+                    </div>
+                    <div class="card-actions">
+                        <a href="01-dashboard.html" class="action-btn">Load</a>
+                        <button class="action-btn">Duplicate</button>
+                        <a href="09-export-modal.html" class="action-btn">Export</a>
+                        <button class="action-btn danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions visible">
+        <div class="bulk-info">
+            <strong>2 scenarios</strong> selected for comparison
+        </div>
+        <div class="bulk-buttons">
+            <button class="btn btn-secondary">Clear Selection</button>
+            <a href="03-comparison-dashboard.html" class="btn btn-primary">Compare Selected</a>
+        </div>
+    </div>
+
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

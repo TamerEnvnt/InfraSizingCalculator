@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - LOADING-01: Dashboard Skeleton</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Skeleton Animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -200px 0;
+            }
+            100% {
+                background-position: calc(200px + 100%) 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-tertiary) 0px,
+                #2d333b 40px,
+                var(--bg-tertiary) 80px
+            );
+            background-size: 200px 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        /* Header */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+        }
+
+        /* Summary Cards Skeleton */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .skeleton-value {
+            height: 40px;
+            margin-bottom: 8px;
+            width: 70%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .skeleton-label {
+            height: 14px;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Dashboard Grid Skeleton */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skeleton-title {
+            height: 20px;
+            width: 150px;
+        }
+
+        .card-content {
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        /* Chart Skeleton */
+        .chart-skeleton {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            height: 160px;
+            padding-top: 20px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .chart-bar:nth-child(1) { height: 60%; }
+        .chart-bar:nth-child(2) { height: 80%; }
+        .chart-bar:nth-child(3) { height: 45%; }
+        .chart-bar:nth-child(4) { height: 90%; }
+        .chart-bar:nth-child(5) { height: 70%; }
+        .chart-bar:nth-child(6) { height: 55%; }
+
+        /* Node Grid Skeleton */
+        .node-grid-skeleton {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .node-skeleton {
+            height: 80px;
+            border-radius: 8px;
+        }
+
+        /* Config Bar Skeleton */
+        .config-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            gap: 48px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .config-label-skeleton {
+            height: 12px;
+            width: 80px;
+        }
+
+        .config-value-skeleton {
+            height: 18px;
+            width: 100px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 32px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .skeleton-button {
+            width: 120px;
+            height: 40px;
+            border-radius: 6px;
+        }
+
+        /* Loading Indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--bg-tertiary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Annotation */
+        .annotation {
+            position: fixed;
+            bottom: 80px;
+            left: 32px;
+            background: var(--accent-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 320px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .annotation::before {
+            content: 'Design Note';
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (Loaded) -->
+    <header>
+        <span class="logo">InfraSizing Calculator</span>
+        <nav class="header-nav">
+            <button class="nav-btn active">New Scenario</button>
+            <button class="nav-btn">Scenarios</button>
+            <button class="nav-btn">Settings</button>
+        </nav>
+    </header>
+
+    <!-- Loading Indicator -->
+    <div class="loading-indicator">
+        <div class="spinner"></div>
+        <span class="loading-text">Loading dashboard...</span>
+    </div>
+
+    <!-- Main Content (Skeleton) -->
+    <main class="main-content">
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton skeleton-label"></div>
+            </div>
+            <div class="summary-card">
+                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton skeleton-label"></div>
+            </div>
+            <div class="summary-card">
+                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton skeleton-label"></div>
+            </div>
+            <div class="summary-card">
+                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton skeleton-label"></div>
+            </div>
+            <div class="summary-card">
+                <div class="skeleton skeleton-value"></div>
+                <div class="skeleton skeleton-label"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="skeleton skeleton-title"></div>
+                </div>
+                <div class="card-content">
+                    <div class="node-grid-skeleton">
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                        <div class="skeleton node-skeleton"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="skeleton skeleton-title"></div>
+                </div>
+                <div class="card-content">
+                    <div class="chart-skeleton">
+                        <div class="skeleton chart-bar"></div>
+                        <div class="skeleton chart-bar"></div>
+                        <div class="skeleton chart-bar"></div>
+                        <div class="skeleton chart-bar"></div>
+                        <div class="skeleton chart-bar"></div>
+                        <div class="skeleton chart-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-bar">
+            <div class="config-item">
+                <div class="skeleton config-label-skeleton"></div>
+                <div class="skeleton config-value-skeleton"></div>
+            </div>
+            <div class="config-item">
+                <div class="skeleton config-label-skeleton"></div>
+                <div class="skeleton config-value-skeleton"></div>
+            </div>
+            <div class="config-item">
+                <div class="skeleton config-label-skeleton"></div>
+                <div class="skeleton config-value-skeleton"></div>
+            </div>
+            <div class="config-item">
+                <div class="skeleton config-label-skeleton"></div>
+                <div class="skeleton config-value-skeleton"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Action Bar (Skeleton) -->
+    <div class="action-bar">
+        <div class="skeleton skeleton-button"></div>
+        <div class="skeleton skeleton-button"></div>
+        <div class="skeleton skeleton-button"></div>
+    </div>
+
+    <!-- Design Annotation -->
+    <div class="annotation">
+        Initial page load uses skeleton screens that mirror final layout. Shimmer animation indicates activity. Header loads first for immediate branding. Loading indicator provides context.
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="error-05-export-failed.html" class="nav-link">Prev: Export Failed</a>
+        <a href="loading-02-panel-skeleton.html" class="nav-link">Next: Panel Skeleton</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

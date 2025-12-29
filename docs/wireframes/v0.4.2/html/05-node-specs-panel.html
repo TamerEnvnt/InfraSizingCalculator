@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - Dashboard with Node Specs Panel</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-purple: #a371f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Fixed Height SPA Layout - Header/Footer always visible */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header - Always visible at top */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 20px; font-weight: 600; color: var(--accent-blue); text-decoration: none; }
+
+        a.nav-btn, a.btn, a.close-btn { text-decoration: none; }
+
+        .header-nav { display: flex; gap: 8px; }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+        .dashboard-content {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-value { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+        .card-value.blue { color: var(--accent-blue); }
+        .card-value.green { color: var(--accent-green); }
+        .card-label { font-size: 13px; color: var(--text-secondary); }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .chart-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+        .chart-placeholder {
+            height: 200px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+        }
+
+        /* Slide Panel */
+        .slide-panel {
+            width: 480px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title { font-size: 18px; font-weight: 600; }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .panel-content { flex: 1; overflow-y: auto; padding: 24px; }
+
+        .panel-section { margin-bottom: 28px; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-master { background: var(--accent-purple); color: #000; }
+        .badge-infra { background: var(--accent-orange); color: #000; }
+        .badge-worker { background: var(--accent-green); color: #000; }
+
+        /* Spec Card */
+        .spec-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .spec-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .spec-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .spec-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .spec-input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .spec-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .spec-unit {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .spec-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* Node Count */
+        .node-count {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .count-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .count-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Presets */
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .preset-btn:hover, .preset-btn.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Totals */
+        .totals-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .total-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .total-row span:first-child { color: var(--text-secondary); }
+        .total-row span:last-child { color: var(--text-primary); }
+        .total-row.highlight span:last-child { color: var(--accent-blue); }
+
+        .panel-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-primary { background: var(--accent-blue); color: #000; }
+
+        /* Action Bar - Always visible at bottom */
+        .action-bar {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 64px;
+        }
+
+        .action-info { color: var(--text-secondary); font-size: 13px; }
+        .action-buttons { display: flex; gap: 12px; }
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .action-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .action-btn-primary { background: var(--accent-blue); color: #000; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="00-landing.html" class="logo">InfraSizing Calculator</a>
+        <nav class="header-nav">
+            <a href="02-dashboard-with-panel.html" class="nav-btn active">New Scenario</a>
+            <a href="08-scenarios.html" class="nav-btn">Scenarios</a>
+            <a href="10-settings.html" class="nav-btn">[@]</a>
+        </nav>
+    </header>
+
+    <div class="main-layout">
+        <div class="dashboard-content">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-value blue">12</div>
+                    <div class="card-label">Nodes</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">96</div>
+                    <div class="card-label">vCPUs</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">384</div>
+                    <div class="card-label">GB RAM</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value">2.4</div>
+                    <div class="card-label">TB Storage</div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-value green">$4,200</div>
+                    <div class="card-label">Monthly</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Node Architecture</h3>
+                    <div class="chart-placeholder">[Node Grid]</div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Cost Breakdown</h3>
+                    <div class="chart-placeholder">[Pie Chart]</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Node Specifications</h2>
+                <a href="01-dashboard.html" class="close-btn">X</a>
+            </div>
+
+            <!-- Panel Tabs -->
+            <div class="panel-tabs" style="display: flex; border-bottom: 1px solid var(--border-primary); padding: 0 16px;">
+                <a href="02-dashboard-with-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Platform</a>
+                <a href="04-apps-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Apps</a>
+                <a href="05-node-specs-panel.html" style="padding: 12px 16px; color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); text-decoration: none; font-size: 13px;">Nodes</a>
+                <a href="06-pricing-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Pricing</a>
+                <a href="07-growth-panel.html" style="padding: 12px 16px; color: var(--text-secondary); text-decoration: none; font-size: 13px;">Growth</a>
+            </div>
+
+            <div class="panel-content">
+                <!-- Presets -->
+                <div class="panel-section">
+                    <h3 class="section-title">Quick Presets</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn">Small</button>
+                        <button class="preset-btn active">Medium</button>
+                        <button class="preset-btn">Large</button>
+                        <button class="preset-btn">Custom</button>
+                    </div>
+                </div>
+
+                <!-- Master Nodes -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Master Nodes</h3>
+                        <span class="section-badge badge-master">CONTROL</span>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-grid">
+                            <div class="spec-field">
+                                <label class="spec-label">CPU Cores</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="4">
+                                    <span class="spec-unit">vCPU</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Memory</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="16">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="100">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage Type</label>
+                                <select class="spec-select">
+                                    <option>SSD</option>
+                                    <option>NVMe</option>
+                                    <option>HDD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="node-count">
+                            <span class="count-display">3</span>
+                            <span class="count-text">nodes for HA (auto-calculated)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Infrastructure Nodes -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Infrastructure Nodes</h3>
+                        <span class="section-badge badge-infra">INFRA</span>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-grid">
+                            <div class="spec-field">
+                                <label class="spec-label">CPU Cores</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="8">
+                                    <span class="spec-unit">vCPU</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Memory</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="32">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="200">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage Type</label>
+                                <select class="spec-select">
+                                    <option>SSD</option>
+                                    <option selected>NVMe</option>
+                                    <option>HDD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="node-count">
+                            <span class="count-display">2</span>
+                            <span class="count-text">nodes (auto-calculated)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worker Nodes -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Worker Nodes</h3>
+                        <span class="section-badge badge-worker">WORKLOAD</span>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-grid">
+                            <div class="spec-field">
+                                <label class="spec-label">CPU Cores</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="8">
+                                    <span class="spec-unit">vCPU</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Memory</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="32">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage</label>
+                                <div class="spec-input-group">
+                                    <input type="number" class="spec-input" value="200">
+                                    <span class="spec-unit">GB</span>
+                                </div>
+                            </div>
+                            <div class="spec-field">
+                                <label class="spec-label">Storage Type</label>
+                                <select class="spec-select">
+                                    <option selected>SSD</option>
+                                    <option>NVMe</option>
+                                    <option>HDD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="node-count">
+                            <span class="count-display">7</span>
+                            <span class="count-text">nodes (based on app requirements)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totals -->
+                <div class="panel-section">
+                    <h3 class="section-title">Resource Totals</h3>
+                    <div class="totals-card">
+                        <div class="total-row">
+                            <span>Master Nodes</span>
+                            <span>3 x (4 vCPU, 16 GB)</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Infrastructure Nodes</span>
+                            <span>2 x (8 vCPU, 32 GB)</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Worker Nodes</span>
+                            <span>7 x (8 vCPU, 32 GB)</span>
+                        </div>
+                        <div class="total-row highlight">
+                            <span>Total Cluster</span>
+                            <span>12 nodes, 96 vCPU, 384 GB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <button class="btn btn-secondary">Reset</button>
+                <a href="01-dashboard.html" class="btn btn-primary">Apply Changes</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="action-bar">
+        <div class="action-info">Configuring node specifications</div>
+        <div class="action-buttons">
+            <button class="action-btn action-btn-secondary">Save Scenario</button>
+            <button class="action-btn action-btn-secondary">Compare</button>
+            <button class="action-btn action-btn-primary">Export</button>
+        </div>
+    </footer>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

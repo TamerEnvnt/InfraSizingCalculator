@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - MICRO-02: Success & Progress Animations</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-green);
+            border-radius: 2px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .demo-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .demo-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .demo-label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========================================
+           1. SUCCESS CHECKMARK ANIMATION
+           ======================================== */
+        .success-circle {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            position: relative;
+        }
+
+        .success-circle svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .success-circle .circle {
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 226;
+            stroke-dashoffset: 226;
+            animation: drawCircle 0.5s ease-out forwards;
+        }
+
+        .success-circle .checkmark {
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+            animation: drawCheck 0.3s 0.4s ease-out forwards;
+        }
+
+        @keyframes drawCircle {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .success-text {
+            font-size: 14px;
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* Static states for comparison */
+        .success-static .circle,
+        .success-static .checkmark {
+            animation: none;
+            stroke-dashoffset: 0;
+        }
+
+        /* ========================================
+           2. SAVE BUTTON STATES
+           ======================================== */
+        .save-btn-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .save-btn {
+            min-width: 180px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn.idle {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .save-btn.saving {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: wait;
+        }
+
+        .save-btn.saved {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .save-btn.error {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid transparent;
+            border-top-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========================================
+           3. PROGRESS BAR ANIMATIONS
+           ======================================== */
+        .progress-demo {
+            width: 100%;
+        }
+
+        .progress-bar-container {
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-bar.blue {
+            background: var(--accent-blue);
+        }
+
+        .progress-bar.green {
+            background: var(--accent-green);
+        }
+
+        .progress-bar.indeterminate {
+            width: 30%;
+            animation: indeterminate 1.5s ease-in-out infinite;
+        }
+
+        @keyframes indeterminate {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Striped Progress */
+        .progress-bar.striped {
+            background: repeating-linear-gradient(
+                45deg,
+                var(--accent-blue),
+                var(--accent-blue) 10px,
+                #79b8ff 10px,
+                #79b8ff 20px
+            );
+            background-size: 28px 100%;
+            animation: stripeMove 0.5s linear infinite;
+        }
+
+        @keyframes stripeMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 28px 0; }
+        }
+
+        /* ========================================
+           4. TOAST ANIMATIONS
+           ======================================== */
+        .toast-demo {
+            position: relative;
+            height: 120px;
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        .toast.success {
+            border-color: var(--accent-green);
+        }
+
+        .toast.error {
+            border-color: var(--accent-red);
+        }
+
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.success {
+            background: var(--accent-green);
+        }
+
+        .toast-icon.error {
+            background: var(--accent-red);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Toast slide-in animation */
+        .toast.animate-in {
+            animation: toastSlideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Toast progress bar */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent-green);
+            border-radius: 0 0 10px 10px;
+            animation: toastCountdown 5s linear forwards;
+        }
+
+        @keyframes toastCountdown {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* ========================================
+           5. EXPORT PROGRESS MODAL
+           ======================================== */
+        .export-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .export-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .export-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Circular Progress */
+        .circular-progress {
+            width: 64px;
+            height: 64px;
+            position: relative;
+        }
+
+        .circular-progress svg {
+            transform: rotate(-90deg);
+        }
+
+        .circular-progress .bg {
+            fill: none;
+            stroke: var(--bg-tertiary);
+            stroke-width: 4;
+        }
+
+        .circular-progress .progress {
+            fill: none;
+            stroke: var(--accent-blue);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 176;
+            stroke-dashoffset: 44; /* 75% progress */
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .circular-progress .percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .export-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .export-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .export-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .export-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .step-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .step-indicator.done {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .step-indicator.current {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .step-indicator.pending {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-tertiary);
+        }
+
+        .step-indicator.current .spinner-small {
+            width: 14px;
+            height: 14px;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .step-text {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .step-text.done {
+            color: var(--text-secondary);
+        }
+
+        .step-text.current {
+            color: var(--text-primary);
+        }
+
+        .step-text.pending {
+            color: var(--text-tertiary);
+        }
+
+        /* ========================================
+           6. NUMBER COUNT-UP ANIMATION
+           ======================================== */
+        .count-demo {
+            text-align: center;
+        }
+
+        .count-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .count-value.animating {
+            animation: countPulse 0.1s ease-in-out;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .count-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* ========================================
+           7. CONFETTI CELEBRATION
+           ======================================== */
+        .confetti-demo {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        .confetti.active {
+            animation: confettiFall 1.5s ease-out forwards;
+        }
+
+        .confetti:nth-child(1) { left: 10%; background: var(--accent-blue); animation-delay: 0s; }
+        .confetti:nth-child(2) { left: 20%; background: var(--accent-green); animation-delay: 0.1s; border-radius: 50%; }
+        .confetti:nth-child(3) { left: 30%; background: var(--accent-purple); animation-delay: 0.2s; }
+        .confetti:nth-child(4) { left: 40%; background: var(--accent-orange); animation-delay: 0.15s; border-radius: 50%; }
+        .confetti:nth-child(5) { left: 50%; background: var(--accent-red); animation-delay: 0.05s; }
+        .confetti:nth-child(6) { left: 60%; background: var(--accent-blue); animation-delay: 0.25s; border-radius: 50%; }
+        .confetti:nth-child(7) { left: 70%; background: var(--accent-green); animation-delay: 0.1s; }
+        .confetti:nth-child(8) { left: 80%; background: var(--accent-purple); animation-delay: 0.2s; border-radius: 50%; }
+        .confetti:nth-child(9) { left: 90%; background: var(--accent-orange); animation-delay: 0.15s; }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-20px) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(150px) rotate(720deg);
+            }
+        }
+
+        .celebration-text {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        /* ========================================
+           8. RIPPLE EFFECT
+           ======================================== */
+        .ripple-demo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ripple-btn {
+            position: relative;
+            padding: 16px 32px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Annotations */
+        .annotations {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .annotation-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-green);
+            margin-bottom: 8px;
+        }
+
+        .annotation-list {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .annotation-list li {
+            margin-bottom: 4px;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .nav-link {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1 class="page-title">Micro-Interactions: Success & Progress</h1>
+        <p class="page-desc">Animations for success states, progress indicators, and celebratory feedback.</p>
+    </div>
+
+    <!-- Section 1: Success Checkmarks -->
+    <div class="section">
+        <h2 class="section-title">Success Checkmark</h2>
+        <p class="section-desc">Animated SVG checkmark with circle draw-in effect. Used after successful operations.</p>
+        <div class="demo-grid demo-grid-3">
+            <div class="demo-item">
+                <div class="demo-label">Drawing Animation</div>
+                <div class="success-circle">
+                    <svg viewBox="0 0 80 80">
+                        <circle class="circle" cx="40" cy="40" r="36"/>
+                        <path class="checkmark" d="M24 42 L34 52 L56 30"/>
+                    </svg>
+                </div>
+                <div class="success-text">Saved Successfully!</div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Static (Complete)</div>
+                <div class="success-circle success-static">
+                    <svg viewBox="0 0 80 80">
+                        <circle class="circle" cx="40" cy="40" r="36"/>
+                        <path class="checkmark" d="M24 42 L34 52 L56 30"/>
+                    </svg>
+                </div>
+                <div class="success-text">Export Complete</div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Timing</div>
+                <div style="font-size: 12px; color: var(--text-secondary); text-align: left; line-height: 1.6;">
+                    <div><strong>Circle:</strong> 0.5s ease-out</div>
+                    <div><strong>Checkmark:</strong> 0.3s @ 0.4s delay</div>
+                    <div><strong>Total:</strong> 0.7s</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Save Button States -->
+    <div class="section">
+        <h2 class="section-title">Save Button States</h2>
+        <p class="section-desc">Button transitions through idle → saving → saved states with appropriate feedback.</p>
+        <div class="demo-grid">
+            <div class="demo-item">
+                <div class="demo-label">Idle</div>
+                <div class="save-btn-demo">
+                    <button class="save-btn idle">
+                        <span>💾</span>
+                        <span>Save Scenario</span>
+                    </button>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Saving</div>
+                <div class="save-btn-demo">
+                    <button class="save-btn saving">
+                        <div class="spinner"></div>
+                        <span>Saving...</span>
+                    </button>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Saved</div>
+                <div class="save-btn-demo">
+                    <button class="save-btn saved">
+                        <span>✓</span>
+                        <span>Saved!</span>
+                    </button>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Error</div>
+                <div class="save-btn-demo">
+                    <button class="save-btn error">
+                        <span>✕</span>
+                        <span>Save Failed</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Progress Bars -->
+    <div class="section">
+        <h2 class="section-title">Progress Bars</h2>
+        <p class="section-desc">Determinate, indeterminate, and striped progress indicators.</p>
+        <div class="demo-grid">
+            <div class="demo-item">
+                <div class="demo-label">Determinate (25%)</div>
+                <div class="progress-demo">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar blue" style="width: 25%;"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>Processing...</span>
+                        <span>25%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Determinate (75%)</div>
+                <div class="progress-demo">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar blue" style="width: 75%;"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>Generating PDF...</span>
+                        <span>75%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Indeterminate</div>
+                <div class="progress-demo">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar blue indeterminate"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>Loading...</span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Complete (100%)</div>
+                <div class="progress-demo">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar green" style="width: 100%;"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>Complete!</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Toast Notifications -->
+    <div class="section">
+        <h2 class="section-title">Toast Notifications</h2>
+        <p class="section-desc">Slide-in toasts with auto-dismiss countdown bar.</p>
+        <div class="demo-grid demo-grid-3">
+            <div class="demo-item">
+                <div class="demo-label">Success Toast</div>
+                <div class="toast-demo">
+                    <div class="toast success animate-in">
+                        <div class="toast-icon success">✓</div>
+                        <div class="toast-content">
+                            <div class="toast-title">Scenario Saved</div>
+                            <div class="toast-message">Production K8s Cluster updated</div>
+                        </div>
+                        <div class="toast-progress"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Error Toast</div>
+                <div class="toast-demo">
+                    <div class="toast error">
+                        <div class="toast-icon error">✕</div>
+                        <div class="toast-content">
+                            <div class="toast-title">Export Failed</div>
+                            <div class="toast-message">Please try again</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Animation Specs</div>
+                <div style="font-size: 12px; color: var(--text-secondary); text-align: left; line-height: 1.6;">
+                    <div><strong>Slide-in:</strong> 0.3s ease-out</div>
+                    <div><strong>Position:</strong> translateY(20px) → 0</div>
+                    <div><strong>Auto-dismiss:</strong> 5s countdown</div>
+                    <div><strong>Progress bar:</strong> linear countdown</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: Export Modal -->
+    <div class="section">
+        <h2 class="section-title">Export Progress Modal</h2>
+        <p class="section-desc">Multi-step export process with circular progress and step indicators.</p>
+        <div class="demo-grid demo-grid-3">
+            <div class="demo-item" style="grid-column: span 2;">
+                <div class="demo-label">Export in Progress</div>
+                <div class="export-modal">
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 64 64">
+                            <circle class="bg" cx="32" cy="32" r="28"/>
+                            <circle class="progress" cx="32" cy="32" r="28"/>
+                        </svg>
+                        <div class="percentage">75%</div>
+                    </div>
+                    <div class="export-title">Exporting Report</div>
+                    <div class="export-status">Generating charts and visualizations...</div>
+                    <div class="export-steps">
+                        <div class="export-step">
+                            <div class="step-indicator done">✓</div>
+                            <span class="step-text done">Preparing data</span>
+                        </div>
+                        <div class="export-step">
+                            <div class="step-indicator done">✓</div>
+                            <span class="step-text done">Generating tables</span>
+                        </div>
+                        <div class="export-step">
+                            <div class="step-indicator current">
+                                <div class="spinner-small"></div>
+                            </div>
+                            <span class="step-text current">Creating charts</span>
+                        </div>
+                        <div class="export-step">
+                            <div class="step-indicator pending">4</div>
+                            <span class="step-text pending">Finalizing PDF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Progress Ring Math</div>
+                <div style="font-size: 12px; color: var(--text-secondary); text-align: left; line-height: 1.8;">
+                    <div><strong>Circumference:</strong> 2πr = 176px</div>
+                    <div><strong>0%:</strong> offset = 176</div>
+                    <div><strong>50%:</strong> offset = 88</div>
+                    <div><strong>75%:</strong> offset = 44</div>
+                    <div><strong>100%:</strong> offset = 0</div>
+                    <div style="margin-top: 12px;"><strong>Formula:</strong><br/>offset = circumference × (1 - progress)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 6: Number Animation -->
+    <div class="section">
+        <h2 class="section-title">Number Count-Up</h2>
+        <p class="section-desc">Animated counting for displaying calculated values.</p>
+        <div class="demo-grid">
+            <div class="demo-item">
+                <div class="demo-label">Node Count</div>
+                <div class="count-demo">
+                    <div class="count-value">12</div>
+                    <div class="count-label">Total Nodes</div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">vCPU Count</div>
+                <div class="count-demo">
+                    <div class="count-value">96</div>
+                    <div class="count-label">vCPUs</div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Memory</div>
+                <div class="count-demo">
+                    <div class="count-value">384</div>
+                    <div class="count-label">GB RAM</div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Cost</div>
+                <div class="count-demo">
+                    <div class="count-value">$12.4K</div>
+                    <div class="count-label">/month</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 7: Celebration -->
+    <div class="section">
+        <h2 class="section-title">Celebration Effect</h2>
+        <p class="section-desc">Confetti animation for major achievements (first scenario saved, etc.).</p>
+        <div class="demo-grid demo-grid-3">
+            <div class="demo-item" style="grid-column: span 2;">
+                <div class="demo-label">Confetti Burst</div>
+                <div class="confetti-demo">
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="confetti active"></div>
+                    <div class="celebration-text">🎉 First Scenario Created!</div>
+                </div>
+            </div>
+            <div class="demo-item">
+                <div class="demo-label">Ripple Click Effect</div>
+                <div class="ripple-demo">
+                    <button class="ripple-btn">
+                        Click Me
+                        <span class="ripple" style="top: 20px; left: 40px; width: 100px; height: 100px;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Annotations -->
+    <div class="annotations">
+        <div class="annotation-title">Animation Guidelines</div>
+        <ul class="annotation-list">
+            <li>Success animations: 0.5-0.7s total duration</li>
+            <li>Use ease-out for entrances, ease-in for exits</li>
+            <li>Progress bars: Smooth transitions (0.3s)</li>
+            <li>Toasts: 5s auto-dismiss with visual countdown</li>
+            <li>Confetti: Reserved for milestone achievements</li>
+        </ul>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Back to Index</a>
+        <a href="micro-01-hover-effects.html" class="nav-link">Prev: Hover Effects</a>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

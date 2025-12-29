@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v0.4.2 - Settings</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-primary: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #f0883e;
+            --accent-red: #f85149;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Fixed Height SPA Layout - Header/Footer always visible */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header - Always visible at top */
+        header {
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 20px; font-weight: 600; color: var(--accent-blue); }
+        .header-nav { display: flex; gap: 8px; }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-blue);
+        }
+
+        a.nav-btn, a.btn, a.logo {
+            text-decoration: none;
+        }
+
+        /* Main Layout - Scrollable area */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 0;
+        }
+
+        /* Sidebar */
+        .settings-sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
+            padding: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar-link {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-link.active {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-icon {
+            font-size: 14px;
+        }
+
+        /* Content */
+        .settings-content {
+            flex: 1;
+            padding: 32px 48px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .settings-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .section-body {
+            padding: 24px;
+        }
+
+        /* Form Elements */
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .form-row:last-child {
+            border-bottom: none;
+        }
+
+        .form-label-group {
+            flex: 1;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 280px;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .form-select {
+            width: 280px;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        /* Toggle */
+        .toggle-switch {
+            width: 48px;
+            height: 26px;
+            background: var(--bg-tertiary);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid var(--border-primary);
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(22px);
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-group .btn {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .button-group .btn.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        /* User Info Card */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .user-avatar {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            border-color: var(--accent-red);
+        }
+
+        .danger-zone .section-header {
+            background: rgba(248, 81, 73, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        /* Save Bar - Always visible at bottom */
+        .save-bar {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            padding: 16px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 64px;
+        }
+
+        .save-info {
+            font-size: 14px;
+            color: var(--accent-orange);
+        }
+
+        .save-buttons {
+            display: flex;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="00-landing.html" class="logo">InfraSizing Calculator</a>
+        <nav class="header-nav">
+            <a href="02-dashboard-with-panel.html" class="nav-btn">New Scenario</a>
+            <a href="08-scenarios.html" class="nav-btn">Scenarios</a>
+            <a href="10-settings.html" class="nav-btn active">[@]</a>
+        </nav>
+    </header>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="settings-sidebar">
+            <h3 class="sidebar-title">Settings</h3>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link active">
+                    <span class="sidebar-icon">[@]</span>
+                    Account
+                </a>
+                <a class="sidebar-link">
+                    <span class="sidebar-icon">[#]</span>
+                    Preferences
+                </a>
+                <a class="sidebar-link">
+                    <span class="sidebar-icon">[$]</span>
+                    Default Pricing
+                </a>
+                <a class="sidebar-link">
+                    <span class="sidebar-icon">[N]</span>
+                    Notifications
+                </a>
+                <a class="sidebar-link">
+                    <span class="sidebar-icon">[K]</span>
+                    API Keys
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="settings-content">
+            <div class="page-header">
+                <h1 class="page-title">Account Settings</h1>
+                <p class="page-desc">Manage your account information and preferences</p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="settings-section">
+                <div class="section-header">
+                    <h2 class="section-title">Profile</h2>
+                    <p class="section-desc">Your personal information</p>
+                </div>
+                <div class="section-body">
+                    <div class="user-card">
+                        <div class="user-avatar">TU</div>
+                        <div class="user-info">
+                            <div class="user-name">Tamer User</div>
+                            <div class="user-email">tamer@example.com</div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-secondary">Change Avatar</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Display Name</div>
+                            <div class="form-hint">This is how your name appears in the app</div>
+                        </div>
+                        <input type="text" class="form-input" value="Tamer User">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Email Address</div>
+                            <div class="form-hint">Used for notifications and login</div>
+                        </div>
+                        <input type="email" class="form-input" value="tamer@example.com">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Organization</div>
+                            <div class="form-hint">Your company or team name</div>
+                        </div>
+                        <input type="text" class="form-input" value="Acme Corp">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="settings-section">
+                <div class="section-header">
+                    <h2 class="section-title">Preferences</h2>
+                    <p class="section-desc">Customize your experience</p>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Theme</div>
+                            <div class="form-hint">Choose your preferred color scheme</div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn active">Dark</button>
+                            <button class="btn">Light</button>
+                            <button class="btn">System</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Default Currency</div>
+                            <div class="form-hint">Currency for cost calculations</div>
+                        </div>
+                        <select class="form-select">
+                            <option selected>USD ($)</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>AUD</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Default Region</div>
+                            <div class="form-hint">Pre-selected cloud region</div>
+                        </div>
+                        <select class="form-select">
+                            <option selected>West Europe</option>
+                            <option>North Europe</option>
+                            <option>East US</option>
+                            <option>West US 2</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Auto-save Scenarios</div>
+                            <div class="form-hint">Automatically save changes</div>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Show Advanced Options</div>
+                            <div class="form-hint">Display detailed configuration options</div>
+                        </div>
+                        <div class="toggle-switch"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-section danger-zone">
+                <div class="section-header">
+                    <h2 class="section-title">Danger Zone</h2>
+                    <p class="section-desc">Irreversible actions</p>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Delete All Scenarios</div>
+                            <div class="form-hint">Permanently remove all saved scenarios</div>
+                        </div>
+                        <button class="btn btn-danger">Delete All</button>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label-group">
+                            <div class="form-label">Delete Account</div>
+                            <div class="form-hint">Permanently delete your account and all data</div>
+                        </div>
+                        <button class="btn btn-danger">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Save Bar -->
+    <div class="save-bar">
+        <div class="save-info">You have unsaved changes</div>
+        <div class="save-buttons">
+            <a href="01-dashboard.html" class="btn btn-secondary">Cancel</a>
+            <a href="01-dashboard.html" class="btn btn-primary">Save Changes</a>
+        </div>
+    </div>
+    <!-- Navigation Component -->
+    <script src="shared/nav-component.js"></script>
+</body>
+</html>

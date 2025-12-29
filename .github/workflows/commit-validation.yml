@@ -29,6 +29,12 @@ jobs:
             MSG=$(git log --format=%s -n 1 "$HASH")
             SHORT_HASH=${HASH:0:7}
 
+            # Skip GitHub auto-generated merge commits (cannot be controlled by user)
+            if echo "$MSG" | grep -qE '^Merge [0-9a-f]+ into [0-9a-f]+'; then
+              echo "⏭️  SKIP: Commit $SHORT_HASH is auto-generated merge commit"
+              continue
+            fi
+
             # Check for phase tag using grep with fixed patterns
             if echo "$MSG" | grep -qE '^\[(SPEC|IMPL|SYNC|TEST)\]'; then
               echo "✅ OK: Commit $SHORT_HASH has valid phase tag"

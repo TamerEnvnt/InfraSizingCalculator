@@ -675,6 +675,104 @@ public class DistributionService : IDistributionService
         return _configs.Values.Where(c => c.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase));
     }
 
+    public IEnumerable<DistributionConfig> GetByDeploymentType(string deploymentType)
+    {
+        return deploymentType?.ToLowerInvariant() switch
+        {
+            "on-prem" => GetByTag("on-prem"),
+            "cloud" => GetByTag("cloud"),
+            _ => GetAll()
+        };
+    }
+
+    public int GetCountByDeploymentType(string deploymentType)
+    {
+        return GetByDeploymentType(deploymentType).Count();
+    }
+
+    public IEnumerable<DistributionConfig> GetCloudByCategory(string category)
+    {
+        var cloudDistros = GetByTag("cloud");
+        return category?.ToLowerInvariant() switch
+        {
+            "all" => cloudDistros,
+            "major" => cloudDistros.Where(c => IsMajorCloudProvider(c.Distribution)),
+            "openshift" => cloudDistros.Where(c => IsOpenShiftCloud(c.Distribution)),
+            "rancher" => cloudDistros.Where(c => IsRancherFamily(c.Distribution)),
+            "tanzu" => cloudDistros.Where(c => IsTanzuFamily(c.Distribution)),
+            "ubuntu" => cloudDistros.Where(c => IsUbuntuFamily(c.Distribution)),
+            "developer" => cloudDistros.Where(c => IsDeveloperFocused(c.Distribution)),
+            _ => Enumerable.Empty<DistributionConfig>()
+        };
+    }
+
+    public int GetCountByCloudCategory(string category)
+    {
+        return GetCloudByCategory(category).Count();
+    }
+
+    public IEnumerable<DistributionConfig> GetFiltered(string? deploymentType, string? cloudCategory, string? searchText)
+    {
+        IEnumerable<DistributionConfig> result = deploymentType?.ToLowerInvariant() switch
+        {
+            "on-prem" => GetByTag("on-prem"),
+            "cloud" when !string.IsNullOrEmpty(cloudCategory) && cloudCategory != "all" =>
+                GetCloudByCategory(cloudCategory),
+            "cloud" => GetByTag("cloud"),
+            _ => GetAll()
+        };
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var search = searchText.ToLowerInvariant();
+            result = result.Where(d =>
+                d.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                d.Vendor.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                d.Tags.Any(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return result;
+    }
+
+    public string? GetCloudCategory(Distribution distribution)
+    {
+        if (IsMajorCloudProvider(distribution)) return "major";
+        if (IsOpenShiftCloud(distribution)) return "openshift";
+        if (IsRancherFamily(distribution)) return "rancher";
+        if (IsTanzuFamily(distribution)) return "tanzu";
+        if (IsUbuntuFamily(distribution)) return "ubuntu";
+        if (IsDeveloperFocused(distribution)) return "developer";
+        return null;
+    }
+
+    // Cloud category classification methods
+    private static bool IsMajorCloudProvider(Distribution d) =>
+        d is Distribution.EKS or Distribution.AKS or Distribution.GKE
+            or Distribution.OKE or Distribution.IKS or Distribution.ACK
+            or Distribution.TKE or Distribution.CCE;
+
+    private static bool IsOpenShiftCloud(Distribution d) =>
+        d is Distribution.OpenShiftROSA or Distribution.OpenShiftARO
+            or Distribution.OpenShiftDedicated or Distribution.OpenShiftIBM;
+
+    private static bool IsRancherFamily(Distribution d) =>
+        d is Distribution.RancherHosted or Distribution.RancherEKS
+            or Distribution.RancherAKS or Distribution.RancherGKE
+            or Distribution.K3sAWS or Distribution.K3sAzure or Distribution.K3sGCP
+            or Distribution.RKE2AWS or Distribution.RKE2Azure or Distribution.RKE2GCP;
+
+    private static bool IsTanzuFamily(Distribution d) =>
+        d is Distribution.TanzuCloud or Distribution.TanzuAWS
+            or Distribution.TanzuAzure or Distribution.TanzuGCP;
+
+    private static bool IsUbuntuFamily(Distribution d) =>
+        d is Distribution.CharmedAWS or Distribution.CharmedAzure or Distribution.CharmedGCP
+            or Distribution.MicroK8sAWS or Distribution.MicroK8sAzure or Distribution.MicroK8sGCP;
+
+    private static bool IsDeveloperFocused(Distribution d) =>
+        d is Distribution.DOKS or Distribution.LKE or Distribution.VKE
+            or Distribution.HetznerK8s or Distribution.OVHKubernetes or Distribution.ScalewayKapsule;
+
     /// <summary>
     /// Maps a database entity to a domain model.
     /// </summary>

@@ -187,6 +187,127 @@ public class NodeSpecsConfig
     }
 
     /// <summary>
+    /// Sets a node specification value for a specific environment, node type, and spec type.
+    /// Returns true if the value was set successfully, false if the combination was invalid.
+    /// </summary>
+    /// <param name="env">The environment type (Dev, Test, Stage, Prod, DR)</param>
+    /// <param name="nodeType">The node type ("Master", "Infra", "Worker")</param>
+    /// <param name="specType">The spec type ("Cpu", "Ram", "Disk")</param>
+    /// <param name="value">The value to set (must be >= 1)</param>
+    /// <returns>True if the value was set, false if invalid</returns>
+    public bool SetSpec(EnvironmentType env, string nodeType, string specType, int value)
+    {
+        if (value < 1) return false;
+
+        switch ((env, nodeType, specType))
+        {
+            case (EnvironmentType.Dev, "Master", "Cpu"): DevMasterCpu = value; return true;
+            case (EnvironmentType.Dev, "Master", "Ram"): DevMasterRam = value; return true;
+            case (EnvironmentType.Dev, "Master", "Disk"): DevMasterDisk = value; return true;
+            case (EnvironmentType.Dev, "Infra", "Cpu"): DevInfraCpu = value; return true;
+            case (EnvironmentType.Dev, "Infra", "Ram"): DevInfraRam = value; return true;
+            case (EnvironmentType.Dev, "Infra", "Disk"): DevInfraDisk = value; return true;
+            case (EnvironmentType.Dev, "Worker", "Cpu"): DevWorkerCpu = value; return true;
+            case (EnvironmentType.Dev, "Worker", "Ram"): DevWorkerRam = value; return true;
+            case (EnvironmentType.Dev, "Worker", "Disk"): DevWorkerDisk = value; return true;
+            case (EnvironmentType.Test, "Master", "Cpu"): TestMasterCpu = value; return true;
+            case (EnvironmentType.Test, "Master", "Ram"): TestMasterRam = value; return true;
+            case (EnvironmentType.Test, "Master", "Disk"): TestMasterDisk = value; return true;
+            case (EnvironmentType.Test, "Infra", "Cpu"): TestInfraCpu = value; return true;
+            case (EnvironmentType.Test, "Infra", "Ram"): TestInfraRam = value; return true;
+            case (EnvironmentType.Test, "Infra", "Disk"): TestInfraDisk = value; return true;
+            case (EnvironmentType.Test, "Worker", "Cpu"): TestWorkerCpu = value; return true;
+            case (EnvironmentType.Test, "Worker", "Ram"): TestWorkerRam = value; return true;
+            case (EnvironmentType.Test, "Worker", "Disk"): TestWorkerDisk = value; return true;
+            case (EnvironmentType.Stage, "Master", "Cpu"): StageMasterCpu = value; return true;
+            case (EnvironmentType.Stage, "Master", "Ram"): StageMasterRam = value; return true;
+            case (EnvironmentType.Stage, "Master", "Disk"): StageMasterDisk = value; return true;
+            case (EnvironmentType.Stage, "Infra", "Cpu"): StageInfraCpu = value; return true;
+            case (EnvironmentType.Stage, "Infra", "Ram"): StageInfraRam = value; return true;
+            case (EnvironmentType.Stage, "Infra", "Disk"): StageInfraDisk = value; return true;
+            case (EnvironmentType.Stage, "Worker", "Cpu"): StageWorkerCpu = value; return true;
+            case (EnvironmentType.Stage, "Worker", "Ram"): StageWorkerRam = value; return true;
+            case (EnvironmentType.Stage, "Worker", "Disk"): StageWorkerDisk = value; return true;
+            case (EnvironmentType.Prod, "Master", "Cpu"): ProdMasterCpu = value; return true;
+            case (EnvironmentType.Prod, "Master", "Ram"): ProdMasterRam = value; return true;
+            case (EnvironmentType.Prod, "Master", "Disk"): ProdMasterDisk = value; return true;
+            case (EnvironmentType.Prod, "Infra", "Cpu"): ProdInfraCpu = value; return true;
+            case (EnvironmentType.Prod, "Infra", "Ram"): ProdInfraRam = value; return true;
+            case (EnvironmentType.Prod, "Infra", "Disk"): ProdInfraDisk = value; return true;
+            case (EnvironmentType.Prod, "Worker", "Cpu"): ProdWorkerCpu = value; return true;
+            case (EnvironmentType.Prod, "Worker", "Ram"): ProdWorkerRam = value; return true;
+            case (EnvironmentType.Prod, "Worker", "Disk"): ProdWorkerDisk = value; return true;
+            case (EnvironmentType.DR, "Master", "Cpu"): DRMasterCpu = value; return true;
+            case (EnvironmentType.DR, "Master", "Ram"): DRMasterRam = value; return true;
+            case (EnvironmentType.DR, "Master", "Disk"): DRMasterDisk = value; return true;
+            case (EnvironmentType.DR, "Infra", "Cpu"): DRInfraCpu = value; return true;
+            case (EnvironmentType.DR, "Infra", "Ram"): DRInfraRam = value; return true;
+            case (EnvironmentType.DR, "Infra", "Disk"): DRInfraDisk = value; return true;
+            case (EnvironmentType.DR, "Worker", "Cpu"): DRWorkerCpu = value; return true;
+            case (EnvironmentType.DR, "Worker", "Ram"): DRWorkerRam = value; return true;
+            case (EnvironmentType.DR, "Worker", "Disk"): DRWorkerDisk = value; return true;
+            default: return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets a node specification value for a specific environment, node type, and spec type.
+    /// Returns the value if found, or null if the combination was invalid.
+    /// </summary>
+    public int? GetSpec(EnvironmentType env, string nodeType, string specType)
+    {
+        return (env, nodeType, specType) switch
+        {
+            (EnvironmentType.Dev, "Master", "Cpu") => DevMasterCpu,
+            (EnvironmentType.Dev, "Master", "Ram") => DevMasterRam,
+            (EnvironmentType.Dev, "Master", "Disk") => DevMasterDisk,
+            (EnvironmentType.Dev, "Infra", "Cpu") => DevInfraCpu,
+            (EnvironmentType.Dev, "Infra", "Ram") => DevInfraRam,
+            (EnvironmentType.Dev, "Infra", "Disk") => DevInfraDisk,
+            (EnvironmentType.Dev, "Worker", "Cpu") => DevWorkerCpu,
+            (EnvironmentType.Dev, "Worker", "Ram") => DevWorkerRam,
+            (EnvironmentType.Dev, "Worker", "Disk") => DevWorkerDisk,
+            (EnvironmentType.Test, "Master", "Cpu") => TestMasterCpu,
+            (EnvironmentType.Test, "Master", "Ram") => TestMasterRam,
+            (EnvironmentType.Test, "Master", "Disk") => TestMasterDisk,
+            (EnvironmentType.Test, "Infra", "Cpu") => TestInfraCpu,
+            (EnvironmentType.Test, "Infra", "Ram") => TestInfraRam,
+            (EnvironmentType.Test, "Infra", "Disk") => TestInfraDisk,
+            (EnvironmentType.Test, "Worker", "Cpu") => TestWorkerCpu,
+            (EnvironmentType.Test, "Worker", "Ram") => TestWorkerRam,
+            (EnvironmentType.Test, "Worker", "Disk") => TestWorkerDisk,
+            (EnvironmentType.Stage, "Master", "Cpu") => StageMasterCpu,
+            (EnvironmentType.Stage, "Master", "Ram") => StageMasterRam,
+            (EnvironmentType.Stage, "Master", "Disk") => StageMasterDisk,
+            (EnvironmentType.Stage, "Infra", "Cpu") => StageInfraCpu,
+            (EnvironmentType.Stage, "Infra", "Ram") => StageInfraRam,
+            (EnvironmentType.Stage, "Infra", "Disk") => StageInfraDisk,
+            (EnvironmentType.Stage, "Worker", "Cpu") => StageWorkerCpu,
+            (EnvironmentType.Stage, "Worker", "Ram") => StageWorkerRam,
+            (EnvironmentType.Stage, "Worker", "Disk") => StageWorkerDisk,
+            (EnvironmentType.Prod, "Master", "Cpu") => ProdMasterCpu,
+            (EnvironmentType.Prod, "Master", "Ram") => ProdMasterRam,
+            (EnvironmentType.Prod, "Master", "Disk") => ProdMasterDisk,
+            (EnvironmentType.Prod, "Infra", "Cpu") => ProdInfraCpu,
+            (EnvironmentType.Prod, "Infra", "Ram") => ProdInfraRam,
+            (EnvironmentType.Prod, "Infra", "Disk") => ProdInfraDisk,
+            (EnvironmentType.Prod, "Worker", "Cpu") => ProdWorkerCpu,
+            (EnvironmentType.Prod, "Worker", "Ram") => ProdWorkerRam,
+            (EnvironmentType.Prod, "Worker", "Disk") => ProdWorkerDisk,
+            (EnvironmentType.DR, "Master", "Cpu") => DRMasterCpu,
+            (EnvironmentType.DR, "Master", "Ram") => DRMasterRam,
+            (EnvironmentType.DR, "Master", "Disk") => DRMasterDisk,
+            (EnvironmentType.DR, "Infra", "Cpu") => DRInfraCpu,
+            (EnvironmentType.DR, "Infra", "Ram") => DRInfraRam,
+            (EnvironmentType.DR, "Infra", "Disk") => DRInfraDisk,
+            (EnvironmentType.DR, "Worker", "Cpu") => DRWorkerCpu,
+            (EnvironmentType.DR, "Worker", "Ram") => DRWorkerRam,
+            (EnvironmentType.DR, "Worker", "Disk") => DRWorkerDisk,
+            _ => null
+        };
+    }
+
+    /// <summary>
     /// Creates a deep copy of this configuration
     /// </summary>
     public NodeSpecsConfig Clone() => new()

@@ -196,4 +196,256 @@ public class DistributionServiceTests
         var config = _service.GetConfig(distro);
         Assert.Equal(expectedName, config.Name);
     }
+
+    #region GetByDeploymentType Tests
+
+    [Fact]
+    public void GetByDeploymentType_OnPrem_ReturnsOnPremDistributions()
+    {
+        var onPremDistros = _service.GetByDeploymentType("on-prem").ToList();
+
+        Assert.NotEmpty(onPremDistros);
+        Assert.All(onPremDistros, d => Assert.Contains("on-prem", d.Tags));
+    }
+
+    [Fact]
+    public void GetByDeploymentType_Cloud_ReturnsCloudDistributions()
+    {
+        var cloudDistros = _service.GetByDeploymentType("cloud").ToList();
+
+        Assert.NotEmpty(cloudDistros);
+        Assert.All(cloudDistros, d => Assert.Contains("cloud", d.Tags));
+    }
+
+    [Fact]
+    public void GetByDeploymentType_All_ReturnsAllDistributions()
+    {
+        var allDistros = _service.GetByDeploymentType("all").ToList();
+        var expected = _service.GetAll().Count();
+
+        Assert.Equal(expected, allDistros.Count);
+    }
+
+    [Fact]
+    public void GetByDeploymentType_Null_ReturnsAllDistributions()
+    {
+        var allDistros = _service.GetByDeploymentType(null!).ToList();
+        var expected = _service.GetAll().Count();
+
+        Assert.Equal(expected, allDistros.Count);
+    }
+
+    [Fact]
+    public void GetCountByDeploymentType_OnPrem_ReturnsCorrectCount()
+    {
+        var count = _service.GetCountByDeploymentType("on-prem");
+        var expected = _service.GetByDeploymentType("on-prem").Count();
+
+        Assert.Equal(expected, count);
+        Assert.True(count > 0);
+    }
+
+    [Fact]
+    public void GetCountByDeploymentType_Cloud_ReturnsCorrectCount()
+    {
+        var count = _service.GetCountByDeploymentType("cloud");
+        var expected = _service.GetByDeploymentType("cloud").Count();
+
+        Assert.Equal(expected, count);
+        Assert.True(count > 0);
+    }
+
+    #endregion
+
+    #region GetCloudByCategory Tests
+
+    [Fact]
+    public void GetCloudByCategory_All_ReturnsAllCloudDistributions()
+    {
+        var allCloud = _service.GetCloudByCategory("all").ToList();
+        var expectedCloud = _service.GetByTag("cloud").ToList();
+
+        Assert.Equal(expectedCloud.Count, allCloud.Count);
+    }
+
+    [Theory]
+    [InlineData(Distribution.EKS, "major")]
+    [InlineData(Distribution.AKS, "major")]
+    [InlineData(Distribution.GKE, "major")]
+    [InlineData(Distribution.OKE, "major")]
+    [InlineData(Distribution.IKS, "major")]
+    [InlineData(Distribution.ACK, "major")]
+    [InlineData(Distribution.TKE, "major")]
+    [InlineData(Distribution.CCE, "major")]
+    public void GetCloudByCategory_Major_IncludesMajorCloudProviders(Distribution distro, string category)
+    {
+        var categoryDistros = _service.GetCloudByCategory(category);
+
+        Assert.Contains(categoryDistros, d => d.Distribution == distro);
+    }
+
+    [Theory]
+    [InlineData(Distribution.OpenShiftROSA, "openshift")]
+    [InlineData(Distribution.OpenShiftARO, "openshift")]
+    [InlineData(Distribution.OpenShiftDedicated, "openshift")]
+    [InlineData(Distribution.OpenShiftIBM, "openshift")]
+    public void GetCloudByCategory_OpenShift_IncludesOpenShiftCloudVariants(Distribution distro, string category)
+    {
+        var categoryDistros = _service.GetCloudByCategory(category);
+
+        Assert.Contains(categoryDistros, d => d.Distribution == distro);
+    }
+
+    [Theory]
+    [InlineData(Distribution.RancherHosted, "rancher")]
+    [InlineData(Distribution.RancherEKS, "rancher")]
+    [InlineData(Distribution.RancherAKS, "rancher")]
+    [InlineData(Distribution.RancherGKE, "rancher")]
+    public void GetCloudByCategory_Rancher_IncludesRancherFamily(Distribution distro, string category)
+    {
+        var categoryDistros = _service.GetCloudByCategory(category);
+
+        Assert.Contains(categoryDistros, d => d.Distribution == distro);
+    }
+
+    [Theory]
+    [InlineData(Distribution.TanzuCloud, "tanzu")]
+    [InlineData(Distribution.TanzuAWS, "tanzu")]
+    [InlineData(Distribution.TanzuAzure, "tanzu")]
+    [InlineData(Distribution.TanzuGCP, "tanzu")]
+    public void GetCloudByCategory_Tanzu_IncludesTanzuFamily(Distribution distro, string category)
+    {
+        var categoryDistros = _service.GetCloudByCategory(category);
+
+        Assert.Contains(categoryDistros, d => d.Distribution == distro);
+    }
+
+    [Theory]
+    [InlineData(Distribution.DOKS, "developer")]
+    [InlineData(Distribution.LKE, "developer")]
+    [InlineData(Distribution.VKE, "developer")]
+    [InlineData(Distribution.HetznerK8s, "developer")]
+    [InlineData(Distribution.OVHKubernetes, "developer")]
+    [InlineData(Distribution.ScalewayKapsule, "developer")]
+    public void GetCloudByCategory_Developer_IncludesDeveloperFocused(Distribution distro, string category)
+    {
+        var categoryDistros = _service.GetCloudByCategory(category);
+
+        Assert.Contains(categoryDistros, d => d.Distribution == distro);
+    }
+
+    [Fact]
+    public void GetCloudByCategory_Invalid_ReturnsEmpty()
+    {
+        var result = _service.GetCloudByCategory("invalid-category");
+
+        Assert.Empty(result);
+    }
+
+    [Theory]
+    [InlineData("major")]
+    [InlineData("openshift")]
+    [InlineData("rancher")]
+    [InlineData("tanzu")]
+    [InlineData("developer")]
+    public void GetCountByCloudCategory_ReturnsCorrectCount(string category)
+    {
+        var count = _service.GetCountByCloudCategory(category);
+        var expected = _service.GetCloudByCategory(category).Count();
+
+        Assert.Equal(expected, count);
+        Assert.True(count > 0);
+    }
+
+    #endregion
+
+    #region GetFiltered Tests
+
+    [Fact]
+    public void GetFiltered_OnPrem_ReturnsOnPremDistributions()
+    {
+        var filtered = _service.GetFiltered("on-prem", null, null).ToList();
+
+        Assert.NotEmpty(filtered);
+        Assert.All(filtered, d => Assert.Contains("on-prem", d.Tags));
+    }
+
+    [Fact]
+    public void GetFiltered_CloudWithCategory_ReturnsCategoryDistributions()
+    {
+        var filtered = _service.GetFiltered("cloud", "major", null).ToList();
+
+        Assert.NotEmpty(filtered);
+        Assert.All(filtered, d => Assert.Contains("cloud", d.Tags));
+    }
+
+    [Fact]
+    public void GetFiltered_WithSearchText_FiltersResults()
+    {
+        var filtered = _service.GetFiltered(null, null, "AWS").ToList();
+
+        Assert.NotEmpty(filtered);
+        Assert.All(filtered, d => Assert.True(
+            d.Name.Contains("AWS", StringComparison.OrdinalIgnoreCase) ||
+            d.Vendor.Contains("AWS", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [Fact]
+    public void GetFiltered_WithSearchText_CaseInsensitive()
+    {
+        var upperCase = _service.GetFiltered(null, null, "AWS").ToList();
+        var lowerCase = _service.GetFiltered(null, null, "aws").ToList();
+        var mixedCase = _service.GetFiltered(null, null, "Aws").ToList();
+
+        Assert.Equal(upperCase.Count, lowerCase.Count);
+        Assert.Equal(upperCase.Count, mixedCase.Count);
+    }
+
+    [Fact]
+    public void GetFiltered_CloudWithSearchText_CombinesFilters()
+    {
+        var filtered = _service.GetFiltered("cloud", null, "Red Hat").ToList();
+
+        Assert.NotEmpty(filtered);
+        Assert.All(filtered, d =>
+        {
+            Assert.Contains("cloud", d.Tags);
+            Assert.True(
+                d.Name.Contains("Red Hat", StringComparison.OrdinalIgnoreCase) ||
+                d.Vendor.Contains("Red Hat", StringComparison.OrdinalIgnoreCase));
+        });
+    }
+
+    #endregion
+
+    #region GetCloudCategory Tests
+
+    [Theory]
+    [InlineData(Distribution.EKS, "major")]
+    [InlineData(Distribution.AKS, "major")]
+    [InlineData(Distribution.GKE, "major")]
+    [InlineData(Distribution.OpenShiftROSA, "openshift")]
+    [InlineData(Distribution.RancherHosted, "rancher")]
+    [InlineData(Distribution.TanzuCloud, "tanzu")]
+    [InlineData(Distribution.DOKS, "developer")]
+    public void GetCloudCategory_ReturnsCorrectCategory(Distribution distro, string expectedCategory)
+    {
+        var category = _service.GetCloudCategory(distro);
+
+        Assert.Equal(expectedCategory, category);
+    }
+
+    [Theory]
+    [InlineData(Distribution.OpenShift)]
+    [InlineData(Distribution.Kubernetes)]
+    [InlineData(Distribution.Rancher)]
+    [InlineData(Distribution.K3s)]
+    public void GetCloudCategory_OnPremDistributions_ReturnsNull(Distribution distro)
+    {
+        var category = _service.GetCloudCategory(distro);
+
+        Assert.Null(category);
+    }
+
+    #endregion
 }

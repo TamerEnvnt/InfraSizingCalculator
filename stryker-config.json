@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/src/Stryker.Core/Stryker.Core/Initialisation/Configuration/json-schema.json",
+  "stryker-config": {
+    "project": "InfraSizingCalculator.csproj",
+    "test-projects": [
+      "tests/InfraSizingCalculator.UnitTests/InfraSizingCalculator.UnitTests.csproj"
+    ],
+    "mutate": [
+      "src/InfraSizingCalculator/Services/**/*.cs",
+      "!src/InfraSizingCalculator/Services/**/I*.cs"
+    ],
+    "reporters": [
+      "html",
+      "json",
+      "progress"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 50
+    },
+    "concurrency": 4,
+    "output": "StrykerOutput",
+    "baseline": {
+      "enabled": false
+    },
+    "diff": {
+      "enabled": false
+    },
+    "excluded-mutations": [
+      "String",
+      "Linq"
+    ],
+    "log-to-file": true,
+    "verbosity": "info"
+  }
+}

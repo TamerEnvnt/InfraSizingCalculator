@@ -7,6 +7,16 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Coverage exclusions for untestable code -->
+  <PropertyGroup>
+    <!-- Exclude by attribute (standard .NET exclusion) -->
+    <ExcludeByAttribute>ExcludeFromCodeCoverage,CompilerGeneratedAttribute,GeneratedCodeAttribute</ExcludeByAttribute>
+    <!-- Exclude specific files/patterns that cannot be unit tested -->
+    <ExcludeByFile>**/Program.cs</ExcludeByFile>
+    <!-- Exclude specific types/patterns -->
+    <Exclude>[InfraSizingCalculator]*Extensions,[InfraSizingCalculator]Program,[InfraSizingCalculator]*DbContext*</Exclude>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />

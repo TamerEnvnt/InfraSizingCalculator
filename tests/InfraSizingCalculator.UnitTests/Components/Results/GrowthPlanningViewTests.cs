@@ -480,4 +480,698 @@ public class GrowthPlanningViewTests : TestContext
     }
 
     #endregion
+
+    #region Tab Switching Tests
+
+    [Fact]
+    public void GrowthPlanningView_DefaultsToResourcesTab()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        var resourcesTab = cut.FindAll(".tab-sm").First();
+        resourcesTab.ClassList.Should().Contain("active");
+        cut.Find(".resources-grid").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_SwitchingToCostTab_ShowsCostContent()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        var costTab = cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost"));
+        costTab.Click();
+
+        // Assert
+        cut.Find(".cost-grid").Should().NotBeNull();
+        cut.Find(".cost-chart-compact").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_SwitchingToTimelineTab_ShowsTimelineContent()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        var timelineTab = cut.FindAll(".tab-sm").Last();
+        timelineTab.Click();
+
+        // Assert
+        cut.Find(".timeline-content-compact").Should().NotBeNull();
+        cut.Find(".timeline-visual-compact").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_CostTabHidden_WhenIncludeCostProjectionsIsFalse()
+    {
+        // Arrange
+        var settings = CreateSettings();
+        settings.IncludeCostProjections = false;
+        var projection = CreateProjection();
+        projection.Settings.IncludeCostProjections = false;
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, settings)
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        var tabs = cut.FindAll(".tab-sm");
+        tabs.Should().HaveCount(2); // Only Resources and Timeline
+        tabs.Should().NotContain(t => t.TextContent.Contains("Cost"));
+    }
+
+    #endregion
+
+    #region Cost Tab Content Tests
+
+    [Fact]
+    public void GrowthPlanningView_CostTab_ShowsBarChart()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost")).Click();
+
+        // Assert
+        cut.FindAll(".bar-group-sm").Should().HaveCount(4); // Baseline + 3 years
+        cut.Find(".bar-group-sm.baseline").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_CostTab_ShowsCostSummaryCards()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost")).Click();
+
+        // Assert
+        cut.FindAll(".cost-card-sm").Should().HaveCount(4);
+        cut.Find(".cost-card-sm.total").Should().NotBeNull();
+        cut.Find(".cost-card-sm.increase").Should().NotBeNull();
+        cut.Find(".cost-card-sm.average").Should().NotBeNull();
+        cut.Find(".cost-card-sm.monthly").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_CostTab_ShowsGrowthPercentage()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Summary.PercentageCostIncrease = 95;
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost")).Click();
+
+        // Assert
+        cut.Find(".cost-card-sm.increase").TextContent.Should().Contain("+95%");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_CostTab_ShowsBarValues()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Baseline.ProjectedYearlyCost = 180000m;
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost")).Click();
+
+        // Assert - FormatCurrencyShort formats $180K
+        var barValues = cut.FindAll(".bar-val");
+        barValues.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_CostTab_ShowsGrowthBadgesOnBars()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Cost tab
+        cut.FindAll(".tab-sm").First(t => t.TextContent.Contains("Cost")).Click();
+
+        // Assert - non-baseline bars with growth show percentage badges
+        cut.FindAll(".bar-growth").Should().NotBeEmpty();
+    }
+
+    #endregion
+
+    #region IsCalculating State Tests
+
+    [Fact]
+    public async Task GrowthPlanningView_ShowsSpinner_WhenCalculating()
+    {
+        // Arrange
+        var tcs = new TaskCompletionSource<bool>();
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.OnCalculate, EventCallback.Factory.Create<GrowthSettings>(this, async _ =>
+            {
+                await tcs.Task;
+            })));
+
+        // Act - Start calculation
+        await cut.InvokeAsync(() => cut.Find(".btn-calc-sm").Click());
+
+        // Assert - Spinner should be visible
+        cut.Find(".spinner-sm").Should().NotBeNull();
+
+        // Cleanup
+        tcs.SetResult(true);
+    }
+
+    [Fact]
+    public async Task GrowthPlanningView_DisablesButton_WhenCalculating()
+    {
+        // Arrange
+        var tcs = new TaskCompletionSource<bool>();
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.OnCalculate, EventCallback.Factory.Create<GrowthSettings>(this, async _ =>
+            {
+                await tcs.Task;
+            })));
+
+        // Act - Start calculation
+        await cut.InvokeAsync(() => cut.Find(".btn-calc-sm").Click());
+
+        // Assert - Button should be disabled
+        cut.Find(".btn-calc-sm").GetAttribute("disabled").Should().NotBeNull();
+
+        // Cleanup
+        tcs.SetResult(true);
+    }
+
+    [Fact]
+    public async Task GrowthPlanningView_ResetsCalculatingState_AfterCalculation()
+    {
+        // Arrange
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.OnCalculate, EventCallback.Factory.Create<GrowthSettings>(this, _ => Task.CompletedTask)));
+
+        // Act
+        await cut.InvokeAsync(() => cut.Find(".btn-calc-sm").Click());
+
+        // Assert - Button should be re-enabled
+        cut.Find(".btn-calc-sm").GetAttribute("disabled").Should().BeNull();
+        cut.FindAll(".spinner-sm").Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region Timeline Tab Content Tests
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsVisualTimeline()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert
+        cut.Find(".tl-track").Should().NotBeNull();
+        cut.Find(".tl-nodes").Should().NotBeNull();
+        cut.Find(".tl-node.baseline").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsYearNodes()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert - Baseline "Now" + 3 year nodes
+        cut.FindAll(".tl-node").Should().HaveCount(4);
+        cut.Find(".tl-label").TextContent.Should().Be("Now");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsAllClear_WhenNoWarningsOrRecommendations()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Warnings.Clear();
+        projection.Recommendations.Clear();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert
+        cut.Find(".all-clear-compact").Should().NotBeNull();
+        cut.Find(".all-clear-compact").TextContent.Should().Contain("All Clear");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsRecommendations()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Recommendations.Add(new ScalingRecommendation
+        {
+            Title = "Add worker nodes",
+            Icon = "🔧",
+            Priority = 1,
+            RecommendedYear = 2
+        });
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert
+        cut.Find(".alerts-section.recommendations").Should().NotBeNull();
+        cut.Find(".alerts-section.recommendations .alert-title").TextContent.Should().Contain("Add worker nodes");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsMoreLink_WhenManyWarnings()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Summary.WarningCount = 5;
+        for (int i = 0; i < 5; i++)
+        {
+            projection.Warnings.Add(new ClusterLimitWarning
+            {
+                YearTriggered = 1 + (i % 3),
+                Message = $"Warning {i + 1}",
+                ResourceType = $"Resource{i}",
+                PercentageOfLimit = 80 + i
+            });
+        }
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert - Only 3 warnings shown, with "+2 more" link
+        cut.Find(".more-link").Should().NotBeNull();
+        cut.Find(".more-link").TextContent.Should().Contain("+2 more");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineTab_ShowsMoreLink_WhenManyRecommendations()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        for (int i = 0; i < 5; i++)
+        {
+            projection.Recommendations.Add(new ScalingRecommendation
+            {
+                Title = $"Recommendation {i + 1}",
+                Icon = "💡",
+                Priority = i + 1,
+                RecommendedYear = i % 3 + 1
+            });
+        }
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert
+        var recSection = cut.Find(".alerts-section.recommendations");
+        recSection.QuerySelector(".more-link")?.TextContent.Should().Contain("+2 more");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineNode_ShowsCriticalStyling()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Warnings.Add(new ClusterLimitWarning
+        {
+            YearTriggered = 2,
+            Severity = WarningSeverity.Critical,
+            Message = "Critical resource exhaustion",
+            ResourceType = "CPU",
+            PercentageOfLimit = 100
+        });
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert - Year 2 node should have critical class
+        cut.Find(".tl-node.critical").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_TimelineNode_ShowsWarningStyling()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Warnings.Add(new ClusterLimitWarning
+        {
+            YearTriggered = 1,
+            Severity = WarningSeverity.Warning,
+            Message = "Approaching limit",
+            ResourceType = "Memory",
+            PercentageOfLimit = 85
+        });
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert - Year 1 node should have warning class
+        cut.Find(".tl-node.warning").Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region GetWarningIcon Tests
+
+    [Theory]
+    [InlineData(WarningType.NodeLimit, "🖥️")]
+    [InlineData(WarningType.PodLimit, "📦")]
+    [InlineData(WarningType.CpuCapacity, "⚡")]
+    [InlineData(WarningType.MemoryCapacity, "💾")]
+    [InlineData(WarningType.StorageCapacity, "💿")]
+    [InlineData(WarningType.CostThreshold, "💰")]
+    public void GrowthPlanningView_ShowsCorrectWarningIcon(WarningType type, string expectedIcon)
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Warnings.Add(new ClusterLimitWarning
+        {
+            YearTriggered = 2,
+            Message = "Test warning",
+            ResourceType = type.ToString(),
+            PercentageOfLimit = 80,
+            Type = type
+        });
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Click Timeline tab
+        cut.Find(".tab-sm:last-child").Click();
+
+        // Assert
+        cut.Find(".alert-icon").TextContent.Should().Contain(expectedIcon);
+    }
+
+    #endregion
+
+    #region Hero Strip Tests
+
+    [Fact]
+    public void GrowthPlanningView_HeroStrip_ShowsAppGrowthPercentage()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Summary.PercentageAppGrowth = 98;
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.Find(".hero-badge.positive").TextContent.Should().Contain("+98%");
+    }
+
+    [Fact]
+    public void GrowthPlanningView_HeroStrip_ShowsNodeGrowthCount()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Summary.TotalNodeGrowth = 12;
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.FindAll(".hero-badge.positive").Should().Contain(b => b.TextContent.Contains("+12"));
+    }
+
+    [Fact]
+    public void GrowthPlanningView_HeroStrip_HidesCostItems_WhenIncludeCostProjectionsIsFalse()
+    {
+        // Arrange
+        var settings = CreateSettings();
+        settings.IncludeCostProjections = false;
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, settings)
+            .Add(p => p.Projection, projection));
+
+        // Assert - Only 2 hero items (Apps and Nodes), not 4
+        cut.FindAll(".hero-item").Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void GrowthPlanningView_HeroStrip_ShowsAverageMonthly()
+    {
+        // Arrange
+        var projection = CreateProjection();
+        projection.Summary.AverageYearlyCost = 240_000m; // $20K/month
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.Find(".hero-strip").TextContent.Should().Contain("Avg/Month");
+    }
+
+    #endregion
+
+    #region Resources Tab Detail Tests
+
+    [Fact]
+    public void GrowthPlanningView_ResourcesTab_ShowsYearCards()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.FindAll(".year-card-sm").Should().HaveCount(4); // Baseline + 3 years
+        cut.Find(".year-card-sm.baseline").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GrowthPlanningView_ResourcesTab_ShowsDataTable()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.Find(".data-table-sm").Should().NotBeNull();
+        cut.Find(".data-table-sm thead").Should().NotBeNull();
+        cut.FindAll(".data-table-sm tbody tr").Should().HaveCount(4);
+    }
+
+    [Fact]
+    public void GrowthPlanningView_ResourcesTab_ShowsProgressBars()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        cut.FindAll(".yc-progress").Should().HaveCount(4);
+        cut.FindAll(".yc-fill").Should().HaveCount(4);
+    }
+
+    [Fact]
+    public void GrowthPlanningView_ResourcesTab_ShowsGrowthBadges()
+    {
+        // Arrange
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.Projection, projection));
+
+        // Assert - Non-baseline cards have growth badges
+        cut.FindAll(".yc-badge").Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void GrowthPlanningView_ResourcesTab_HidesMonthlyCostColumn_WhenNoCostProjections()
+    {
+        // Arrange
+        var settings = CreateSettings();
+        settings.IncludeCostProjections = false;
+        var projection = CreateProjection();
+
+        // Act
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, settings)
+            .Add(p => p.Projection, projection));
+
+        // Assert
+        var headers = cut.FindAll(".data-table-sm th");
+        headers.Should().NotContain(h => h.TextContent.Contains("Monthly"));
+    }
+
+    #endregion
+
+    #region Settings Change Tests
+
+    [Fact]
+    public async Task GrowthPlanningView_ChangingGrowthRate_InvokesSettingsChanged()
+    {
+        // Arrange
+        GrowthSettings? changedSettings = null;
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.SettingsChanged, EventCallback.Factory.Create<GrowthSettings>(this, s => changedSettings = s)));
+
+        // Act - Change growth rate
+        var rateInput = cut.Find(".rate-input-sm input[type='number']");
+        await cut.InvokeAsync(() => rateInput.Change("50"));
+
+        // Assert
+        changedSettings.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GrowthPlanningView_ChangingPattern_InvokesSettingsChanged()
+    {
+        // Arrange
+        GrowthSettings? changedSettings = null;
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.SettingsChanged, EventCallback.Factory.Create<GrowthSettings>(this, s => changedSettings = s)));
+
+        // Act - Change pattern
+        var patternSelect = cut.FindAll(".setting-inline select").First(s => s.TextContent.Contains("Exponential"));
+        await cut.InvokeAsync(() => patternSelect.Change(GrowthPattern.Exponential.ToString()));
+
+        // Assert
+        changedSettings.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GrowthPlanningView_TogglingIncludeCostProjections_InvokesSettingsChanged()
+    {
+        // Arrange
+        GrowthSettings? changedSettings = null;
+        var cut = RenderComponent<GrowthPlanningView>(parameters => parameters
+            .Add(p => p.Settings, CreateSettings())
+            .Add(p => p.SettingsChanged, EventCallback.Factory.Create<GrowthSettings>(this, s => changedSettings = s)));
+
+        // Act - Toggle cost checkbox
+        var costCheckbox = cut.Find(".toggle-sm input[type='checkbox']");
+        await cut.InvokeAsync(() => costCheckbox.Change(false));
+
+        // Assert
+        changedSettings.Should().NotBeNull();
+    }
+
+    #endregion
 }

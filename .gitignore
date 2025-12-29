@@ -67,7 +67,8 @@ reports/
 # Playwright MCP
 .playwright-mcp/
 
-# SQLite temp files
+# SQLite database files (generated at runtime from seed scripts)
+*.db
 *.db-shm
 *.db-wal
 

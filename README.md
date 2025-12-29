@@ -55,9 +55,11 @@ The Infrastructure Sizing Calculator helps organizations estimate infrastructure
 |-------|------------|
 | Framework | Blazor Server (.NET 10.0) |
 | Database | SQLite with Entity Framework Core |
+| Authentication | ASP.NET Core Identity with role-based access |
+| Observability | OpenTelemetry, Serilog, Prometheus metrics |
 | Export | ClosedXML (Excel), QuestPDF (PDF) |
-| Testing | xUnit, bUnit, Playwright |
-| CI/CD | GitHub Actions |
+| Testing | xUnit, bUnit, Playwright, BenchmarkDotNet, Stryker.NET |
+| CI/CD | GitHub Actions (CI, Security Scanning, Mutation Testing) |
 
 ---
 
@@ -114,21 +116,35 @@ dotnet test
 InfraSizingCalculator/
 ├── src/InfraSizingCalculator/     # Main application
 │   ├── Components/                # Blazor UI components
-│   │   ├── Pages/                # Routable pages
+│   │   ├── Pages/                # Routable pages (Home, Login, Register, etc.)
 │   │   ├── Configuration/        # Config panels
 │   │   ├── Results/              # Result views
 │   │   ├── Wizard/               # Wizard framework
 │   │   └── Shared/               # Reusable components
-│   ├── Services/                  # Business logic (16 services)
+│   ├── Services/                  # Business logic (20+ services)
+│   │   ├── Auth/                 # Authentication services
+│   │   ├── Pricing/              # Pricing calculation services
+│   │   ├── Telemetry/            # Metrics and observability
+│   │   ├── HealthChecks/         # Health check implementations
+│   │   └── Validation/           # Input validation services
+│   ├── Data/                      # Database contexts
+│   │   └── Identity/             # Identity models and context
+│   ├── Middleware/                # Security and exception handling
 │   ├── Models/                    # Data models and enums
 │   └── Controllers/Api/           # REST API endpoints
 ├── tests/
-│   ├── InfraSizingCalculator.UnitTests/    # Unit tests
-│   └── InfraSizingCalculator.E2ETests/     # E2E tests
+│   ├── InfraSizingCalculator.UnitTests/    # Unit tests (2700+)
+│   ├── InfraSizingCalculator.E2ETests/     # E2E tests (Playwright)
+│   └── InfraSizingCalculator.Benchmarks/   # Performance benchmarks
+├── .github/workflows/             # CI/CD pipelines
+│   ├── ci.yml                    # Main CI pipeline
+│   └── scheduled-quality.yml     # Weekly quality checks
 └── docs/                          # Documentation
     ├── architecture/              # Solution architecture
     ├── business/                  # Business requirements
     ├── technical/                 # Technical documentation
+    ├── testing/                   # Test documentation
+    ├── baselines/                 # Quality baselines
     ├── srs/                       # Software Requirements Spec
     └── process/                   # Development workflow
 ```
@@ -203,6 +219,9 @@ We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) befor
 | [Services](./docs/technical/services.md) | Service layer documentation |
 | [UI Components](./docs/technical/ui-components.md) | Component reference |
 | [API Reference](./docs/technical/api-reference.md) | REST API documentation |
+| [Observability](./docs/technical/OBSERVABILITY.md) | Logging, metrics, and tracing |
+| [Security](./docs/technical/SECURITY.md) | Security headers and hardening |
+| [Testing Requirements](./docs/testing/TESTING_REQUIREMENTS.md) | Test coverage and quality |
 
 ---
 

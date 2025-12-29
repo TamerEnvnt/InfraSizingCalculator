@@ -1342,6 +1342,19 @@ html, body {
 .text-yellow { color: var(--accent-yellow); }
 .text-purple { color: var(--accent-purple); }
 
+/* Screen reader only - WCAG 2.1 accessibility */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 /* Node Specs Configuration (Main Page) */
 .node-specs-config {
     display: flex;

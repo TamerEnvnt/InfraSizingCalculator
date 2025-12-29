@@ -765,6 +765,387 @@ public class K8sHADRPanelTests : TestContext
 
     #endregion
 
+    #region Additional Managed Distribution Tests
+
+    [Theory]
+    [InlineData(Distribution.IKS)]
+    [InlineData(Distribution.ACK)]
+    [InlineData(Distribution.TKE)]
+    [InlineData(Distribution.CCE)]
+    [InlineData(Distribution.VKE)]
+    [InlineData(Distribution.HetznerK8s)]
+    [InlineData(Distribution.OVHKubernetes)]
+    [InlineData(Distribution.ScalewayKapsule)]
+    [InlineData(Distribution.OpenShiftDedicated)]
+    [InlineData(Distribution.OpenShiftIBM)]
+    public void K8sHADRPanel_AdditionalManagedDistributions_ShowsManagedBadge(Distribution distribution)
+    {
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Distribution, distribution));
+
+        // Assert
+        cut.Find(".managed-badge").TextContent.Should().Contain("Managed");
+    }
+
+    [Theory]
+    [InlineData(Distribution.IKS, "IBM Cloud")]
+    [InlineData(Distribution.DOKS, "DigitalOcean")]
+    [InlineData(Distribution.LKE, "Linode")]
+    public void K8sHADRPanel_AdditionalProviders_ShowsCorrectName(Distribution distribution, string expectedProvider)
+    {
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Distribution, distribution));
+
+        // Assert
+        cut.Find(".managed-text").TextContent.Should().Contain(expectedProvider);
+    }
+
+    [Theory]
+    [InlineData(Distribution.VKE)]
+    [InlineData(Distribution.HetznerK8s)]
+    [InlineData(Distribution.OVHKubernetes)]
+    [InlineData(Distribution.ScalewayKapsule)]
+    public void K8sHADRPanel_MinorCloudProviders_ShowsGenericProviderName(Distribution distribution)
+    {
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Distribution, distribution));
+
+        // Assert - Falls back to "the cloud provider"
+        cut.Find(".managed-text").TextContent.Should().Contain("cloud provider");
+    }
+
+    #endregion
+
+    #region Control Plane Nodes Tests
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingControlPlaneNodes_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { ControlPlaneHA = K8sControlPlaneHA.StackedHA, ControlPlaneNodes = 3 };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.Distribution, Distribution.Kubernetes)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var selects = cut.FindAll("select");
+        var cpNodesSelect = selects.First(s => s.InnerHtml.Contains("3 nodes"));
+        await cut.InvokeAsync(() => cpNodesSelect.Change("5"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.ControlPlaneNodes.Should().Be(5);
+    }
+
+    [Fact]
+    public void K8sHADRPanel_StackedHA_Shows3NodeOption()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { ControlPlaneHA = K8sControlPlaneHA.StackedHA };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.Distribution, Distribution.Kubernetes));
+
+        // Assert
+        var selects = cut.FindAll("select");
+        selects.Should().Contain(s => s.InnerHtml.Contains("3 nodes (minimum HA)"));
+    }
+
+    [Fact]
+    public void K8sHADRPanel_ExternalEtcd_ShowsControlPlaneNodesSelector()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { ControlPlaneHA = K8sControlPlaneHA.ExternalEtcd };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.Distribution, Distribution.Kubernetes));
+
+        // Assert
+        cut.FindAll(".config-label").Should().Contain(l => l.TextContent.Contains("Control Plane Nodes"));
+    }
+
+    #endregion
+
+    #region Availability Zones Count Tests
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingAZCount_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { NodeDistribution = K8sNodeDistribution.MultiAZ, AvailabilityZones = 3 };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var selects = cut.FindAll("select");
+        var azSelect = selects.First(s => s.InnerHtml.Contains("3 AZs"));
+        await cut.InvokeAsync(() => azSelect.Change("4"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.AvailabilityZones.Should().Be(4);
+    }
+
+    [Fact]
+    public void K8sHADRPanel_DualAZ_OnlyShowsTwoAZOption()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { NodeDistribution = K8sNodeDistribution.DualAZ };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert - Only 2 AZs option available for DualAZ
+        var selects = cut.FindAll("select");
+        var azSelect = selects.First(s => s.InnerHtml.Contains("2 AZs"));
+        azSelect.InnerHtml.Should().Contain("2 AZs");
+        azSelect.InnerHtml.Should().NotContain("3 AZs");
+    }
+
+    [Fact]
+    public void K8sHADRPanel_MultiAZ_ShowsMultipleAZOptions()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { NodeDistribution = K8sNodeDistribution.MultiAZ };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert
+        var selects = cut.FindAll("select");
+        var azSelect = selects.First(s => s.InnerHtml.Contains("AZs"));
+        azSelect.InnerHtml.Should().Contain("3 AZs");
+        azSelect.InnerHtml.Should().Contain("4 AZs");
+        azSelect.InnerHtml.Should().Contain("5 AZs");
+    }
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangeToMultiAZ_PreservesHigherAZCount()
+    {
+        // Arrange
+        var config = new K8sHADRConfig
+        {
+            NodeDistribution = K8sNodeDistribution.MultiRegion,
+            AvailabilityZones = 5
+        };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, _ => { })));
+
+        // Act - Change to MultiAZ (should preserve 5 since it's >= 3)
+        var selects = cut.FindAll("select");
+        var nodeDistSelect = selects.First(s => s.InnerHtml.Contains("Multi-Region"));
+        await cut.InvokeAsync(() => nodeDistSelect.Change(K8sNodeDistribution.MultiAZ.ToString()));
+
+        // Assert
+        config.AvailabilityZones.Should().Be(5);
+    }
+
+    #endregion
+
+    #region DR Region Tests
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingDRRegion_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { DRPattern = K8sDRPattern.WarmStandby };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var drRegionInput = cut.Find("input[placeholder*='us-west']");
+        await cut.InvokeAsync(() => drRegionInput.Change("eu-west-1"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.DRRegion.Should().Be("eu-west-1");
+    }
+
+    [Fact]
+    public void K8sHADRPanel_DRPatternSet_ShowsDRRegionInput()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { DRPattern = K8sDRPattern.HotStandby };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert
+        cut.Find("input[placeholder*='us-west']").Should().NotBeNull();
+    }
+
+    #endregion
+
+    #region Backup Frequency and Retention Tests
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingBackupFrequency_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { BackupStrategy = K8sBackupStrategy.Velero, BackupFrequencyHours = 24 };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var selects = cut.FindAll("select");
+        var freqSelect = selects.First(s => s.InnerHtml.Contains("Hourly"));
+        await cut.InvokeAsync(() => freqSelect.Change("4"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.BackupFrequencyHours.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingBackupRetention_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { BackupStrategy = K8sBackupStrategy.Kasten, BackupRetentionDays = 30 };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var selects = cut.FindAll("select");
+        var retentionSelect = selects.First(s => s.InnerHtml.Contains("30 days"));
+        await cut.InvokeAsync(() => retentionSelect.Change("90"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.BackupRetentionDays.Should().Be(90);
+    }
+
+    [Fact]
+    public void K8sHADRPanel_BackupStrategySet_ShowsFrequencyOptions()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { BackupStrategy = K8sBackupStrategy.Portworx };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert
+        var selects = cut.FindAll("select");
+        selects.Should().Contain(s => s.InnerHtml.Contains("Hourly"));
+        selects.Should().Contain(s => s.InnerHtml.Contains("Every 4 hours"));
+        selects.Should().Contain(s => s.InnerHtml.Contains("Weekly"));
+    }
+
+    [Fact]
+    public void K8sHADRPanel_BackupStrategySet_ShowsRetentionOptions()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { BackupStrategy = K8sBackupStrategy.Velero };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert
+        var selects = cut.FindAll("select");
+        selects.Should().Contain(s => s.InnerHtml.Contains("7 days"));
+        selects.Should().Contain(s => s.InnerHtml.Contains("1 year"));
+    }
+
+    #endregion
+
+    #region Custom Backup Strategy Tests
+
+    [Fact]
+    public void K8sHADRPanel_AllDistributions_ShowCustomBackupOption()
+    {
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Distribution, Distribution.Kubernetes));
+
+        // Assert
+        var selects = cut.FindAll("select");
+        selects.Should().Contain(s => s.InnerHtml.Contains("Custom Solution"));
+    }
+
+    [Fact]
+    public void K8sHADRPanel_CustomBackupStrategy_ShowsCorrectHint()
+    {
+        // Arrange
+        var config = new K8sHADRConfig { BackupStrategy = K8sBackupStrategy.Custom };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert
+        cut.FindAll(".config-hint").Should().Contain(h => h.TextContent.Contains("Organization-specific"));
+    }
+
+    #endregion
+
+    #region RTO Select Tests
+
+    [Fact]
+    public async Task K8sHADRPanel_ChangingRTO_InvokesCallback()
+    {
+        // Arrange
+        K8sHADRConfig? updatedConfig = null;
+        var config = new K8sHADRConfig { DRPattern = K8sDRPattern.WarmStandby, RTOMinutes = 60 };
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config)
+            .Add(p => p.ConfigChanged, EventCallback.Factory.Create<K8sHADRConfig>(this, c => updatedConfig = c)));
+
+        // Act
+        var selects = cut.FindAll("select");
+        var rtoSelect = selects.First(s => s.InnerHtml.Contains("5 minutes"));
+        await cut.InvokeAsync(() => rtoSelect.Change("480"));
+
+        // Assert
+        updatedConfig.Should().NotBeNull();
+        config.RTOMinutes.Should().Be(480);
+    }
+
+    [Fact]
+    public void K8sHADRPanel_RTOSelector_ShowsAllOptions()
+    {
+        // Arrange - Need a DR pattern that shows the RTO selector
+        var config = new K8sHADRConfig { DRPattern = K8sDRPattern.HotStandby };
+
+        // Act
+        var cut = RenderComponent<K8sHADRPanel>(parameters => parameters
+            .Add(p => p.Config, config));
+
+        // Assert - Find the RTO select by looking for time-based options
+        var selects = cut.FindAll("select");
+        var rtoSelect = selects.FirstOrDefault(s => s.InnerHtml.Contains("5 minutes"));
+        rtoSelect.Should().NotBeNull("RTO selector should exist when DR pattern is active");
+        rtoSelect!.InnerHtml.Should().Contain("5 minutes (Active-Active)");
+        rtoSelect.InnerHtml.Should().Contain("15 minutes (Hot Standby)");
+        rtoSelect.InnerHtml.Should().Contain("1 hour (Warm Standby)");
+        rtoSelect.InnerHtml.Should().Contain("4 hours");
+        rtoSelect.InnerHtml.Should().Contain("8 hours");
+        rtoSelect.InnerHtml.Should().Contain("24 hours (Backup/Restore)");
+    }
+
+    #endregion
+
     #region RTO Auto-Set Tests
 
     [Theory]

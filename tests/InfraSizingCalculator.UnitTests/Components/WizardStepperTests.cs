@@ -481,4 +481,138 @@ public class WizardStepperTests : TestContext
     }
 
     #endregion
+
+    #region Keyboard Accessibility Tests (WCAG 2.1)
+
+    [Fact]
+    public void WizardStepper_EnterKey_ActivatesCompletedStep()
+    {
+        // Arrange
+        int? selectedStep = null;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 3)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => selectedStep = step));
+
+        // Act - Press Enter on completed step 1
+        cut.FindAll(".stepper-step")[0].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+
+        // Assert
+        selectedStep.Should().Be(1);
+    }
+
+    [Fact]
+    public void WizardStepper_SpaceKey_ActivatesCompletedStep()
+    {
+        // Arrange
+        int? selectedStep = null;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 3)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => selectedStep = step));
+
+        // Act - Press Space on completed step 2
+        cut.FindAll(".stepper-step")[1].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = " " });
+
+        // Assert
+        selectedStep.Should().Be(2);
+    }
+
+    [Fact]
+    public void WizardStepper_EnterKey_DoesNotActivateCurrentStep()
+    {
+        // Arrange
+        int? selectedStep = null;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 3)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => selectedStep = step));
+
+        // Act - Press Enter on current step 3
+        cut.FindAll(".stepper-step")[2].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+
+        // Assert
+        selectedStep.Should().BeNull();
+    }
+
+    [Fact]
+    public void WizardStepper_SpaceKey_DoesNotActivateFutureStep()
+    {
+        // Arrange
+        int? selectedStep = null;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 2)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => selectedStep = step));
+
+        // Act - Press Space on future step 4
+        cut.FindAll(".stepper-step")[3].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = " " });
+
+        // Assert
+        selectedStep.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("Tab")]
+    [InlineData("Escape")]
+    [InlineData("ArrowDown")]
+    [InlineData("ArrowUp")]
+    [InlineData("a")]
+    public void WizardStepper_OtherKeys_DoNotActivateStep(string key)
+    {
+        // Arrange
+        int? selectedStep = null;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 3)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => selectedStep = step));
+
+        // Act - Press non-activation key on completed step
+        cut.FindAll(".stepper-step")[0].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = key });
+
+        // Assert
+        selectedStep.Should().BeNull();
+    }
+
+    [Fact]
+    public void WizardStepper_EnterKey_NoCallbackDoesNotError()
+    {
+        // Arrange & Act - No OnStepSelected callback provided
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 3)
+            .Add(p => p.StepLabels, DefaultLabels));
+
+        // Assert - Pressing Enter should not throw
+        var action = () => cut.FindAll(".stepper-step")[0].KeyDown(
+            new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+        action.Should().NotThrow();
+    }
+
+    [Fact]
+    public void WizardStepper_KeyboardActivation_WorksForAllCompletedSteps()
+    {
+        // Arrange
+        int keyboardCallCount = 0;
+        var cut = RenderComponent<WizardStepper>(parameters => parameters
+            .Add(p => p.TotalSteps, 5)
+            .Add(p => p.CurrentStep, 4)
+            .Add(p => p.StepLabels, DefaultLabels)
+            .Add(p => p.OnStepSelected, step => keyboardCallCount++));
+
+        // Act - Use keyboard to activate all completed steps
+        cut.FindAll(".stepper-step")[0].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+        cut.FindAll(".stepper-step")[1].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = " " });
+        cut.FindAll(".stepper-step")[2].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+
+        // Assert - All 3 completed steps should respond
+        keyboardCallCount.Should().Be(3);
+    }
+
+    #endregion
 }

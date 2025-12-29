@@ -1,0 +1,56 @@
+{
+  "$schema": "seed-schema.json",
+  "description": "Info modal content for general information types",
+  "version": "1.0.0",
+  "data": [
+    {
+      "key": "Platform",
+      "title": "Platform Types",
+      "category": "general",
+      "sortOrder": 1,
+      "contentHtml": "<h3>Native Applications</h3><p>Traditional applications built with .NET, Java, Node.js, Python, or Go. Full control over code and dependencies.</p><h3>Low-Code Platforms</h3><p>Platforms like Mendix that enable rapid development with visual modeling. Higher resource requirements but faster development.</p>"
+    },
+    {
+      "key": "Deployment",
+      "title": "Deployment Models",
+      "category": "general",
+      "sortOrder": 2,
+      "contentHtml": "<h3>Kubernetes</h3><p>Container orchestration with auto-scaling, self-healing, and rolling updates. Best for microservices and cloud-native apps.</p><h3>Virtual Machines</h3><p>Traditional VM deployment with dedicated servers. Better for legacy apps or specific compliance requirements.</p>"
+    },
+    {
+      "key": "Technology",
+      "title": "Technologies",
+      "category": "general",
+      "sortOrder": 3,
+      "contentHtml": "<h3>.NET</h3><p>Microsoft's cross-platform framework. Efficient memory usage, great for enterprise apps.</p><h3>Java</h3><p>Enterprise runtime with higher memory footprint. Excellent ecosystem and tooling.</p><h3>Node.js</h3><p>JavaScript runtime for event-driven applications. Lightweight but single-threaded.</p><h3>Python</h3><p>Versatile language for web, data science, and automation. GIL impacts CPU-bound workloads.</p><h3>Go</h3><p>Google's compiled language. Very efficient, ideal for microservices.</p><h3>Mendix</h3><p>Enterprise low-code platform. Higher resource requirements due to runtime overhead.</p>"
+    },
+    {
+      "key": "Distribution",
+      "title": "Kubernetes Distributions",
+      "category": "general",
+      "sortOrder": 4,
+      "contentHtml": "<h3>OpenShift</h3><p>Enterprise Kubernetes from Red Hat with built-in CI/CD, monitoring, and security. Includes dedicated infra nodes.</p><h3>Vanilla Kubernetes</h3><p>Standard CNCF Kubernetes. Maximum flexibility, self-managed.</p><h3>Rancher</h3><p>Multi-cluster management from SUSE. Easy deployment and management.</p><h3>K3s</h3><p>Lightweight Kubernetes for edge and IoT.</p><h3>Cloud Managed (EKS/AKS/GKE)</h3><p>Control plane managed by cloud provider. Reduced operational overhead.</p>"
+    },
+    {
+      "key": "ClusterMode",
+      "title": "Cluster Modes",
+      "category": "general",
+      "sortOrder": 5,
+      "contentHtml": "<h3>Multi-Cluster</h3><p>Separate cluster per environment. Maximum isolation but higher cost.</p><h3>Shared Cluster</h3><p>Single cluster with namespace isolation. Cost-optimized but shared resources.</p><h3>Per Environment</h3><p>Calculate for a single specific environment.</p>"
+    },
+    {
+      "key": "NodeSpecs",
+      "title": "Node Specifications",
+      "category": "technical",
+      "sortOrder": 6,
+      "contentHtml": "<h3>Control Plane</h3><p>Master nodes running API server, scheduler, controller manager. 3 nodes for HA, 5 for large clusters.</p><h3>Infrastructure</h3><p>OpenShift-specific nodes for platform services (router, registry, monitoring). Not all distributions require these.</p><h3>Worker Nodes</h3><p>Nodes running application workloads. Sized based on application requirements.</p>"
+    },
+    {
+      "key": "AppConfig",
+      "title": "Application Configuration",
+      "category": "technical",
+      "sortOrder": 7,
+      "contentHtml": "<h3>App Tiers</h3><p>Small, Medium, Large, XLarge - each tier has specific CPU and memory allocations based on the selected technology.</p><h3>Environments</h3><p>Dev/Test for development, Stage for pre-production, Prod for production, DR for disaster recovery.</p>"
+    }
+  ]
+}

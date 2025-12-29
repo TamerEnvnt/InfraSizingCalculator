@@ -4,6 +4,7 @@ using InfraSizingCalculator.Data.Entities;
 using InfraSizingCalculator.Models.Enums;
 using InfraSizingCalculator.Models.Pricing;
 using InfraSizingCalculator.Services.Pricing;
+using InfraSizingCalculator.UnitTests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -23,6 +24,7 @@ public class DatabasePricingSettingsServiceTests : IDisposable
 
         _dbContext = new InfraSizingDbContext(options);
         _dbContext.Database.EnsureCreated();
+        TestDatabaseSeeder.Seed(_dbContext);
         _service = new DatabasePricingSettingsService(_dbContext);
     }
 

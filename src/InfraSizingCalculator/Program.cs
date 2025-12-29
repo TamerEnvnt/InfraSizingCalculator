@@ -18,6 +18,7 @@ using InfraSizingCalculator.Services.Pricing;
 using InfraSizingCalculator.Services.Telemetry;
 using InfraSizingCalculator.Services.HealthChecks;
 using InfraSizingCalculator.Services.Validation;
+using InfraSizingCalculator.Services.Seeding;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
@@ -52,6 +53,9 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add memory caching for performance optimization
+builder.Services.AddMemoryCache();
 
 // Add API controllers with JSON options
 builder.Services.AddControllers()
@@ -165,6 +169,7 @@ builder.Services.AddScoped<IWizardStateService, WizardStateService>();
 builder.Services.AddScoped<ISettingsPersistenceService, SettingsPersistenceService>();
 builder.Services.AddScoped<ConfigurationSharingService>();
 builder.Services.AddScoped<ValidationRecommendationService>();
+builder.Services.AddSingleton<ITierConfigurationService, TierConfigurationService>();
 
 // Register centralized app state service (UI state management)
 builder.Services.AddScoped<IAppStateService, AppStateService>();
@@ -184,6 +189,33 @@ builder.Services.AddScoped<IGrowthPlanningService, GrowthPlanningService>();
 
 // Register input validation service (Phase 2: Security)
 builder.Services.AddScoped<IInputValidationService, InputValidationService>();
+
+// Register home page state service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageStateService, HomePageStateService>();
+
+// Register home page calculation service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageCalculationService, HomePageCalculationService>();
+
+// Register home page cost service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageCostService, HomePageCostService>();
+
+// Register home page distribution service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageDistributionService, HomePageDistributionService>();
+
+// Register home page UI helper service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageUIHelperService, HomePageUIHelperService>();
+
+// Register home page cloud alternative service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageCloudAlternativeService, HomePageCloudAlternativeService>();
+
+// Register home page VM service (extracted from Home.razor for testability)
+builder.Services.AddScoped<IHomePageVMService, HomePageVMService>();
+
+// Register info content service (database-backed content with fallback defaults)
+builder.Services.AddScoped<IInfoContentService, InfoContentService>();
+
+// Register database seeding service (manages versioned seed data)
+builder.Services.AddSingleton<SeedDataService>();
 
 // Add rate limiting (Phase 2: Security)
 builder.Services.AddRateLimiter(options =>
@@ -223,20 +255,20 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// Initialize databases
+// Initialize databases and seed data
 if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
 {
+    // Seed application database with versioned seed data
+    // Uses hash-based comparison for O(1) startup check - only reseeds if data changed
+    var seedService = app.Services.GetRequiredService<SeedDataService>();
+    await seedService.EnsureSeedDataAsync();
+
+    // Initialize Identity database (separate from app data)
     using var scope = app.Services.CreateScope();
-
-    // Initialize application database
-    var dbContext = scope.ServiceProvider.GetRequiredService<InfraSizingDbContext>();
-    dbContext.Database.EnsureCreated();
-
-    // Initialize Identity database
     var identityDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    identityDbContext.Database.EnsureCreated();
+    await identityDbContext.Database.EnsureCreatedAsync();
 
-    Log.Information("Databases initialized successfully");
+    Log.Information("Databases initialized and seeded successfully");
 }
 
 // Configure the HTTP request pipeline.

@@ -91,6 +91,32 @@ public class DistributionConfigEntity
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    // Info Modal Content
+    /// <summary>
+    /// Short description for quick reference (1-2 sentences)
+    /// </summary>
+    public string ShortDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Detailed HTML content for the info modal popup
+    /// </summary>
+    public string DetailedInfoHtml { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Key features as JSON array, e.g., ["Built-in CI/CD", "Integrated registry"]
+    /// </summary>
+    public string KeyFeaturesJson { get; set; } = "[]";
+
+    /// <summary>
+    /// Pricing notes for the distribution
+    /// </summary>
+    public string PricingNotes { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Additional notes (e.g., licensing requirements)
+    /// </summary>
+    public string AdditionalNotes { get; set; } = string.Empty;
+
     // Timestamps
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

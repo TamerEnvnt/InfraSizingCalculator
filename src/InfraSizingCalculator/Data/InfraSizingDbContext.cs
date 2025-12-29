@@ -4,8 +4,11 @@ using InfraSizingCalculator.Data.Entities;
 namespace InfraSizingCalculator.Data;
 
 /// <summary>
-/// Database context for the Infrastructure Sizing Calculator
-/// Stores all settings, pricing defaults, and API credentials
+/// Database context for the Infrastructure Sizing Calculator.
+/// Stores all settings, pricing defaults, and API credentials.
+///
+/// IMPORTANT: Seed data is managed by SeedDataService using JSON files.
+/// Do NOT add HasData() calls here - use Data/Seeds/*.json instead.
 /// </summary>
 public class InfraSizingDbContext : DbContext
 {
@@ -20,6 +23,9 @@ public class InfraSizingDbContext : DbContext
     public DbSet<MendixPricingEntity> MendixPricing { get; set; } = null!;
     public DbSet<OutSystemsPricingEntity> OutSystemsPricing { get; set; } = null!;
     public DbSet<DistributionConfigEntity> DistributionConfigs { get; set; } = null!;
+    public DbSet<TechnologyConfigEntity> TechnologyConfigs { get; set; } = null!;
+    public DbSet<InfoTypeContentEntity> InfoTypeContents { get; set; } = null!;
+    public DbSet<SeedMetadataEntity> SeedMetadata { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -161,520 +167,55 @@ public class InfraSizingDbContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.BrandColor).HasMaxLength(20);
             entity.Property(e => e.Tags).HasMaxLength(200);
+            // Info content fields
+            entity.Property(e => e.ShortDescription).HasMaxLength(500);
+            entity.Property(e => e.DetailedInfoHtml).HasMaxLength(10000);
+            entity.Property(e => e.KeyFeaturesJson).HasMaxLength(2000);
+            entity.Property(e => e.PricingNotes).HasMaxLength(1000);
+            entity.Property(e => e.AdditionalNotes).HasMaxLength(1000);
         });
 
-        // Seed default data
-        SeedDefaultData(modelBuilder);
-    }
-
-    private static void SeedDefaultData(ModelBuilder modelBuilder)
-    {
-        // Seed default application settings
-        modelBuilder.Entity<ApplicationSettingsEntity>().HasData(new ApplicationSettingsEntity
+        // TechnologyConfigs - one row per technology
+        modelBuilder.Entity<TechnologyConfigEntity>(entity =>
         {
-            Id = 1,
-            IncludePricingInResults = false,
-            DefaultCurrency = "USD",
-            PricingCacheDurationHours = 24,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            entity.ToTable("TechnologyConfigs");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TechnologyKey).IsUnique();
+            entity.Property(e => e.TechnologyKey).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Vendor).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.BrandColor).HasMaxLength(20);
+            entity.Property(e => e.Category).HasMaxLength(50);
+            // Info content fields
+            entity.Property(e => e.ShortDescription).HasMaxLength(500);
+            entity.Property(e => e.DetailedInfoHtml).HasMaxLength(10000);
+            entity.Property(e => e.KeyFeaturesJson).HasMaxLength(2000);
+            entity.Property(e => e.PerformanceNotes).HasMaxLength(1000);
+            entity.Property(e => e.UseCases).HasMaxLength(1000);
         });
 
-        // Seed default cloud API credentials (empty but ready to configure)
-        modelBuilder.Entity<CloudApiCredentialsEntity>().HasData(
-            new CloudApiCredentialsEntity { Id = 1, ProviderName = "AWS", IsConfigured = false },
-            new CloudApiCredentialsEntity { Id = 2, ProviderName = "Azure", IsConfigured = false },
-            new CloudApiCredentialsEntity { Id = 3, ProviderName = "GCP", IsConfigured = false },
-            new CloudApiCredentialsEntity { Id = 4, ProviderName = "Oracle", IsConfigured = false }
-        );
-
-        // Seed default on-prem pricing
-        modelBuilder.Entity<OnPremPricingEntity>().HasData(new OnPremPricingEntity
+        // InfoTypeContents - configurable info modal content
+        modelBuilder.Entity<InfoTypeContentEntity>(entity =>
         {
-            Id = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            entity.ToTable("InfoTypeContents");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.InfoTypeKey).IsUnique();
+            entity.Property(e => e.InfoTypeKey).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Title).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.ContentHtml).HasMaxLength(10000).IsRequired();
         });
 
-        // Seed default Mendix pricing (from June 2025 Pricebook)
-        modelBuilder.Entity<MendixPricingEntity>().HasData(new MendixPricingEntity
+        // SeedMetadata - tracks seed data version for efficient startup checks
+        modelBuilder.Entity<SeedMetadataEntity>(entity =>
         {
-            Id = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            entity.ToTable("SeedMetadata");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SeedHash).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Version).HasMaxLength(20).IsRequired();
         });
 
-        // Seed default OutSystems pricing
-        modelBuilder.Entity<OutSystemsPricingEntity>().HasData(new OutSystemsPricingEntity
-        {
-            Id = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
-
-        // Seed distribution configurations
-        SeedDistributionConfigs(modelBuilder);
-    }
-
-    private static void SeedDistributionConfigs(ModelBuilder modelBuilder)
-    {
-        var now = DateTime.UtcNow;
-        var distributions = new List<DistributionConfigEntity>
-        {
-            // 1. OpenShift On-Prem
-            new()
-            {
-                Id = 1, DistributionKey = "OpenShift", Name = "OpenShift (On-Prem)",
-                Vendor = "Red Hat", Icon = "openshift", BrandColor = "#EE0000",
-                Tags = "enterprise,on-prem", SortOrder = 1,
-                ProdControlPlaneCpu = 8, ProdControlPlaneRam = 32, ProdControlPlaneDisk = 200,
-                NonProdControlPlaneCpu = 8, NonProdControlPlaneRam = 32, NonProdControlPlaneDisk = 100,
-                ProdWorkerCpu = 16, ProdWorkerRam = 64, ProdWorkerDisk = 200,
-                NonProdWorkerCpu = 8, NonProdWorkerRam = 32, NonProdWorkerDisk = 100,
-                ProdInfraCpu = 8, ProdInfraRam = 32, ProdInfraDisk = 500,
-                NonProdInfraCpu = 8, NonProdInfraRam = 32, NonProdInfraDisk = 200,
-                HasInfraNodes = true, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 2. OpenShift ROSA (AWS)
-            new()
-            {
-                Id = 2, DistributionKey = "OpenShiftROSA", Name = "OpenShift ROSA (AWS)",
-                Vendor = "Red Hat / AWS", Icon = "openshift", BrandColor = "#EE0000",
-                Tags = "enterprise,cloud,managed", SortOrder = 2,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 16, ProdWorkerRam = 64, ProdWorkerDisk = 200,
-                NonProdWorkerCpu = 8, NonProdWorkerRam = 32, NonProdWorkerDisk = 100,
-                ProdInfraCpu = 8, ProdInfraRam = 32, ProdInfraDisk = 500,
-                NonProdInfraCpu = 8, NonProdInfraRam = 32, NonProdInfraDisk = 200,
-                HasInfraNodes = true, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 3. OpenShift ARO (Azure)
-            new()
-            {
-                Id = 3, DistributionKey = "OpenShiftARO", Name = "OpenShift ARO (Azure)",
-                Vendor = "Red Hat / Microsoft", Icon = "openshift", BrandColor = "#EE0000",
-                Tags = "enterprise,cloud,managed", SortOrder = 3,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 16, ProdWorkerRam = 64, ProdWorkerDisk = 200,
-                NonProdWorkerCpu = 8, NonProdWorkerRam = 32, NonProdWorkerDisk = 100,
-                ProdInfraCpu = 8, ProdInfraRam = 32, ProdInfraDisk = 500,
-                NonProdInfraCpu = 8, NonProdInfraRam = 32, NonProdInfraDisk = 200,
-                HasInfraNodes = true, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 4. Vanilla Kubernetes
-            new()
-            {
-                Id = 4, DistributionKey = "Kubernetes", Name = "Vanilla Kubernetes",
-                Vendor = "CNCF", Icon = "k8s", BrandColor = "#326CE5",
-                Tags = "on-prem,open-source", SortOrder = 4,
-                ProdControlPlaneCpu = 4, ProdControlPlaneRam = 16, ProdControlPlaneDisk = 100,
-                NonProdControlPlaneCpu = 2, NonProdControlPlaneRam = 8, NonProdControlPlaneDisk = 50,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 5. Rancher On-Prem
-            new()
-            {
-                Id = 5, DistributionKey = "Rancher", Name = "Rancher (On-Prem)",
-                Vendor = "SUSE", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "on-prem,enterprise", SortOrder = 5,
-                ProdControlPlaneCpu = 4, ProdControlPlaneRam = 16, ProdControlPlaneDisk = 100,
-                NonProdControlPlaneCpu = 2, NonProdControlPlaneRam = 8, NonProdControlPlaneDisk = 50,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 6. Rancher Hosted
-            new()
-            {
-                Id = 6, DistributionKey = "RancherHosted", Name = "Rancher Hosted (Cloud)",
-                Vendor = "SUSE", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "cloud,managed,enterprise", SortOrder = 6,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 7. K3s
-            new()
-            {
-                Id = 7, DistributionKey = "K3s", Name = "K3s",
-                Vendor = "SUSE", Icon = "k3s", BrandColor = "#FFC61C",
-                Tags = "on-prem,lightweight,edge", SortOrder = 7,
-                ProdControlPlaneCpu = 2, ProdControlPlaneRam = 4, ProdControlPlaneDisk = 50,
-                NonProdControlPlaneCpu = 1, NonProdControlPlaneRam = 2, NonProdControlPlaneDisk = 25,
-                ProdWorkerCpu = 4, ProdWorkerRam = 8, ProdWorkerDisk = 50,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 4, NonProdWorkerDisk = 25,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 8. MicroK8s
-            new()
-            {
-                Id = 8, DistributionKey = "MicroK8s", Name = "MicroK8s",
-                Vendor = "Canonical", Icon = "microk8s", BrandColor = "#E95420",
-                Tags = "on-prem,lightweight", SortOrder = 8,
-                ProdControlPlaneCpu = 2, ProdControlPlaneRam = 4, ProdControlPlaneDisk = 50,
-                NonProdControlPlaneCpu = 1, NonProdControlPlaneRam = 2, NonProdControlPlaneDisk = 25,
-                ProdWorkerCpu = 4, ProdWorkerRam = 8, ProdWorkerDisk = 50,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 4, NonProdWorkerDisk = 25,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 9. Charmed Kubernetes
-            new()
-            {
-                Id = 9, DistributionKey = "Charmed", Name = "Charmed Kubernetes",
-                Vendor = "Canonical", Icon = "charmed", BrandColor = "#772953",
-                Tags = "on-prem,enterprise", SortOrder = 9,
-                ProdControlPlaneCpu = 4, ProdControlPlaneRam = 16, ProdControlPlaneDisk = 100,
-                NonProdControlPlaneCpu = 2, NonProdControlPlaneRam = 8, NonProdControlPlaneDisk = 50,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 10. VMware Tanzu On-Prem
-            new()
-            {
-                Id = 10, DistributionKey = "Tanzu", Name = "VMware Tanzu (On-Prem)",
-                Vendor = "Broadcom", Icon = "tanzu", BrandColor = "#1D428A",
-                Tags = "on-prem,enterprise", SortOrder = 10,
-                ProdControlPlaneCpu = 4, ProdControlPlaneRam = 16, ProdControlPlaneDisk = 100,
-                NonProdControlPlaneCpu = 2, NonProdControlPlaneRam = 8, NonProdControlPlaneDisk = 50,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 11. VMware Tanzu Cloud
-            new()
-            {
-                Id = 11, DistributionKey = "TanzuCloud", Name = "VMware Tanzu Cloud",
-                Vendor = "Broadcom", Icon = "tanzu", BrandColor = "#1D428A",
-                Tags = "cloud,managed,enterprise", SortOrder = 11,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 12. Amazon EKS
-            new()
-            {
-                Id = 12, DistributionKey = "EKS", Name = "Amazon EKS",
-                Vendor = "AWS", Icon = "eks", BrandColor = "#FF9900",
-                Tags = "cloud,managed", SortOrder = 12,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 13. Azure AKS
-            new()
-            {
-                Id = 13, DistributionKey = "AKS", Name = "Azure AKS",
-                Vendor = "Microsoft", Icon = "aks", BrandColor = "#0078D4",
-                Tags = "cloud,managed", SortOrder = 13,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 14. Google GKE
-            new()
-            {
-                Id = 14, DistributionKey = "GKE", Name = "Google GKE",
-                Vendor = "Google", Icon = "gke", BrandColor = "#4285F4",
-                Tags = "cloud,managed", SortOrder = 14,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 15. Oracle OKE
-            new()
-            {
-                Id = 15, DistributionKey = "OKE", Name = "Oracle OKE",
-                Vendor = "Oracle", Icon = "oke", BrandColor = "#C74634",
-                Tags = "cloud,managed", SortOrder = 15,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 16. OpenShift Dedicated (GCP)
-            new()
-            {
-                Id = 16, DistributionKey = "OpenShiftDedicated", Name = "OpenShift Dedicated (GCP)",
-                Vendor = "Red Hat / Google", Icon = "openshift", BrandColor = "#EE0000",
-                Tags = "enterprise,cloud,managed", SortOrder = 16,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 16, ProdWorkerRam = 64, ProdWorkerDisk = 200,
-                NonProdWorkerCpu = 8, NonProdWorkerRam = 32, NonProdWorkerDisk = 100,
-                ProdInfraCpu = 8, ProdInfraRam = 32, ProdInfraDisk = 500,
-                NonProdInfraCpu = 8, NonProdInfraRam = 32, NonProdInfraDisk = 200,
-                HasInfraNodes = true, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 17. OpenShift on IBM Cloud
-            new()
-            {
-                Id = 17, DistributionKey = "OpenShiftIBM", Name = "OpenShift on IBM Cloud",
-                Vendor = "Red Hat / IBM", Icon = "openshift", BrandColor = "#EE0000",
-                Tags = "enterprise,cloud,managed", SortOrder = 17,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 16, ProdWorkerRam = 64, ProdWorkerDisk = 200,
-                NonProdWorkerCpu = 8, NonProdWorkerRam = 32, NonProdWorkerDisk = 100,
-                ProdInfraCpu = 8, ProdInfraRam = 32, ProdInfraDisk = 500,
-                NonProdInfraCpu = 8, NonProdInfraRam = 32, NonProdInfraDisk = 200,
-                HasInfraNodes = true, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 18. Rancher on EKS
-            new()
-            {
-                Id = 18, DistributionKey = "RancherEKS", Name = "Rancher on EKS",
-                Vendor = "SUSE / AWS", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "cloud,managed,enterprise", SortOrder = 18,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 19. Rancher on AKS
-            new()
-            {
-                Id = 19, DistributionKey = "RancherAKS", Name = "Rancher on AKS",
-                Vendor = "SUSE / Microsoft", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "cloud,managed,enterprise", SortOrder = 19,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 20. Rancher on GKE
-            new()
-            {
-                Id = 20, DistributionKey = "RancherGKE", Name = "Rancher on GKE",
-                Vendor = "SUSE / Google", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "cloud,managed,enterprise", SortOrder = 20,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 21. VMware Tanzu on AWS
-            new()
-            {
-                Id = 21, DistributionKey = "TanzuAWS", Name = "VMware Tanzu on AWS",
-                Vendor = "Broadcom / AWS", Icon = "tanzu", BrandColor = "#1D428A",
-                Tags = "cloud,managed,enterprise", SortOrder = 21,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 22. VMware Tanzu on Azure
-            new()
-            {
-                Id = 22, DistributionKey = "TanzuAzure", Name = "VMware Tanzu on Azure",
-                Vendor = "Broadcom / Microsoft", Icon = "tanzu", BrandColor = "#1D428A",
-                Tags = "cloud,managed,enterprise", SortOrder = 22,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 23. VMware Tanzu on GCP
-            new()
-            {
-                Id = 23, DistributionKey = "TanzuGCP", Name = "VMware Tanzu on GCP",
-                Vendor = "Broadcom / Google", Icon = "tanzu", BrandColor = "#1D428A",
-                Tags = "cloud,managed,enterprise", SortOrder = 23,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 24. RKE2
-            new()
-            {
-                Id = 24, DistributionKey = "RKE2", Name = "RKE2",
-                Vendor = "SUSE", Icon = "rancher", BrandColor = "#0075A8",
-                Tags = "on-prem,enterprise,security", SortOrder = 24,
-                ProdControlPlaneCpu = 4, ProdControlPlaneRam = 16, ProdControlPlaneDisk = 100,
-                NonProdControlPlaneCpu = 2, NonProdControlPlaneRam = 8, NonProdControlPlaneDisk = 50,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 25. IBM Kubernetes Service
-            new()
-            {
-                Id = 25, DistributionKey = "IKS", Name = "IBM Kubernetes Service",
-                Vendor = "IBM", Icon = "iks", BrandColor = "#054ADA",
-                Tags = "cloud,managed", SortOrder = 25,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 26. Alibaba ACK
-            new()
-            {
-                Id = 26, DistributionKey = "ACK", Name = "Alibaba ACK",
-                Vendor = "Alibaba", Icon = "ack", BrandColor = "#FF6A00",
-                Tags = "cloud,managed", SortOrder = 26,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 27. Tencent TKE
-            new()
-            {
-                Id = 27, DistributionKey = "TKE", Name = "Tencent TKE",
-                Vendor = "Tencent", Icon = "tke", BrandColor = "#00A4FF",
-                Tags = "cloud,managed", SortOrder = 27,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 28. Huawei CCE
-            new()
-            {
-                Id = 28, DistributionKey = "CCE", Name = "Huawei CCE",
-                Vendor = "Huawei", Icon = "cce", BrandColor = "#CF0A2C",
-                Tags = "cloud,managed", SortOrder = 28,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 8, ProdWorkerRam = 32, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 4, NonProdWorkerRam = 16, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 29. DigitalOcean Kubernetes
-            new()
-            {
-                Id = 29, DistributionKey = "DOKS", Name = "DigitalOcean Kubernetes",
-                Vendor = "DigitalOcean", Icon = "doks", BrandColor = "#0080FF",
-                Tags = "cloud,managed,developer", SortOrder = 29,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 30. Linode/Akamai LKE
-            new()
-            {
-                Id = 30, DistributionKey = "LKE", Name = "Linode/Akamai LKE",
-                Vendor = "Akamai", Icon = "lke", BrandColor = "#00A95C",
-                Tags = "cloud,managed,developer", SortOrder = 30,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 31. Vultr VKE
-            new()
-            {
-                Id = 31, DistributionKey = "VKE", Name = "Vultr VKE",
-                Vendor = "Vultr", Icon = "vke", BrandColor = "#007BFC",
-                Tags = "cloud,managed,developer", SortOrder = 31,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 32. Hetzner Kubernetes
-            new()
-            {
-                Id = 32, DistributionKey = "HetznerK8s", Name = "Hetzner Kubernetes",
-                Vendor = "Hetzner", Icon = "hetzner", BrandColor = "#D50C2D",
-                Tags = "cloud,developer,cost-effective", SortOrder = 32,
-                ProdControlPlaneCpu = 2, ProdControlPlaneRam = 4, ProdControlPlaneDisk = 50,
-                NonProdControlPlaneCpu = 1, NonProdControlPlaneRam = 2, NonProdControlPlaneDisk = 25,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = false,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 33. OVHcloud Kubernetes
-            new()
-            {
-                Id = 33, DistributionKey = "OVHKubernetes", Name = "OVHcloud Kubernetes",
-                Vendor = "OVH", Icon = "ovh", BrandColor = "#000E9C",
-                Tags = "cloud,managed,developer", SortOrder = 33,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            },
-            // 34. Scaleway Kapsule
-            new()
-            {
-                Id = 34, DistributionKey = "ScalewayKapsule", Name = "Scaleway Kapsule",
-                Vendor = "Scaleway", Icon = "scaleway", BrandColor = "#4F0599",
-                Tags = "cloud,managed,developer", SortOrder = 34,
-                ProdControlPlaneCpu = 0, ProdControlPlaneRam = 0, ProdControlPlaneDisk = 0,
-                NonProdControlPlaneCpu = 0, NonProdControlPlaneRam = 0, NonProdControlPlaneDisk = 0,
-                ProdWorkerCpu = 4, ProdWorkerRam = 16, ProdWorkerDisk = 100,
-                NonProdWorkerCpu = 2, NonProdWorkerRam = 8, NonProdWorkerDisk = 50,
-                HasInfraNodes = false, HasManagedControlPlane = true,
-                CreatedAt = now, UpdatedAt = now
-            }
-        };
-
-        modelBuilder.Entity<DistributionConfigEntity>().HasData(distributions);
+        // NOTE: Seed data is now managed by SeedDataService using JSON files.
+        // See: src/InfraSizingCalculator/Data/Seeds/*.json
     }
 }

@@ -1,0 +1,10 @@
+{
+  "$schema": "seed-schema.json",
+  "description": "Default application settings",
+  "version": "1.0.0",
+  "data": {
+    "includePricingInResults": false,
+    "defaultCurrency": "USD",
+    "pricingCacheDurationHours": 24
+  }
+}

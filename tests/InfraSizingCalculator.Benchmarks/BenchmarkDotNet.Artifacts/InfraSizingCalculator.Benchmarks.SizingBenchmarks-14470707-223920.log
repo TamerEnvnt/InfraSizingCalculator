@@ -1,0 +1,163 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 1 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/" /p:OutDir="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0/" /p:OutputPath="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0/" /p:PublishDir="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/publish/" in /Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1
+// command took 0.62 sec and exited with 0
+// start dotnet  build -c Release --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/" /p:OutDir="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0/" /p:OutputPath="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0/" /p:PublishDir="/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/publish/" --output "/Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0/" in /Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1
+// command took 8.55 sec and exited with 0
+// ***** Done, took 00:00:09 (9.21 sec)   *****
+// Found 1 benchmarks:
+//   SizingBenchmarks.'Distribution: Get config by enum': ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+// **************************
+// Benchmark: SizingBenchmarks.'Distribution: Get config by enum': ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet InfraSizingCalculator.Benchmarks-ShortRun-1.dll --anonymousPipes 122 123 --benchmarkName InfraSizingCalculator.Benchmarks.SizingBenchmarks.Distribution_GetConfig --job ShortRun --benchmarkId 0 in /Users/tamer/Work/AI/Claude/InfraSizingCalculator/tests/InfraSizingCalculator.Benchmarks/bin/Release/net10.0/InfraSizingCalculator.Benchmarks-ShortRun-1/bin/Release/net10.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.1 (10.0.1, 10.0.125.57005), Arm64 RyuJIT armv8.0-a
+// GC=Concurrent Workstation
+// HardwareIntrinsics=ArmBase+AdvSimd,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 80917.00 ns, 80.9170 us/op
+WorkloadJitting  1: 1 op, 295083.00 ns, 295.0830 us/op
+
+OverheadJitting  2: 16 op, 217750.00 ns, 13.6094 us/op
+WorkloadJitting  2: 16 op, 186583.00 ns, 11.6614 us/op
+
+WorkloadPilot    1: 16 op, 1208.00 ns, 75.5000 ns/op
+WorkloadPilot    2: 32 op, 1834.00 ns, 57.3125 ns/op
+WorkloadPilot    3: 64 op, 2541.00 ns, 39.7031 ns/op
+WorkloadPilot    4: 128 op, 4250.00 ns, 33.2031 ns/op
+WorkloadPilot    5: 256 op, 7500.00 ns, 29.2969 ns/op
+WorkloadPilot    6: 512 op, 13000.00 ns, 25.3906 ns/op
+WorkloadPilot    7: 1024 op, 27708.00 ns, 27.0586 ns/op
+WorkloadPilot    8: 2048 op, 46458.00 ns, 22.6846 ns/op
+WorkloadPilot    9: 4096 op, 89958.00 ns, 21.9624 ns/op
+WorkloadPilot   10: 8192 op, 311708.00 ns, 38.0503 ns/op
+WorkloadPilot   11: 16384 op, 551792.00 ns, 33.6787 ns/op
+WorkloadPilot   12: 32768 op, 1006250.00 ns, 30.7083 ns/op
+WorkloadPilot   13: 65536 op, 1891542.00 ns, 28.8626 ns/op
+WorkloadPilot   14: 131072 op, 3715583.00 ns, 28.3476 ns/op
+WorkloadPilot   15: 262144 op, 7339666.00 ns, 27.9986 ns/op
+WorkloadPilot   16: 524288 op, 14608208.00 ns, 27.8629 ns/op
+WorkloadPilot   17: 1048576 op, 29050459.00 ns, 27.7047 ns/op
+WorkloadPilot   18: 2097152 op, 58345375.00 ns, 27.8212 ns/op
+WorkloadPilot   19: 4194304 op, 45440417.00 ns, 10.8338 ns/op
+WorkloadPilot   20: 8388608 op, 17727875.00 ns, 2.1133 ns/op
+WorkloadPilot   21: 16777216 op, 35643875.00 ns, 2.1245 ns/op
+WorkloadPilot   22: 33554432 op, 71373125.00 ns, 2.1271 ns/op
+WorkloadPilot   23: 67108864 op, 142291625.00 ns, 2.1203 ns/op
+WorkloadPilot   24: 134217728 op, 280405083.00 ns, 2.0892 ns/op
+WorkloadPilot   25: 268435456 op, 555516958.00 ns, 2.0695 ns/op
+
+OverheadWarmup   1: 268435456 op, 396343167.00 ns, 1.4765 ns/op
+OverheadWarmup   2: 268435456 op, 341069167.00 ns, 1.2706 ns/op
+OverheadWarmup   3: 268435456 op, 340569958.00 ns, 1.2687 ns/op
+OverheadWarmup   4: 268435456 op, 341753542.00 ns, 1.2731 ns/op
+OverheadWarmup   5: 268435456 op, 346617625.00 ns, 1.2913 ns/op
+OverheadWarmup   6: 268435456 op, 344544750.00 ns, 1.2835 ns/op
+OverheadWarmup   7: 268435456 op, 343642417.00 ns, 1.2802 ns/op
+OverheadWarmup   8: 268435456 op, 340513208.00 ns, 1.2685 ns/op
+OverheadWarmup   9: 268435456 op, 340721042.00 ns, 1.2693 ns/op
+OverheadWarmup  10: 268435456 op, 346710791.00 ns, 1.2916 ns/op
+
+OverheadActual   1: 268435456 op, 340816583.00 ns, 1.2696 ns/op
+OverheadActual   2: 268435456 op, 340471958.00 ns, 1.2684 ns/op
+OverheadActual   3: 268435456 op, 342135750.00 ns, 1.2746 ns/op
+OverheadActual   4: 268435456 op, 340916625.00 ns, 1.2700 ns/op
+OverheadActual   5: 268435456 op, 341072583.00 ns, 1.2706 ns/op
+OverheadActual   6: 268435456 op, 342110500.00 ns, 1.2745 ns/op
+OverheadActual   7: 268435456 op, 342434292.00 ns, 1.2757 ns/op
+OverheadActual   8: 268435456 op, 341332042.00 ns, 1.2716 ns/op
+OverheadActual   9: 268435456 op, 342542333.00 ns, 1.2761 ns/op
+OverheadActual  10: 268435456 op, 341917125.00 ns, 1.2737 ns/op
+OverheadActual  11: 268435456 op, 341194084.00 ns, 1.2710 ns/op
+OverheadActual  12: 268435456 op, 343241375.00 ns, 1.2787 ns/op
+OverheadActual  13: 268435456 op, 342152500.00 ns, 1.2746 ns/op
+OverheadActual  14: 268435456 op, 342784334.00 ns, 1.2770 ns/op
+OverheadActual  15: 268435456 op, 343626208.00 ns, 1.2801 ns/op
+
+WorkloadWarmup   1: 268435456 op, 542277791.00 ns, 2.0201 ns/op
+WorkloadWarmup   2: 268435456 op, 550646791.00 ns, 2.0513 ns/op
+WorkloadWarmup   3: 268435456 op, 566707375.00 ns, 2.1111 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 268435456 op, 565509000.00 ns, 2.1067 ns/op
+WorkloadActual   2: 268435456 op, 565534458.00 ns, 2.1068 ns/op
+WorkloadActual   3: 268435456 op, 567128083.00 ns, 2.1127 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 268435456 op, 223398500.00 ns, 0.8322 ns/op
+WorkloadResult   2: 268435456 op, 223423958.00 ns, 0.8323 ns/op
+WorkloadResult   3: 268435456 op, 225017583.00 ns, 0.8383 ns/op
+// GC:  0 0 0 0 268435456
+// Threading:  0 0 268435456
+
+// AfterAll
+// Benchmark Process 52456 has exited with code 0.
+
+Mean = 0.834 ns, StdErr = 0.002 ns (0.24%), N = 3, StdDev = 0.003 ns
+Min = 0.832 ns, Q1 = 0.832 ns, Median = 0.832 ns, Q3 = 0.835 ns, Max = 0.838 ns
+IQR = 0.003 ns, LowerFence = 0.828 ns, UpperFence = 0.840 ns
+ConfidenceInterval = [0.771 ns; 0.897 ns] (CI 99.9%), Margin = 0.063 ns (7.56% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 0 (0.0%) benchmark(s) to run. Estimated finish 1447-07-07 22:39 (0h 0m from now) **
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts/results/InfraSizingCalculator.Benchmarks.SizingBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts/results/InfraSizingCalculator.Benchmarks.SizingBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts/results/InfraSizingCalculator.Benchmarks.SizingBenchmarks-report.html
+
+// * Detailed results *
+SizingBenchmarks.'Distribution: Get config by enum': ShortRun(IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 10.0.1 (10.0.1, 10.0.125.57005), Arm64 RyuJIT armv8.0-a; GC = Concurrent Workstation
+Mean = 0.834 ns, StdErr = 0.002 ns (0.24%), N = 3, StdDev = 0.003 ns
+Min = 0.832 ns, Q1 = 0.832 ns, Median = 0.832 ns, Q3 = 0.835 ns, Max = 0.838 ns
+IQR = 0.003 ns, LowerFence = 0.828 ns, UpperFence = 0.840 ns
+ConfidenceInterval = [0.771 ns; 0.897 ns] (CI 99.9%), Margin = 0.063 ns (7.56% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[0.832 ns ; 0.838 ns) | @@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, macOS Tahoe 26.1 (25B78) [Darwin 25.1.0]
+Apple M5, 1 CPU, 10 logical and 10 physical cores
+.NET SDK 10.0.101
+  [Host]   : .NET 10.0.1 (10.0.1, 10.0.125.57005), Arm64 RyuJIT armv8.0-a
+  ShortRun : .NET 10.0.1 (10.0.1, 10.0.125.57005), Arm64 RyuJIT armv8.0-a
+
+Job=ShortRun  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+
+| Method                             | Mean      | Error     | StdDev    | Rank | Allocated |
+|----------------------------------- |----------:|----------:|----------:|-----:|----------:|
+| 'Distribution: Get config by enum' | 0.8343 ns | 0.0630 ns | 0.0035 ns |    1 |         - |
+
+// * Legends *
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Rank      : Relative position of current benchmark mean among all benchmarks (Arabic style)
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 ns      : 1 Nanosecond (0.000000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:00:13 (13.94 sec), executed benchmarks: 1
+
+Global total time: 00:00:23 (23.35 sec), executed benchmarks: 1
+// * Artifacts cleanup *
+Artifacts cleanup is finished

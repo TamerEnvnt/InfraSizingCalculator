@@ -1,0 +1,26 @@
+{
+  "$schema": "seed-schema.json",
+  "description": "On-premises pricing defaults",
+  "version": "1.0.0",
+  "data": {
+    "serverCostPerUnit": 5000,
+    "costPerCore": 100,
+    "costPerGBRam": 10,
+    "storageCostPerTB": 200,
+    "hardwareLifespanYears": 5,
+    "rackUnitCostPerMonth": 50,
+    "powerCostPerKwhMonth": 0.10,
+    "coolingPUE": 1.5,
+    "networkCostPerMonth": 500,
+    "devOpsSalaryPerYear": 120000,
+    "sysAdminSalaryPerYear": 90000,
+    "nodesPerDevOpsEngineer": 50,
+    "nodesPerSysAdmin": 100,
+    "openShiftPerNodeYear": 2500,
+    "tanzuPerCoreYear": 1500,
+    "rancherEnterprisePerNodeYear": 1000,
+    "charmedK8sPerNodeYear": 500,
+    "rke2PerNodeYear": 0,
+    "k3sPerNodeYear": 0
+  }
+}

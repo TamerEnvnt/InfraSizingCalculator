@@ -7,6 +7,11 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <!-- Expose internals to test project for testing internal classes -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="InfraSizingCalculator.UnitTests" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Observability - OpenTelemetry -->
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />

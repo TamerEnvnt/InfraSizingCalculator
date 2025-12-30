@@ -25,6 +25,12 @@ This document describes all services in the Infrastructure Sizing Calculator.
 | SettingsPersistenceService | ISettingsPersistenceService | Settings persistence to localStorage |
 | ConfigurationSharingService | - | Configuration sharing via URL encoding |
 | ValidationRecommendationService | - | Input validation and recommendations |
+| **AuthService** | IAuthService | User authentication with secure password hashing |
+| **InputValidationService** | IInputValidationService | Centralized input validation and sanitization |
+| **CalculatorMetrics** | - | OpenTelemetry metrics instrumentation |
+| **DatabaseHealthCheck** | IHealthCheck | SQLite database connectivity check |
+| **TechnologyServiceHealthCheck** | IHealthCheck | Technology service data availability check |
+| **DistributionServiceHealthCheck** | IHealthCheck | Distribution service data availability check |
 
 ---
 
@@ -835,3 +841,148 @@ Get full display name for an environment.
 static string GetEnvShortLabel(EnvironmentType env)
 ```
 Get short label for environment (e.g., "DEV", "PRD").
+
+---
+
+## AuthService
+
+**File:** `Services/Auth/AuthService.cs`
+**Interface:** `Services/Auth/IAuthService.cs`
+
+### Purpose
+
+Handles user authentication with secure password hashing using PBKDF2.
+
+### Methods
+
+#### RegisterAsync
+```csharp
+Task<(bool Success, string? Error)> RegisterAsync(string email, string password, string confirmPassword)
+```
+Register a new user with email and password.
+
+**Validation:**
+- Email must be valid format
+- Password must be at least 8 characters
+- Password and confirmation must match
+- Email must not already exist
+
+#### LoginAsync
+```csharp
+Task<(bool Success, ApplicationUser? User, string? Error)> LoginAsync(string email, string password)
+```
+Authenticate a user with email and password.
+
+**Security:**
+- Uses PBKDF2 with HMACSHA256 for password hashing
+- Salt is generated per-user
+- 100,000 iterations for key derivation
+
+### Dependencies
+- `InfraSizingDbContext` - For user persistence
+
+---
+
+## InputValidationService
+
+**File:** `Services/Validation/InputValidationService.cs`
+**Interface:** `Services/Validation/IInputValidationService.cs`
+
+### Purpose
+
+Centralized input validation and sanitization to prevent injection attacks.
+
+### Methods
+
+| Method | Purpose | Business Rule |
+|--------|---------|---------------|
+| `ValidateAppCounts` | Validates app count inputs | BR-V001, BR-V002 |
+| `ValidateNodeSpecs` | Validates node specifications | BR-V003 |
+| `ValidatePricing` | Validates pricing inputs | BR-V004 |
+| `ValidateGrowthRate` | Validates growth percentages | BR-V005 |
+| `SanitizeScenarioName` | Sanitizes scenario names | BR-V008 |
+| `SanitizeText` | General text sanitization | - |
+
+### Validation Limits
+
+| Input | Min | Max | Rule |
+|-------|-----|-----|------|
+| Small Apps | 0 | 1,000 | BR-V001 |
+| Medium Apps | 0 | 500 | BR-V001 |
+| Large Apps | 0 | 100 | BR-V001 |
+| CPU Cores | 1 | 256 | BR-V003 |
+| Memory (GB) | 1 | 1,024 | BR-V003 |
+| Storage (GB) | 1 | 10,000 | BR-V003 |
+| Growth Rate (%) | 0 | 500 | BR-V005 |
+| Scenario Name | - | 100 chars | BR-V008 |
+
+For detailed security information, see [SECURITY.md](SECURITY.md).
+
+---
+
+## CalculatorMetrics
+
+**File:** `Services/Telemetry/CalculatorMetrics.cs`
+
+### Purpose
+
+OpenTelemetry metrics instrumentation for observability.
+
+### Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `infrasizing_calculations_total` | Counter | deployment_type | Total sizing calculations |
+| `infrasizing_calculation_duration_ms` | Histogram | deployment_type | Calculation duration |
+| `infrasizing_exports_total` | Counter | format | Exports by format |
+| `infrasizing_sessions_active` | Gauge | - | Active Blazor sessions |
+| `infrasizing_scenario_operations_total` | Counter | operation | Scenario operations |
+| `infrasizing_distribution_usage_total` | Counter | distribution | Distribution usage |
+
+### Methods
+
+```csharp
+void RecordCalculation(string deploymentType, long durationMs)
+void RecordExport(string format, long durationMs)
+void RecordDistributionUsage(string distribution)
+void RecordScenarioOperation(string operation)
+void IncrementActiveSessions()
+void DecrementActiveSessions()
+```
+
+For detailed observability information, see [OBSERVABILITY.md](OBSERVABILITY.md).
+
+---
+
+## Health Checks
+
+**Files:** `Services/HealthChecks/`
+
+### DatabaseHealthCheck
+
+Verifies SQLite database connectivity by checking:
+- Database provider type
+- Connection availability
+- Basic query execution
+
+### TechnologyServiceHealthCheck
+
+Verifies technology data availability:
+- Returns all technologies from ITechnologyService
+- Counts available technology configurations
+
+### DistributionServiceHealthCheck
+
+Verifies distribution data availability:
+- Returns all distributions from IDistributionService
+- Counts available distribution configurations (46 expected)
+
+### Health Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/health` | Full health check with all services |
+| `/health/ready` | Readiness probe for K8s |
+| `/health/live` | Liveness probe for K8s |
+
+For detailed health check information, see [OBSERVABILITY.md](OBSERVABILITY.md).

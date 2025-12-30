@@ -1,6 +1,7 @@
 using InfraSizingCalculator.Middleware;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using Xunit;
 
@@ -9,10 +10,12 @@ namespace InfraSizingCalculator.UnitTests.Middleware;
 public class SecurityHeadersMiddlewareTests
 {
     private readonly IWebHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
 
     public SecurityHeadersMiddlewareTests()
     {
         _environment = Substitute.For<IWebHostEnvironment>();
+        _configuration = CreateConfiguration();
     }
 
     [Fact]
@@ -21,7 +24,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -36,7 +39,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -52,7 +55,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -68,7 +71,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -84,7 +87,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -100,7 +103,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -119,7 +122,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -136,7 +139,7 @@ public class SecurityHeadersMiddlewareTests
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
         context.Response.Headers["Cache-Control"] = "max-age=3600";
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -146,12 +149,12 @@ public class SecurityHeadersMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_AddsCrossOriginOpenerPolicyHeader()
+    public async Task InvokeAsync_AddsCrossOriginOpenerPolicyHeader_ForHttps()
     {
         // Arrange
         _environment.EnvironmentName.Returns("Production");
-        var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var context = CreateHttpsContext();
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -162,12 +165,12 @@ public class SecurityHeadersMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_AddsCrossOriginResourcePolicyHeader()
+    public async Task InvokeAsync_AddsCrossOriginResourcePolicyHeader_ForHttps()
     {
         // Arrange
         _environment.EnvironmentName.Returns("Production");
-        var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var context = CreateHttpsContext();
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -178,12 +181,45 @@ public class SecurityHeadersMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Production_CspIncludesUpgradeInsecureRequests()
+    public async Task InvokeAsync_AddsCrossOriginHeaders_ForLocalhost()
+    {
+        // Arrange
+        _environment.EnvironmentName.Returns("Production");
+        var context = CreateLocalhostContext();
+        var middleware = CreateMiddleware(_environment, _configuration);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        Assert.True(context.Response.Headers.ContainsKey("Cross-Origin-Opener-Policy"));
+        Assert.True(context.Response.Headers.ContainsKey("Cross-Origin-Resource-Policy"));
+    }
+
+    [Fact]
+    public async Task InvokeAsync_DoesNotAddCrossOriginHeaders_ForPlainHttp()
+    {
+        // Arrange
+        _environment.EnvironmentName.Returns("Production");
+        var context = CreateHttpContext(); // plain HTTP, not localhost
+        var middleware = CreateMiddleware(_environment, _configuration);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        Assert.False(context.Response.Headers.ContainsKey("Cross-Origin-Opener-Policy"));
+        Assert.False(context.Response.Headers.ContainsKey("Cross-Origin-Resource-Policy"));
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Production_CspIncludesUpgradeInsecureRequests_WhenConfigured()
     {
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var config = CreateConfiguration(enableUpgradeInsecure: true);
+        var middleware = CreateMiddleware(_environment, config);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -194,12 +230,29 @@ public class SecurityHeadersMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_Production_CspDoesNotIncludeUpgradeInsecureRequests_WhenNotConfigured()
+    {
+        // Arrange
+        _environment.EnvironmentName.Returns("Production");
+        var context = CreateHttpContext();
+        var config = CreateConfiguration(enableUpgradeInsecure: false);
+        var middleware = CreateMiddleware(_environment, config);
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        var csp = context.Response.Headers["Content-Security-Policy"].ToString();
+        Assert.DoesNotContain("upgrade-insecure-requests", csp);
+    }
+
+    [Fact]
     public async Task InvokeAsync_Development_CspDoesNotIncludeUpgradeInsecureRequests()
     {
         // Arrange
         _environment.EnvironmentName.Returns("Development");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -215,7 +268,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Development");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -231,7 +284,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -249,7 +302,7 @@ public class SecurityHeadersMiddlewareTests
         // Arrange
         _environment.EnvironmentName.Returns("Production");
         var context = CreateHttpContext();
-        var middleware = CreateMiddleware(_environment);
+        var middleware = CreateMiddleware(_environment, _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -269,7 +322,8 @@ public class SecurityHeadersMiddlewareTests
         var nextCalled = false;
         var middleware = new SecurityHeadersMiddleware(
             ctx => { nextCalled = true; return Task.CompletedTask; },
-            _environment);
+            _environment,
+            _configuration);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -281,13 +335,45 @@ public class SecurityHeadersMiddlewareTests
     private static HttpContext CreateHttpContext()
     {
         var context = new DefaultHttpContext();
+        // Set a non-localhost host to test plain HTTP behavior
+        context.Request.Host = new HostString("example.com", 8080);
+        context.Request.Scheme = "http";
         return context;
     }
 
-    private static SecurityHeadersMiddleware CreateMiddleware(IWebHostEnvironment environment)
+    private static HttpContext CreateHttpsContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("example.com", 443);
+        return context;
+    }
+
+    private static HttpContext CreateLocalhostContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Scheme = "http";
+        context.Request.Host = new HostString("localhost", 8080);
+        return context;
+    }
+
+    private static IConfiguration CreateConfiguration(bool enableUpgradeInsecure = false)
+    {
+        var inMemorySettings = new Dictionary<string, string?>
+        {
+            { "Security:EnableUpgradeInsecureRequests", enableUpgradeInsecure.ToString().ToLowerInvariant() }
+        };
+
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+    }
+
+    private static SecurityHeadersMiddleware CreateMiddleware(IWebHostEnvironment environment, IConfiguration configuration)
     {
         return new SecurityHeadersMiddleware(
             ctx => Task.CompletedTask,
-            environment);
+            environment,
+            configuration);
     }
 }

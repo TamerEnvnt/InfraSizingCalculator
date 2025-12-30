@@ -1,0 +1,28 @@
+# Docker Compose Override for Development
+#
+# This file is automatically loaded with docker-compose.yml
+# Use for local development with volume mounts and debug settings
+#
+# Usage:
+#   docker compose up -d
+#
+# To use production settings only:
+#   docker compose -f docker-compose.yml up -d
+
+services:
+  infrasizing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # For development, you might want to use a dev Dockerfile
+      # dockerfile: Dockerfile.dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    ports:
+      - "8080:8080"
+    # Mount local data directory for easier debugging
+    volumes:
+      - ./docker-data:/app/data
+      - ./docker-logs:/app/logs

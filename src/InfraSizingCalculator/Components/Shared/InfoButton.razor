@@ -1,6 +1,13 @@
 @* Reusable info button component *@
 
-<button class="info-btn @Size @AdditionalClass" @onclick="OnClick" title="@Title">?</button>
+<button class="info-btn @Size @AdditionalClass"
+        @onclick="OnClick"
+        type="button"
+        aria-label="@Title"
+        aria-haspopup="dialog">
+    <span aria-hidden="true">?</span>
+    <span class="visually-hidden">@Title</span>
+</button>
 
 @code {
     [Parameter] public string Title { get; set; } = "More information";

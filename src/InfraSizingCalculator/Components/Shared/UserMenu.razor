@@ -1,0 +1,71 @@
+@using InfraSizingCalculator.Data.Identity
+@using InfraSizingCalculator.Services.Auth
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="user-menu">
+    @if (_currentUser != null)
+    {
+        <div class="user-dropdown">
+            <button class="user-button" @onclick="ToggleDropdown" @onclick:stopPropagation="true">
+                <span class="user-avatar">@GetInitials(_currentUser.DisplayName ?? _currentUser.Email)</span>
+                <span class="user-name">@(_currentUser.DisplayName ?? _currentUser.Email?.Split('@')[0])</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+
+            @if (_isDropdownOpen)
+            {
+                <div class="dropdown-menu">
+                    <div class="dropdown-header">
+                        <span class="user-email">@_currentUser.Email</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" @onclick="HandleLogout">
+                        <span class="item-icon">⎋</span>
+                        Sign out
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="auth-links">
+            <a href="/login" class="auth-link">Sign In</a>
+            <a href="/register" class="auth-link auth-link-primary">Create Account</a>
+        </div>
+    }
+</div>
+
+@code {
+    private ApplicationUser? _currentUser;
+    private bool _isDropdownOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+    }
+
+    private void ToggleDropdown()
+    {
+        _isDropdownOpen = !_isDropdownOpen;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+        return name[0..Math.Min(2, name.Length)].ToUpper();
+    }
+}

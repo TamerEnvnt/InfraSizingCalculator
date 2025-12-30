@@ -1,0 +1,105 @@
+name: Scheduled Quality Checks
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  mutation-testing:
+    name: Weekly Mutation Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore InfraSizingCalculator.slnx
+
+      - name: Install Stryker
+        run: dotnet tool install --global dotnet-stryker
+
+      - name: Run Mutation Tests
+        run: dotnet stryker --config-file stryker-config.json
+        continue-on-error: true
+
+      - name: Upload Mutation Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report-weekly
+          path: StrykerOutput/**/*
+          retention-days: 90
+
+  full-benchmarks:
+    name: Weekly Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore InfraSizingCalculator.slnx
+
+      - name: Run Full Benchmarks
+        run: |
+          cd tests/InfraSizingCalculator.Benchmarks
+          dotnet run -c Release -- --exporters json markdown html --artifacts ../BenchmarkResults
+
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-weekly
+          path: tests/BenchmarkResults/**/*
+          retention-days: 90
+
+  dependency-audit:
+    name: Weekly Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore InfraSizingCalculator.slnx
+
+      - name: Check for Outdated Packages
+        run: |
+          echo "# Dependency Audit Report" > dependency-audit.md
+          echo "" >> dependency-audit.md
+          echo "## Outdated Packages" >> dependency-audit.md
+          dotnet list src/InfraSizingCalculator package --outdated >> dependency-audit.md 2>&1 || true
+          echo "" >> dependency-audit.md
+          echo "## Vulnerable Packages" >> dependency-audit.md
+          dotnet list src/InfraSizingCalculator package --vulnerable --include-transitive >> dependency-audit.md 2>&1 || true
+          cat dependency-audit.md
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit
+          path: dependency-audit.md
+          retention-days: 90

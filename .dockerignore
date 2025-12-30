@@ -1,0 +1,73 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+publish/
+
+# Test results and coverage
+**/TestResults/
+**/coverage/
+*.trx
+
+# Documentation (not needed in container)
+docs/
+*.md
+!README.md
+
+# Local development files
+docker-data/
+docker-logs/
+*.db
+*.db-shm
+*.db-wal
+
+# Scripts (not needed in container)
+scripts/
+
+# CI/CD
+.github/
+
+# Docker files (avoid recursive copy)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Kubernetes manifests
+k8s/
+
+# E2E tests (not needed in container)
+tests/InfraSizingCalculator.E2ETests/
+
+# Benchmark tests
+tests/InfraSizingCalculator.Benchmarks/
+
+# Stryker mutation testing
+stryker-config.json
+StrykerOutput/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# User secrets
+secrets.json

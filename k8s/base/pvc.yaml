@@ -1,0 +1,19 @@
+# PersistentVolumeClaim for SQLite database storage
+# Note: SQLite is suitable for single-replica deployments
+# For multi-replica, consider PostgreSQL or another database
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: infrasizing-data
+  namespace: infrasizing
+  labels:
+    app.kubernetes.io/name: infrasizing-calculator
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce  # SQLite requires exclusive access
+  resources:
+    requests:
+      storage: 1Gi
+  # Uncomment and set storageClassName for your cluster
+  # storageClassName: standard

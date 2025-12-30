@@ -1,12 +1,27 @@
 @* Base modal component with overlay and standard structure *@
+@inject IJSRuntime JS
 
 @if (IsOpen)
 {
-    <div class="modal-overlay" @onclick="OnOverlayClick">
-        <div class="modal-content @SizeClass @AdditionalClass" @onclick:stopPropagation="true">
+    <div class="modal-overlay"
+         @onclick="OnOverlayClick"
+         @onkeydown="HandleKeyDown"
+         role="presentation">
+        <div class="modal-content @SizeClass @AdditionalClass"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="@_titleId"
+             @onclick:stopPropagation="true"
+             @ref="_modalRef"
+             tabindex="-1">
             <div class="modal-header">
-                <h2>@Title</h2>
-                <button class="modal-close" @onclick="OnClose">×</button>
+                <h2 id="@_titleId">@Title</h2>
+                <button class="modal-close"
+                        @onclick="OnClose"
+                        aria-label="Close dialog"
+                        type="button">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
             <div class="modal-body @BodyClass">
                 @ChildContent
@@ -32,12 +47,42 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterContent { get; set; }
 
+    private ElementReference _modalRef;
+    private readonly string _titleId = $"modal-title-{Guid.NewGuid():N}";
+    private bool _wasOpen;
+
     private string SizeClass => Size switch
     {
         "small" => "small",
         "large" => "large",
         _ => ""
     };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Focus the modal when it opens for screen readers
+        if (IsOpen && !_wasOpen)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "document.querySelector('[role=\"dialog\"]')?.focus()");
+            }
+            catch
+            {
+                // Ignore JS interop failures during prerendering
+            }
+        }
+        _wasOpen = IsOpen;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        // Close on Escape key (WCAG 2.1 requirement)
+        if (e.Key == "Escape" && OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
 
     private async Task OnOverlayClick()
     {

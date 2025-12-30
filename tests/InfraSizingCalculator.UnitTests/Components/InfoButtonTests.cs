@@ -26,18 +26,18 @@ public class InfoButtonTests : TestContext
         // Act
         var cut = RenderComponent<InfoButton>();
 
-        // Assert
-        cut.Find(".info-btn").TextContent.Should().Be("?");
+        // Assert - Text includes question mark (wrapped in aria-hidden span)
+        cut.Find(".info-btn").TextContent.Should().Contain("?");
     }
 
     [Fact]
-    public void InfoButton_HasDefaultTitle()
+    public void InfoButton_HasDefaultAriaLabel()
     {
         // Act
         var cut = RenderComponent<InfoButton>();
 
-        // Assert
-        cut.Find(".info-btn").GetAttribute("title").Should().Be("More information");
+        // Assert - Uses aria-label for accessibility instead of title
+        cut.Find(".info-btn").GetAttribute("aria-label").Should().Be("More information");
     }
 
     [Fact]
@@ -47,8 +47,8 @@ public class InfoButtonTests : TestContext
         var cut = RenderComponent<InfoButton>(parameters => parameters
             .Add(p => p.Title, "Click for help"));
 
-        // Assert
-        cut.Find(".info-btn").GetAttribute("title").Should().Be("Click for help");
+        // Assert - Title is reflected in aria-label for accessibility
+        cut.Find(".info-btn").GetAttribute("aria-label").Should().Be("Click for help");
     }
 
     [Fact]

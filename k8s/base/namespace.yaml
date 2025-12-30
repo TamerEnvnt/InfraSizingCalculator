@@ -1,0 +1,8 @@
+# Kubernetes Namespace for InfraSizing Calculator
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infrasizing
+  labels:
+    app.kubernetes.io/name: infrasizing-calculator
+    app.kubernetes.io/component: namespace

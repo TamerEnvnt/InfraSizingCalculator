@@ -27,13 +27,33 @@ jobs:
           for HASH in $COMMIT_HASHES; do
             # Get subject line safely using %s format
             MSG=$(git log --format=%s -n 1 "$HASH")
+            SHORT_HASH=${HASH:0:7}
+
+            # Skip GitHub auto-generated merge commits (cannot be controlled by user)
+            # Format 1: "Merge abc123 into def456" (squash merge of branch)
+            # Format 2: "Merge pull request #N from owner/branch" (PR merge)
+            if echo "$MSG" | grep -qE '^Merge [0-9a-f]+ into [0-9a-f]+'; then
+              echo "⏭️  SKIP: Commit $SHORT_HASH is auto-generated merge commit"
+              continue
+            fi
+            if echo "$MSG" | grep -qE '^Merge pull request #[0-9]+ from '; then
+              echo "⏭️  SKIP: Commit $SHORT_HASH is GitHub PR merge commit"
+              continue
+            fi
 
             # Check for phase tag using grep with fixed patterns
             if echo "$MSG" | grep -qE '^\[(SPEC|IMPL|SYNC|TEST)\]'; then
-              echo "✅ OK: Commit $HASH has valid phase tag"
+              echo "✅ OK: Commit $SHORT_HASH has valid phase tag"
             else
-              echo "❌ FAILED: Commit $HASH missing phase tag"
-              FAILED=1
+              # Check for conventional commit format (feat:, fix:, test:, docs:, etc.)
+              # These are acceptable for backwards compatibility
+              if echo "$MSG" | grep -qE '^(feat|fix|test|docs|chore|refactor|style|perf|ci|build|revert)(\(.+\))?:'; then
+                echo "⚠️  LEGACY: Commit $SHORT_HASH uses conventional commit format (acceptable)"
+              else
+                echo "❌ FAILED: Commit $SHORT_HASH missing phase tag"
+                echo "   Message: $MSG"
+                FAILED=1
+              fi
             fi
           done
 
@@ -51,13 +71,13 @@ jobs:
             echo ""
             echo "Example: [IMPL] feat: add new distribution"
             echo ""
-            echo "See CONTRIBUTING.md for full commit format."
+            echo "Conventional commits (feat:, fix:, etc.) are also accepted."
             echo "═══════════════════════════════════════════════════════════"
             exit 1
           fi
 
           echo ""
-          echo "✅ All commit messages have valid phase tags"
+          echo "✅ All commit messages validated"
 
   check-sync-gate:
     name: Check SYNC Gate Compliance

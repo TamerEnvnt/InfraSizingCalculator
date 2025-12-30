@@ -18,12 +18,14 @@ The Infrastructure Sizing Calculator helps organizations estimate infrastructure
 ├─────────────────────────────────────────────────────────────┤
 │                      Business Logic Layer                    │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │                     Services (16 total)               │   │
+│  │                     Services (22 total)               │   │
 │  │  K8sSizingService    │  VMSizingService              │   │
 │  │  TechnologyService   │  DistributionService          │   │
 │  │  ExportService       │  WizardStateService           │   │
 │  │  CostEstimationService│ GrowthPlanningService        │   │
 │  │  ScenarioService     │  PricingService               │   │
+│  │  AuthService         │  InputValidationService       │   │
+│  │  CalculatorMetrics   │  Health Checks (3)            │   │
 │  └──────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                        Data Layer                            │

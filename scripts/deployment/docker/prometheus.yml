@@ -1,0 +1,19 @@
+# Prometheus configuration for InfraSizing Calculator
+# Used with docker-compose --profile monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape the InfraSizing application metrics
+  - job_name: 'infrasizing'
+    static_configs:
+      - targets: ['infrasizing:8080']
+    metrics_path: '/metrics'
+    scheme: http
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

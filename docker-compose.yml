@@ -1,0 +1,86 @@
+# InfraSizing Calculator - Docker Compose
+#
+# Usage:
+#   docker compose up -d                    # Start with defaults
+#   docker compose --profile monitoring up  # Start with Prometheus
+#   docker compose -f docker-compose.yml -f docker-compose.override.yml up  # Development
+#
+# Profiles:
+#   (default)   - Just the application
+#   monitoring  - Application + Prometheus metrics collection
+
+services:
+  # ==========================================================================
+  # Main Application
+  # ==========================================================================
+  infrasizing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: infrasizing-calculator
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/infrasizing.db
+      - ConnectionStrings__IdentityConnection=Data Source=/app/data/identity.db
+      - Database__AutoMigrate=true
+      - Security__EnableHttpsRedirection=false
+      - Security__EnableHsts=false
+      - Security__EnableUpgradeInsecureRequests=false
+    volumes:
+      # Persistent storage for SQLite databases
+      - infrasizing-data:/app/data
+      # Logs (optional - can also use Docker logs)
+      - infrasizing-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - infrasizing-net
+
+  # ==========================================================================
+  # Prometheus (Optional - for metrics collection)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: infrasizing-prometheus
+    profiles:
+      - monitoring
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./scripts/deployment/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - infrasizing
+    restart: unless-stopped
+    networks:
+      - infrasizing-net
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  infrasizing-data:
+    name: infrasizing-data
+  infrasizing-logs:
+    name: infrasizing-logs
+  prometheus-data:
+    name: infrasizing-prometheus-data
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  infrasizing-net:
+    name: infrasizing-network
+    driver: bridge

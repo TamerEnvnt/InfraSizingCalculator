@@ -1,0 +1,57 @@
+using InfraSizingCalculator.Data.Identity;
+
+namespace InfraSizingCalculator.Services.Auth;
+
+/// <summary>
+/// Authentication service interface
+/// </summary>
+public interface IAuthService
+{
+    /// <summary>
+    /// Login with username and password
+    /// </summary>
+    Task<AuthResult> LoginAsync(string email, string password, bool rememberMe = false);
+
+    /// <summary>
+    /// Register a new user
+    /// </summary>
+    Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null);
+
+    /// <summary>
+    /// Logout the current user
+    /// </summary>
+    Task LogoutAsync();
+
+    /// <summary>
+    /// Get the current authenticated user
+    /// </summary>
+    Task<ApplicationUser?> GetCurrentUserAsync();
+
+    /// <summary>
+    /// Check if a user with the given email exists
+    /// </summary>
+    Task<bool> UserExistsAsync(string email);
+
+    /// <summary>
+    /// Check if any admin user exists (for initial setup)
+    /// </summary>
+    Task<bool> AdminExistsAsync();
+
+    /// <summary>
+    /// Create the initial admin account
+    /// </summary>
+    Task<AuthResult> CreateInitialAdminAsync(string email, string password, string displayName);
+}
+
+/// <summary>
+/// Result of an authentication operation
+/// </summary>
+public class AuthResult
+{
+    public bool Succeeded { get; set; }
+    public string? ErrorMessage { get; set; }
+    public ApplicationUser? User { get; set; }
+
+    public static AuthResult Success(ApplicationUser user) => new() { Succeeded = true, User = user };
+    public static AuthResult Failure(string error) => new() { Succeeded = false, ErrorMessage = error };
+}

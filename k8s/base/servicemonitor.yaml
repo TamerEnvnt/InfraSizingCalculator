@@ -1,0 +1,21 @@
+# ServiceMonitor for Prometheus Operator
+# Only needed if you use Prometheus Operator for monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: infrasizing
+  namespace: infrasizing
+  labels:
+    app.kubernetes.io/name: infrasizing-calculator
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: infrasizing-calculator
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - infrasizing

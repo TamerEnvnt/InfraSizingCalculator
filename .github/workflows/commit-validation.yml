@@ -30,8 +30,14 @@ jobs:
             SHORT_HASH=${HASH:0:7}
 
             # Skip GitHub auto-generated merge commits (cannot be controlled by user)
+            # Format 1: "Merge abc123 into def456" (squash merge of branch)
+            # Format 2: "Merge pull request #N from owner/branch" (PR merge)
             if echo "$MSG" | grep -qE '^Merge [0-9a-f]+ into [0-9a-f]+'; then
               echo "⏭️  SKIP: Commit $SHORT_HASH is auto-generated merge commit"
+              continue
+            fi
+            if echo "$MSG" | grep -qE '^Merge pull request #[0-9]+ from '; then
+              echo "⏭️  SKIP: Commit $SHORT_HASH is GitHub PR merge commit"
               continue
             fi
 

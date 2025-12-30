@@ -1,0 +1,25 @@
+# Kustomize base configuration
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: infrasizing
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  # Uncomment if using Prometheus Operator
+  # - servicemonitor.yaml
+
+commonLabels:
+  app.kubernetes.io/name: infrasizing-calculator
+  app.kubernetes.io/version: "1.0.0"
+  app.kubernetes.io/managed-by: kustomize
+
+images:
+  - name: infrasizing-calculator
+    newName: infrasizing-calculator
+    newTag: latest

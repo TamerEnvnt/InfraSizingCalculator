@@ -3,26 +3,32 @@ namespace InfraSizingCalculator.Middleware;
 /// <summary>
 /// Adds security headers per OWASP recommendations.
 /// Applied early in the pipeline to all responses.
+/// Configurable via appsettings Security section.
 /// </summary>
 public class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IWebHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
 
-    public SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment)
+    public SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment, IConfiguration configuration)
     {
         _next = next;
         _environment = environment;
+        _configuration = configuration;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Check if upgrade-insecure-requests should be enabled (from config)
+        var enableUpgradeInsecure = _configuration.GetValue<bool>("Security:EnableUpgradeInsecureRequests", false);
+
         // Content Security Policy
         // Note: Blazor Server requires 'unsafe-inline' and 'unsafe-eval' for scripts
         // SignalR requires ws: and wss: for WebSocket connections
         var cspValue = _environment.IsDevelopment()
             ? BuildDevelopmentCsp()
-            : BuildProductionCsp();
+            : BuildProductionCsp(enableUpgradeInsecure);
 
         context.Response.Headers.Append("Content-Security-Policy", cspValue);
 
@@ -55,9 +61,15 @@ public class SecurityHeadersMiddleware
             context.Response.Headers.Append("Cache-Control", "no-store, no-cache, must-revalidate");
         }
 
-        // Cross-Origin policies
-        context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
-        context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+        // Cross-Origin policies - only add for HTTPS or localhost
+        var isSecureContext = context.Request.IsHttps ||
+                              context.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
+
+        if (isSecureContext)
+        {
+            context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+            context.Response.Headers.Append("Cross-Origin-Resource-Policy", "same-origin");
+        }
 
         await _next(context);
     }
@@ -76,19 +88,26 @@ public class SecurityHeadersMiddleware
             "form-action 'self';");
     }
 
-    private static string BuildProductionCsp()
+    private static string BuildProductionCsp(bool enableUpgradeInsecure)
     {
-        return string.Join(" ",
+        var csp = string.Join(" ",
             "default-src 'self';",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval';",  // Required for Blazor
             "style-src 'self' 'unsafe-inline';",
             "img-src 'self' data: blob:;",
             "font-src 'self';",
-            "connect-src 'self' wss:;",  // SignalR WebSocket only
+            "connect-src 'self' ws: wss:;",  // SignalR WebSocket
             "frame-ancestors 'none';",
             "base-uri 'self';",
-            "form-action 'self';",
-            "upgrade-insecure-requests;");  // Force HTTPS
+            "form-action 'self';");
+
+        // Only add upgrade-insecure-requests if HTTPS is configured
+        if (enableUpgradeInsecure)
+        {
+            csp += " upgrade-insecure-requests;";
+        }
+
+        return csp;
     }
 }
 

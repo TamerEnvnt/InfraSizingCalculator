@@ -1,0 +1,28 @@
+# ConfigMap for InfraSizing Calculator
+# Contains non-sensitive configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infrasizing-config
+  namespace: infrasizing
+  labels:
+    app.kubernetes.io/name: infrasizing-calculator
+    app.kubernetes.io/component: config
+data:
+  # ASP.NET Core settings
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+
+  # Database settings
+  Database__AutoMigrate: "true"
+  ConnectionStrings__DefaultConnection: "Data Source=/app/data/infrasizing.db"
+  ConnectionStrings__IdentityConnection: "Data Source=/app/data/identity.db"
+
+  # Security settings (HTTP for internal cluster traffic)
+  Security__EnableHttpsRedirection: "false"
+  Security__EnableHsts: "false"
+  Security__EnableUpgradeInsecureRequests: "false"
+
+  # Logging
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"

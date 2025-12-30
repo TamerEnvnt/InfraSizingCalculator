@@ -1,0 +1,47 @@
+# Kustomize overlay for Development environment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: infrasizing-dev
+
+resources:
+  - ../../base
+
+nameSuffix: -dev
+
+commonLabels:
+  environment: development
+
+# Patches for development settings
+patches:
+  # Reduce resources for dev
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "128Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "50m"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "256Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "250m"
+    target:
+      kind: Deployment
+      name: infrasizing
+
+# ConfigMap overrides for development
+configMapGenerator:
+  - name: infrasizing-config
+    behavior: merge
+    literals:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+
+images:
+  - name: infrasizing-calculator
+    newName: infrasizing-calculator
+    newTag: dev

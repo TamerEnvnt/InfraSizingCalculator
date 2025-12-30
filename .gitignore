@@ -55,6 +55,11 @@ Thumbs.db
 
 # Publish output
 publish/
+publish-*/
+**/PublishProfiles/
+
+# Deployment packages
+*.zip
 
 # Claude
 .claude/*

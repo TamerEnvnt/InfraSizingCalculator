@@ -250,14 +250,32 @@ app.UseSecurityHeaders();
 // Rate limiting - protect against abuse (Phase 2)
 app.UseRateLimiter();
 
+// Security settings from configuration (defaults to false for safe HTTP deployment)
+var enableHsts = app.Configuration.GetValue<bool>("Security:EnableHsts", false);
+var enableHttpsRedirection = app.Configuration.GetValue<bool>("Security:EnableHttpsRedirection", false);
+
 if (!app.Environment.IsDevelopment())
 {
-    // HTTPS redirection in production
-    app.UseHsts();
-    app.UseHttpsRedirection();
+    // HTTPS redirection only if explicitly enabled in config
+    if (enableHsts)
+    {
+        app.UseHsts();
+    }
+    if (enableHttpsRedirection)
+    {
+        app.UseHttpsRedirection();
+    }
 
-    // Use production CORS policy
-    app.UseCors("Production");
+    // Use production CORS policy if origins are configured, otherwise allow all
+    var corsOrigins = app.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+    if (corsOrigins != null && corsOrigins.Length > 0)
+    {
+        app.UseCors("Production");
+    }
+    else
+    {
+        app.UseCors("AllowAll");
+    }
 }
 else
 {

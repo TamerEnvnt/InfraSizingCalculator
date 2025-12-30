@@ -10,6 +10,7 @@ This document describes the Blazor UI components in the Infrastructure Sizing Ca
 App.razor
 └── MainLayout.razor
     ├── HeaderBar.razor
+    │   └── UserMenu.razor (Authentication dropdown)
     ├── LeftSidebar.razor (Navigation Controller)
     ├── Home.razor (Main Content Area)
     │   ├── Wizard Steps
@@ -24,16 +25,19 @@ App.razor
     │   ├── K8s Configuration (Components/K8s/)
     │   │   ├── K8sAppsConfig.razor
     │   │   ├── K8sNodeSpecsConfig.razor
-    │   │   ├── K8sHADRPanel.razor (NEW)
-    │   │   └── K8sSettingsConfig.razor (NEW)
+    │   │   ├── K8sHADRPanel.razor
+    │   │   └── K8sSettingsConfig.razor
     │   ├── VM Configuration (Components/VM/)
     │   │   ├── VMServerRolesConfig.razor
     │   │   └── VMHADRConfig.razor
     │   ├── Shared Components (Components/Shared/)
-    │   │   ├── EnvironmentSlider.razor (NEW)
-    │   │   ├── HorizontalSlider.razor (NEW)
-    │   │   ├── EnvironmentAppCard.razor (NEW)
-    │   │   ├── EnvironmentAppGrid.razor (NEW)
+    │   │   ├── EnvironmentSlider.razor
+    │   │   ├── HorizontalSlider.razor
+    │   │   ├── EnvironmentAppCard.razor
+    │   │   ├── EnvironmentAppGrid.razor
+    │   │   ├── InfoButton.razor
+    │   │   ├── LoadingSpinner.razor
+    │   │   ├── SelectionCard.razor
     │   │   └── HorizontalAccordionPanel.razor
     │   ├── Pricing (Components/Pricing/)
     │   │   ├── CloudAlternativesPanel.razor
@@ -46,6 +50,7 @@ App.razor
     │   │   ├── GrowthProjectionChart.razor
     │   │   └── GrowthTimeline.razor
     │   ├── Modals (Components/Modals/)
+    │   │   ├── ModalBase.razor (with accessibility)
     │   │   ├── Info Modal
     │   │   └── Save Scenario Modal
     │   └── Configuration (Components/Configuration/)
@@ -54,6 +59,12 @@ App.razor
     │       ├── SettingsPanel.razor
     │       ├── ClusterModeSelector.razor
     │       └── PricingSelector.razor
+    ├── Wizard Framework (Components/Wizard/)
+    │   └── WizardStepper.razor (progress tracking)
+    ├── Authentication Pages (Components/Pages/)
+    │   ├── Login.razor
+    │   ├── Register.razor
+    │   └── AccessDenied.razor
     ├── Scenarios.razor (Scenario Management Page)
     ├── Settings.razor (User Settings Page)
     └── RightStatsSidebar.razor (Summary Stats Only)
@@ -1091,3 +1102,131 @@ Home.razor
 | **Grid with Toggle Chips** | EnvironmentAppGrid | Multi-select configuration |
 | **Two-Section Panel** | K8sHADRPanel | Grouped configuration |
 | **Compact Grid** | K8sSettingsConfig | Dense settings layout |
+
+---
+
+## Authentication Components
+
+### UserMenu.razor
+
+**File:** `Components/Shared/UserMenu.razor`
+
+**Purpose:** Dropdown menu for authenticated users in the header.
+
+**Features:**
+- Shows user email when authenticated
+- Login/Register links for anonymous users
+- Logout functionality
+
+**Parameters:** None (uses cascading authentication state)
+
+### Login.razor
+
+**File:** `Components/Pages/Login.razor`
+**Route:** `/login`
+
+**Purpose:** User login page with form validation.
+
+**Features:**
+- Email/password form
+- Client-side validation
+- Error message display
+- Redirect to home on success
+- Link to registration
+
+### Register.razor
+
+**File:** `Components/Pages/Register.razor`
+**Route:** `/register`
+
+**Purpose:** User registration page.
+
+**Features:**
+- Email/password/confirm password form
+- Password strength validation (min 8 characters)
+- Confirmation matching validation
+- Error message display
+- Link to login
+
+### AccessDenied.razor
+
+**File:** `Components/Pages/AccessDenied.razor`
+**Route:** `/access-denied`
+
+**Purpose:** Display access denied message for unauthorized access.
+
+---
+
+## UI Helper Components
+
+### InfoButton.razor
+
+**File:** `Components/Shared/InfoButton.razor`
+
+**Purpose:** Contextual help tooltip button.
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `Title` | string | Tooltip title |
+| `Content` | RenderFragment | Tooltip content |
+
+### LoadingSpinner.razor
+
+**File:** `Components/Shared/LoadingSpinner.razor`
+
+**Purpose:** Loading indicator with customizable text.
+
+**Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Text` | string | "Loading..." | Display text |
+| `Size` | string | "md" | Size variant (sm, md, lg) |
+
+### SelectionCard.razor
+
+**File:** `Components/Shared/SelectionCard.razor`
+
+**Purpose:** Clickable selection card for wizard steps.
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `Title` | string | Card title |
+| `Description` | string | Card description |
+| `IsSelected` | bool | Selection state |
+| `OnClick` | EventCallback | Click handler |
+
+### WizardStepper.razor
+
+**File:** `Components/Wizard/WizardStepper.razor`
+
+**Purpose:** Progress stepper for wizard navigation.
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `Steps` | List<WizardStep> | Step definitions |
+| `CurrentStep` | int | Active step index |
+| `OnStepClick` | EventCallback<int> | Step click handler |
+
+### ModalBase.razor
+
+**File:** `Components/Modals/ModalBase.razor`
+
+**Purpose:** Base modal component with accessibility support.
+
+**Features:**
+- Focus trapping
+- Escape key handling
+- Backdrop click to close
+- Transition animations
+- ARIA attributes
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `IsOpen` | bool | Modal visibility |
+| `Title` | string | Modal title |
+| `ChildContent` | RenderFragment | Modal content |
+| `OnClose` | EventCallback | Close handler |

@@ -71,12 +71,15 @@ public class DatabasePricingSettingsService : IPricingSettingsService
         var onPremEntity = await _dbContext.OnPremPricing.FirstOrDefaultAsync();
         var mendixEntity = await _dbContext.MendixPricing.FirstOrDefaultAsync();
 
+        var outSystemsEntity = await _dbContext.OutSystemsPricing.FirstOrDefaultAsync();
+
         _cachedSettings = new PricingSettings
         {
             IncludePricingInResults = appSettings?.IncludePricingInResults ?? false,
             LastCacheReset = appSettings?.LastCacheReset,
             OnPremDefaults = MapOnPremFromEntity(onPremEntity),
-            MendixPricing = MapMendixFromEntity(mendixEntity)
+            MendixPricing = MapMendixFromEntity(mendixEntity),
+            OutSystemsPricing = MapOutSystemsFromEntity(outSystemsEntity)
         };
 
         // Load cloud API configs
@@ -132,6 +135,17 @@ public class DatabasePricingSettingsService : IPricingSettingsService
 
         MapMendixToEntity(settings.MendixPricing, mendixEntity);
         mendixEntity.UpdatedAt = DateTime.UtcNow;
+
+        // Update OutSystems pricing
+        var outSystemsEntity = await _dbContext.OutSystemsPricing.FirstOrDefaultAsync();
+        if (outSystemsEntity == null)
+        {
+            outSystemsEntity = new OutSystemsPricingEntity();
+            _dbContext.OutSystemsPricing.Add(outSystemsEntity);
+        }
+
+        MapOutSystemsToEntity(settings.OutSystemsPricing, outSystemsEntity);
+        outSystemsEntity.UpdatedAt = DateTime.UtcNow;
 
         // Update cloud API credentials
         foreach (var (provider, config) in settings.CloudApiConfigs)
@@ -253,6 +267,61 @@ public class DatabasePricingSettingsService : IPricingSettingsService
             mendixEntity.SupportedProvidersJson = defaults.SupportedProvidersJson;
 
             mendixEntity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Reset OutSystems pricing to defaults (Partner Calculator 2024/2025 values)
+        var outSystemsEntity = await _dbContext.OutSystemsPricing.FirstOrDefaultAsync();
+        if (outSystemsEntity != null)
+        {
+            var defaults = new OutSystemsPricingEntity();
+
+            // Edition pricing
+            outSystemsEntity.StandardEditionBase = defaults.StandardEditionBase;
+            outSystemsEntity.StandardEditionAOsIncluded = defaults.StandardEditionAOsIncluded;
+            outSystemsEntity.StandardEditionInternalUsersIncluded = defaults.StandardEditionInternalUsersIncluded;
+            outSystemsEntity.EnterpriseEditionBase = defaults.EnterpriseEditionBase;
+            outSystemsEntity.EnterpriseEditionAOsIncluded = defaults.EnterpriseEditionAOsIncluded;
+            outSystemsEntity.EnterpriseEditionInternalUsersIncluded = defaults.EnterpriseEditionInternalUsersIncluded;
+
+            // AO pricing
+            outSystemsEntity.AOPackSize = defaults.AOPackSize;
+            outSystemsEntity.AdditionalAOPackPrice = defaults.AdditionalAOPackPrice;
+
+            // User licensing
+            outSystemsEntity.InternalUserPackSize = defaults.InternalUserPackSize;
+            outSystemsEntity.AdditionalInternalUserPackPrice = defaults.AdditionalInternalUserPackPrice;
+            outSystemsEntity.ExternalUserPackSize = defaults.ExternalUserPackSize;
+            outSystemsEntity.ExternalUserPackPerYear = defaults.ExternalUserPackPerYear;
+            outSystemsEntity.UnlimitedUsersPrice = defaults.UnlimitedUsersPrice;
+
+            // AO-Pack scaled add-ons
+            outSystemsEntity.Support24x7PremiumPerAOPack = defaults.Support24x7PremiumPerAOPack;
+            outSystemsEntity.NonProductionEnvPerAOPack = defaults.NonProductionEnvPerAOPack;
+            outSystemsEntity.LoadTestEnvPerAOPack = defaults.LoadTestEnvPerAOPack;
+            outSystemsEntity.EnvironmentPackPerAOPack = defaults.EnvironmentPackPerAOPack;
+            outSystemsEntity.HighAvailabilityPerAOPack = defaults.HighAvailabilityPerAOPack;
+            outSystemsEntity.SentryPerAOPack = defaults.SentryPerAOPack;
+            outSystemsEntity.DisasterRecoveryPerAOPack = defaults.DisasterRecoveryPerAOPack;
+
+            // Flat fee add-ons
+            outSystemsEntity.LogStreamingPrice = defaults.LogStreamingPrice;
+            outSystemsEntity.DatabaseReplicaPrice = defaults.DatabaseReplicaPrice;
+            outSystemsEntity.AppShieldPerUser = defaults.AppShieldPerUser;
+
+            // Services
+            outSystemsEntity.EssentialSuccessPlanPrice = defaults.EssentialSuccessPlanPrice;
+            outSystemsEntity.PremierSuccessPlanPrice = defaults.PremierSuccessPlanPrice;
+            outSystemsEntity.DedicatedGroupSessionPrice = defaults.DedicatedGroupSessionPrice;
+            outSystemsEntity.PublicSessionPrice = defaults.PublicSessionPrice;
+            outSystemsEntity.ExpertDayPrice = defaults.ExpertDayPrice;
+
+            // Cloud VM pricing
+            outSystemsEntity.AzureVMPricingJson = defaults.AzureVMPricingJson;
+            outSystemsEntity.AwsEC2PricingJson = defaults.AwsEC2PricingJson;
+            outSystemsEntity.HoursPerMonth = defaults.HoursPerMonth;
+            outSystemsEntity.CloudOnlyFeaturesJson = defaults.CloudOnlyFeaturesJson;
+
+            outSystemsEntity.UpdatedAt = DateTime.UtcNow;
         }
 
         await _dbContext.SaveChangesAsync();
@@ -708,6 +777,349 @@ public class DatabasePricingSettingsService : IPricingSettingsService
 
     #endregion
 
+    #region OutSystems Pricing Methods
+
+    public OutSystemsPricingSettings GetOutSystemsPricingSettings()
+    {
+        return GetSettingsAsync().Result.OutSystemsPricing;
+    }
+
+    public async Task UpdateOutSystemsPricingSettingsAsync(OutSystemsPricingSettings settings)
+    {
+        var outSystemsEntity = await _dbContext.OutSystemsPricing.FirstOrDefaultAsync();
+        if (outSystemsEntity == null)
+        {
+            outSystemsEntity = new OutSystemsPricingEntity();
+            _dbContext.OutSystemsPricing.Add(outSystemsEntity);
+        }
+
+        MapOutSystemsToEntity(settings, outSystemsEntity);
+        outSystemsEntity.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Update cache
+        if (_cachedSettings != null)
+        {
+            _cachedSettings.OutSystemsPricing = settings;
+        }
+
+        OnSettingsChanged?.Invoke();
+    }
+
+    public OutSystemsPricingResult CalculateOutSystemsCost(OutSystemsDeploymentConfig config)
+    {
+        var pricing = GetOutSystemsPricingSettings();
+        var result = new OutSystemsPricingResult
+        {
+            Edition = config.Edition,
+            DeploymentType = config.DeploymentType,
+            CloudProvider = config.CloudProvider,
+            TotalAOs = config.TotalApplicationObjects,
+            AOPackCount = config.NumberOfAOPacks,
+            IncludedAOs = pricing.GetIncludedAOs(config.Edition),
+            Warnings = config.GetValidationWarnings()
+        };
+
+        // Set deployment type name
+        result.DeploymentTypeName = config.DeploymentType == OutSystemsDeploymentType.Cloud
+            ? "OutSystems Cloud"
+            : config.CloudProvider switch
+            {
+                OutSystemsCloudProvider.Azure => "Self-Managed on Azure",
+                OutSystemsCloudProvider.AWS => "Self-Managed on AWS",
+                _ => "Self-Managed On-Premises"
+            };
+
+        // ==================== LICENSE COSTS ====================
+
+        // Edition base cost
+        result.EditionBaseCost = pricing.GetEditionBasePrice(config.Edition);
+
+        // Additional AO packs (1 pack included in base)
+        result.AdditionalAOPacks = Math.Max(0, result.AOPackCount - 1);
+        result.AdditionalAOsCost = result.AdditionalAOPacks * pricing.AdditionalAOPackPrice;
+
+        // User licensing
+        CalculateUserLicenseCost(config, pricing, result);
+
+        // ==================== ADD-ON COSTS ====================
+
+        // AO-pack scaled add-ons
+        var aoPackCount = result.AOPackCount;
+        var isCloud = config.DeploymentType == OutSystemsDeploymentType.Cloud;
+
+        if (config.Include24x7PremiumSupport)
+        {
+            result.Support24x7PremiumCost = pricing.Support24x7PremiumPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "24x7 Premium Support",
+                $"${pricing.Support24x7PremiumPerAOPack}/pack × {aoPackCount} packs",
+                result.Support24x7PremiumCost, false);
+        }
+
+        if (config.IncludeNonProductionEnv)
+        {
+            result.NonProductionEnvCost = pricing.NonProductionEnvPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "Non-Production Environment",
+                $"${pricing.NonProductionEnvPerAOPack}/pack × {aoPackCount} packs",
+                result.NonProductionEnvCost, false);
+        }
+
+        if (config.IncludeLoadTestEnv && isCloud)
+        {
+            result.LoadTestEnvCost = pricing.LoadTestEnvPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "Load Testing Environment",
+                $"${pricing.LoadTestEnvPerAOPack}/pack × {aoPackCount} packs",
+                result.LoadTestEnvCost, true);
+        }
+
+        if (config.IncludeEnvironmentPack)
+        {
+            result.EnvironmentPackCost = pricing.EnvironmentPackPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "Environment Pack",
+                $"${pricing.EnvironmentPackPerAOPack}/pack × {aoPackCount} packs",
+                result.EnvironmentPackCost, false);
+        }
+
+        // Sentry includes HA, so only add one
+        if (config.IncludeSentry && isCloud)
+        {
+            result.SentryCost = pricing.SentryPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "Sentry (includes HA)",
+                $"${pricing.SentryPerAOPack}/pack × {aoPackCount} packs",
+                result.SentryCost, true);
+        }
+        else if (config.IncludeHA && isCloud)
+        {
+            result.HACost = pricing.HighAvailabilityPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "High Availability",
+                $"${pricing.HighAvailabilityPerAOPack}/pack × {aoPackCount} packs",
+                result.HACost, true);
+        }
+
+        if (config.IncludeDR)
+        {
+            result.DRCost = pricing.DisasterRecoveryPerAOPack * aoPackCount;
+            AddLineItem(result, "Add-ons", "Disaster Recovery",
+                $"${pricing.DisasterRecoveryPerAOPack}/pack × {aoPackCount} packs",
+                result.DRCost, false);
+        }
+
+        // Flat fee add-ons
+        if (config.IncludeLogStreaming && isCloud)
+        {
+            result.LogStreamingCost = pricing.LogStreamingPrice;
+            AddLineItem(result, "Add-ons", "Log Streaming",
+                "Flat fee/year",
+                result.LogStreamingCost, true);
+        }
+
+        if (config.IncludeDatabaseReplica && isCloud)
+        {
+            result.DatabaseReplicaCost = pricing.DatabaseReplicaPrice;
+            AddLineItem(result, "Add-ons", "Database Replica",
+                "Flat fee/year",
+                result.DatabaseReplicaCost, true);
+        }
+
+        if (config.AppShieldUsers > 0)
+        {
+            result.AppShieldCost = pricing.AppShieldPerUser * config.AppShieldUsers;
+            AddLineItem(result, "Add-ons", "AppShield",
+                $"${pricing.AppShieldPerUser}/user × {config.AppShieldUsers} users",
+                result.AppShieldCost, false);
+        }
+
+        // ==================== INFRASTRUCTURE COSTS ====================
+
+        if (config.DeploymentType == OutSystemsDeploymentType.SelfManaged &&
+            config.CloudProvider != OutSystemsCloudProvider.OnPremises)
+        {
+            CalculateCloudVMCost(config, pricing, result);
+        }
+
+        // ==================== SERVICES COSTS ====================
+
+        result.SuccessPlanCost = pricing.CalculateSuccessPlanCost(config.SuccessPlan);
+        if (config.SuccessPlan != OutSystemsSuccessPlan.None)
+        {
+            AddLineItem(result, "Services", $"{config.SuccessPlan} Success Plan",
+                "Annual subscription",
+                result.SuccessPlanCost, false);
+        }
+
+        // Training costs
+        result.TrainingCost = (config.DedicatedGroupSessions * pricing.DedicatedGroupSessionPrice) +
+                              (config.PublicSessions * pricing.PublicSessionPrice);
+        if (result.TrainingCost > 0)
+        {
+            AddLineItem(result, "Services", "Training",
+                $"{config.DedicatedGroupSessions} dedicated + {config.PublicSessions} public sessions",
+                result.TrainingCost, false);
+        }
+
+        // Expert days
+        result.ExpertDaysCost = config.ExpertDays * pricing.ExpertDayPrice;
+        if (result.ExpertDaysCost > 0)
+        {
+            AddLineItem(result, "Services", "Expert Days",
+                $"{config.ExpertDays} days × ${pricing.ExpertDayPrice}/day",
+                result.ExpertDaysCost, false);
+        }
+
+        // ==================== ENVIRONMENT DETAILS ====================
+
+        result.EnvironmentDetails = $"{config.ProductionEnvironments} Production, " +
+                                    $"{config.NonProductionEnvironments} Non-Production";
+
+        return result;
+    }
+
+    private void CalculateUserLicenseCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        if (config.UseUnlimitedUsers)
+        {
+            result.UserLicenseCost = pricing.UnlimitedUsersPrice;
+            result.UserLicenseDetails = "Unlimited Users";
+            AddLineItem(result, "Licensing", "Unlimited Users",
+                "Flat fee/year",
+                result.UserLicenseCost, false);
+            return;
+        }
+
+        decimal userCost = 0;
+        var details = new List<string>();
+
+        // Internal users (some included in edition)
+        var includedInternal = pricing.GetIncludedInternalUsers(config.Edition);
+        var additionalInternal = Math.Max(0, config.InternalUsers - includedInternal);
+
+        if (additionalInternal > 0)
+        {
+            var internalPacks = (int)Math.Ceiling(additionalInternal / (double)pricing.InternalUserPackSize);
+            var internalCost = internalPacks * pricing.AdditionalInternalUserPackPrice;
+            userCost += internalCost;
+            details.Add($"{config.InternalUsers} internal ({includedInternal} included, {additionalInternal} additional)");
+
+            if (internalCost > 0)
+            {
+                AddLineItem(result, "Licensing", "Additional Internal Users",
+                    $"{internalPacks} pack(s) × ${pricing.AdditionalInternalUserPackPrice}",
+                    internalCost, false);
+            }
+        }
+        else
+        {
+            details.Add($"{config.InternalUsers} internal (included in {config.Edition})");
+        }
+
+        // External users
+        if (config.ExternalUsers > 0)
+        {
+            var externalCost = pricing.CalculateExternalUsersCost(config.ExternalUsers);
+            userCost += externalCost;
+            var externalPacks = (int)Math.Ceiling(config.ExternalUsers / (double)pricing.ExternalUserPackSize);
+            details.Add($"{config.ExternalUsers} external ({externalPacks} pack(s))");
+
+            AddLineItem(result, "Licensing", "External Users",
+                $"{externalPacks} pack(s) × ${pricing.ExternalUserPackPricePerYear}",
+                externalCost, false);
+        }
+
+        result.UserLicenseCost = userCost;
+        result.UserLicenseDetails = string.Join(", ", details);
+    }
+
+    private void CalculateCloudVMCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        var totalEnvs = config.TotalEnvironments;
+        var serversPerEnv = config.FrontEndServersPerEnvironment;
+        var totalServers = totalEnvs * serversPerEnv;
+
+        result.TotalVMCount = totalServers;
+
+        if (config.CloudProvider == OutSystemsCloudProvider.Azure)
+        {
+            var monthlyVMCost = pricing.CalculateAzureMonthlyVMCost(config.AzureInstanceType, totalServers);
+            result.MonthlyVMCost = monthlyVMCost;
+
+            var specs = OutSystemsPricingSettings.GetAzureInstanceSpecs(config.AzureInstanceType);
+            result.VMDetails = $"{totalServers}x Azure {config.AzureInstanceType} " +
+                              $"({specs.vCPU} vCPU, {specs.RamGB} GB each)";
+
+            AddLineItem(result, "Infrastructure", "Azure VMs",
+                $"{totalServers} × {config.AzureInstanceType} @ {pricing.HoursPerMonth}h/month",
+                result.AnnualVMCost, false);
+        }
+        else if (config.CloudProvider == OutSystemsCloudProvider.AWS)
+        {
+            var monthlyVMCost = pricing.CalculateAwsMonthlyVMCost(config.AwsInstanceType, totalServers);
+            result.MonthlyVMCost = monthlyVMCost;
+
+            var specs = OutSystemsPricingSettings.GetAwsInstanceSpecs(config.AwsInstanceType);
+            result.VMDetails = $"{totalServers}x AWS {config.AwsInstanceType} " +
+                              $"({specs.vCPU} vCPU, {specs.RamGB} GB each)";
+
+            AddLineItem(result, "Infrastructure", "AWS EC2 Instances",
+                $"{totalServers} × {config.AwsInstanceType} @ {pricing.HoursPerMonth}h/month",
+                result.AnnualVMCost, false);
+        }
+    }
+
+    private static void AddLineItem(
+        OutSystemsPricingResult result,
+        string category,
+        string name,
+        string? description,
+        decimal amount,
+        bool isCloudOnly)
+    {
+        result.LineItems.Add(new OutSystemsCostLineItem
+        {
+            Category = category,
+            Name = name,
+            Description = description,
+            Amount = amount,
+            IsCloudOnly = isCloudOnly,
+            IsIncluded = false
+        });
+    }
+
+    public bool IsOutSystemsCloudOnlyFeature(string featureName)
+    {
+        return OutSystemsPricingSettings.IsCloudOnlyFeature(featureName);
+    }
+
+    public OutSystemsAzureInstanceType RecommendAzureInstance(int totalCores, int totalRamGB)
+    {
+        // Recommend based on memory requirements primarily
+        if (totalRamGB <= 8 && totalCores <= 4)
+            return OutSystemsAzureInstanceType.F4s_v2;
+        if (totalRamGB <= 16 && totalCores <= 4)
+            return OutSystemsAzureInstanceType.D4s_v3;
+        if (totalRamGB <= 32 && totalCores <= 8)
+            return OutSystemsAzureInstanceType.D8s_v3;
+        return OutSystemsAzureInstanceType.D16s_v3;
+    }
+
+    public OutSystemsAwsInstanceType RecommendAwsInstance(int totalCores, int totalRamGB)
+    {
+        // Recommend based on memory requirements primarily
+        if (totalRamGB <= 8 && totalCores <= 2)
+            return OutSystemsAwsInstanceType.M5Large;
+        if (totalRamGB <= 16 && totalCores <= 4)
+            return OutSystemsAwsInstanceType.M5XLarge;
+        return OutSystemsAwsInstanceType.M52XLarge;
+    }
+
+    #endregion
+
     #region Mapping Helpers
 
     private static OnPremPricing MapOnPremFromEntity(OnPremPricingEntity? entity)
@@ -887,6 +1299,178 @@ public class DatabasePricingSettingsService : IPricingSettingsService
         }
         entity.GenAIKnowledgeBasePrice = settings.GenAIKnowledgeBasePricePerYear;
         entity.GenAIKnowledgeBaseTokens = settings.GenAIKnowledgeBaseTokens;
+    }
+
+    private static OutSystemsPricingSettings MapOutSystemsFromEntity(OutSystemsPricingEntity? entity)
+    {
+        if (entity == null)
+            return new OutSystemsPricingSettings();
+
+        var settings = new OutSystemsPricingSettings
+        {
+            // Edition pricing
+            StandardEditionBasePrice = entity.StandardEditionBase,
+            StandardEditionAOsIncluded = entity.StandardEditionAOsIncluded,
+            StandardEditionInternalUsersIncluded = entity.StandardEditionInternalUsersIncluded,
+            EnterpriseEditionBasePrice = entity.EnterpriseEditionBase,
+            EnterpriseEditionAOsIncluded = entity.EnterpriseEditionAOsIncluded,
+            EnterpriseEditionInternalUsersIncluded = entity.EnterpriseEditionInternalUsersIncluded,
+
+            // AO pricing
+            AOPackSize = entity.AOPackSize,
+            AdditionalAOPackPrice = entity.AdditionalAOPackPrice,
+
+            // User licensing
+            InternalUserPackSize = entity.InternalUserPackSize,
+            AdditionalInternalUserPackPrice = entity.AdditionalInternalUserPackPrice,
+            ExternalUserPackSize = entity.ExternalUserPackSize,
+            ExternalUserPackPricePerYear = entity.ExternalUserPackPerYear,
+            UnlimitedUsersPrice = entity.UnlimitedUsersPrice,
+
+            // AO-Pack scaled add-ons
+            Support24x7PremiumPerAOPack = entity.Support24x7PremiumPerAOPack,
+            NonProductionEnvPerAOPack = entity.NonProductionEnvPerAOPack,
+            LoadTestEnvPerAOPack = entity.LoadTestEnvPerAOPack,
+            EnvironmentPackPerAOPack = entity.EnvironmentPackPerAOPack,
+            HighAvailabilityPerAOPack = entity.HighAvailabilityPerAOPack,
+            SentryPerAOPack = entity.SentryPerAOPack,
+            DisasterRecoveryPerAOPack = entity.DisasterRecoveryPerAOPack,
+
+            // Flat fee add-ons
+            LogStreamingPrice = entity.LogStreamingPrice,
+            DatabaseReplicaPrice = entity.DatabaseReplicaPrice,
+            AppShieldPerUser = entity.AppShieldPerUser,
+
+            // Services
+            EssentialSuccessPlanPrice = entity.EssentialSuccessPlanPrice,
+            PremierSuccessPlanPrice = entity.PremierSuccessPlanPrice,
+            DedicatedGroupSessionPrice = entity.DedicatedGroupSessionPrice,
+            PublicSessionPrice = entity.PublicSessionPrice,
+            ExpertDayPrice = entity.ExpertDayPrice,
+
+            // Legacy self-managed
+            SelfManagedBasePrice = entity.SelfManagedBase,
+            SelfManagedPerEnvironmentPrice = entity.SelfManagedPerEnvironment,
+            SelfManagedPerFrontEndPrice = entity.SelfManagedPerFrontEnd,
+
+            // Legacy support
+            PremiumSupportPercent = entity.PremiumSupportPercent,
+            EliteSupportPercent = entity.EliteSupportPercent,
+
+            // Hours per month for VM calculation
+            HoursPerMonth = entity.HoursPerMonth
+        };
+
+        // Parse Azure VM pricing from JSON
+        if (!string.IsNullOrEmpty(entity.AzureVMPricingJson))
+        {
+            try
+            {
+                var azurePricing = JsonSerializer.Deserialize<Dictionary<string, decimal>>(entity.AzureVMPricingJson);
+                if (azurePricing != null)
+                {
+                    settings.AzureVMHourlyPricing.Clear();
+                    foreach (var (key, value) in azurePricing)
+                    {
+                        if (Enum.TryParse<OutSystemsAzureInstanceType>(key, out var instanceType))
+                        {
+                            settings.AzureVMHourlyPricing[instanceType] = value;
+                        }
+                    }
+                }
+            }
+            catch { /* Use defaults */ }
+        }
+
+        // Parse AWS EC2 pricing from JSON
+        if (!string.IsNullOrEmpty(entity.AwsEC2PricingJson))
+        {
+            try
+            {
+                var awsPricing = JsonSerializer.Deserialize<Dictionary<string, decimal>>(entity.AwsEC2PricingJson);
+                if (awsPricing != null)
+                {
+                    settings.AwsEC2HourlyPricing.Clear();
+                    foreach (var (key, value) in awsPricing)
+                    {
+                        if (Enum.TryParse<OutSystemsAwsInstanceType>(key, out var instanceType))
+                        {
+                            settings.AwsEC2HourlyPricing[instanceType] = value;
+                        }
+                    }
+                }
+            }
+            catch { /* Use defaults */ }
+        }
+
+        return settings;
+    }
+
+    private static void MapOutSystemsToEntity(OutSystemsPricingSettings settings, OutSystemsPricingEntity entity)
+    {
+        // Edition pricing
+        entity.StandardEditionBase = settings.StandardEditionBasePrice;
+        entity.StandardEditionAOsIncluded = settings.StandardEditionAOsIncluded;
+        entity.StandardEditionInternalUsersIncluded = settings.StandardEditionInternalUsersIncluded;
+        entity.EnterpriseEditionBase = settings.EnterpriseEditionBasePrice;
+        entity.EnterpriseEditionAOsIncluded = settings.EnterpriseEditionAOsIncluded;
+        entity.EnterpriseEditionInternalUsersIncluded = settings.EnterpriseEditionInternalUsersIncluded;
+
+        // AO pricing
+        entity.AOPackSize = settings.AOPackSize;
+        entity.AdditionalAOPackPrice = settings.AdditionalAOPackPrice;
+
+        // User licensing
+        entity.InternalUserPackSize = settings.InternalUserPackSize;
+        entity.AdditionalInternalUserPackPrice = settings.AdditionalInternalUserPackPrice;
+        entity.ExternalUserPackSize = settings.ExternalUserPackSize;
+        entity.ExternalUserPackPerYear = settings.ExternalUserPackPricePerYear;
+        entity.UnlimitedUsersPrice = settings.UnlimitedUsersPrice;
+
+        // AO-Pack scaled add-ons
+        entity.Support24x7PremiumPerAOPack = settings.Support24x7PremiumPerAOPack;
+        entity.NonProductionEnvPerAOPack = settings.NonProductionEnvPerAOPack;
+        entity.LoadTestEnvPerAOPack = settings.LoadTestEnvPerAOPack;
+        entity.EnvironmentPackPerAOPack = settings.EnvironmentPackPerAOPack;
+        entity.HighAvailabilityPerAOPack = settings.HighAvailabilityPerAOPack;
+        entity.SentryPerAOPack = settings.SentryPerAOPack;
+        entity.DisasterRecoveryPerAOPack = settings.DisasterRecoveryPerAOPack;
+
+        // Flat fee add-ons
+        entity.LogStreamingPrice = settings.LogStreamingPrice;
+        entity.DatabaseReplicaPrice = settings.DatabaseReplicaPrice;
+        entity.AppShieldPerUser = settings.AppShieldPerUser;
+
+        // Services
+        entity.EssentialSuccessPlanPrice = settings.EssentialSuccessPlanPrice;
+        entity.PremierSuccessPlanPrice = settings.PremierSuccessPlanPrice;
+        entity.DedicatedGroupSessionPrice = settings.DedicatedGroupSessionPrice;
+        entity.PublicSessionPrice = settings.PublicSessionPrice;
+        entity.ExpertDayPrice = settings.ExpertDayPrice;
+
+        // Legacy self-managed
+        entity.SelfManagedBase = settings.SelfManagedBasePrice;
+        entity.SelfManagedPerEnvironment = settings.SelfManagedPerEnvironmentPrice;
+        entity.SelfManagedPerFrontEnd = settings.SelfManagedPerFrontEndPrice;
+
+        // Legacy support
+        entity.PremiumSupportPercent = settings.PremiumSupportPercent;
+        entity.EliteSupportPercent = settings.EliteSupportPercent;
+
+        // Hours per month
+        entity.HoursPerMonth = settings.HoursPerMonth;
+
+        // Serialize Azure VM pricing to JSON
+        var azureDict = settings.AzureVMHourlyPricing.ToDictionary(
+            kvp => kvp.Key.ToString(),
+            kvp => kvp.Value);
+        entity.AzureVMPricingJson = JsonSerializer.Serialize(azureDict);
+
+        // Serialize AWS EC2 pricing to JSON
+        var awsDict = settings.AwsEC2HourlyPricing.ToDictionary(
+            kvp => kvp.Key.ToString(),
+            kvp => kvp.Value);
+        entity.AwsEC2PricingJson = JsonSerializer.Serialize(awsDict);
     }
 
     #endregion

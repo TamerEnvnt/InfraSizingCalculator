@@ -114,6 +114,7 @@ public class InfraSizingDbContext : DbContext
         });
 
         // OutSystemsPricing - single row table with OutSystems subscription pricing
+        // Based on OutSystems Partner Price Calculator (2024/2025)
         modelBuilder.Entity<OutSystemsPricingEntity>(entity =>
         {
             entity.ToTable("OutSystemsPricing");
@@ -124,29 +125,45 @@ public class InfraSizingDbContext : DbContext
             entity.Property(e => e.EnterpriseEditionBase).HasPrecision(18, 2);
             entity.Property(e => e.AdditionalAOPackPrice).HasPrecision(18, 2);
 
-            // Cloud Add-ons
-            entity.Property(e => e.CloudAdditionalProdEnv).HasPrecision(18, 2);
-            entity.Property(e => e.CloudAdditionalNonProdEnv).HasPrecision(18, 2);
-            entity.Property(e => e.CloudHAAddOn).HasPrecision(18, 2);
-            entity.Property(e => e.CloudDRAddOn).HasPrecision(18, 2);
+            // User Licensing
+            entity.Property(e => e.AdditionalInternalUserPackPrice).HasPrecision(18, 2);
+            entity.Property(e => e.ExternalUserPackPerYear).HasPrecision(18, 2);
+            entity.Property(e => e.UnlimitedUsersPrice).HasPrecision(18, 2);
 
-            // Self-Managed
+            // Add-ons: AO-Pack Scaled
+            entity.Property(e => e.Support24x7PremiumPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.NonProductionEnvPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.LoadTestEnvPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.EnvironmentPackPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.HighAvailabilityPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.SentryPerAOPack).HasPrecision(18, 2);
+            entity.Property(e => e.DisasterRecoveryPerAOPack).HasPrecision(18, 2);
+
+            // Add-ons: Flat Fee
+            entity.Property(e => e.LogStreamingPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DatabaseReplicaPrice).HasPrecision(18, 2);
+            entity.Property(e => e.AppShieldPerUser).HasPrecision(18, 2);
+
+            // Services
+            entity.Property(e => e.EssentialSuccessPlanPrice).HasPrecision(18, 2);
+            entity.Property(e => e.PremierSuccessPlanPrice).HasPrecision(18, 2);
+            entity.Property(e => e.DedicatedGroupSessionPrice).HasPrecision(18, 2);
+            entity.Property(e => e.PublicSessionPrice).HasPrecision(18, 2);
+            entity.Property(e => e.ExpertDayPrice).HasPrecision(18, 2);
+
+            // Legacy Self-Managed
             entity.Property(e => e.SelfManagedBase).HasPrecision(18, 2);
             entity.Property(e => e.SelfManagedPerEnvironment).HasPrecision(18, 2);
             entity.Property(e => e.SelfManagedPerFrontEnd).HasPrecision(18, 2);
 
-            // User Licensing
-            entity.Property(e => e.AdditionalInternalUserPackPrice).HasPrecision(18, 2);
-            entity.Property(e => e.ExternalUserPackPerYear).HasPrecision(18, 2);
-
-            // Support
-            entity.Property(e => e.StandardSupportPercent).HasPrecision(5, 2);
+            // Legacy Support
             entity.Property(e => e.PremiumSupportPercent).HasPrecision(5, 2);
             entity.Property(e => e.EliteSupportPercent).HasPrecision(5, 2);
 
-            // Professional Services
-            entity.Property(e => e.ProfessionalServicesDayRate).HasPrecision(18, 2);
-            entity.Property(e => e.TrainingPerPersonPerDay).HasPrecision(18, 2);
+            // Cloud VM Pricing JSON
+            entity.Property(e => e.AzureVMPricingJson).HasMaxLength(1000);
+            entity.Property(e => e.AwsEC2PricingJson).HasMaxLength(1000);
+            entity.Property(e => e.CloudOnlyFeaturesJson).HasMaxLength(500);
         });
 
         // DistributionConfigs - one row per Kubernetes distribution

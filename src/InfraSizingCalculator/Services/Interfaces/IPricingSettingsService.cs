@@ -149,6 +149,39 @@ public interface IPricingSettingsService
     /// Get list of officially supported Mendix private cloud providers.
     /// </summary>
     List<MendixPrivateCloudProvider> GetMendixSupportedProviders();
+
+    // ==================== OUTSYSTEMS PRICING ====================
+
+    /// <summary>
+    /// Get OutSystems pricing settings based on Partner Price Calculator.
+    /// </summary>
+    OutSystemsPricingSettings GetOutSystemsPricingSettings();
+
+    /// <summary>
+    /// Update OutSystems pricing settings.
+    /// </summary>
+    Task UpdateOutSystemsPricingSettingsAsync(OutSystemsPricingSettings settings);
+
+    /// <summary>
+    /// Calculate OutSystems deployment cost based on configuration.
+    /// Uses AO-pack scaling for add-ons and includes cloud VM costs for self-managed deployments.
+    /// </summary>
+    OutSystemsPricingResult CalculateOutSystemsCost(OutSystemsDeploymentConfig config);
+
+    /// <summary>
+    /// Check if a feature is only available in OutSystems Cloud deployments.
+    /// </summary>
+    bool IsOutSystemsCloudOnlyFeature(string featureName);
+
+    /// <summary>
+    /// Get recommended Azure VM instance type based on resource requirements.
+    /// </summary>
+    OutSystemsAzureInstanceType RecommendAzureInstance(int totalCores, int totalRamGB);
+
+    /// <summary>
+    /// Get recommended AWS EC2 instance type based on resource requirements.
+    /// </summary>
+    OutSystemsAwsInstanceType RecommendAwsInstance(int totalCores, int totalRamGB);
 }
 
 /// <summary>

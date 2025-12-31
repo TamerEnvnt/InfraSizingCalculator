@@ -27,6 +27,11 @@ public class PricingSettings
     public MendixPricingSettings MendixPricing { get; set; } = new();
 
     /// <summary>
+    /// OutSystems platform pricing configuration (from Partner Price Calculator).
+    /// </summary>
+    public OutSystemsPricingSettings OutSystemsPricing { get; set; } = new();
+
+    /// <summary>
     /// Cloud provider pricing defaults (AWS, Azure, GCP).
     /// </summary>
     public CloudPricingSettings CloudPricing { get; set; } = new();

@@ -516,6 +516,203 @@ public class PricingSettingsService : IPricingSettingsService
         return SupportedMendixProviders.ToList();
     }
 
+    // ==================== OUTSYSTEMS PRICING ====================
+
+    public OutSystemsPricingSettings GetOutSystemsPricingSettings()
+    {
+        return _settings.OutSystemsPricing;
+    }
+
+    public async Task UpdateOutSystemsPricingSettingsAsync(OutSystemsPricingSettings settings)
+    {
+        _settings.OutSystemsPricing = settings;
+        _settings.LastModified = DateTime.UtcNow;
+        await SaveSettingsInternalAsync();
+        OnSettingsChanged?.Invoke();
+    }
+
+    public OutSystemsPricingResult CalculateOutSystemsCost(OutSystemsDeploymentConfig config)
+    {
+        var pricing = _settings.OutSystemsPricing;
+        var result = new OutSystemsPricingResult
+        {
+            Edition = config.Edition,
+            DeploymentType = config.DeploymentType,
+            CloudProvider = config.CloudProvider,
+            TotalAOs = config.TotalApplicationObjects,
+            AOPackCount = config.NumberOfAOPacks,
+            IncludedAOs = pricing.GetIncludedAOs(config.Edition),
+            Warnings = config.GetValidationWarnings()
+        };
+
+        // Set deployment type name
+        result.DeploymentTypeName = config.DeploymentType == OutSystemsDeploymentType.Cloud
+            ? "OutSystems Cloud"
+            : config.CloudProvider switch
+            {
+                OutSystemsCloudProvider.Azure => "Self-Managed on Azure",
+                OutSystemsCloudProvider.AWS => "Self-Managed on AWS",
+                _ => "Self-Managed On-Premises"
+            };
+
+        // Edition base cost
+        result.EditionBaseCost = pricing.GetEditionBasePrice(config.Edition);
+
+        // Additional AO packs (1 pack included in base)
+        result.AdditionalAOPacks = Math.Max(0, result.AOPackCount - 1);
+        result.AdditionalAOsCost = result.AdditionalAOPacks * pricing.AdditionalAOPackPrice;
+
+        // User licensing
+        CalculateOutSystemsUserLicenseCost(config, pricing, result);
+
+        // Add-ons
+        CalculateOutSystemsAddOnCosts(config, pricing, result);
+
+        // Infrastructure (for self-managed on cloud)
+        if (config.DeploymentType == OutSystemsDeploymentType.SelfManaged &&
+            config.CloudProvider != OutSystemsCloudProvider.OnPremises)
+        {
+            CalculateOutSystemsCloudVMCost(config, pricing, result);
+        }
+
+        // Services
+        result.SuccessPlanCost = pricing.CalculateSuccessPlanCost(config.SuccessPlan);
+        result.TrainingCost = (config.DedicatedGroupSessions * pricing.DedicatedGroupSessionPrice) +
+                              (config.PublicSessions * pricing.PublicSessionPrice);
+        result.ExpertDaysCost = config.ExpertDays * pricing.ExpertDayPrice;
+
+        // Environment details
+        result.EnvironmentDetails = $"{config.ProductionEnvironments} Production, " +
+                                    $"{config.NonProductionEnvironments} Non-Production";
+
+        return result;
+    }
+
+    private void CalculateOutSystemsUserLicenseCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        if (config.UseUnlimitedUsers)
+        {
+            result.UserLicenseCost = pricing.UnlimitedUsersPrice;
+            result.UserLicenseDetails = "Unlimited Users";
+            return;
+        }
+
+        decimal userCost = 0;
+        var details = new List<string>();
+
+        var includedInternal = pricing.GetIncludedInternalUsers(config.Edition);
+        var additionalInternal = Math.Max(0, config.InternalUsers - includedInternal);
+
+        if (additionalInternal > 0)
+        {
+            var internalPacks = (int)Math.Ceiling(additionalInternal / (double)pricing.InternalUserPackSize);
+            userCost += internalPacks * pricing.AdditionalInternalUserPackPrice;
+            details.Add($"{config.InternalUsers} internal ({includedInternal} included)");
+        }
+        else
+        {
+            details.Add($"{config.InternalUsers} internal (included)");
+        }
+
+        if (config.ExternalUsers > 0)
+        {
+            userCost += pricing.CalculateExternalUsersCost(config.ExternalUsers);
+            var externalPacks = (int)Math.Ceiling(config.ExternalUsers / (double)pricing.ExternalUserPackSize);
+            details.Add($"{config.ExternalUsers} external ({externalPacks} pack(s))");
+        }
+
+        result.UserLicenseCost = userCost;
+        result.UserLicenseDetails = string.Join(", ", details);
+    }
+
+    private void CalculateOutSystemsAddOnCosts(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        var aoPackCount = result.AOPackCount;
+        var isCloud = config.DeploymentType == OutSystemsDeploymentType.Cloud;
+
+        if (config.Include24x7PremiumSupport)
+            result.Support24x7PremiumCost = pricing.Support24x7PremiumPerAOPack * aoPackCount;
+
+        if (config.IncludeNonProductionEnv)
+            result.NonProductionEnvCost = pricing.NonProductionEnvPerAOPack * aoPackCount;
+
+        if (config.IncludeLoadTestEnv && isCloud)
+            result.LoadTestEnvCost = pricing.LoadTestEnvPerAOPack * aoPackCount;
+
+        if (config.IncludeEnvironmentPack)
+            result.EnvironmentPackCost = pricing.EnvironmentPackPerAOPack * aoPackCount;
+
+        if (config.IncludeSentry && isCloud)
+            result.SentryCost = pricing.SentryPerAOPack * aoPackCount;
+        else if (config.IncludeHA && isCloud)
+            result.HACost = pricing.HighAvailabilityPerAOPack * aoPackCount;
+
+        if (config.IncludeDR)
+            result.DRCost = pricing.DisasterRecoveryPerAOPack * aoPackCount;
+
+        if (config.IncludeLogStreaming && isCloud)
+            result.LogStreamingCost = pricing.LogStreamingPrice;
+
+        if (config.IncludeDatabaseReplica && isCloud)
+            result.DatabaseReplicaCost = pricing.DatabaseReplicaPrice;
+
+        if (config.AppShieldUsers > 0)
+            result.AppShieldCost = pricing.AppShieldPerUser * config.AppShieldUsers;
+    }
+
+    private void CalculateOutSystemsCloudVMCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        var totalServers = config.TotalEnvironments * config.FrontEndServersPerEnvironment;
+        result.TotalVMCount = totalServers;
+
+        if (config.CloudProvider == OutSystemsCloudProvider.Azure)
+        {
+            result.MonthlyVMCost = pricing.CalculateAzureMonthlyVMCost(config.AzureInstanceType, totalServers);
+            var specs = OutSystemsPricingSettings.GetAzureInstanceSpecs(config.AzureInstanceType);
+            result.VMDetails = $"{totalServers}x Azure {config.AzureInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
+        }
+        else if (config.CloudProvider == OutSystemsCloudProvider.AWS)
+        {
+            result.MonthlyVMCost = pricing.CalculateAwsMonthlyVMCost(config.AwsInstanceType, totalServers);
+            var specs = OutSystemsPricingSettings.GetAwsInstanceSpecs(config.AwsInstanceType);
+            result.VMDetails = $"{totalServers}x AWS {config.AwsInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
+        }
+    }
+
+    public bool IsOutSystemsCloudOnlyFeature(string featureName)
+    {
+        return OutSystemsPricingSettings.IsCloudOnlyFeature(featureName);
+    }
+
+    public OutSystemsAzureInstanceType RecommendAzureInstance(int totalCores, int totalRamGB)
+    {
+        if (totalRamGB <= 8 && totalCores <= 4)
+            return OutSystemsAzureInstanceType.F4s_v2;
+        if (totalRamGB <= 16 && totalCores <= 4)
+            return OutSystemsAzureInstanceType.D4s_v3;
+        if (totalRamGB <= 32 && totalCores <= 8)
+            return OutSystemsAzureInstanceType.D8s_v3;
+        return OutSystemsAzureInstanceType.D16s_v3;
+    }
+
+    public OutSystemsAwsInstanceType RecommendAwsInstance(int totalCores, int totalRamGB)
+    {
+        if (totalRamGB <= 8 && totalCores <= 2)
+            return OutSystemsAwsInstanceType.M5Large;
+        if (totalRamGB <= 16 && totalCores <= 4)
+            return OutSystemsAwsInstanceType.M5XLarge;
+        return OutSystemsAwsInstanceType.M52XLarge;
+    }
+
     private async Task EnsureInitializedAsync()
     {
         if (_initialized) return;

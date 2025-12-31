@@ -1,0 +1,1019 @@
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="outsystems-pricing-panel">
+    <!-- Deployment Type Selection -->
+    <div class="config-section">
+        <h3 class="section-header">Deployment Type</h3>
+        <div class="option-grid">
+            <div class="option-card @(Config.DeploymentType == OutSystemsDeploymentType.Cloud ? "selected" : "")"
+                 @onclick="() => SetDeploymentType(OutSystemsDeploymentType.Cloud)">
+                <span class="option-icon">☁️</span>
+                <span class="option-label">OutSystems Cloud</span>
+                <span class="option-desc">Managed PaaS by OutSystems</span>
+            </div>
+            <div class="option-card @(Config.DeploymentType == OutSystemsDeploymentType.SelfManaged ? "selected" : "")"
+                 @onclick="() => SetDeploymentType(OutSystemsDeploymentType.SelfManaged)">
+                <span class="option-icon">🏢</span>
+                <span class="option-label">Self-Managed</span>
+                <span class="option-desc">On-premises or private cloud</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edition Selection -->
+    <div class="config-section">
+        <h3 class="section-header">Edition</h3>
+        <div class="option-grid">
+            <div class="option-card @(Config.Edition == OutSystemsEdition.Standard ? "selected" : "")"
+                 @onclick="() => SetEdition(OutSystemsEdition.Standard)">
+                <span class="option-label">Standard</span>
+                <span class="option-desc">100 internal users included</span>
+                <span class="option-price">@FormatCurrency(Settings.StandardEditionBasePrice)/year</span>
+            </div>
+            <div class="option-card @(Config.Edition == OutSystemsEdition.Enterprise ? "selected" : "")"
+                 @onclick="() => SetEdition(OutSystemsEdition.Enterprise)">
+                <span class="option-label">Enterprise</span>
+                <span class="option-desc">500 internal users included</span>
+                <span class="option-price">@FormatCurrency(Settings.EnterpriseEditionBasePrice)/year</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Objects -->
+    <details class="config-section expandable" open>
+        <summary>
+            <span class="section-icon">📊</span>
+            <span class="section-title">Application Objects</span>
+            <span class="section-badge">@Config.NumberOfAOPacks pack(s)</span>
+        </summary>
+        <div class="section-content">
+            <p class="info-text">
+                AOs = Screens + Database Tables + API Methods. Each pack includes 150 AOs.
+            </p>
+            <div class="slider-group">
+                <label>Total Application Objects: <strong>@Config.TotalApplicationObjects</strong></label>
+                <input type="range"
+                       min="150"
+                       max="3000"
+                       step="150"
+                       value="@Config.TotalApplicationObjects"
+                       @onchange="HandleAOChange" />
+                <div class="slider-labels">
+                    <span>150</span>
+                    <span>1500</span>
+                    <span>3000</span>
+                </div>
+            </div>
+            <div class="ao-breakdown">
+                <div class="breakdown-row">
+                    <span class="label">Included in edition</span>
+                    <span class="value">@Settings.GetIncludedAOs(Config.Edition) AOs</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="label">Additional AO packs</span>
+                    <span class="value">@Math.Max(0, Config.NumberOfAOPacks - 1) pack(s)</span>
+                </div>
+                @if (Config.NumberOfAOPacks > 1)
+                {
+                    <div class="breakdown-row cost">
+                        <span class="label">Additional AOs cost</span>
+                        <span class="value">@FormatCurrency((Config.NumberOfAOPacks - 1) * Settings.AdditionalAOPackPrice)/year</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </details>
+
+    <!-- Self-Managed Cloud Provider -->
+    @if (Config.DeploymentType == OutSystemsDeploymentType.SelfManaged)
+    {
+        <details class="config-section expandable" open>
+            <summary>
+                <span class="section-icon">🖥️</span>
+                <span class="section-title">Cloud Infrastructure</span>
+                <span class="section-badge">@Config.CloudProvider</span>
+            </summary>
+            <div class="section-content">
+                <div class="provider-selection">
+                    <label>Infrastructure Provider</label>
+                    <select @bind="Config.CloudProvider" @bind:after="RecalculateCost">
+                        <option value="@OutSystemsCloudProvider.OnPremises">On-Premises</option>
+                        <option value="@OutSystemsCloudProvider.Azure">Microsoft Azure</option>
+                        <option value="@OutSystemsCloudProvider.AWS">Amazon Web Services</option>
+                    </select>
+                </div>
+
+                @if (Config.CloudProvider == OutSystemsCloudProvider.Azure)
+                {
+                    <div class="instance-selection">
+                        <label>Azure VM Instance Type</label>
+                        <select @bind="Config.AzureInstanceType" @bind:after="RecalculateCost">
+                            @foreach (var instance in Enum.GetValues<OutSystemsAzureInstanceType>())
+                            {
+                                var specs = OutSystemsPricingSettings.GetAzureInstanceSpecs(instance);
+                                <option value="@instance">@instance (@specs.vCPU vCPU, @specs.RamGB GB RAM)</option>
+                            }
+                        </select>
+                        <p class="hint">Hourly rate: @FormatCurrency(Settings.AzureVMHourlyPricing.GetValueOrDefault(Config.AzureInstanceType, 0))/hour</p>
+                    </div>
+                }
+                else if (Config.CloudProvider == OutSystemsCloudProvider.AWS)
+                {
+                    <div class="instance-selection">
+                        <label>AWS EC2 Instance Type</label>
+                        <select @bind="Config.AwsInstanceType" @bind:after="RecalculateCost">
+                            @foreach (var instance in Enum.GetValues<OutSystemsAwsInstanceType>())
+                            {
+                                var specs = OutSystemsPricingSettings.GetAwsInstanceSpecs(instance);
+                                <option value="@instance">@instance (@specs.vCPU vCPU, @specs.RamGB GB RAM)</option>
+                            }
+                        </select>
+                        <p class="hint">Hourly rate: @FormatCurrency(Settings.AwsEC2HourlyPricing.GetValueOrDefault(Config.AwsInstanceType, 0))/hour</p>
+                    </div>
+                }
+
+                <div class="server-config">
+                    <label>Front-End Servers per Environment</label>
+                    <input type="number"
+                           min="1"
+                           max="10"
+                           @bind="Config.FrontEndServersPerEnvironment"
+                           @bind:after="RecalculateCost" />
+                </div>
+            </div>
+        </details>
+    }
+
+    <!-- Environments -->
+    <details class="config-section expandable">
+        <summary>
+            <span class="section-icon">🌐</span>
+            <span class="section-title">Environments</span>
+            <span class="section-badge">@Config.TotalEnvironments total</span>
+        </summary>
+        <div class="section-content">
+            <div class="env-grid">
+                <div class="env-input">
+                    <label>Production Environments</label>
+                    <input type="number"
+                           min="1"
+                           max="5"
+                           @bind="Config.ProductionEnvironments"
+                           @bind:after="RecalculateCost" />
+                </div>
+                <div class="env-input">
+                    <label>Non-Production Environments</label>
+                    <input type="number"
+                           min="0"
+                           max="10"
+                           @bind="Config.NonProductionEnvironments"
+                           @bind:after="RecalculateCost" />
+                </div>
+            </div>
+            <p class="hint">Typical setup: 1 Production + 3 Non-Production (Dev, Test, Staging)</p>
+        </div>
+    </details>
+
+    <!-- User Licensing -->
+    <details class="config-section expandable">
+        <summary>
+            <span class="section-icon">👥</span>
+            <span class="section-title">User Licensing</span>
+            <span class="section-badge">@GetUserLicenseSummary()</span>
+        </summary>
+        <div class="section-content">
+            <div class="user-option">
+                <label class="checkbox-container">
+                    <input type="checkbox"
+                           checked="@Config.UseUnlimitedUsers"
+                           @onchange="HandleUnlimitedUsersToggle" />
+                    <span class="checkbox-label">Unlimited Users</span>
+                    <span class="checkbox-price">@FormatCurrency(Settings.UnlimitedUsersPrice)/year</span>
+                </label>
+            </div>
+
+            @if (!Config.UseUnlimitedUsers)
+            {
+                <div class="user-inputs">
+                    <div class="user-input">
+                        <label>Internal Users</label>
+                        <input type="number"
+                               min="0"
+                               max="10000"
+                               @bind="Config.InternalUsers"
+                               @bind:after="RecalculateCost" />
+                        <span class="hint">@Settings.GetIncludedInternalUsers(Config.Edition) included with @Config.Edition</span>
+                    </div>
+                    <div class="user-input">
+                        <label>External Users</label>
+                        <input type="number"
+                               min="0"
+                               max="100000"
+                               step="1000"
+                               @bind="Config.ExternalUsers"
+                               @bind:after="RecalculateCost" />
+                        <span class="hint">@FormatCurrency(Settings.ExternalUserPackPricePerYear) per 1,000 users</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </details>
+
+    <!-- Add-ons -->
+    <details class="config-section expandable">
+        <summary>
+            <span class="section-icon">🔧</span>
+            <span class="section-title">Add-ons</span>
+            <span class="section-badge">@GetActiveAddonsCount() selected</span>
+        </summary>
+        <div class="section-content">
+            <p class="info-text">Add-on costs scale with AO pack count: cost = rate × @Config.NumberOfAOPacks pack(s)</p>
+
+            <div class="addon-list">
+                <!-- Support Add-on -->
+                <label class="addon-item">
+                    <input type="checkbox"
+                           checked="@Config.Include24x7PremiumSupport"
+                           @onchange="e => ToggleAddon(nameof(Config.Include24x7PremiumSupport), e)" />
+                    <span class="addon-name">24x7 Premium Support</span>
+                    <span class="addon-price">@FormatCurrency(Settings.Support24x7PremiumPerAOPack * Config.NumberOfAOPacks)/year</span>
+                </label>
+
+                <!-- Non-Production Env -->
+                <label class="addon-item">
+                    <input type="checkbox"
+                           checked="@Config.IncludeNonProductionEnv"
+                           @onchange="e => ToggleAddon(nameof(Config.IncludeNonProductionEnv), e)" />
+                    <span class="addon-name">Additional Non-Production Env</span>
+                    <span class="addon-price">@FormatCurrency(Settings.NonProductionEnvPerAOPack * Config.NumberOfAOPacks)/year</span>
+                </label>
+
+                <!-- Environment Pack -->
+                <label class="addon-item">
+                    <input type="checkbox"
+                           checked="@Config.IncludeEnvironmentPack"
+                           @onchange="e => ToggleAddon(nameof(Config.IncludeEnvironmentPack), e)" />
+                    <span class="addon-name">Environment Pack</span>
+                    <span class="addon-price">@FormatCurrency(Settings.EnvironmentPackPerAOPack * Config.NumberOfAOPacks)/year</span>
+                </label>
+
+                <!-- Disaster Recovery -->
+                <label class="addon-item">
+                    <input type="checkbox"
+                           checked="@Config.IncludeDR"
+                           @onchange="e => ToggleAddon(nameof(Config.IncludeDR), e)" />
+                    <span class="addon-name">Disaster Recovery</span>
+                    <span class="addon-price">@FormatCurrency(Settings.DisasterRecoveryPerAOPack * Config.NumberOfAOPacks)/year</span>
+                </label>
+
+                <!-- Cloud-only add-ons -->
+                <div class="cloud-only-section">
+                    <h4 class="subsection-header">
+                        Cloud-Only Features
+                        @if (Config.DeploymentType == OutSystemsDeploymentType.SelfManaged)
+                        {
+                            <span class="warning-badge">Not available for self-managed</span>
+                        }
+                    </h4>
+
+                    <label class="addon-item @(IsCloudOnly ? "" : "disabled")">
+                        <input type="checkbox"
+                               checked="@Config.IncludeHA"
+                               disabled="@(!IsCloudOnly)"
+                               @onchange="e => ToggleAddon(nameof(Config.IncludeHA), e)" />
+                        <span class="addon-name">High Availability</span>
+                        <span class="cloud-badge">Cloud Only</span>
+                        <span class="addon-price">@FormatCurrency(Settings.HighAvailabilityPerAOPack * Config.NumberOfAOPacks)/year</span>
+                    </label>
+
+                    <label class="addon-item @(IsCloudOnly ? "" : "disabled")">
+                        <input type="checkbox"
+                               checked="@Config.IncludeSentry"
+                               disabled="@(!IsCloudOnly)"
+                               @onchange="e => ToggleAddon(nameof(Config.IncludeSentry), e)" />
+                        <span class="addon-name">Sentry (includes HA)</span>
+                        <span class="cloud-badge">Cloud Only</span>
+                        <span class="addon-price">@FormatCurrency(Settings.SentryPerAOPack * Config.NumberOfAOPacks)/year</span>
+                    </label>
+
+                    <label class="addon-item @(IsCloudOnly ? "" : "disabled")">
+                        <input type="checkbox"
+                               checked="@Config.IncludeLoadTestEnv"
+                               disabled="@(!IsCloudOnly)"
+                               @onchange="e => ToggleAddon(nameof(Config.IncludeLoadTestEnv), e)" />
+                        <span class="addon-name">Load Testing Environment</span>
+                        <span class="cloud-badge">Cloud Only</span>
+                        <span class="addon-price">@FormatCurrency(Settings.LoadTestEnvPerAOPack * Config.NumberOfAOPacks)/year</span>
+                    </label>
+
+                    <label class="addon-item @(IsCloudOnly ? "" : "disabled")">
+                        <input type="checkbox"
+                               checked="@Config.IncludeLogStreaming"
+                               disabled="@(!IsCloudOnly)"
+                               @onchange="e => ToggleAddon(nameof(Config.IncludeLogStreaming), e)" />
+                        <span class="addon-name">Log Streaming</span>
+                        <span class="cloud-badge">Cloud Only</span>
+                        <span class="addon-price">@FormatCurrency(Settings.LogStreamingPrice)/year</span>
+                    </label>
+
+                    <label class="addon-item @(IsCloudOnly ? "" : "disabled")">
+                        <input type="checkbox"
+                               checked="@Config.IncludeDatabaseReplica"
+                               disabled="@(!IsCloudOnly)"
+                               @onchange="e => ToggleAddon(nameof(Config.IncludeDatabaseReplica), e)" />
+                        <span class="addon-name">Database Replica</span>
+                        <span class="cloud-badge">Cloud Only</span>
+                        <span class="addon-price">@FormatCurrency(Settings.DatabaseReplicaPrice)/year</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Services -->
+    <details class="config-section expandable">
+        <summary>
+            <span class="section-icon">🎓</span>
+            <span class="section-title">Services & Support</span>
+            <span class="section-badge">@Config.SuccessPlan</span>
+        </summary>
+        <div class="section-content">
+            <div class="success-plan-selection">
+                <label>Success Plan</label>
+                <select @bind="Config.SuccessPlan" @bind:after="RecalculateCost">
+                    <option value="@OutSystemsSuccessPlan.None">None</option>
+                    <option value="@OutSystemsSuccessPlan.Essential">Essential (@FormatCurrency(Settings.EssentialSuccessPlanPrice)/year)</option>
+                    <option value="@OutSystemsSuccessPlan.Premier">Premier (@FormatCurrency(Settings.PremierSuccessPlanPrice)/year)</option>
+                </select>
+            </div>
+
+            <div class="services-grid">
+                <div class="service-input">
+                    <label>Dedicated Group Sessions</label>
+                    <input type="number"
+                           min="0"
+                           max="20"
+                           @bind="Config.DedicatedGroupSessions"
+                           @bind:after="RecalculateCost" />
+                    <span class="hint">@FormatCurrency(Settings.DedicatedGroupSessionPrice) each</span>
+                </div>
+                <div class="service-input">
+                    <label>Public Sessions</label>
+                    <input type="number"
+                           min="0"
+                           max="50"
+                           @bind="Config.PublicSessions"
+                           @bind:after="RecalculateCost" />
+                    <span class="hint">@FormatCurrency(Settings.PublicSessionPrice) each</span>
+                </div>
+                <div class="service-input">
+                    <label>Expert Days</label>
+                    <input type="number"
+                           min="0"
+                           max="50"
+                           @bind="Config.ExpertDays"
+                           @bind:after="RecalculateCost" />
+                    <span class="hint">@FormatCurrency(Settings.ExpertDayPrice) each</span>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <!-- Warnings -->
+    @if (Result?.Warnings?.Count > 0)
+    {
+        <div class="warnings-section">
+            @foreach (var warning in Result.Warnings)
+            {
+                <div class="warning-item">
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">@warning</span>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Cost Summary -->
+    @if (Result != null)
+    {
+        <div class="cost-summary">
+            <div class="summary-header">OutSystems Total Cost Estimate</div>
+
+            <!-- Detailed Breakdown -->
+            <div class="cost-breakdown">
+                <div class="breakdown-row">
+                    <span class="label">License (Edition + AOs + Users)</span>
+                    <span class="value">@FormatCurrency(Result.LicenseSubtotal)/year</span>
+                </div>
+                @if (Result.AddOnsSubtotal > 0)
+                {
+                    <div class="breakdown-row">
+                        <span class="label">Add-ons</span>
+                        <span class="value">@FormatCurrency(Result.AddOnsSubtotal)/year</span>
+                    </div>
+                }
+                @if (Result.InfrastructureSubtotal > 0)
+                {
+                    <div class="breakdown-row">
+                        <span class="label">Cloud Infrastructure (@Result.TotalVMCount VMs)</span>
+                        <span class="value">@FormatCurrency(Result.InfrastructureSubtotal)/year</span>
+                    </div>
+                }
+                @if (Result.ServicesSubtotal > 0)
+                {
+                    <div class="breakdown-row">
+                        <span class="label">Services</span>
+                        <span class="value">@FormatCurrency(Result.ServicesSubtotal)/year</span>
+                    </div>
+                }
+            </div>
+
+            <!-- Total Grid -->
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="label">Monthly</span>
+                    <span class="value">@FormatCurrency(Result.TotalPerMonth)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Yearly</span>
+                    <span class="value">@FormatCurrency(Result.TotalPerYear)</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">3-Year TCO</span>
+                    <span class="value">@FormatCurrency(Result.TotalThreeYear)</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public OutSystemsPricingSettings Settings { get; set; } = new();
+    [Parameter] public OutSystemsDeploymentConfig Config { get; set; } = new();
+    [Parameter] public EventCallback<OutSystemsDeploymentConfig> ConfigChanged { get; set; }
+    [Parameter] public EventCallback<OutSystemsPricingResult> OnCostCalculated { get; set; }
+    [Inject] private IPricingSettingsService? PricingService { get; set; }
+
+    private OutSystemsPricingResult? Result { get; set; }
+    private bool IsCloudOnly => Config.DeploymentType == OutSystemsDeploymentType.Cloud;
+
+    protected override void OnInitialized()
+    {
+        RecalculateCost();
+    }
+
+    protected override void OnParametersSet()
+    {
+        RecalculateCost();
+    }
+
+    private void SetDeploymentType(OutSystemsDeploymentType type)
+    {
+        Config.DeploymentType = type;
+
+        // Clear cloud-only features when switching to self-managed
+        if (type == OutSystemsDeploymentType.SelfManaged)
+        {
+            Config.IncludeHA = false;
+            Config.IncludeSentry = false;
+            Config.IncludeLoadTestEnv = false;
+            Config.IncludeLogStreaming = false;
+            Config.IncludeDatabaseReplica = false;
+        }
+
+        RecalculateCost();
+    }
+
+    private void SetEdition(OutSystemsEdition edition)
+    {
+        Config.Edition = edition;
+        RecalculateCost();
+    }
+
+    private void HandleAOChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+        {
+            Config.TotalApplicationObjects = value;
+            RecalculateCost();
+        }
+    }
+
+    private void HandleUnlimitedUsersToggle(ChangeEventArgs e)
+    {
+        Config.UseUnlimitedUsers = (bool)(e.Value ?? false);
+        RecalculateCost();
+    }
+
+    private void ToggleAddon(string propertyName, ChangeEventArgs e)
+    {
+        var value = (bool)(e.Value ?? false);
+
+        switch (propertyName)
+        {
+            case nameof(Config.Include24x7PremiumSupport):
+                Config.Include24x7PremiumSupport = value;
+                break;
+            case nameof(Config.IncludeNonProductionEnv):
+                Config.IncludeNonProductionEnv = value;
+                break;
+            case nameof(Config.IncludeEnvironmentPack):
+                Config.IncludeEnvironmentPack = value;
+                break;
+            case nameof(Config.IncludeDR):
+                Config.IncludeDR = value;
+                break;
+            case nameof(Config.IncludeHA):
+                Config.IncludeHA = value;
+                break;
+            case nameof(Config.IncludeSentry):
+                Config.IncludeSentry = value;
+                if (value) Config.IncludeHA = false; // Sentry includes HA
+                break;
+            case nameof(Config.IncludeLoadTestEnv):
+                Config.IncludeLoadTestEnv = value;
+                break;
+            case nameof(Config.IncludeLogStreaming):
+                Config.IncludeLogStreaming = value;
+                break;
+            case nameof(Config.IncludeDatabaseReplica):
+                Config.IncludeDatabaseReplica = value;
+                break;
+        }
+
+        RecalculateCost();
+    }
+
+    private async void RecalculateCost()
+    {
+        if (PricingService != null)
+        {
+            Result = PricingService.CalculateOutSystemsCost(Config);
+            await ConfigChanged.InvokeAsync(Config);
+            await OnCostCalculated.InvokeAsync(Result);
+            StateHasChanged();
+        }
+    }
+
+    private string GetUserLicenseSummary()
+    {
+        if (Config.UseUnlimitedUsers)
+            return "Unlimited";
+        return $"{Config.InternalUsers} internal, {Config.ExternalUsers} external";
+    }
+
+    private int GetActiveAddonsCount()
+    {
+        var count = 0;
+        if (Config.Include24x7PremiumSupport) count++;
+        if (Config.IncludeNonProductionEnv) count++;
+        if (Config.IncludeEnvironmentPack) count++;
+        if (Config.IncludeDR) count++;
+        if (IsCloudOnly)
+        {
+            if (Config.IncludeHA) count++;
+            if (Config.IncludeSentry) count++;
+            if (Config.IncludeLoadTestEnv) count++;
+            if (Config.IncludeLogStreaming) count++;
+            if (Config.IncludeDatabaseReplica) count++;
+        }
+        return count;
+    }
+
+    private string FormatCurrency(decimal value)
+    {
+        return value.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+    }
+}
+
+<style>
+    .outsystems-pricing-panel {
+        max-width: 900px;
+    }
+
+    .config-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .config-section.expandable {
+        padding: 0;
+    }
+
+    .config-section.expandable summary {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .config-section.expandable summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .config-section.expandable summary::after {
+        content: '▶';
+        margin-left: auto;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        transition: transform 0.2s ease;
+    }
+
+    .config-section.expandable[open] summary::after {
+        transform: rotate(90deg);
+    }
+
+    .section-header {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 1rem 0;
+    }
+
+    .section-icon {
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        flex: 1;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .section-badge {
+        background: var(--accent-color-light, rgba(33, 150, 243, 0.1));
+        color: var(--accent-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .section-content {
+        padding: 0 1.25rem 1.25rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .option-card {
+        background: var(--surface-bg, #f8f9fa);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .option-card:hover {
+        border-color: var(--accent-color);
+        background: var(--accent-color-light, rgba(33, 150, 243, 0.05));
+    }
+
+    .option-card.selected {
+        border-color: var(--accent-color);
+        background: var(--accent-color-light, rgba(33, 150, 243, 0.1));
+    }
+
+    .option-icon {
+        font-size: 1.5rem;
+    }
+
+    .option-label {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .option-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .option-price {
+        font-weight: 600;
+        color: var(--accent-color);
+        margin-top: auto;
+    }
+
+    .slider-group {
+        margin: 1rem 0;
+    }
+
+    .slider-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .slider-group input[type="range"] {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--border-color);
+        cursor: pointer;
+    }
+
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .ao-breakdown, .cost-breakdown {
+        margin-top: 1rem;
+    }
+
+    .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .breakdown-row.cost {
+        border-bottom: none;
+        font-weight: 600;
+    }
+
+    .breakdown-row .label {
+        color: var(--text-secondary);
+    }
+
+    .breakdown-row .value {
+        color: var(--text-primary);
+    }
+
+    .breakdown-row.cost .value {
+        color: var(--accent-color);
+    }
+
+    .info-text {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 1rem 0;
+        padding: 0.75rem;
+        background: var(--info-bg, rgba(33, 150, 243, 0.05));
+        border-radius: 6px;
+        border-left: 3px solid var(--accent-color);
+    }
+
+    .hint {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+
+    .provider-selection, .instance-selection, .server-config {
+        margin-bottom: 1rem;
+    }
+
+    .provider-selection label,
+    .instance-selection label,
+    .server-config label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .provider-selection select,
+    .instance-selection select,
+    .server-config input,
+    .success-plan-selection select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .env-grid, .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .env-input label, .service-input label, .user-input label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .env-input input, .service-input input, .user-input input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .user-option {
+        margin: 1rem 0;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .checkbox-label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .checkbox-price {
+        color: var(--accent-color);
+        font-weight: 600;
+        margin-left: auto;
+    }
+
+    .user-inputs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .addon-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .addon-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--surface-bg, #f8f9fa);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .addon-item:hover {
+        background: var(--accent-color-light, rgba(33, 150, 243, 0.05));
+    }
+
+    .addon-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .addon-name {
+        flex: 1;
+        color: var(--text-primary);
+    }
+
+    .addon-price {
+        font-weight: 600;
+        color: var(--accent-color);
+    }
+
+    .cloud-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        background: var(--info-bg, rgba(33, 150, 243, 0.1));
+        color: var(--accent-color);
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .cloud-only-section {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .subsection-header {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .warning-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        background: var(--warning-bg, rgba(255, 152, 0, 0.1));
+        color: var(--warning-color, #f57c00);
+        border-radius: 4px;
+    }
+
+    .success-plan-selection {
+        margin-bottom: 1rem;
+    }
+
+    .success-plan-selection label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .warnings-section {
+        margin-bottom: 1rem;
+    }
+
+    .warning-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: var(--warning-bg, rgba(255, 152, 0, 0.1));
+        border: 1px solid var(--warning-color, #f57c00);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+    }
+
+    .warning-icon {
+        flex-shrink: 0;
+    }
+
+    .warning-text {
+        font-size: 0.875rem;
+        color: var(--warning-color, #f57c00);
+    }
+
+    .cost-summary {
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark, #1565C0) 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        color: white;
+    }
+
+    .summary-header {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .cost-summary .cost-breakdown {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .cost-summary .breakdown-row {
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .cost-summary .breakdown-row .label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .cost-summary .breakdown-row .value {
+        color: white;
+        font-weight: 500;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .summary-item {
+        text-align: center;
+    }
+
+    .summary-item .label {
+        display: block;
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .summary-item .value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+</style>

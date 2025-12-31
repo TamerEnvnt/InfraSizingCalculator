@@ -37,7 +37,19 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-Import-Module WebAdministration -ErrorAction SilentlyContinue
+
+# Import WebAdministration module (compatible with Windows PowerShell and PowerShell Core)
+try {
+    Import-Module WebAdministration -SkipEditionCheck -ErrorAction Stop
+} catch {
+    try {
+        Import-Module WebAdministration -ErrorAction Stop
+    } catch {
+        Write-Host "ERROR: WebAdministration module not available." -ForegroundColor Red
+        Write-Host "Ensure IIS Management Tools are installed." -ForegroundColor Red
+        exit 1
+    }
+}
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "InfraSizing Calculator - Create Website" -ForegroundColor Cyan
@@ -65,9 +77,11 @@ Write-Host "  Permissions configured" -ForegroundColor Green
 Write-Host ""
 Write-Host "[2/5] Creating application pool: $SiteName..." -ForegroundColor Yellow
 $poolName = $SiteName
-$existingPool = Get-IISAppPool -Name $poolName -ErrorAction SilentlyContinue
 
-if ($existingPool) {
+# Check if app pool exists using WebAdministration (IIS: drive)
+$poolExists = Test-Path "IIS:\AppPools\$poolName"
+
+if ($poolExists) {
     Write-Host "  Application pool already exists, updating settings..." -ForegroundColor Yellow
 } else {
     New-WebAppPool -Name $poolName | Out-Null

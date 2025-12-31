@@ -46,7 +46,19 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-Import-Module WebAdministration -ErrorAction SilentlyContinue
+
+# Import WebAdministration module (compatible with Windows PowerShell and PowerShell Core)
+try {
+    Import-Module WebAdministration -SkipEditionCheck -ErrorAction Stop
+} catch {
+    try {
+        Import-Module WebAdministration -ErrorAction Stop
+    } catch {
+        Write-Host "ERROR: WebAdministration module not available." -ForegroundColor Red
+        Write-Host "Ensure IIS Management Tools are installed." -ForegroundColor Red
+        exit 1
+    }
+}
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "InfraSizing Calculator - Deployment" -ForegroundColor Cyan
@@ -66,9 +78,10 @@ Write-Host ""
 
 # Step 1: Stop application pool
 Write-Host "[1/6] Stopping application pool: $SiteName..." -ForegroundColor Yellow
-$pool = Get-IISAppPool -Name $SiteName -ErrorAction SilentlyContinue
-if ($pool) {
-    if ($pool.State -eq "Started") {
+$poolExists = Test-Path "IIS:\AppPools\$SiteName"
+if ($poolExists) {
+    $poolState = (Get-Item "IIS:\AppPools\$SiteName").State
+    if ($poolState -eq "Started") {
         Stop-WebAppPool -Name $SiteName
         Start-Sleep -Seconds 2
         Write-Host "  Application pool stopped" -ForegroundColor Green
@@ -170,13 +183,13 @@ Write-Host "  Permissions set" -ForegroundColor Green
 # Step 6: Start application pool
 Write-Host ""
 Write-Host "[6/6] Starting application pool..." -ForegroundColor Yellow
-if ($pool) {
+if ($poolExists) {
     Start-WebAppPool -Name $SiteName
     Start-Sleep -Seconds 2
 
     # Verify it started
-    $pool = Get-IISAppPool -Name $SiteName
-    if ($pool.State -eq "Started") {
+    $poolState = (Get-Item "IIS:\AppPools\$SiteName").State
+    if ($poolState -eq "Started") {
         Write-Host "  Application pool started" -ForegroundColor Green
     } else {
         Write-Host "  WARNING: Application pool may not have started correctly" -ForegroundColor Yellow

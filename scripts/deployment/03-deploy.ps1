@@ -78,11 +78,12 @@ Write-Host ""
 
 # Step 1: Stop application pool
 Write-Host "[1/6] Stopping application pool: $SiteName..." -ForegroundColor Yellow
-$poolExists = Test-Path "IIS:\AppPools\$SiteName"
-if ($poolExists) {
-    $poolState = (Get-Item "IIS:\AppPools\$SiteName").State
+$appcmd = "$env:SystemRoot\System32\inetsrv\appcmd.exe"
+$poolCheck = & $appcmd list apppool /name:$SiteName 2>$null
+if ($poolCheck) {
+    $poolState = & $appcmd list apppool /apppool.name:$SiteName /text:state 2>$null
     if ($poolState -eq "Started") {
-        Stop-WebAppPool -Name $SiteName
+        & $appcmd stop apppool /apppool.name:$SiteName | Out-Null
         Start-Sleep -Seconds 2
         Write-Host "  Application pool stopped" -ForegroundColor Green
     } else {
@@ -183,12 +184,12 @@ Write-Host "  Permissions set" -ForegroundColor Green
 # Step 6: Start application pool
 Write-Host ""
 Write-Host "[6/6] Starting application pool..." -ForegroundColor Yellow
-if ($poolExists) {
-    Start-WebAppPool -Name $SiteName
+if ($poolCheck) {
+    & $appcmd start apppool /apppool.name:$SiteName | Out-Null
     Start-Sleep -Seconds 2
 
     # Verify it started
-    $poolState = (Get-Item "IIS:\AppPools\$SiteName").State
+    $poolState = & $appcmd list apppool /apppool.name:$SiteName /text:state 2>$null
     if ($poolState -eq "Started") {
         Write-Host "  Application pool started" -ForegroundColor Green
     } else {
@@ -212,11 +213,13 @@ if ($preservedFiles.Count -gt 0) {
 Write-Host ""
 
 # Get site URL
-$site = Get-Website -Name $SiteName -ErrorAction SilentlyContinue
-if ($site) {
-    $binding = $site.Bindings.Collection | Select-Object -First 1
-    $port = ($binding.bindingInformation -split ":")[1]
-    Write-Host "Access the application at: http://localhost:$port" -ForegroundColor Green
+$siteInfo = & $appcmd list site /name:$SiteName 2>$null
+if ($siteInfo) {
+    # Extract port from binding info (format: SITE "name" (bindings:http/*:port:,state:Started))
+    if ($siteInfo -match ":(\d+):") {
+        $port = $matches[1]
+        Write-Host "Access the application at: http://localhost:$port" -ForegroundColor Green
+    }
 }
 
 Write-Host ""

@@ -571,59 +571,156 @@ High Availability and Disaster Recovery configuration for K8s clusters.
 
 ## OutSystems Pricing Models
 
-### OutSystemsEdition
+Verified against OutSystems Partner Calculator (January 2026).
+
+### OutSystemsPlatform
 ```csharp
-Standard,    // Starting tier for small-medium deployments
-Enterprise   // Full-featured for large enterprise
+ODC,  // OutSystems Developer Cloud - Cloud-native, Kubernetes-based, fully managed
+O11   // OutSystems 11 - Traditional .NET platform
 ```
 
-### OutSystemsDeploymentType
+### OutSystemsDeployment
 ```csharp
-Cloud,       // OutSystems Cloud (managed PaaS)
-SelfManaged  // Self-managed on-premises or private cloud
+Cloud,       // OutSystems managed cloud infrastructure (O11 only)
+SelfManaged  // Customer-managed infrastructure (O11 only)
 ```
 
-### OutSystemsUserLicenseType
+### OutSystemsRegion
 ```csharp
-Named,       // Named users - dedicated license per user
-Concurrent,  // Concurrent users - floating licenses
-External     // External/Anonymous - session-based for public apps
+Africa,      // Africa region
+MiddleEast,  // Middle East region (higher Bootcamp/Expert rates)
+Americas,    // Americas region
+Europe,      // Europe region
+AsiaPacific  // Asia-Pacific region
 ```
 
-### OutSystemsSupportTier
+### OutSystemsDiscountType
 ```csharp
-Standard,  // Included in subscription
-Premium,   // 24/7 with faster SLAs (+15%)
-Elite      // Dedicated support with custom SLAs (+25%)
+Percentage,   // Percentage discount (0-100)
+FixedAmount   // Fixed dollar amount discount
+```
+
+### OutSystemsDiscountScope
+```csharp
+Total,        // Apply to entire quote (License + Add-Ons + Services)
+LicenseOnly,  // Apply only to License costs
+AddOnsOnly,   // Apply only to Add-Ons costs
+ServicesOnly  // Apply only to Services costs
+```
+
+### OutSystemsCloudProvider
+```csharp
+OnPremises,  // On-premises data center
+Azure,       // Microsoft Azure VMs
+AWS          // Amazon Web Services EC2
+```
+
+### OutSystemsAzureInstanceType
+```csharp
+F4s_v2,    // 4 vCPU, 8 GB RAM - Default ($0.169/hr)
+D4s_v3,    // 4 vCPU, 16 GB RAM ($0.192/hr)
+D8s_v3,    // 8 vCPU, 32 GB RAM ($0.384/hr)
+D16s_v3    // 16 vCPU, 64 GB RAM ($0.768/hr)
+```
+
+### OutSystemsAwsInstanceType
+```csharp
+M5Large,    // 2 vCPU, 8 GB RAM ($0.096/hr)
+M5XLarge,   // 4 vCPU, 16 GB RAM ($0.192/hr)
+M52XLarge   // 8 vCPU, 32 GB RAM ($0.384/hr)
 ```
 
 ### OutSystemsPricingSettings
 
-Complete OutSystems pricing configuration based on ODC pricing model.
+Complete OutSystems pricing configuration with platform-specific rates.
+
+**ODC Platform Pricing:**
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
-| StandardEditionBasePrice | decimal | Standard annual base | $36,300 |
-| StandardEditionAOsIncluded | int | AOs included in Standard | 150 |
-| StandardEditionInternalUsersIncluded | int | Users included | 100 |
-| EnterpriseEditionBasePrice | decimal | Enterprise annual base | $72,600 |
-| EnterpriseEditionAOsIncluded | int | AOs included | 450 |
-| EnterpriseEditionInternalUsersIncluded | int | Users included | 500 |
-| AOPackSize | int | AOs per additional pack | 150 |
-| AdditionalAOPackPrice | decimal | Price per AO pack | $18,000 |
-| InternalUserPackSize | int | Users per pack | 100 |
-| AdditionalInternalUserPackPrice | decimal | Price per user pack | $6,000 |
-| ExternalUserPackSize | int | Sessions per pack | 10,000 |
-| ExternalUserPackPricePerYear | decimal | External pack price | $12,000 |
-| CloudAdditionalProdEnvPrice | decimal | Add'l prod environment | $12,000 |
-| CloudAdditionalNonProdEnvPrice | decimal | Add'l non-prod env | $6,000 |
-| CloudHAAddOnPrice | decimal | HA add-on | $24,000 |
-| CloudDRAddOnPrice | decimal | DR add-on | $18,000 |
-| SelfManagedBasePrice | decimal | Self-managed base | $48,000 |
-| SelfManagedPerEnvironmentPrice | decimal | Per environment | $9,600 |
-| SelfManagedPerFrontEndPrice | decimal | Per front-end server | $4,800 |
-| PremiumSupportPercent | decimal | Premium support % | 15% |
-| EliteSupportPercent | decimal | Elite support % | 25% |
+| OdcPlatformBasePrice | decimal | ODC annual base (includes 150 AOs, 100 users, Dev+Prod) | $30,250 |
+| OdcAOPackPrice | decimal | Additional AO pack (150 AOs) | $18,150 |
+| OdcInternalUserPackPrice | decimal | Internal user pack (100 users) | $6,050 |
+| OdcExternalUserPackPrice | decimal | External user pack (1000 users) | $6,050 |
+
+**O11 Platform Pricing:**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| O11EnterpriseBasePrice | decimal | O11 annual base (includes 150 AOs, 100 users, 3 envs) | $36,300 |
+| O11AOPackPrice | decimal | Additional AO pack (150 AOs) | $36,300 |
+| O11InternalUserTiers | List | Tiered pricing for internal users | See tiers below |
+| O11ExternalUserTiers | List | Tiered pricing for external users | See tiers below |
+
+**Unlimited Users (Both Platforms):**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| UnlimitedUsersPerAOPack | decimal | Unlimited users price per AO pack | $60,500 |
+
+**ODC Add-Ons (Per AO Pack):**
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| OdcSupport24x7ExtendedPerPack | decimal | 24x7 Extended support | $6,050/pack |
+| OdcSupport24x7PremiumPerPack | decimal | 24x7 Premium support | $9,680/pack |
+| OdcHighAvailabilityPerPack | decimal | High Availability | $18,150/pack |
+| OdcNonProdRuntimePerPack | decimal | Non-Prod Runtime | $6,050/pack |
+| OdcPrivateGatewayPerPack | decimal | Private Gateway | $1,210/pack |
+| OdcSentryPerPack | decimal | Sentry monitoring | $6,050/pack |
+
+**O11 Add-Ons (Per AO Pack):**
+
+| Property | Type | Description | Default | Availability |
+|----------|------|-------------|---------|--------------|
+| O11Support24x7PremiumPerPack | decimal | Premium support | $3,630/pack | Both |
+| O11HighAvailabilityPerPack | decimal | High Availability | $12,100/pack | Cloud only |
+| O11SentryPerPack | decimal | Sentry (includes HA) | $24,200/pack | Cloud only |
+| O11NonProdEnvPerPack | decimal | Non-Prod Environment | $3,630/pack | Both |
+| O11LoadTestEnvPerPack | decimal | Load Test Environment | $6,050/pack | Cloud only |
+| O11EnvironmentPackPerPack | decimal | Environment Pack | $9,680/pack | Both |
+| O11DisasterRecoveryPerPack | decimal | Disaster Recovery | $12,100/pack | Self-Managed only |
+| O11LogStreamingFlat | decimal | Log Streaming (flat) | $7,260 | Cloud only |
+| O11DatabaseReplicaFlat | decimal | Database Replica (flat) | $96,800 | Cloud only |
+
+**O11 Internal User Tiers (per 100 users):**
+
+| Tier | User Range | Price per Pack |
+|------|------------|----------------|
+| 1 | 200-1,000 | $12,100 |
+| 2 | 1,100-10,000 | $2,420 |
+| 3 | 10,100+ | $242 |
+
+Note: First 100 users included in base price.
+
+**O11 External User Tiers (per 1,000 users):**
+
+| Tier | User Range | Price per Pack |
+|------|------------|----------------|
+| 1 | 1-10,000 | $4,840 |
+| 2 | 11,000-250,000 | $1,452 |
+| 3 | 251,000+ | $30.25 |
+
+**AppShield Tiers (19 tiers, 0-15M users):**
+
+| Tier | User Range | Flat Price |
+|------|------------|------------|
+| 1 | 0-10,000 | $18,150 |
+| 2 | 10,001-50,000 | $32,670 |
+| 3 | 50,001-100,000 | $54,450 |
+| 4 | 100,001-500,000 | $96,800 |
+| ... | ... | ... |
+| 19 | 14,000,001-15,000,000 | $1,476,200 |
+
+**Services Pricing by Region:**
+
+| Service | All Regions | Middle East |
+|---------|-------------|-------------|
+| Essential Success Plan | $30,250 | $30,250 |
+| Premier Success Plan | $60,500 | $60,500 |
+| Dedicated Group Session | $2,670 | $3,820 |
+| Public Session | $480 | $720 |
+| Expert Day | $1,400 | $2,130 |
 
 ### OutSystemsDeploymentConfig
 
@@ -631,36 +728,55 @@ User-selected OutSystems deployment configuration.
 
 | Property | Type | Description | Default |
 |----------|------|-------------|---------|
-| Edition | OutSystemsEdition | Edition type | Standard |
-| DeploymentType | OutSystemsDeploymentType | Cloud or Self-managed | SelfManaged |
-| TotalApplicationObjects | int | Total AOs | 20 |
-| ProductionEnvironments | int | Prod env count | 1 |
-| NonProductionEnvironments | int | Non-prod env count | 3 |
-| FrontEndServers | int | Self-managed front-ends | 2 |
-| IncludeHA | bool | Include HA | false |
-| IncludeDR | bool | Include DR | false |
-| UserLicenseType | OutSystemsUserLicenseType | License type | Named |
-| NamedUsers | int | Named user count | 100 |
-| ConcurrentUsers | int | Concurrent user count | 0 |
-| ExternalSessions | int | Monthly session count | 0 |
-| SupportTier | OutSystemsSupportTier | Support level | Standard |
+| Platform | OutSystemsPlatform | ODC or O11 | O11 |
+| Deployment | OutSystemsDeployment | Cloud or Self-Managed (O11) | Cloud |
+| Region | OutSystemsRegion | Service pricing region | Africa |
+| TotalApplicationObjects | int | Total AOs | 150 |
+| UseUnlimitedUsers | bool | Use unlimited users pricing | false |
+| InternalUsers | int | Internal user count | 100 |
+| ExternalUsers | int | External user count | 0 |
+| AppShieldUserVolume | int? | Expected users for AppShield (if Unlimited) | null |
+| CloudProvider | OutSystemsCloudProvider | VM provider (Self-Managed) | OnPremises |
+| AzureInstanceType | OutSystemsAzureInstanceType | Azure VM type | F4s_v2 |
+| AwsInstanceType | OutSystemsAwsInstanceType | AWS instance type | M5XLarge |
+| FrontEndServersPerEnvironment | int | Front-ends per env | 2 |
+| TotalEnvironments | int | Total environments | 4 |
+| Discount | OutSystemsDiscount? | Optional discount | null |
+
+**ODC Add-On Toggles:** OdcSupport24x7Extended, OdcSupport24x7Premium, OdcAppShield, OdcHighAvailability, OdcNonProdRuntimeQuantity, OdcPrivateGateway, OdcSentry
+
+**O11 Add-On Toggles:** O11Support24x7Premium, O11AppShield, O11HighAvailability, O11Sentry, O11LogStreamingQuantity, O11NonProdEnvQuantity, O11LoadTestEnvQuantity, O11EnvPackQuantity, O11DisasterRecovery, O11DatabaseReplicaQuantity
+
+**Services:** EssentialSuccessPlanQuantity, PremierSuccessPlanQuantity, DedicatedGroupSessionQuantity, PublicSessionQuantity, ExpertDayQuantity
 
 ### OutSystemsPricingResult
 
-Calculated OutSystems pricing result.
+Calculated OutSystems pricing result with detailed breakdown.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| Edition | OutSystemsEdition | Selected edition |
-| DeploymentType | OutSystemsDeploymentType | Deployment type |
-| EditionBaseCost | decimal | Base subscription cost |
-| AdditionalAOsCost | decimal | Additional AO packs |
-| EnvironmentCost | decimal | Environment costs |
-| FrontEndCost | decimal | Front-end server costs |
-| HACost | decimal | HA add-on cost |
-| DRCost | decimal | DR add-on cost |
-| UserLicenseCost | decimal | User licensing cost |
-| SupportCost | decimal | Support tier cost |
-| TotalPerYear | decimal | Annual total |
-| TotalPerMonth | decimal | Monthly total |
-| TotalThreeYear | decimal | 3-year TCO |
+| Platform | OutSystemsPlatform | ODC or O11 |
+| Deployment | OutSystemsDeployment | Cloud or Self-Managed |
+| Region | OutSystemsRegion | Service pricing region |
+| AOPackCount | int | Number of AO packs |
+| EditionCost | decimal | Base platform cost |
+| AOPacksCost | decimal | Additional AO packs |
+| InternalUsersCost | decimal | Internal user packs (O11 tiered) |
+| ExternalUsersCost | decimal | External user packs (O11 tiered) |
+| UnlimitedUsersCost | decimal | Unlimited users cost |
+| LicenseSubtotal | decimal | Total license costs |
+| AddOnCosts | Dictionary | Per add-on costs |
+| AddOnsSubtotal | decimal | Total add-on costs |
+| ServiceCosts | Dictionary | Per service costs |
+| ServicesSubtotal | decimal | Total service costs |
+| MonthlyVMCost | decimal | Monthly cloud VM cost (Self-Managed) |
+| AnnualVMCost | decimal | Annual VM cost |
+| InfrastructureSubtotal | decimal | Total infrastructure costs |
+| GrossTotal | decimal | Total before discount |
+| DiscountAmount | decimal | Discount applied |
+| NetTotal | decimal | Final annual total |
+| TotalPerMonth | decimal | Monthly average |
+| TotalThreeYear | decimal | 3-year projection |
+| TotalFiveYear | decimal | 5-year projection |
+| Warnings | List\<string\> | Validation warnings |
+| LineItems | List\<OutSystemsCostLineItem\> | Detailed line items |

@@ -114,56 +114,63 @@ public class InfraSizingDbContext : DbContext
         });
 
         // OutSystemsPricing - single row table with OutSystems subscription pricing
-        // Based on OutSystems Partner Price Calculator (2024/2025)
+        // Based on OutSystems Partner Calculator (January 2026)
+        // Supports: ODC, O11 Cloud, O11 Self-Managed
         modelBuilder.Entity<OutSystemsPricingEntity>(entity =>
         {
             entity.ToTable("OutSystemsPricing");
             entity.HasKey(e => e.Id);
 
-            // Edition Pricing
-            entity.Property(e => e.StandardEditionBase).HasPrecision(18, 2);
-            entity.Property(e => e.EnterpriseEditionBase).HasPrecision(18, 2);
-            entity.Property(e => e.AdditionalAOPackPrice).HasPrecision(18, 2);
+            // ODC Platform Pricing
+            entity.Property(e => e.OdcPlatformBasePrice).HasPrecision(18, 2);
+            entity.Property(e => e.OdcAOPackPrice).HasPrecision(18, 2);
+            entity.Property(e => e.OdcInternalUserPackPrice).HasPrecision(18, 2);
+            entity.Property(e => e.OdcExternalUserPackPrice).HasPrecision(18, 2);
 
-            // User Licensing
-            entity.Property(e => e.AdditionalInternalUserPackPrice).HasPrecision(18, 2);
-            entity.Property(e => e.ExternalUserPackPerYear).HasPrecision(18, 2);
-            entity.Property(e => e.UnlimitedUsersPrice).HasPrecision(18, 2);
+            // O11 Platform Pricing
+            entity.Property(e => e.O11EnterpriseBasePrice).HasPrecision(18, 2);
+            entity.Property(e => e.O11AOPackPrice).HasPrecision(18, 2);
 
-            // Add-ons: AO-Pack Scaled
-            entity.Property(e => e.Support24x7PremiumPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.NonProductionEnvPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.LoadTestEnvPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.EnvironmentPackPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.HighAvailabilityPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.SentryPerAOPack).HasPrecision(18, 2);
-            entity.Property(e => e.DisasterRecoveryPerAOPack).HasPrecision(18, 2);
+            // Unlimited Users (per AO pack - not flat!)
+            entity.Property(e => e.UnlimitedUsersPerAOPack).HasPrecision(18, 2);
 
-            // Add-ons: Flat Fee
-            entity.Property(e => e.LogStreamingPrice).HasPrecision(18, 2);
-            entity.Property(e => e.DatabaseReplicaPrice).HasPrecision(18, 2);
-            entity.Property(e => e.AppShieldPerUser).HasPrecision(18, 2);
+            // ODC Add-ons (per AO pack)
+            entity.Property(e => e.OdcSupport24x7ExtendedPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.OdcSupport24x7PremiumPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.OdcHighAvailabilityPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.OdcNonProdRuntimePerPack).HasPrecision(18, 2);
+            entity.Property(e => e.OdcPrivateGatewayPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.OdcSentryPerPack).HasPrecision(18, 2);
 
-            // Services
-            entity.Property(e => e.EssentialSuccessPlanPrice).HasPrecision(18, 2);
-            entity.Property(e => e.PremierSuccessPlanPrice).HasPrecision(18, 2);
-            entity.Property(e => e.DedicatedGroupSessionPrice).HasPrecision(18, 2);
-            entity.Property(e => e.PublicSessionPrice).HasPrecision(18, 2);
-            entity.Property(e => e.ExpertDayPrice).HasPrecision(18, 2);
+            // O11 Add-ons (per AO pack)
+            entity.Property(e => e.O11Support24x7PremiumPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11HighAvailabilityPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11SentryPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11NonProdEnvPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11LoadTestEnvPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11EnvironmentPackPerPack).HasPrecision(18, 2);
+            entity.Property(e => e.O11DisasterRecoveryPerPack).HasPrecision(18, 2);
 
-            // Legacy Self-Managed
-            entity.Property(e => e.SelfManagedBase).HasPrecision(18, 2);
-            entity.Property(e => e.SelfManagedPerEnvironment).HasPrecision(18, 2);
-            entity.Property(e => e.SelfManagedPerFrontEnd).HasPrecision(18, 2);
+            // O11 Add-ons (flat fee)
+            entity.Property(e => e.O11LogStreamingFlat).HasPrecision(18, 2);
+            entity.Property(e => e.O11DatabaseReplicaFlat).HasPrecision(18, 2);
 
-            // Legacy Support
-            entity.Property(e => e.PremiumSupportPercent).HasPrecision(5, 2);
-            entity.Property(e => e.EliteSupportPercent).HasPrecision(5, 2);
+            // Tiered Pricing JSON fields
+            entity.Property(e => e.O11InternalUserTiersJson).HasMaxLength(2000);
+            entity.Property(e => e.O11ExternalUserTiersJson).HasMaxLength(2000);
+            entity.Property(e => e.AppShieldTiersJson).HasMaxLength(4000);
+            entity.Property(e => e.ServicesPricingByRegionJson).HasMaxLength(4000);
 
             // Cloud VM Pricing JSON
             entity.Property(e => e.AzureVMPricingJson).HasMaxLength(1000);
             entity.Property(e => e.AwsEC2PricingJson).HasMaxLength(1000);
-            entity.Property(e => e.CloudOnlyFeaturesJson).HasMaxLength(500);
+
+            // Feature Availability JSON
+            entity.Property(e => e.O11CloudOnlyFeaturesJson).HasMaxLength(500);
+            entity.Property(e => e.O11SelfManagedOnlyFeaturesJson).HasMaxLength(500);
+
+            // Data source tracking
+            entity.Property(e => e.DataSourceVersion).HasMaxLength(100);
         });
 
         // DistributionConfigs - one row per Kubernetes distribution

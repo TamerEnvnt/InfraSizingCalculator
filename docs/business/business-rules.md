@@ -21,6 +21,7 @@ Rules follow the pattern: `BR-{Category}{Number}`
 | BR-V | Validation Rules |
 | BR-RC | Resource Calculations |
 | BR-C | Cost Estimation |
+| BR-OS | OutSystems Pricing |
 | BR-S | Scenario Management |
 | BR-G | Growth Planning |
 
@@ -317,6 +318,94 @@ IBM       - IBM Cloud Kubernetes pricing
 
 ---
 
+## OutSystems Pricing Rules (BR-OS)
+
+Rules for OutSystems licensing cost calculations. Verified against Partner Calculator (January 2026).
+
+### Platform Pricing (BR-OS-P)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-P001 | ODC base price = $30,250/year (includes 150 AOs, 100 users, Dev+Prod) | `OutSystemsPricingSettings.OdcPlatformBasePrice` |
+| BR-OS-P002 | O11 base price = $36,300/year (includes 150 AOs, 100 users, 3 envs) | `OutSystemsPricingSettings.O11EnterpriseBasePrice` |
+| BR-OS-P003 | AO pack size = 150 AOs per pack | `OutSystemsPricingSettings.AOPackSize` |
+| BR-OS-P004 | ODC additional AO pack = $18,150/pack | `OutSystemsPricingSettings.OdcAOPackPrice` |
+| BR-OS-P005 | O11 additional AO pack = $36,300/pack | `OutSystemsPricingSettings.O11AOPackPrice` |
+| BR-OS-P006 | AO packs = ceiling(totalAOs / 150), minimum 1 | `OutSystemsPricingSettings.CalculateAOPacks()` |
+
+### Unlimited Users (BR-OS-U)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-U001 | Unlimited Users = $60,500 × AO pack count (NOT flat fee) | `OutSystemsPricingSettings.UnlimitedUsersPerAOPack` |
+| BR-OS-U002 | Unlimited Users replaces Internal + External user packs | `CalculateOutSystemsCost()` |
+| BR-OS-U003 | AppShield requires user volume estimate when Unlimited | Config validation |
+
+### ODC User Pricing (BR-OS-ODC)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-ODC001 | First 100 internal users included in base | No additional cost |
+| BR-OS-ODC002 | Internal user pack = $6,050 per 100 users | `OdcInternalUserPackPrice` |
+| BR-OS-ODC003 | External user pack = $6,050 per 1000 users | `OdcExternalUserPackPrice` |
+
+### O11 Tiered User Pricing (BR-OS-O11)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-O11001 | First 100 internal users included in base | No additional cost |
+| BR-OS-O11002 | Internal users 101-1000: $12,100 per 100 | Tier 1 |
+| BR-OS-O11003 | Internal users 1001-10000: $2,420 per 100 | Tier 2 |
+| BR-OS-O11004 | Internal users 10001+: $242 per 100 | Tier 3 |
+| BR-OS-O11005 | External users 1-10000: $4,840 per 1000 | Tier 1 |
+| BR-OS-O11006 | External users 11000-250000: $1,452 per 1000 | Tier 2 |
+| BR-OS-O11007 | External users 251000+: $30.25 per 1000 | Tier 3 |
+
+### Add-On Pricing (BR-OS-A)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-A001 | Add-on cost formula: rate × AO_packs × quantity | Per-pack calculation |
+| BR-OS-A002 | O11 HA ($12,100/pack) is Cloud-only | Feature availability check |
+| BR-OS-A003 | O11 Sentry ($24,200/pack) is Cloud-only, includes HA | Mutual exclusion |
+| BR-OS-A004 | O11 DR ($12,100/pack) is Self-Managed only | Feature availability check |
+| BR-OS-A005 | O11 Log Streaming ($7,260) and DB Replica ($96,800) are flat fees | Not per-pack |
+
+### AppShield Pricing (BR-OS-AS)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-AS001 | AppShield uses 19 tiered price points (0-15M users) | `OutSystemsPricingSettings.AppShieldTiers` |
+| BR-OS-AS002 | AppShield Tier 1 (0-10K users) = $18,150 | Flat tier price |
+| BR-OS-AS003 | AppShield price is flat per tier, not per-user | Tier lookup |
+
+### Services Pricing (BR-OS-S)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-S001 | Success Plans same across all regions | $30,250 Essential, $60,500 Premier |
+| BR-OS-S002 | Middle East has higher Bootcamp/Expert rates | Region-specific pricing |
+| BR-OS-S003 | Services pricing is quantity-based | Unit price × quantity |
+
+### Infrastructure Pricing (BR-OS-I)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-I001 | Self-Managed on Azure/AWS calculates VM costs | `CalculateOutSystemsCost()` |
+| BR-OS-I002 | Monthly VM cost = hourly_rate × 730 × servers × environments | Hours per month |
+| BR-OS-I003 | Azure F4s_v2 = $0.169/hr, D4s_v3 = $0.192/hr | `AzureVMHourlyPricing` |
+| BR-OS-I004 | AWS M5.xlarge = $0.192/hr, M5.2xlarge = $0.384/hr | `AwsEC2HourlyPricing` |
+
+### Discount Rules (BR-OS-D)
+
+| Rule ID | Description | Implementation |
+|---------|-------------|----------------|
+| BR-OS-D001 | Percentage discount applies to scoped subtotal | 0-100% range |
+| BR-OS-D002 | Fixed amount discount capped at applicable subtotal | Cannot exceed total |
+| BR-OS-D003 | Discount scope: Total, License, Add-Ons, or Services | `OutSystemsDiscountScope` |
+
+---
+
 ## Scenario Management Rules (BR-S)
 
 Rules for saving and comparing sizing scenarios.
@@ -368,5 +457,6 @@ Compound: resources_year_n = base × (1 + growth_rate)^n
 | BR-RC* | `Services/K8sSizingService.cs` |
 | BR-VM* | `Services/VMSizingService.cs` |
 | BR-C* | `Services/CostEstimationService.cs`, `Services/PricingService.cs` |
+| BR-OS* | `Models/Pricing/OutSystemsPricing.cs`, `Services/Pricing/DatabasePricingSettingsService.cs` |
 | BR-S* | `Services/ScenarioService.cs` |
 | BR-G* | `Services/GrowthPlanningService.cs` |

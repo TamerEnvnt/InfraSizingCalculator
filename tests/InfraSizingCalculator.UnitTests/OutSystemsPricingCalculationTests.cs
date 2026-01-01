@@ -3,8 +3,12 @@ using InfraSizingCalculator.Models.Pricing;
 namespace InfraSizingCalculator.UnitTests;
 
 /// <summary>
-/// Tests for OutSystems pricing calculations
-/// Based on OutSystems Partner Price Calculator (2024/2025)
+/// Tests for OutSystems pricing calculations (V2 Model)
+/// Based on OutSystems Partner Price Calculator (January 2026)
+///
+/// Platform-based model: ODC vs O11 (not Standard vs Enterprise)
+/// ODC: $30,250 base, $18,150/AO pack, Cloud-native fully managed
+/// O11: $36,300 base, $36,300/AO pack, Cloud or Self-Managed
 /// </summary>
 public class OutSystemsPricingCalculationTests
 {
@@ -15,48 +19,44 @@ public class OutSystemsPricingCalculationTests
         _settings = new OutSystemsPricingSettings();
     }
 
-    #region Edition Base Pricing
+    #region Platform Base Pricing
 
     /// <summary>
-    /// Standard and Enterprise editions should have same base price of $36,300/year
-    /// </summary>
-    [Theory]
-    [InlineData(OutSystemsEdition.Standard, 36300)]
-    [InlineData(OutSystemsEdition.Enterprise, 36300)]
-    public void GetEditionBasePrice_ReturnsCorrectPrice(OutSystemsEdition edition, decimal expectedPrice)
-    {
-        var price = _settings.GetEditionBasePrice(edition);
-        Assert.Equal(expectedPrice, price);
-    }
-
-    /// <summary>
-    /// Standard edition should include 100 internal users
+    /// ODC Platform base price should be $30,250/year
+    /// Includes: 150 AOs, 100 Internal Users, 2 runtimes, 8x5 Support
     /// </summary>
     [Fact]
-    public void StandardEdition_Includes100InternalUsers()
+    public void OdcPlatformBasePrice_Is30250()
     {
-        Assert.Equal(100, _settings.StandardEditionInternalUsersIncluded);
+        Assert.Equal(30250m, _settings.OdcPlatformBasePrice);
     }
 
     /// <summary>
-    /// Enterprise edition should include 500 internal users
+    /// O11 Enterprise Edition base price should be $36,300/year
+    /// Includes: 150 AOs, 100 Internal Users, 3 environments, 24x7 Support
     /// </summary>
     [Fact]
-    public void EnterpriseEdition_Includes500InternalUsers()
+    public void O11EnterpriseBasePrice_Is36300()
     {
-        Assert.Equal(500, _settings.EnterpriseEditionInternalUsersIncluded);
+        Assert.Equal(36300m, _settings.O11EnterpriseBasePrice);
     }
 
     /// <summary>
-    /// Both editions include 150 AOs (1 pack)
+    /// ODC AO pack price should be $18,150 per pack (150 AOs)
     /// </summary>
-    [Theory]
-    [InlineData(OutSystemsEdition.Standard, 150)]
-    [InlineData(OutSystemsEdition.Enterprise, 150)]
-    public void GetIncludedAOs_ReturnsCorrectCount(OutSystemsEdition edition, int expectedAOs)
+    [Fact]
+    public void OdcAOPackPrice_Is18150()
     {
-        var aos = _settings.GetIncludedAOs(edition);
-        Assert.Equal(expectedAOs, aos);
+        Assert.Equal(18150m, _settings.OdcAOPackPrice);
+    }
+
+    /// <summary>
+    /// O11 AO pack price should be $36,300 per pack (150 AOs)
+    /// </summary>
+    [Fact]
+    public void O11AOPackPrice_Is36300()
+    {
+        Assert.Equal(36300m, _settings.O11AOPackPrice);
     }
 
     #endregion
@@ -82,9 +82,9 @@ public class OutSystemsPricingCalculationTests
     [InlineData(300, 2)]    // Exactly 2 packs
     [InlineData(450, 3)]    // 3 packs
     [InlineData(1500, 10)]  // 10 packs
-    public void CalculateAOPackCount_RoundsUpCorrectly(int totalAOs, int expectedPacks)
+    public void CalculateAOPacks_RoundsUpCorrectly(int totalAOs, int expectedPacks)
     {
-        var packs = _settings.CalculateAOPackCount(totalAOs);
+        var packs = _settings.CalculateAOPacks(totalAOs);
         Assert.Equal(expectedPacks, packs);
     }
 
@@ -95,275 +95,375 @@ public class OutSystemsPricingCalculationTests
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-100)]
-    public void CalculateAOPackCount_MinimumOnePack(int totalAOs)
+    public void CalculateAOPacks_MinimumOnePack(int totalAOs)
     {
-        var packs = _settings.CalculateAOPackCount(totalAOs);
+        var packs = _settings.CalculateAOPacks(totalAOs);
         Assert.Equal(1, packs);
     }
 
     /// <summary>
-    /// Additional AO pack price should be $36,300 per pack
+    /// DeploymentConfig NumberOfAOPacks should be computed correctly
+    /// </summary>
+    [Theory]
+    [InlineData(150, 1)]
+    [InlineData(300, 2)]
+    [InlineData(450, 3)]
+    [InlineData(151, 2)]
+    public void DeploymentConfig_AOPacks_ComputedCorrectly(int aos, int expectedPacks)
+    {
+        var config = new OutSystemsDeploymentConfig
+        {
+            TotalApplicationObjects = aos
+        };
+        Assert.Equal(expectedPacks, config.AOPacks);
+    }
+
+    #endregion
+
+    #region Unlimited Users Pricing
+
+    /// <summary>
+    /// CRITICAL: Unlimited Users is $60,500 PER AO PACK (not flat fee!)
+    /// Formula: $60,500 × Number of AO Packs
     /// </summary>
     [Fact]
-    public void AdditionalAOPackPrice_Is36300()
+    public void UnlimitedUsersPerAOPack_Is60500()
     {
-        Assert.Equal(36300m, _settings.AdditionalAOPackPrice);
+        Assert.Equal(60500m, _settings.UnlimitedUsersPerAOPack);
     }
 
     /// <summary>
-    /// Additional AO cost should only apply when exceeding included AOs
+    /// Unlimited Users cost calculation: $60,500 × AO_Packs
     /// </summary>
     [Theory]
-    [InlineData(OutSystemsEdition.Standard, 150, 0)]        // Exactly included
-    [InlineData(OutSystemsEdition.Standard, 100, 0)]        // Under included
-    [InlineData(OutSystemsEdition.Standard, 300, 36300)]    // 1 additional pack
-    [InlineData(OutSystemsEdition.Standard, 450, 72600)]    // 2 additional packs
-    [InlineData(OutSystemsEdition.Enterprise, 150, 0)]      // Exactly included
-    [InlineData(OutSystemsEdition.Enterprise, 300, 36300)]  // 1 additional pack
-    public void CalculateAdditionalAOsCost_CorrectCost(OutSystemsEdition edition, int totalAOs, decimal expectedCost)
+    [InlineData(1, 60500)]      // 1 pack × $60,500
+    [InlineData(2, 121000)]     // 2 packs × $60,500
+    [InlineData(3, 181500)]     // 3 packs × $60,500
+    [InlineData(10, 605000)]    // 10 packs × $60,500
+    public void UnlimitedUsersCost_ScalesWithAOPacks(int aoPackCount, decimal expectedCost)
     {
-        var cost = _settings.CalculateAdditionalAOsCost(edition, totalAOs);
+        var cost = _settings.UnlimitedUsersPerAOPack * aoPackCount;
         Assert.Equal(expectedCost, cost);
     }
 
     #endregion
 
-    #region AO-Pack Scaled Add-on Pricing
+    #region ODC User Pricing (Flat)
 
     /// <summary>
-    /// AO-pack scaled cost formula: perPackRate * aoPackCount
+    /// ODC Internal User pack price should be $6,050 per 100 users
     /// </summary>
-    [Theory]
-    [InlineData(3630, 150, 3630)]       // 1 pack × $3,630
-    [InlineData(3630, 300, 7260)]       // 2 packs × $3,630
-    [InlineData(3630, 450, 10890)]      // 3 packs × $3,630 (matches Partner Calculator example)
-    [InlineData(12100, 450, 36300)]     // 3 packs × $12,100 (HA example)
-    [InlineData(24200, 450, 72600)]     // 3 packs × $24,200 (Sentry example)
-    public void CalculateAOPackScaledCost_CorrectCalculation(decimal perPackRate, int totalAOs, decimal expectedCost)
+    [Fact]
+    public void OdcInternalUserPackPrice_Is6050()
     {
-        var cost = _settings.CalculateAOPackScaledCost(perPackRate, totalAOs);
-        Assert.Equal(expectedCost, cost);
+        Assert.Equal(6050m, _settings.OdcInternalUserPackPrice);
     }
 
     /// <summary>
-    /// 24x7 Premium Support should be $3,630 per AO pack
+    /// ODC External User pack price should be $6,050 per 1000 users
     /// </summary>
     [Fact]
-    public void Support24x7PremiumPerAOPack_Is3630()
+    public void OdcExternalUserPackPrice_Is6050()
     {
-        Assert.Equal(3630m, _settings.Support24x7PremiumPerAOPack);
-    }
-
-    /// <summary>
-    /// Non-Production Environment add-on should be $3,630 per AO pack
-    /// </summary>
-    [Fact]
-    public void NonProductionEnvPerAOPack_Is3630()
-    {
-        Assert.Equal(3630m, _settings.NonProductionEnvPerAOPack);
-    }
-
-    /// <summary>
-    /// Load Testing Environment add-on should be $6,050 per AO pack
-    /// </summary>
-    [Fact]
-    public void LoadTestEnvPerAOPack_Is6050()
-    {
-        Assert.Equal(6050m, _settings.LoadTestEnvPerAOPack);
-    }
-
-    /// <summary>
-    /// Environment Pack add-on should be $9,680 per AO pack
-    /// </summary>
-    [Fact]
-    public void EnvironmentPackPerAOPack_Is9680()
-    {
-        Assert.Equal(9680m, _settings.EnvironmentPackPerAOPack);
-    }
-
-    /// <summary>
-    /// High Availability add-on should be $12,100 per AO pack
-    /// </summary>
-    [Fact]
-    public void HighAvailabilityPerAOPack_Is12100()
-    {
-        Assert.Equal(12100m, _settings.HighAvailabilityPerAOPack);
-    }
-
-    /// <summary>
-    /// Sentry add-on should be $24,200 per AO pack
-    /// </summary>
-    [Fact]
-    public void SentryPerAOPack_Is24200()
-    {
-        Assert.Equal(24200m, _settings.SentryPerAOPack);
-    }
-
-    /// <summary>
-    /// Disaster Recovery add-on should be $12,100 per AO pack
-    /// </summary>
-    [Fact]
-    public void DisasterRecoveryPerAOPack_Is12100()
-    {
-        Assert.Equal(12100m, _settings.DisasterRecoveryPerAOPack);
+        Assert.Equal(6050m, _settings.OdcExternalUserPackPrice);
     }
 
     #endregion
 
-    #region Flat Fee Add-ons
+    #region O11 Tiered User Pricing
 
     /// <summary>
-    /// Log Streaming should be $7,260 flat fee
+    /// O11 Internal User tiers should have correct pricing
+    /// Tier 1: 200-1000 users = $12,100/100
+    /// Tier 2: 1100-10000 users = $2,420/100
+    /// Tier 3: 10100+ users = $242/100
     /// </summary>
     [Fact]
-    public void LogStreamingPrice_Is7260()
+    public void O11InternalUserTiers_HasThreeTiers()
     {
-        Assert.Equal(7260m, _settings.LogStreamingPrice);
+        Assert.Equal(3, _settings.O11InternalUserTiers.Count);
+
+        var tier1 = _settings.O11InternalUserTiers[0];
+        Assert.Equal(200, tier1.MinUsers);
+        Assert.Equal(1000, tier1.MaxUsers);
+        Assert.Equal(12100m, tier1.PricePerPack);
+        Assert.Equal(100, tier1.PackSize);
+
+        var tier2 = _settings.O11InternalUserTiers[1];
+        Assert.Equal(1100, tier2.MinUsers);
+        Assert.Equal(10000, tier2.MaxUsers);
+        Assert.Equal(2420m, tier2.PricePerPack);
+
+        var tier3 = _settings.O11InternalUserTiers[2];
+        Assert.Equal(10100, tier3.MinUsers);
+        Assert.Equal(242m, tier3.PricePerPack);
     }
 
     /// <summary>
-    /// Database Replica should be $96,800 flat fee
+    /// O11 External User tiers should have correct pricing
+    /// Tier 1: 1-10000 users = $4,840/1000
+    /// Tier 2: 11000-250000 users = $1,452/1000
+    /// Tier 3: 251000+ users = $30.25/1000
     /// </summary>
     [Fact]
-    public void DatabaseReplicaPrice_Is96800()
+    public void O11ExternalUserTiers_HasThreeTiers()
     {
-        Assert.Equal(96800m, _settings.DatabaseReplicaPrice);
-    }
+        Assert.Equal(3, _settings.O11ExternalUserTiers.Count);
 
-    /// <summary>
-    /// Unlimited users should be $181,500 flat fee
-    /// </summary>
-    [Fact]
-    public void UnlimitedUsersPrice_Is181500()
-    {
-        Assert.Equal(181500m, _settings.UnlimitedUsersPrice);
-    }
+        var tier1 = _settings.O11ExternalUserTiers[0];
+        Assert.Equal(1, tier1.MinUsers);
+        Assert.Equal(10000, tier1.MaxUsers);
+        Assert.Equal(4840m, tier1.PricePerPack);
+        Assert.Equal(1000, tier1.PackSize);
 
-    /// <summary>
-    /// AppShield should be approximately $16.50 per user
-    /// </summary>
-    [Fact]
-    public void AppShieldPerUser_Is16_50()
-    {
-        Assert.Equal(16.50m, _settings.AppShieldPerUser);
+        var tier2 = _settings.O11ExternalUserTiers[1];
+        Assert.Equal(11000, tier2.MinUsers);
+        Assert.Equal(250000, tier2.MaxUsers);
+        Assert.Equal(1452m, tier2.PricePerPack);
+
+        var tier3 = _settings.O11ExternalUserTiers[2];
+        Assert.Equal(251000, tier3.MinUsers);
+        Assert.Equal(30.25m, tier3.PricePerPack);
     }
 
     #endregion
 
-    #region User Licensing
+    #region ODC Add-Ons Pricing
 
     /// <summary>
-    /// External user pack size should be 1,000 users
+    /// ODC Support 24x7 Extended: $6,050 per AO pack
     /// </summary>
     [Fact]
-    public void ExternalUserPackSize_Is1000()
+    public void OdcSupport24x7ExtendedPerPack_Is6050()
     {
-        Assert.Equal(1000, _settings.ExternalUserPackSize);
+        Assert.Equal(6050m, _settings.OdcSupport24x7ExtendedPerPack);
     }
 
     /// <summary>
-    /// External user pack price should be $4,840 per 1,000 users
+    /// ODC Support 24x7 Premium: $9,680 per AO pack
     /// </summary>
     [Fact]
-    public void ExternalUserPackPrice_Is4840()
+    public void OdcSupport24x7PremiumPerPack_Is9680()
     {
-        Assert.Equal(4840m, _settings.ExternalUserPackPricePerYear);
+        Assert.Equal(9680m, _settings.OdcSupport24x7PremiumPerPack);
     }
 
     /// <summary>
-    /// External user cost calculation should round up to pack size
+    /// ODC High Availability: $18,150 per AO pack
     /// </summary>
-    [Theory]
-    [InlineData(0, 0)]            // No users
-    [InlineData(1, 4840)]         // 1 user = 1 pack
-    [InlineData(1000, 4840)]      // Exactly 1 pack
-    [InlineData(1001, 9680)]      // Just over 1 pack = 2 packs
-    [InlineData(2500, 14520)]     // 3 packs
-    [InlineData(10000, 48400)]    // 10 packs
-    public void CalculateExternalUsersCost_RoundsUpCorrectly(int users, decimal expectedCost)
+    [Fact]
+    public void OdcHighAvailabilityPerPack_Is18150()
     {
-        var cost = _settings.CalculateExternalUsersCost(users);
-        Assert.Equal(expectedCost, cost);
+        Assert.Equal(18150m, _settings.OdcHighAvailabilityPerPack);
     }
 
     /// <summary>
-    /// Internal user pack size should be 100 users
+    /// ODC Non-Production Runtime: $6,050 per AO pack
     /// </summary>
     [Fact]
-    public void InternalUserPackSize_Is100()
+    public void OdcNonProdRuntimePerPack_Is6050()
     {
-        Assert.Equal(100, _settings.InternalUserPackSize);
+        Assert.Equal(6050m, _settings.OdcNonProdRuntimePerPack);
     }
 
     /// <summary>
-    /// Additional internal user pack price should be $6,000 per 100 users
+    /// ODC Private Gateway: $1,210 per AO pack
     /// </summary>
     [Fact]
-    public void AdditionalInternalUserPackPrice_Is6000()
+    public void OdcPrivateGatewayPerPack_Is1210()
     {
-        Assert.Equal(6000m, _settings.AdditionalInternalUserPackPrice);
+        Assert.Equal(1210m, _settings.OdcPrivateGatewayPerPack);
+    }
+
+    /// <summary>
+    /// ODC Sentry: $6,050 per AO pack
+    /// </summary>
+    [Fact]
+    public void OdcSentryPerPack_Is6050()
+    {
+        Assert.Equal(6050m, _settings.OdcSentryPerPack);
     }
 
     #endregion
 
-    #region Success Plan and Services
+    #region O11 Add-Ons Pricing
 
     /// <summary>
-    /// Essential Success Plan should be $30,250 per year
+    /// O11 Support 24x7 Premium: $3,630 per AO pack
     /// </summary>
     [Fact]
-    public void EssentialSuccessPlanPrice_Is30250()
+    public void O11Support24x7PremiumPerPack_Is3630()
     {
-        Assert.Equal(30250m, _settings.EssentialSuccessPlanPrice);
+        Assert.Equal(3630m, _settings.O11Support24x7PremiumPerPack);
     }
 
     /// <summary>
-    /// Premier Success Plan should be $60,500 per year
+    /// O11 High Availability: $12,100 per AO pack (Cloud only)
     /// </summary>
     [Fact]
-    public void PremierSuccessPlanPrice_Is60500()
+    public void O11HighAvailabilityPerPack_Is12100()
     {
-        Assert.Equal(60500m, _settings.PremierSuccessPlanPrice);
+        Assert.Equal(12100m, _settings.O11HighAvailabilityPerPack);
     }
 
     /// <summary>
-    /// Success Plan cost calculation
+    /// O11 Sentry (includes HA): $24,200 per AO pack (Cloud only)
+    /// </summary>
+    [Fact]
+    public void O11SentryPerPack_Is24200()
+    {
+        Assert.Equal(24200m, _settings.O11SentryPerPack);
+    }
+
+    /// <summary>
+    /// O11 Non-Production Environment: $3,630 per AO pack
+    /// </summary>
+    [Fact]
+    public void O11NonProdEnvPerPack_Is3630()
+    {
+        Assert.Equal(3630m, _settings.O11NonProdEnvPerPack);
+    }
+
+    /// <summary>
+    /// O11 Load Test Environment: $6,050 per AO pack (Cloud only)
+    /// </summary>
+    [Fact]
+    public void O11LoadTestEnvPerPack_Is6050()
+    {
+        Assert.Equal(6050m, _settings.O11LoadTestEnvPerPack);
+    }
+
+    /// <summary>
+    /// O11 Environment Pack: $9,680 per AO pack
+    /// </summary>
+    [Fact]
+    public void O11EnvironmentPackPerPack_Is9680()
+    {
+        Assert.Equal(9680m, _settings.O11EnvironmentPackPerPack);
+    }
+
+    /// <summary>
+    /// O11 Disaster Recovery: $12,100 per AO pack (Self-Managed only)
+    /// </summary>
+    [Fact]
+    public void O11DisasterRecoveryPerPack_Is12100()
+    {
+        Assert.Equal(12100m, _settings.O11DisasterRecoveryPerPack);
+    }
+
+    /// <summary>
+    /// O11 Log Streaming: $7,260 flat (Cloud only)
+    /// </summary>
+    [Fact]
+    public void O11LogStreamingFlat_Is7260()
+    {
+        Assert.Equal(7260m, _settings.O11LogStreamingFlat);
+    }
+
+    /// <summary>
+    /// O11 Database Replica: $96,800 flat (Cloud only)
+    /// </summary>
+    [Fact]
+    public void O11DatabaseReplicaFlat_Is96800()
+    {
+        Assert.Equal(96800m, _settings.O11DatabaseReplicaFlat);
+    }
+
+    #endregion
+
+    #region AppShield Tiered Pricing
+
+    /// <summary>
+    /// AppShield should have 19 tiers from 0-15M users
+    /// </summary>
+    [Fact]
+    public void AppShieldTiers_Has19Tiers()
+    {
+        Assert.Equal(19, _settings.AppShieldTiers.Count);
+    }
+
+    /// <summary>
+    /// AppShield Tier 1: 0-10,000 users = $18,150
+    /// </summary>
+    [Fact]
+    public void AppShieldTier1_Is18150()
+    {
+        var tier = _settings.AppShieldTiers[0];
+        Assert.Equal(1, tier.Tier);
+        Assert.Equal(0, tier.MinUsers);
+        Assert.Equal(10000, tier.MaxUsers);
+        Assert.Equal(18150m, tier.Price);
+    }
+
+    /// <summary>
+    /// GetAppShieldPrice should return correct tier price
     /// </summary>
     [Theory]
-    [InlineData(OutSystemsSuccessPlan.None, 0)]
-    [InlineData(OutSystemsSuccessPlan.Essential, 30250)]
-    [InlineData(OutSystemsSuccessPlan.Premier, 60500)]
-    public void CalculateSuccessPlanCost_ReturnsCorrectPrice(OutSystemsSuccessPlan plan, decimal expectedCost)
+    [InlineData(0, 18150)]          // Tier 1
+    [InlineData(5000, 18150)]       // Tier 1
+    [InlineData(10000, 18150)]      // Tier 1 (edge)
+    [InlineData(10001, 32670)]      // Tier 2
+    [InlineData(50001, 54450)]      // Tier 3
+    [InlineData(100001, 96800)]     // Tier 4
+    [InlineData(500001, 234740)]    // Tier 5
+    public void GetAppShieldPrice_ReturnsCorrectTierPrice(int userVolume, decimal expectedPrice)
     {
-        var cost = _settings.CalculateSuccessPlanCost(plan);
-        Assert.Equal(expectedCost, cost);
+        var price = _settings.GetAppShieldPrice(userVolume);
+        Assert.Equal(expectedPrice, price);
+    }
+
+    #endregion
+
+    #region Services Pricing by Region
+
+    /// <summary>
+    /// All 5 regions should have pricing defined
+    /// </summary>
+    [Fact]
+    public void ServicesPricingByRegion_HasAllRegions()
+    {
+        Assert.Equal(5, _settings.ServicesPricingByRegion.Count);
+        Assert.Contains(OutSystemsRegion.Africa, _settings.ServicesPricingByRegion.Keys);
+        Assert.Contains(OutSystemsRegion.MiddleEast, _settings.ServicesPricingByRegion.Keys);
+        Assert.Contains(OutSystemsRegion.Americas, _settings.ServicesPricingByRegion.Keys);
+        Assert.Contains(OutSystemsRegion.Europe, _settings.ServicesPricingByRegion.Keys);
+        Assert.Contains(OutSystemsRegion.AsiaPacific, _settings.ServicesPricingByRegion.Keys);
     }
 
     /// <summary>
-    /// Dedicated Group Session should be $3,820 each
+    /// Success Plans are same across all regions
+    /// Essential: $30,250, Premier: $60,500
     /// </summary>
-    [Fact]
-    public void DedicatedGroupSessionPrice_Is3820()
+    [Theory]
+    [InlineData(OutSystemsRegion.Africa)]
+    [InlineData(OutSystemsRegion.MiddleEast)]
+    [InlineData(OutSystemsRegion.Americas)]
+    [InlineData(OutSystemsRegion.Europe)]
+    [InlineData(OutSystemsRegion.AsiaPacific)]
+    public void SuccessPlans_SameAcrossAllRegions(OutSystemsRegion region)
     {
-        Assert.Equal(3820m, _settings.DedicatedGroupSessionPrice);
+        var pricing = _settings.GetServicesPricing(region);
+        Assert.Equal(30250m, pricing.EssentialSuccessPlan);
+        Assert.Equal(60500m, pricing.PremierSuccessPlan);
     }
 
     /// <summary>
-    /// Public Session should be $720 each
+    /// Middle East has different pricing for Bootcamps and Expert Days
     /// </summary>
     [Fact]
-    public void PublicSessionPrice_Is720()
+    public void MiddleEast_HasHigherServicesPricing()
     {
-        Assert.Equal(720m, _settings.PublicSessionPrice);
-    }
+        var middleEast = _settings.GetServicesPricing(OutSystemsRegion.MiddleEast);
+        var africa = _settings.GetServicesPricing(OutSystemsRegion.Africa);
 
-    /// <summary>
-    /// Expert Day should be $2,640 each
-    /// </summary>
-    [Fact]
-    public void ExpertDayPrice_Is2640()
-    {
-        Assert.Equal(2640m, _settings.ExpertDayPrice);
+        Assert.Equal(3820m, middleEast.DedicatedGroupSession);
+        Assert.Equal(720m, middleEast.PublicSession);
+        Assert.Equal(2130m, middleEast.ExpertDay);
+
+        // Compare with Africa (lower pricing)
+        Assert.Equal(2670m, africa.DedicatedGroupSession);
+        Assert.Equal(480m, africa.PublicSession);
+        Assert.Equal(1400m, africa.ExpertDay);
     }
 
     #endregion
@@ -413,10 +513,11 @@ public class OutSystemsPricingCalculationTests
     [InlineData(OutSystemsAzureInstanceType.F4s_v2, 1, 123.37)]     // 0.169 * 730
     [InlineData(OutSystemsAzureInstanceType.F4s_v2, 4, 493.48)]     // 0.169 * 730 * 4
     [InlineData(OutSystemsAzureInstanceType.D8s_v3, 2, 560.64)]     // 0.384 * 730 * 2
-    public void CalculateAzureMonthlyVMCost_CorrectCalculation(OutSystemsAzureInstanceType instance, int servers, decimal expectedCost)
+    public void AzureMonthlyVMCost_CorrectCalculation(OutSystemsAzureInstanceType instance, int servers, decimal expectedCost)
     {
-        var cost = _settings.CalculateAzureMonthlyVMCost(instance, servers);
-        Assert.Equal(expectedCost, cost);
+        var hourlyRate = _settings.AzureVMHourlyPricing[instance];
+        var monthlyVMCost = hourlyRate * _settings.HoursPerMonth * servers;
+        Assert.Equal(expectedCost, monthlyVMCost);
     }
 
     /// <summary>
@@ -426,61 +527,71 @@ public class OutSystemsPricingCalculationTests
     [InlineData(OutSystemsAwsInstanceType.M5Large, 1, 70.08)]       // 0.096 * 730
     [InlineData(OutSystemsAwsInstanceType.M5XLarge, 4, 560.64)]     // 0.192 * 730 * 4
     [InlineData(OutSystemsAwsInstanceType.M52XLarge, 2, 560.64)]    // 0.384 * 730 * 2
-    public void CalculateAwsMonthlyVMCost_CorrectCalculation(OutSystemsAwsInstanceType instance, int servers, decimal expectedCost)
+    public void AwsMonthlyVMCost_CorrectCalculation(OutSystemsAwsInstanceType instance, int servers, decimal expectedCost)
     {
-        var cost = _settings.CalculateAwsMonthlyVMCost(instance, servers);
-        Assert.Equal(expectedCost, cost);
-    }
-
-    /// <summary>
-    /// Azure instance specs should be correct
-    /// </summary>
-    [Theory]
-    [InlineData(OutSystemsAzureInstanceType.F4s_v2, 4, 8)]
-    [InlineData(OutSystemsAzureInstanceType.D4s_v3, 4, 16)]
-    [InlineData(OutSystemsAzureInstanceType.D8s_v3, 8, 32)]
-    [InlineData(OutSystemsAzureInstanceType.D16s_v3, 16, 64)]
-    public void GetAzureInstanceSpecs_ReturnsCorrectSpecs(OutSystemsAzureInstanceType instance, int expectedCpu, int expectedRam)
-    {
-        var specs = OutSystemsPricingSettings.GetAzureInstanceSpecs(instance);
-        Assert.Equal(expectedCpu, specs.vCPU);
-        Assert.Equal(expectedRam, specs.RamGB);
-    }
-
-    /// <summary>
-    /// AWS instance specs should be correct
-    /// </summary>
-    [Theory]
-    [InlineData(OutSystemsAwsInstanceType.M5Large, 2, 8)]
-    [InlineData(OutSystemsAwsInstanceType.M5XLarge, 4, 16)]
-    [InlineData(OutSystemsAwsInstanceType.M52XLarge, 8, 32)]
-    public void GetAwsInstanceSpecs_ReturnsCorrectSpecs(OutSystemsAwsInstanceType instance, int expectedCpu, int expectedRam)
-    {
-        var specs = OutSystemsPricingSettings.GetAwsInstanceSpecs(instance);
-        Assert.Equal(expectedCpu, specs.vCPU);
-        Assert.Equal(expectedRam, specs.RamGB);
+        var hourlyRate = _settings.AwsEC2HourlyPricing[instance];
+        var monthlyVMCost = hourlyRate * _settings.HoursPerMonth * servers;
+        Assert.Equal(expectedCost, monthlyVMCost);
     }
 
     #endregion
 
-    #region Cloud-Only Features
+    #region Feature Availability
 
     /// <summary>
-    /// Cloud-only features should be correctly identified
+    /// Cloud-only features should not be available for Self-Managed
+    /// </summary>
+    [Theory]
+    [InlineData("HighAvailability", false)]
+    [InlineData("Sentry", false)]
+    [InlineData("LogStreaming", false)]
+    [InlineData("LoadTestEnv", false)]
+    [InlineData("DatabaseReplica", false)]
+    public void CloudOnlyFeatures_NotAvailableForSelfManaged(string feature, bool expectedAvailable)
+    {
+        var result = OutSystemsPricingSettings.IsFeatureAvailable(feature, OutSystemsDeployment.SelfManaged);
+        Assert.Equal(expectedAvailable, result);
+    }
+
+    /// <summary>
+    /// Cloud-only features should be available for Cloud deployment
     /// </summary>
     [Theory]
     [InlineData("HighAvailability", true)]
     [InlineData("Sentry", true)]
-    [InlineData("LoadTestEnv", true)]
     [InlineData("LogStreaming", true)]
+    [InlineData("LoadTestEnv", true)]
     [InlineData("DatabaseReplica", true)]
-    [InlineData("NonProductionEnv", false)]      // Not cloud-only
-    [InlineData("DisasterRecovery", false)]      // Not cloud-only
-    [InlineData("Support24x7Premium", false)]    // Not cloud-only
-    public void IsCloudOnlyFeature_CorrectlyIdentifies(string feature, bool expectedResult)
+    public void CloudOnlyFeatures_AvailableForCloud(string feature, bool expectedAvailable)
     {
-        var result = OutSystemsPricingSettings.IsCloudOnlyFeature(feature);
-        Assert.Equal(expectedResult, result);
+        var result = OutSystemsPricingSettings.IsFeatureAvailable(feature, OutSystemsDeployment.Cloud);
+        Assert.Equal(expectedAvailable, result);
+    }
+
+    /// <summary>
+    /// Disaster Recovery is Self-Managed only
+    /// </summary>
+    [Theory]
+    [InlineData(OutSystemsDeployment.Cloud, false)]
+    [InlineData(OutSystemsDeployment.SelfManaged, true)]
+    public void DisasterRecovery_OnlyAvailableForSelfManaged(OutSystemsDeployment deployment, bool expectedAvailable)
+    {
+        var result = OutSystemsPricingSettings.IsFeatureAvailable("DisasterRecovery", deployment);
+        Assert.Equal(expectedAvailable, result);
+    }
+
+    /// <summary>
+    /// Common features should be available for both deployments
+    /// </summary>
+    [Theory]
+    [InlineData("NonProductionEnv", OutSystemsDeployment.Cloud, true)]
+    [InlineData("NonProductionEnv", OutSystemsDeployment.SelfManaged, true)]
+    [InlineData("Support24x7Premium", OutSystemsDeployment.Cloud, true)]
+    [InlineData("Support24x7Premium", OutSystemsDeployment.SelfManaged, true)]
+    public void CommonFeatures_AvailableForBothDeployments(string feature, OutSystemsDeployment deployment, bool expectedAvailable)
+    {
+        var result = OutSystemsPricingSettings.IsFeatureAvailable(feature, deployment);
+        Assert.Equal(expectedAvailable, result);
     }
 
     #endregion
@@ -488,53 +599,20 @@ public class OutSystemsPricingCalculationTests
     #region Deployment Config Validation
 
     /// <summary>
-    /// NumberOfAOPacks should be computed correctly from TotalApplicationObjects
-    /// </summary>
-    [Theory]
-    [InlineData(150, 1)]
-    [InlineData(300, 2)]
-    [InlineData(450, 3)]
-    [InlineData(151, 2)]
-    public void DeploymentConfig_NumberOfAOPacks_ComputedCorrectly(int aos, int expectedPacks)
-    {
-        var config = new OutSystemsDeploymentConfig
-        {
-            TotalApplicationObjects = aos
-        };
-        Assert.Equal(expectedPacks, config.NumberOfAOPacks);
-    }
-
-    /// <summary>
-    /// TotalEnvironments should sum production and non-production
-    /// </summary>
-    [Theory]
-    [InlineData(1, 3, 4)]
-    [InlineData(2, 2, 4)]
-    [InlineData(1, 0, 1)]
-    public void DeploymentConfig_TotalEnvironments_SumsCorrectly(int prod, int nonProd, int expected)
-    {
-        var config = new OutSystemsDeploymentConfig
-        {
-            ProductionEnvironments = prod,
-            NonProductionEnvironments = nonProd
-        };
-        Assert.Equal(expected, config.TotalEnvironments);
-    }
-
-    /// <summary>
-    /// Self-managed deployment with cloud-only features should generate warnings
+    /// O11 Self-managed deployment with cloud-only features should generate warnings
     /// </summary>
     [Fact]
-    public void DeploymentConfig_SelfManagedWithCloudFeatures_GeneratesWarnings()
+    public void DeploymentConfig_O11SelfManagedWithCloudFeatures_GeneratesWarnings()
     {
         var config = new OutSystemsDeploymentConfig
         {
-            DeploymentType = OutSystemsDeploymentType.SelfManaged,
-            IncludeHA = true,
-            IncludeSentry = true,
-            IncludeLoadTestEnv = true,
-            IncludeLogStreaming = true,
-            IncludeDatabaseReplica = true
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            O11HighAvailability = true,
+            O11Sentry = true,
+            O11LogStreamingQuantity = 1,
+            O11LoadTestEnvQuantity = 1,
+            O11DatabaseReplicaQuantity = 1
         };
 
         var warnings = config.GetValidationWarnings();
@@ -543,23 +621,24 @@ public class OutSystemsPricingCalculationTests
         Assert.Equal(6, warnings.Count);
         Assert.Contains(warnings, w => w.Contains("High Availability"));
         Assert.Contains(warnings, w => w.Contains("Sentry"));
-        Assert.Contains(warnings, w => w.Contains("Load Testing"));
         Assert.Contains(warnings, w => w.Contains("Log Streaming"));
+        Assert.Contains(warnings, w => w.Contains("Load Test"));
         Assert.Contains(warnings, w => w.Contains("Database Replica"));
-        Assert.Contains(warnings, w => w.Contains("Sentry already includes"));
+        Assert.Contains(warnings, w => w.Contains("Sentry includes High Availability"));
     }
 
     /// <summary>
-    /// Cloud deployment with cloud-only features should not generate warnings
+    /// O11 Cloud deployment with cloud-only features should not generate cloud warnings
     /// </summary>
     [Fact]
-    public void DeploymentConfig_CloudWithCloudFeatures_NoWarnings()
+    public void DeploymentConfig_O11CloudWithCloudFeatures_NoCloudWarnings()
     {
         var config = new OutSystemsDeploymentConfig
         {
-            DeploymentType = OutSystemsDeploymentType.Cloud,
-            IncludeHA = true,
-            IncludeLogStreaming = true
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            O11HighAvailability = true,
+            O11LogStreamingQuantity = 1
         };
 
         var warnings = config.GetValidationWarnings();
@@ -568,107 +647,258 @@ public class OutSystemsPricingCalculationTests
     }
 
     /// <summary>
-    /// Selecting both Sentry and HA should generate a warning since Sentry includes HA
+    /// O11 Cloud with Disaster Recovery should generate warning (Self-Managed only)
+    /// </summary>
+    [Fact]
+    public void DeploymentConfig_O11CloudWithDR_GeneratesWarning()
+    {
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            O11DisasterRecovery = true
+        };
+
+        var warnings = config.GetValidationWarnings();
+
+        Assert.Single(warnings);
+        Assert.Contains("Disaster Recovery is Self-Managed only", warnings[0]);
+    }
+
+    /// <summary>
+    /// Selecting both Sentry and HA should generate warning (Sentry includes HA)
     /// </summary>
     [Fact]
     public void DeploymentConfig_SentryWithHA_GeneratesWarning()
     {
         var config = new OutSystemsDeploymentConfig
         {
-            DeploymentType = OutSystemsDeploymentType.Cloud,
-            IncludeSentry = true,
-            IncludeHA = true
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            O11Sentry = true,
+            O11HighAvailability = true
         };
 
         var warnings = config.GetValidationWarnings();
 
         Assert.Single(warnings);
-        Assert.Contains("Sentry already includes High Availability", warnings[0]);
+        Assert.Contains("Sentry includes High Availability", warnings[0]);
+    }
+
+    /// <summary>
+    /// ODC with both Extended and Premium support should generate warning
+    /// </summary>
+    [Fact]
+    public void DeploymentConfig_OdcBothSupportLevels_GeneratesWarning()
+    {
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            OdcSupport24x7Extended = true,
+            OdcSupport24x7Premium = true
+        };
+
+        var warnings = config.GetValidationWarnings();
+
+        Assert.Single(warnings);
+        Assert.Contains("mutually exclusive", warnings[0]);
+    }
+
+    /// <summary>
+    /// AppShield with Unlimited Users but no user volume should generate warning
+    /// </summary>
+    [Fact]
+    public void DeploymentConfig_AppShieldWithUnlimitedNoVolume_GeneratesWarning()
+    {
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            UseUnlimitedUsers = true,
+            O11AppShield = true,
+            AppShieldUserVolume = null
+        };
+
+        var warnings = config.GetValidationWarnings();
+
+        Assert.Single(warnings);
+        Assert.Contains("AppShield requires expected user volume", warnings[0]);
     }
 
     #endregion
 
-    #region Pricing Result Totals
+    #region Discount Calculations
 
     /// <summary>
-    /// OutSystemsPricingResult should calculate subtotals correctly
+    /// Percentage discount should calculate correctly
     /// </summary>
-    [Fact]
-    public void PricingResult_LicenseSubtotal_CalculatedCorrectly()
+    [Theory]
+    [InlineData(10, 100000, 0, 0, 10000)]   // 10% of 100K = 10K
+    [InlineData(20, 50000, 25000, 25000, 20000)] // 20% of 100K total = 20K
+    [InlineData(50, 100000, 0, 0, 50000)]   // 50% of 100K = 50K
+    public void Discount_Percentage_CalculatesCorrectly(decimal percentage, decimal license, decimal addOns, decimal services, decimal expectedDiscount)
     {
-        var result = new OutSystemsPricingResult
+        var discount = new OutSystemsDiscount
         {
-            EditionBaseCost = 36300m,
-            AdditionalAOsCost = 36300m,
-            UserLicenseCost = 4840m
+            Type = OutSystemsDiscountType.Percentage,
+            Scope = OutSystemsDiscountScope.Total,
+            Value = percentage
         };
 
-        Assert.Equal(77440m, result.LicenseSubtotal);
+        var result = discount.CalculateDiscount(license, addOns, services);
+        Assert.Equal(expectedDiscount, result);
     }
 
     /// <summary>
-    /// OutSystemsPricingResult add-ons subtotal should sum all add-on costs
+    /// Fixed amount discount should not exceed applicable amount
     /// </summary>
-    [Fact]
-    public void PricingResult_AddOnsSubtotal_CalculatedCorrectly()
+    [Theory]
+    [InlineData(5000, 10000, 0, 0, 5000)]       // 5K discount on 10K = 5K
+    [InlineData(15000, 10000, 0, 0, 10000)]     // 15K discount on 10K = 10K (capped)
+    public void Discount_FixedAmount_CapsAtApplicable(decimal discountAmount, decimal license, decimal addOns, decimal services, decimal expectedDiscount)
     {
-        var result = new OutSystemsPricingResult
+        var discount = new OutSystemsDiscount
         {
-            Support24x7PremiumCost = 3630m,
-            NonProductionEnvCost = 3630m,
-            HACost = 12100m,
-            DRCost = 12100m
+            Type = OutSystemsDiscountType.FixedAmount,
+            Scope = OutSystemsDiscountScope.Total,
+            Value = discountAmount
         };
 
-        Assert.Equal(31460m, result.AddOnsSubtotal);
+        var result = discount.CalculateDiscount(license, addOns, services);
+        Assert.Equal(expectedDiscount, result);
     }
 
     /// <summary>
-    /// OutSystemsPricingResult total per year should sum all subtotals
+    /// Discount scope should only apply to specified category
     /// </summary>
     [Fact]
-    public void PricingResult_TotalPerYear_CalculatedCorrectly()
+    public void Discount_ScopeLicenseOnly_OnlyAppliesToLicense()
     {
-        var result = new OutSystemsPricingResult
+        var discount = new OutSystemsDiscount
         {
-            EditionBaseCost = 36300m,
-            AdditionalAOsCost = 36300m,
-            UserLicenseCost = 4840m,
-            Support24x7PremiumCost = 3630m,
-            HACost = 12100m,
-            MonthlyVMCost = 500m,       // Monthly becomes 6000/year
-            SuccessPlanCost = 30250m
+            Type = OutSystemsDiscountType.Percentage,
+            Scope = OutSystemsDiscountScope.LicenseOnly,
+            Value = 20
         };
 
-        // License: 77440 + AddOns: 15730 + Infra: 6000 + Services: 30250 = 129420
-        Assert.Equal(129420m, result.TotalPerYear);
+        // 20% of license only (50K), not of add-ons or services
+        var result = discount.CalculateDiscount(50000m, 20000m, 10000m);
+        Assert.Equal(10000m, result); // 20% of 50K = 10K
     }
 
     /// <summary>
-    /// OutSystemsPricingResult monthly should be yearly / 12
+    /// AddOnsOnly scope should only apply to add-ons
     /// </summary>
     [Fact]
-    public void PricingResult_TotalPerMonth_CalculatedCorrectly()
+    public void Discount_ScopeAddOnsOnly_OnlyAppliesToAddOns()
+    {
+        var discount = new OutSystemsDiscount
+        {
+            Type = OutSystemsDiscountType.Percentage,
+            Scope = OutSystemsDiscountScope.AddOnsOnly,
+            Value = 25
+        };
+
+        var result = discount.CalculateDiscount(50000m, 20000m, 10000m);
+        Assert.Equal(5000m, result); // 25% of 20K = 5K
+    }
+
+    #endregion
+
+    #region Pricing Result Structure
+
+    /// <summary>
+    /// PricingResult LicenseSubtotal should sum all license costs
+    /// </summary>
+    [Fact]
+    public void PricingResult_LicenseSubtotal_SumsCorrectly()
     {
         var result = new OutSystemsPricingResult
         {
-            EditionBaseCost = 36300m  // LicenseSubtotal = 36300
+            EditionCost = 36300m,
+            AOPacksCost = 36300m,
+            InternalUsersCost = 12100m,
+            ExternalUsersCost = 4840m,
+            UnlimitedUsersCost = 0m
+        };
+
+        Assert.Equal(89540m, result.LicenseSubtotal);
+    }
+
+    /// <summary>
+    /// PricingResult AddOnsSubtotal should sum all add-on costs
+    /// </summary>
+    [Fact]
+    public void PricingResult_AddOnsSubtotal_SumsCorrectly()
+    {
+        var result = new OutSystemsPricingResult();
+        result.AddOnCosts["Support 24x7 Premium"] = 3630m;
+        result.AddOnCosts["High Availability"] = 12100m;
+        result.AddOnCosts["Non-Prod Env"] = 3630m;
+
+        Assert.Equal(19360m, result.AddOnsSubtotal);
+    }
+
+    /// <summary>
+    /// PricingResult ServicesSubtotal should sum all services costs
+    /// </summary>
+    [Fact]
+    public void PricingResult_ServicesSubtotal_SumsCorrectly()
+    {
+        var result = new OutSystemsPricingResult();
+        result.ServiceCosts["Essential Success Plan"] = 30250m;
+        result.ServiceCosts["Dedicated Group Session"] = 3820m;
+
+        Assert.Equal(34070m, result.ServicesSubtotal);
+    }
+
+    /// <summary>
+    /// PricingResult GrossTotal should sum all subtotals
+    /// </summary>
+    [Fact]
+    public void PricingResult_GrossTotal_SumsAllSubtotals()
+    {
+        var result = new OutSystemsPricingResult
+        {
+            EditionCost = 36300m,
+            AOPacksCost = 0m,
+            InternalUsersCost = 0m,
+            ExternalUsersCost = 0m,
+            MonthlyVMCost = 500m  // $6,000/year infrastructure
+        };
+        result.AddOnCosts["HA"] = 12100m;
+        result.ServiceCosts["Essential"] = 30250m;
+
+        // License: 36,300 + AddOns: 12,100 + Services: 30,250 + Infra: 6,000 = 84,650
+        Assert.Equal(84650m, result.GrossTotal);
+    }
+
+    /// <summary>
+    /// PricingResult NetTotal should apply discount
+    /// </summary>
+    [Fact]
+    public void PricingResult_NetTotal_SubtractsDiscount()
+    {
+        var result = new OutSystemsPricingResult
+        {
+            EditionCost = 100000m,
+            DiscountAmount = 10000m
+        };
+
+        Assert.Equal(90000m, result.NetTotal);
+    }
+
+    /// <summary>
+    /// PricingResult multi-year projections should be correct
+    /// </summary>
+    [Fact]
+    public void PricingResult_MultiYearProjections_CorrectMultiples()
+    {
+        var result = new OutSystemsPricingResult
+        {
+            EditionCost = 36300m
         };
 
         Assert.Equal(36300m / 12, result.TotalPerMonth);
-    }
-
-    /// <summary>
-    /// OutSystemsPricingResult 3-year and 5-year totals
-    /// </summary>
-    [Fact]
-    public void PricingResult_MultiYearTotals_CalculatedCorrectly()
-    {
-        var result = new OutSystemsPricingResult
-        {
-            EditionBaseCost = 36300m
-        };
-
         Assert.Equal(36300m * 3, result.TotalThreeYear);
         Assert.Equal(36300m * 5, result.TotalFiveYear);
     }
@@ -678,72 +908,127 @@ public class OutSystemsPricingCalculationTests
     #region Comprehensive Scenario Tests
 
     /// <summary>
-    /// Validate Partner Calculator example: 3 AO packs with common add-ons
+    /// Example 1: ODC Base Configuration
+    /// Platform: ODC, 1 AO Pack, 100 Internal Users (included)
+    /// Expected: $30,250/year
     /// </summary>
     [Fact]
-    public void PartnerCalculatorScenario_ThreeAOPacks_CorrectTotals()
+    public void Example1_OdcBaseConfiguration_CorrectTotal()
     {
-        // Scenario: 3 AO packs (450 AOs), Enterprise edition
-        // With: 24x7 Premium Support, HA, DR
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
 
-        var totalAOs = 450;
-        var packCount = _settings.CalculateAOPackCount(totalAOs);
-        Assert.Equal(3, packCount);
-
-        // Edition base (1 pack included): $36,300
-        var editionBase = _settings.GetEditionBasePrice(OutSystemsEdition.Enterprise);
-        Assert.Equal(36300m, editionBase);
-
-        // Additional AO packs (2 packs): 2 × $36,300 = $72,600
-        var additionalAOs = _settings.CalculateAdditionalAOsCost(OutSystemsEdition.Enterprise, totalAOs);
-        Assert.Equal(72600m, additionalAOs);
-
-        // 24x7 Premium Support: 3 × $3,630 = $10,890
-        var support = _settings.CalculateAOPackScaledCost(_settings.Support24x7PremiumPerAOPack, totalAOs);
-        Assert.Equal(10890m, support);
-
-        // High Availability: 3 × $12,100 = $36,300
-        var ha = _settings.CalculateAOPackScaledCost(_settings.HighAvailabilityPerAOPack, totalAOs);
-        Assert.Equal(36300m, ha);
-
-        // Disaster Recovery: 3 × $12,100 = $36,300
-        var dr = _settings.CalculateAOPackScaledCost(_settings.DisasterRecoveryPerAOPack, totalAOs);
-        Assert.Equal(36300m, dr);
-
-        // Total for this scenario: $192,390
-        var total = editionBase + additionalAOs + support + ha + dr;
-        Assert.Equal(192390m, total);
+        // Base ODC license only
+        var expectedTotal = _settings.OdcPlatformBasePrice;
+        Assert.Equal(30250m, expectedTotal);
     }
 
     /// <summary>
-    /// Validate self-managed on Azure scenario
+    /// Example 2: O11 Cloud with 3 AO Packs
+    /// Platform: O11, Deployment: Cloud, 3 AO Packs (450 AOs)
+    /// With: HA, 24x7 Premium Support
     /// </summary>
     [Fact]
-    public void SelfManagedAzureScenario_CorrectVMCosts()
+    public void Example2_O11CloudWithAddOns_CorrectBreakdown()
     {
-        // Scenario: 4 environments × 2 front-end servers = 8 VMs
-        // Using D4s_v3 instance
+        var aoPackCount = 3;
 
+        // Base + Additional AO Packs
+        var editionBase = _settings.O11EnterpriseBasePrice;  // $36,300 (includes 1 pack)
+        var additionalAOPacks = _settings.O11AOPackPrice * (aoPackCount - 1);  // $72,600 (2 additional packs)
+        var licenseTotal = editionBase + additionalAOPacks;  // $108,900
+
+        Assert.Equal(36300m, editionBase);
+        Assert.Equal(72600m, additionalAOPacks);
+        Assert.Equal(108900m, licenseTotal);
+
+        // Add-ons (per AO pack)
+        var haCost = _settings.O11HighAvailabilityPerPack * aoPackCount;  // $36,300
+        var supportCost = _settings.O11Support24x7PremiumPerPack * aoPackCount;  // $10,890
+        var addOnsTotal = haCost + supportCost;  // $47,190
+
+        Assert.Equal(36300m, haCost);
+        Assert.Equal(10890m, supportCost);
+        Assert.Equal(47190m, addOnsTotal);
+
+        // Grand total
+        var grandTotal = licenseTotal + addOnsTotal;
+        Assert.Equal(156090m, grandTotal);
+    }
+
+    /// <summary>
+    /// Example 3: O11 Self-Managed on Azure
+    /// Platform: O11, Deployment: Self-Managed, Cloud Provider: Azure
+    /// 4 environments × 2 front-end servers = 8 VMs (D4s_v3)
+    /// </summary>
+    [Fact]
+    public void Example3_O11SelfManagedAzure_CorrectVMCosts()
+    {
         var config = new OutSystemsDeploymentConfig
         {
-            DeploymentType = OutSystemsDeploymentType.SelfManaged,
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
             CloudProvider = OutSystemsCloudProvider.Azure,
             AzureInstanceType = OutSystemsAzureInstanceType.D4s_v3,
             FrontEndServersPerEnvironment = 2,
-            ProductionEnvironments = 1,
-            NonProductionEnvironments = 3
+            TotalEnvironments = 4
         };
 
         var totalVMs = config.TotalEnvironments * config.FrontEndServersPerEnvironment;
         Assert.Equal(8, totalVMs);
 
         // Monthly VM cost: 0.192 × 730 × 8 = $1,121.28
-        var monthlyVMCost = _settings.CalculateAzureMonthlyVMCost(config.AzureInstanceType, totalVMs);
+        var hourlyRate = _settings.AzureVMHourlyPricing[config.AzureInstanceType];
+        var monthlyVMCost = hourlyRate * _settings.HoursPerMonth * totalVMs;
         Assert.Equal(1121.28m, monthlyVMCost);
 
         // Annual VM cost: $13,455.36
         var annualVMCost = monthlyVMCost * 12;
         Assert.Equal(13455.36m, annualVMCost);
+    }
+
+    /// <summary>
+    /// Example 4: Unlimited Users with AppShield
+    /// Unlimited Users: $60,500 × 3 packs = $181,500
+    /// AppShield Tier 1 (10K users): $18,150
+    /// </summary>
+    [Fact]
+    public void Example4_UnlimitedUsersWithAppShield_CorrectCosts()
+    {
+        var aoPackCount = 3;
+        var userVolume = 10000;
+
+        var unlimitedCost = _settings.UnlimitedUsersPerAOPack * aoPackCount;
+        Assert.Equal(181500m, unlimitedCost);
+
+        var appShieldCost = _settings.GetAppShieldPrice(userVolume);
+        Assert.Equal(18150m, appShieldCost);
+
+        var totalUserCosts = unlimitedCost + appShieldCost;
+        Assert.Equal(199650m, totalUserCosts);
+    }
+
+    /// <summary>
+    /// Example 5: ODC with multiple add-ons
+    /// ODC Base + HA + Sentry + 2 Non-Prod Runtimes
+    /// </summary>
+    [Fact]
+    public void Example5_OdcWithMultipleAddOns_CorrectTotal()
+    {
+        var aoPackCount = 1;
+
+        var baseCost = _settings.OdcPlatformBasePrice;  // $30,250
+        var haCost = _settings.OdcHighAvailabilityPerPack * aoPackCount;  // $18,150
+        var sentryCost = _settings.OdcSentryPerPack * aoPackCount;  // $6,050
+        var nonProdCost = _settings.OdcNonProdRuntimePerPack * aoPackCount * 2;  // $12,100 (qty 2)
+
+        var total = baseCost + haCost + sentryCost + nonProdCost;
+        Assert.Equal(66550m, total);
     }
 
     #endregion

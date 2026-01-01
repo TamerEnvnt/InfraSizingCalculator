@@ -534,98 +534,195 @@ public class PricingSettingsService : IPricingSettingsService
     public OutSystemsPricingResult CalculateOutSystemsCost(OutSystemsDeploymentConfig config)
     {
         var pricing = _settings.OutSystemsPricing;
+        var aoPackCount = config.AOPacks;
+
         var result = new OutSystemsPricingResult
         {
-            Edition = config.Edition,
-            DeploymentType = config.DeploymentType,
-            CloudProvider = config.CloudProvider,
-            TotalAOs = config.TotalApplicationObjects,
-            AOPackCount = config.NumberOfAOPacks,
-            IncludedAOs = pricing.GetIncludedAOs(config.Edition),
+            Platform = config.Platform,
+            Deployment = config.Deployment,
+            Region = config.Region,
+            AOPackCount = aoPackCount,
             Warnings = config.GetValidationWarnings()
         };
 
-        // Set deployment type name
-        result.DeploymentTypeName = config.DeploymentType == OutSystemsDeploymentType.Cloud
-            ? "OutSystems Cloud"
-            : config.CloudProvider switch
-            {
-                OutSystemsCloudProvider.Azure => "Self-Managed on Azure",
-                OutSystemsCloudProvider.AWS => "Self-Managed on AWS",
-                _ => "Self-Managed On-Premises"
-            };
+        // Calculate license costs based on platform
+        CalculateOutSystemsLicenseCosts(config, pricing, result);
 
-        // Edition base cost
-        result.EditionBaseCost = pricing.GetEditionBasePrice(config.Edition);
-
-        // Additional AO packs (1 pack included in base)
-        result.AdditionalAOPacks = Math.Max(0, result.AOPackCount - 1);
-        result.AdditionalAOsCost = result.AdditionalAOPacks * pricing.AdditionalAOPackPrice;
-
-        // User licensing
-        CalculateOutSystemsUserLicenseCost(config, pricing, result);
-
-        // Add-ons
+        // Calculate add-on costs based on platform
         CalculateOutSystemsAddOnCosts(config, pricing, result);
 
-        // Infrastructure (for self-managed on cloud)
-        if (config.DeploymentType == OutSystemsDeploymentType.SelfManaged &&
+        // Calculate services costs (region-dependent)
+        CalculateOutSystemsServicesCosts(config, pricing, result);
+
+        // Infrastructure (for O11 self-managed on cloud)
+        if (config.Platform == OutSystemsPlatform.O11 &&
+            config.Deployment == OutSystemsDeployment.SelfManaged &&
             config.CloudProvider != OutSystemsCloudProvider.OnPremises)
         {
             CalculateOutSystemsCloudVMCost(config, pricing, result);
         }
 
-        // Services
-        result.SuccessPlanCost = pricing.CalculateSuccessPlanCost(config.SuccessPlan);
-        result.TrainingCost = (config.DedicatedGroupSessions * pricing.DedicatedGroupSessionPrice) +
-                              (config.PublicSessions * pricing.PublicSessionPrice);
-        result.ExpertDaysCost = config.ExpertDays * pricing.ExpertDayPrice;
+        // Apply discount if configured
+        if (config.Discount != null && config.Discount.Value > 0)
+        {
+            result.DiscountAmount = config.Discount.CalculateDiscount(
+                result.LicenseSubtotal,
+                result.AddOnsSubtotal,
+                result.ServicesSubtotal);
+            result.DiscountDescription = config.Discount.Type == OutSystemsDiscountType.Percentage
+                ? $"{config.Discount.Value}% discount on {config.Discount.Scope}"
+                : $"${config.Discount.Value:N0} discount on {config.Discount.Scope}";
+            if (!string.IsNullOrEmpty(config.Discount.Notes))
+                result.DiscountDescription += $" ({config.Discount.Notes})";
+        }
 
-        // Environment details
-        result.EnvironmentDetails = $"{config.ProductionEnvironments} Production, " +
-                                    $"{config.NonProductionEnvironments} Non-Production";
+        // Build line items for detailed display
+        BuildOutSystemsLineItems(config, pricing, result);
 
         return result;
     }
 
-    private void CalculateOutSystemsUserLicenseCost(
+    private void CalculateOutSystemsLicenseCosts(
         OutSystemsDeploymentConfig config,
         OutSystemsPricingSettings pricing,
         OutSystemsPricingResult result)
     {
+        var aoPackCount = result.AOPackCount;
+
+        if (config.Platform == OutSystemsPlatform.ODC)
+        {
+            // ODC: Base + Additional AO Packs + Users
+            result.EditionCost = pricing.OdcPlatformBasePrice;
+            result.LicenseBreakdown["Platform Base (ODC)"] = result.EditionCost;
+
+            // Additional AO packs (1 included in base)
+            var additionalPacks = Math.Max(0, aoPackCount - 1);
+            result.AOPacksCost = additionalPacks * pricing.OdcAOPackPrice;
+            if (additionalPacks > 0)
+                result.LicenseBreakdown[$"Additional AO Packs ({additionalPacks}×$18,150)"] = result.AOPacksCost;
+
+            // User licensing - ODC uses flat pack pricing
+            CalculateOdcUserLicenseCost(config, pricing, result);
+        }
+        else // O11
+        {
+            // O11: Enterprise Base + Additional AO Packs + Users (tiered)
+            result.EditionCost = pricing.O11EnterpriseBasePrice;
+            result.LicenseBreakdown["Enterprise Edition (O11)"] = result.EditionCost;
+
+            // Additional AO packs (1 included in base)
+            var additionalPacks = Math.Max(0, aoPackCount - 1);
+            result.AOPacksCost = additionalPacks * pricing.O11AOPackPrice;
+            if (additionalPacks > 0)
+                result.LicenseBreakdown[$"Additional AO Packs ({additionalPacks}×$36,300)"] = result.AOPacksCost;
+
+            // User licensing - O11 uses tiered pricing
+            CalculateO11UserLicenseCost(config, pricing, result);
+        }
+    }
+
+    private void CalculateOdcUserLicenseCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        result.UsedUnlimitedUsers = config.UseUnlimitedUsers;
+
         if (config.UseUnlimitedUsers)
         {
-            result.UserLicenseCost = pricing.UnlimitedUsersPrice;
-            result.UserLicenseDetails = "Unlimited Users";
+            // CRITICAL: Unlimited Users = $60,500 × AO Packs (NOT flat!)
+            result.UnlimitedUsersCost = pricing.UnlimitedUsersPerAOPack * result.AOPackCount;
+            result.LicenseBreakdown[$"Unlimited Users ({result.AOPackCount}×$60,500)"] = result.UnlimitedUsersCost;
             return;
         }
 
-        decimal userCost = 0;
-        var details = new List<string>();
-
-        var includedInternal = pricing.GetIncludedInternalUsers(config.Edition);
+        // ODC Internal Users: 100 included, $6,050 per additional pack of 100
+        var includedInternal = 100;
         var additionalInternal = Math.Max(0, config.InternalUsers - includedInternal);
-
         if (additionalInternal > 0)
         {
-            var internalPacks = (int)Math.Ceiling(additionalInternal / (double)pricing.InternalUserPackSize);
-            userCost += internalPacks * pricing.AdditionalInternalUserPackPrice;
-            details.Add($"{config.InternalUsers} internal ({includedInternal} included)");
-        }
-        else
-        {
-            details.Add($"{config.InternalUsers} internal (included)");
+            result.InternalUserPackCount = (int)Math.Ceiling(additionalInternal / (double)pricing.InternalUserPackSize);
+            result.InternalUsersCost = result.InternalUserPackCount * pricing.OdcInternalUserPackPrice;
+            result.LicenseBreakdown[$"Internal Users (+{additionalInternal} users, {result.InternalUserPackCount} pack(s))"] = result.InternalUsersCost;
         }
 
+        // ODC External Users: None included, $6,050 per pack of 1000
         if (config.ExternalUsers > 0)
         {
-            userCost += pricing.CalculateExternalUsersCost(config.ExternalUsers);
-            var externalPacks = (int)Math.Ceiling(config.ExternalUsers / (double)pricing.ExternalUserPackSize);
-            details.Add($"{config.ExternalUsers} external ({externalPacks} pack(s))");
+            result.ExternalUserPackCount = (int)Math.Ceiling(config.ExternalUsers / (double)pricing.ExternalUserPackSize);
+            result.ExternalUsersCost = result.ExternalUserPackCount * pricing.OdcExternalUserPackPrice;
+            result.LicenseBreakdown[$"External Users ({config.ExternalUsers} users, {result.ExternalUserPackCount} pack(s))"] = result.ExternalUsersCost;
+        }
+    }
+
+    private void CalculateO11UserLicenseCost(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        result.UsedUnlimitedUsers = config.UseUnlimitedUsers;
+
+        if (config.UseUnlimitedUsers)
+        {
+            // CRITICAL: Unlimited Users = $60,500 × AO Packs (NOT flat!)
+            result.UnlimitedUsersCost = pricing.UnlimitedUsersPerAOPack * result.AOPackCount;
+            result.LicenseBreakdown[$"Unlimited Users ({result.AOPackCount}×$60,500)"] = result.UnlimitedUsersCost;
+            return;
         }
 
-        result.UserLicenseCost = userCost;
-        result.UserLicenseDetails = string.Join(", ", details);
+        // O11 Internal Users: 100 included, TIERED pricing for additional
+        var includedInternal = 100;
+        var additionalInternal = Math.Max(0, config.InternalUsers - includedInternal);
+        if (additionalInternal > 0)
+        {
+            result.InternalUsersCost = CalculateO11TieredUserCost(
+                config.InternalUsers, includedInternal, pricing.O11InternalUserTiers, pricing.InternalUserPackSize);
+            result.InternalUserPackCount = (int)Math.Ceiling(additionalInternal / (double)pricing.InternalUserPackSize);
+            result.LicenseBreakdown[$"Internal Users (+{additionalInternal} tiered)"] = result.InternalUsersCost;
+        }
+
+        // O11 External Users: None included, TIERED pricing
+        if (config.ExternalUsers > 0)
+        {
+            result.ExternalUsersCost = CalculateO11TieredUserCost(
+                config.ExternalUsers, 0, pricing.O11ExternalUserTiers, pricing.ExternalUserPackSize);
+            result.ExternalUserPackCount = (int)Math.Ceiling(config.ExternalUsers / (double)pricing.ExternalUserPackSize);
+            result.LicenseBreakdown[$"External Users ({config.ExternalUsers} tiered)"] = result.ExternalUsersCost;
+        }
+    }
+
+    private static decimal CalculateO11TieredUserCost(
+        int totalUsers,
+        int includedUsers,
+        List<OutSystemsUserTier> tiers,
+        int packSize)
+    {
+        var billableUsers = Math.Max(0, totalUsers - includedUsers);
+        if (billableUsers == 0) return 0;
+
+        decimal totalCost = 0;
+        var remaining = billableUsers;
+        var currentUser = includedUsers + 1;
+
+        foreach (var tier in tiers.OrderBy(t => t.MinUsers))
+        {
+            if (remaining <= 0) break;
+
+            // How many users fall in this tier?
+            var tierStart = Math.Max(currentUser, tier.MinUsers);
+            var tierEnd = Math.Min(currentUser + remaining - 1, tier.MaxUsers);
+
+            if (tierStart <= tierEnd)
+            {
+                var usersInTier = tierEnd - tierStart + 1;
+                var packsInTier = (int)Math.Ceiling(usersInTier / (double)tier.PackSize);
+                totalCost += packsInTier * tier.PricePerPack;
+                remaining -= usersInTier;
+                currentUser = tierEnd + 1;
+            }
+        }
+
+        return totalCost;
     }
 
     private void CalculateOutSystemsAddOnCosts(
@@ -634,36 +731,146 @@ public class PricingSettingsService : IPricingSettingsService
         OutSystemsPricingResult result)
     {
         var aoPackCount = result.AOPackCount;
-        var isCloud = config.DeploymentType == OutSystemsDeploymentType.Cloud;
 
-        if (config.Include24x7PremiumSupport)
-            result.Support24x7PremiumCost = pricing.Support24x7PremiumPerAOPack * aoPackCount;
+        if (config.Platform == OutSystemsPlatform.ODC)
+        {
+            CalculateOdcAddOnCosts(config, pricing, result, aoPackCount);
+        }
+        else
+        {
+            CalculateO11AddOnCosts(config, pricing, result, aoPackCount);
+        }
 
-        if (config.IncludeNonProductionEnv)
-            result.NonProductionEnvCost = pricing.NonProductionEnvPerAOPack * aoPackCount;
+        // AppShield (both platforms) - uses tiered flat pricing
+        if (config.Platform == OutSystemsPlatform.ODC ? config.OdcAppShield : config.O11AppShield)
+        {
+            var userVolume = config.UseUnlimitedUsers
+                ? config.AppShieldUserVolume ?? 10000 // Default if not specified
+                : config.InternalUsers + config.ExternalUsers;
 
-        if (config.IncludeLoadTestEnv && isCloud)
-            result.LoadTestEnvCost = pricing.LoadTestEnvPerAOPack * aoPackCount;
+            var appShieldPrice = pricing.GetAppShieldPrice(userVolume);
+            var tier = pricing.AppShieldTiers.FirstOrDefault(t => userVolume >= t.MinUsers && userVolume <= t.MaxUsers);
 
-        if (config.IncludeEnvironmentPack)
-            result.EnvironmentPackCost = pricing.EnvironmentPackPerAOPack * aoPackCount;
+            result.AddOnCosts["AppShield"] = appShieldPrice;
+            result.AppShieldUserVolume = userVolume;
+            result.AppShieldTier = tier?.Tier;
+        }
+    }
 
-        if (config.IncludeSentry && isCloud)
-            result.SentryCost = pricing.SentryPerAOPack * aoPackCount;
-        else if (config.IncludeHA && isCloud)
-            result.HACost = pricing.HighAvailabilityPerAOPack * aoPackCount;
+    private static void CalculateOdcAddOnCosts(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result,
+        int aoPackCount)
+    {
+        // Support (mutually exclusive - Premium takes precedence)
+        if (config.OdcSupport24x7Premium)
+            result.AddOnCosts["Support 24x7 Premium"] = pricing.OdcSupport24x7PremiumPerPack * aoPackCount;
+        else if (config.OdcSupport24x7Extended)
+            result.AddOnCosts["Support 24x7 Extended"] = pricing.OdcSupport24x7ExtendedPerPack * aoPackCount;
 
-        if (config.IncludeDR)
-            result.DRCost = pricing.DisasterRecoveryPerAOPack * aoPackCount;
+        // Sentry includes HA
+        if (config.OdcSentry)
+        {
+            result.AddOnCosts["Sentry"] = pricing.OdcSentryPerPack * aoPackCount;
+            // HA is included when Sentry is enabled
+        }
+        else if (config.OdcHighAvailability)
+        {
+            result.AddOnCosts["High Availability"] = pricing.OdcHighAvailabilityPerPack * aoPackCount;
+        }
 
-        if (config.IncludeLogStreaming && isCloud)
-            result.LogStreamingCost = pricing.LogStreamingPrice;
+        // Non-Production Runtime (supports quantity)
+        if (config.OdcNonProdRuntimeQuantity > 0)
+            result.AddOnCosts[$"Non-Production Runtime (×{config.OdcNonProdRuntimeQuantity})"] =
+                pricing.OdcNonProdRuntimePerPack * aoPackCount * config.OdcNonProdRuntimeQuantity;
 
-        if (config.IncludeDatabaseReplica && isCloud)
-            result.DatabaseReplicaCost = pricing.DatabaseReplicaPrice;
+        // Private Gateway
+        if (config.OdcPrivateGateway)
+            result.AddOnCosts["Private Gateway"] = pricing.OdcPrivateGatewayPerPack * aoPackCount;
+    }
 
-        if (config.AppShieldUsers > 0)
-            result.AppShieldCost = pricing.AppShieldPerUser * config.AppShieldUsers;
+    private static void CalculateO11AddOnCosts(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result,
+        int aoPackCount)
+    {
+        var isCloud = config.Deployment == OutSystemsDeployment.Cloud;
+
+        // Support 24x7 Premium (24x7 is included in Enterprise Edition)
+        if (config.O11Support24x7Premium)
+            result.AddOnCosts["Support 24x7 Premium"] = pricing.O11Support24x7PremiumPerPack * aoPackCount;
+
+        // Sentry includes HA (Cloud only)
+        if (config.O11Sentry && isCloud)
+        {
+            result.AddOnCosts["Sentry (incl. HA)"] = pricing.O11SentryPerPack * aoPackCount;
+        }
+        else if (config.O11HighAvailability && isCloud)
+        {
+            result.AddOnCosts["High Availability"] = pricing.O11HighAvailabilityPerPack * aoPackCount;
+        }
+
+        // Non-Production Environment (supports quantity)
+        if (config.O11NonProdEnvQuantity > 0)
+            result.AddOnCosts[$"Non-Production Env (×{config.O11NonProdEnvQuantity})"] =
+                pricing.O11NonProdEnvPerPack * aoPackCount * config.O11NonProdEnvQuantity;
+
+        // Load Test Environment (Cloud only, supports quantity)
+        if (config.O11LoadTestEnvQuantity > 0 && isCloud)
+            result.AddOnCosts[$"Load Test Env (×{config.O11LoadTestEnvQuantity})"] =
+                pricing.O11LoadTestEnvPerPack * aoPackCount * config.O11LoadTestEnvQuantity;
+
+        // Environment Pack (supports quantity)
+        if (config.O11EnvPackQuantity > 0)
+            result.AddOnCosts[$"Environment Pack (×{config.O11EnvPackQuantity})"] =
+                pricing.O11EnvironmentPackPerPack * aoPackCount * config.O11EnvPackQuantity;
+
+        // Disaster Recovery (Self-Managed only)
+        if (config.O11DisasterRecovery && !isCloud)
+            result.AddOnCosts["Disaster Recovery"] = pricing.O11DisasterRecoveryPerPack * aoPackCount;
+
+        // Log Streaming (Cloud only, flat fee, supports quantity)
+        if (config.O11LogStreamingQuantity > 0 && isCloud)
+            result.AddOnCosts[$"Log Streaming (×{config.O11LogStreamingQuantity})"] =
+                pricing.O11LogStreamingFlat * config.O11LogStreamingQuantity;
+
+        // Database Replica (Cloud only, flat fee, supports quantity)
+        if (config.O11DatabaseReplicaQuantity > 0 && isCloud)
+            result.AddOnCosts[$"Database Replica (×{config.O11DatabaseReplicaQuantity})"] =
+                pricing.O11DatabaseReplicaFlat * config.O11DatabaseReplicaQuantity;
+    }
+
+    private void CalculateOutSystemsServicesCosts(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        var regionPricing = pricing.GetServicesPricing(config.Region);
+
+        // Success Plans
+        if (config.EssentialSuccessPlanQuantity > 0)
+            result.ServiceCosts[$"Essential Success Plan (×{config.EssentialSuccessPlanQuantity})"] =
+                regionPricing.EssentialSuccessPlan * config.EssentialSuccessPlanQuantity;
+
+        if (config.PremierSuccessPlanQuantity > 0)
+            result.ServiceCosts[$"Premier Success Plan (×{config.PremierSuccessPlanQuantity})"] =
+                regionPricing.PremierSuccessPlan * config.PremierSuccessPlanQuantity;
+
+        // Training (Bootcamps)
+        if (config.DedicatedGroupSessionQuantity > 0)
+            result.ServiceCosts[$"Dedicated Group Session (×{config.DedicatedGroupSessionQuantity})"] =
+                regionPricing.DedicatedGroupSession * config.DedicatedGroupSessionQuantity;
+
+        if (config.PublicSessionQuantity > 0)
+            result.ServiceCosts[$"Public Session (×{config.PublicSessionQuantity})"] =
+                regionPricing.PublicSession * config.PublicSessionQuantity;
+
+        // Expert Days
+        if (config.ExpertDayQuantity > 0)
+            result.ServiceCosts[$"Expert Day (×{config.ExpertDayQuantity})"] =
+                regionPricing.ExpertDay * config.ExpertDayQuantity;
     }
 
     private void CalculateOutSystemsCloudVMCost(
@@ -676,21 +883,103 @@ public class PricingSettingsService : IPricingSettingsService
 
         if (config.CloudProvider == OutSystemsCloudProvider.Azure)
         {
-            result.MonthlyVMCost = pricing.CalculateAzureMonthlyVMCost(config.AzureInstanceType, totalServers);
-            var specs = OutSystemsPricingSettings.GetAzureInstanceSpecs(config.AzureInstanceType);
-            result.VMDetails = $"{totalServers}x Azure {config.AzureInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
+            var hourlyRate = pricing.AzureVMHourlyPricing.TryGetValue(config.AzureInstanceType, out var rate)
+                ? rate : 0.169m; // Default to F4s_v2
+            result.MonthlyVMCost = hourlyRate * pricing.HoursPerMonth * totalServers;
+            var specs = GetAzureInstanceSpecs(config.AzureInstanceType);
+            result.VMDetails = $"{totalServers}× Azure {config.AzureInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
         }
         else if (config.CloudProvider == OutSystemsCloudProvider.AWS)
         {
-            result.MonthlyVMCost = pricing.CalculateAwsMonthlyVMCost(config.AwsInstanceType, totalServers);
-            var specs = OutSystemsPricingSettings.GetAwsInstanceSpecs(config.AwsInstanceType);
-            result.VMDetails = $"{totalServers}x AWS {config.AwsInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
+            var hourlyRate = pricing.AwsEC2HourlyPricing.TryGetValue(config.AwsInstanceType, out var rate)
+                ? rate : 0.192m; // Default to M5XLarge
+            result.MonthlyVMCost = hourlyRate * pricing.HoursPerMonth * totalServers;
+            var specs = GetAwsInstanceSpecs(config.AwsInstanceType);
+            result.VMDetails = $"{totalServers}× AWS {config.AwsInstanceType} ({specs.vCPU} vCPU, {specs.RamGB} GB)";
         }
+    }
+
+    private static void BuildOutSystemsLineItems(
+        OutSystemsDeploymentConfig config,
+        OutSystemsPricingSettings pricing,
+        OutSystemsPricingResult result)
+    {
+        // License line items
+        foreach (var (name, amount) in result.LicenseBreakdown)
+        {
+            result.LineItems.Add(new OutSystemsCostLineItem
+            {
+                Category = "License",
+                Name = name,
+                Amount = amount,
+                Quantity = 1
+            });
+        }
+
+        // Add-on line items
+        foreach (var (name, amount) in result.AddOnCosts)
+        {
+            result.LineItems.Add(new OutSystemsCostLineItem
+            {
+                Category = "Add-On",
+                Name = name,
+                Amount = amount,
+                Quantity = 1
+            });
+        }
+
+        // Service line items
+        foreach (var (name, amount) in result.ServiceCosts)
+        {
+            result.LineItems.Add(new OutSystemsCostLineItem
+            {
+                Category = "Service",
+                Name = name,
+                Amount = amount,
+                Quantity = 1
+            });
+        }
+
+        // Infrastructure line item
+        if (result.AnnualVMCost > 0)
+        {
+            result.LineItems.Add(new OutSystemsCostLineItem
+            {
+                Category = "Infrastructure",
+                Name = result.VMDetails ?? "Cloud VMs",
+                Description = $"${result.MonthlyVMCost:N0}/month",
+                Amount = result.AnnualVMCost,
+                Quantity = result.TotalVMCount
+            });
+        }
+    }
+
+    private static (int vCPU, int RamGB) GetAzureInstanceSpecs(OutSystemsAzureInstanceType instanceType)
+    {
+        return instanceType switch
+        {
+            OutSystemsAzureInstanceType.F4s_v2 => (4, 8),
+            OutSystemsAzureInstanceType.D4s_v3 => (4, 16),
+            OutSystemsAzureInstanceType.D8s_v3 => (8, 32),
+            OutSystemsAzureInstanceType.D16s_v3 => (16, 64),
+            _ => (4, 8)
+        };
+    }
+
+    private static (int vCPU, int RamGB) GetAwsInstanceSpecs(OutSystemsAwsInstanceType instanceType)
+    {
+        return instanceType switch
+        {
+            OutSystemsAwsInstanceType.M5Large => (2, 8),
+            OutSystemsAwsInstanceType.M5XLarge => (4, 16),
+            OutSystemsAwsInstanceType.M52XLarge => (8, 32),
+            _ => (4, 16)
+        };
     }
 
     public bool IsOutSystemsCloudOnlyFeature(string featureName)
     {
-        return OutSystemsPricingSettings.IsCloudOnlyFeature(featureName);
+        return !OutSystemsPricingSettings.IsFeatureAvailable(featureName, OutSystemsDeployment.SelfManaged);
     }
 
     public OutSystemsAzureInstanceType RecommendAzureInstance(int totalCores, int totalRamGB)

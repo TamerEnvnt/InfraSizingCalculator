@@ -1578,17 +1578,30 @@
                 else if (selectedTechnology == Technology.OutSystems && vmResults != null)
                 {
                     <!-- OutSystems VM Pricing with Accordions -->
-                    // Pre-calculate all pricing values using new model
-                    var osBaseCost = outsystemsPricingSettings.GetEditionBasePrice(outsystemsEdition);
-                    var osAoIncluded = outsystemsPricingSettings.GetIncludedAOs(outsystemsEdition);
-                    var osUsersIncluded = outsystemsPricingSettings.GetIncludedInternalUsers(outsystemsEdition);
+                    // Pre-calculate all pricing values using V2 model (Platform-based)
+                    var osBaseCost = outsystemsPlatform == OutSystemsPlatform.ODC
+                        ? outsystemsPricingSettings.OdcPlatformBasePrice
+                        : outsystemsPricingSettings.O11EnterpriseBasePrice;
+                    var osAoIncluded = 150; // 1 AO pack (150 AOs) included in both platforms
+                    var osUsersIncluded = 100; // 100 internal users included in both platforms
                     var osAdditionalAOs = Math.Max(0, outsystemsApplicationObjects - osAoIncluded);
                     var osAoPacksCount = osAdditionalAOs > 0 ? (int)Math.Ceiling(osAdditionalAOs / (double)outsystemsPricingSettings.AOPackSize) : 0;
-                    var osAoCost = osAoPacksCount * outsystemsPricingSettings.AdditionalAOPackPrice;
+                    var osAoPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
+                        ? outsystemsPricingSettings.OdcAOPackPrice
+                        : outsystemsPricingSettings.O11AOPackPrice;
+                    var osAoCost = osAoPacksCount * osAoPackPrice;
                     var osAdditionalUsers = Math.Max(0, outsystemsInternalUsers - osUsersIncluded);
                     var osUserPacksCount = osAdditionalUsers > 0 ? (int)Math.Ceiling(osAdditionalUsers / (double)outsystemsPricingSettings.InternalUserPackSize) : 0;
-                    var osInternalUserCost = osUserPacksCount * outsystemsPricingSettings.AdditionalInternalUserPackPrice;
-                    var osExternalUserCost = outsystemsPricingSettings.CalculateExternalUsersCost(outsystemsExternalSessions);
+                    var osInternalUserPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
+                        ? outsystemsPricingSettings.OdcInternalUserPackPrice
+                        : 12100m; // O11 first tier price for internal users
+                    var osInternalUserCost = osUserPacksCount * osInternalUserPackPrice;
+                    var osExternalPacksCount = outsystemsExternalSessions > 0
+                        ? (int)Math.Ceiling(outsystemsExternalSessions / (double)outsystemsPricingSettings.ExternalUserPackSize) : 0;
+                    var osExternalUserPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
+                        ? outsystemsPricingSettings.OdcExternalUserPackPrice
+                        : 4840m; // O11 first tier price for external users
+                    var osExternalUserCost = osExternalPacksCount * osExternalUserPackPrice;
                     var osTotalAnnual = osBaseCost + osAoCost + osInternalUserCost + osExternalUserCost;
 
                     <div class="step-header">
@@ -1599,34 +1612,34 @@
                     </div>
 
                     <div class="outsystems-vm-pricing-panel accordion-layout">
-                        <!-- Edition Selection Accordion -->
+                        <!-- Platform Selection Accordion -->
                         <div class="pricing-accordion @(outsystemsActiveAccordion == "edition" ? "open" : "")">
                             <button type="button" class="accordion-header" @onclick='() => outsystemsActiveAccordion = outsystemsActiveAccordion == "edition" ? "" : "edition"'>
                                 <span class="accordion-chevron">@(outsystemsActiveAccordion == "edition" ? "▼" : "▶")</span>
                                 <span class="accordion-icon">📦</span>
-                                <span class="accordion-title">Edition Selection</span>
-                                <span class="accordion-summary">@outsystemsEdition - @FormatCurrency(osBaseCost)/yr</span>
+                                <span class="accordion-title">Platform Selection</span>
+                                <span class="accordion-summary">@outsystemsPlatform - @FormatCurrency(osBaseCost)/yr</span>
                             </button>
                             @if (outsystemsActiveAccordion == "edition")
                             {
                                 <div class="accordion-content">
                                     <div class="pricing-option-cards compact">
-                                        <div class="pricing-option-card @(outsystemsEdition == OutSystemsEdition.Standard ? "selected" : "")"
-                                             @onclick="() => outsystemsEdition = OutSystemsEdition.Standard" @onclick:stopPropagation="true">
+                                        <div class="pricing-option-card @(outsystemsPlatform == OutSystemsPlatform.ODC ? "selected" : "")"
+                                             @onclick="() => outsystemsPlatform = OutSystemsPlatform.ODC" @onclick:stopPropagation="true">
                                             <div class="option-header">
-                                                <span class="option-title">Standard Edition</span>
+                                                <span class="option-title">ODC (Developer Cloud)</span>
                                             </div>
-                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.StandardEditionBasePrice)/year</div>
-                                            <div class="option-desc">@outsystemsPricingSettings.StandardEditionAOsIncluded AOs, @outsystemsPricingSettings.StandardEditionInternalUsersIncluded users</div>
+                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.OdcPlatformBasePrice)/year</div>
+                                            <div class="option-desc">150 AOs, 100 users, Cloud-managed</div>
                                         </div>
 
-                                        <div class="pricing-option-card @(outsystemsEdition == OutSystemsEdition.Enterprise ? "selected" : "")"
-                                             @onclick="() => outsystemsEdition = OutSystemsEdition.Enterprise" @onclick:stopPropagation="true">
+                                        <div class="pricing-option-card @(outsystemsPlatform == OutSystemsPlatform.O11 ? "selected" : "")"
+                                             @onclick="() => outsystemsPlatform = OutSystemsPlatform.O11" @onclick:stopPropagation="true">
                                             <div class="option-header">
-                                                <span class="option-title">Enterprise Edition</span>
+                                                <span class="option-title">O11 Enterprise</span>
                                             </div>
-                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.EnterpriseEditionBasePrice)/year</div>
-                                            <div class="option-desc">@outsystemsPricingSettings.EnterpriseEditionAOsIncluded AOs, @outsystemsPricingSettings.EnterpriseEditionInternalUsersIncluded users</div>
+                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.O11EnterpriseBasePrice)/year</div>
+                                            <div class="option-desc">150 AOs, 100 users, 3 environments</div>
                                         </div>
                                     </div>
                                 </div>
@@ -2848,11 +2861,11 @@
     // Mendix pricing settings (from official pricebook)
     private MendixPricingSettings mendixPricingSettings = new();
 
-    // OutSystems pricing configuration
-    private OutSystemsEdition outsystemsEdition = OutSystemsEdition.Standard;
+    // OutSystems pricing configuration (V2 model)
+    private OutSystemsPlatform outsystemsPlatform = OutSystemsPlatform.O11;  // O11 or ODC
     private int outsystemsApplicationObjects = 150;  // Default to 1 AO pack (typical medium app)
-    private int outsystemsInternalUsers = 100;       // Included in Standard
-    private int outsystemsExternalSessions = 0;      // Monthly sessions for external users
+    private int outsystemsInternalUsers = 100;       // Included in base
+    private int outsystemsExternalSessions = 0;      // External users count
     private OutSystemsPricingSettings outsystemsPricingSettings = new();
     private string outsystemsActiveAccordion = "edition"; // "edition" or "licensing" - only one open at a time
 

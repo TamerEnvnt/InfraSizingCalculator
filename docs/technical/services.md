@@ -633,6 +633,86 @@ See [Mendix Pricing Guide](../guides/mendix-pricing.md) for detailed pricing inf
 
 ---
 
+## OutSystems Pricing Service
+
+The `DatabasePricingSettingsService` also handles OutSystems pricing calculations.
+
+### OutSystems Pricing Methods
+
+#### GetOutSystemsPricingSettings
+```csharp
+OutSystemsPricingSettings GetOutSystemsPricingSettings()
+```
+Get complete OutSystems pricing configuration from database.
+
+**Returns:** `OutSystemsPricingSettings` with all pricing rates.
+
+#### CalculateOutSystemsCost
+```csharp
+OutSystemsPricingResult CalculateOutSystemsCost(OutSystemsDeploymentConfig config)
+```
+Calculate complete OutSystems licensing cost with detailed breakdown.
+
+**Parameters:**
+- `config` - User's deployment configuration including platform, AOs, users, add-ons, services
+
+**Returns:** `OutSystemsPricingResult` with:
+- License costs (Edition, AO packs, User packs or Unlimited)
+- Add-on costs (platform-specific, per AO pack)
+- Services costs (region-specific)
+- Infrastructure costs (Self-Managed only)
+- Discount calculations
+- Warnings and recommendations
+
+### Key Pricing Formulas
+
+**AO Pack Calculation:**
+```csharp
+int aoPacks = Math.Max(1, (int)Math.Ceiling(totalAOs / 150.0));
+int additionalPacks = aoPacks - 1; // First pack included in base
+```
+
+**Unlimited Users (Both Platforms):**
+```csharp
+decimal cost = UnlimitedUsersPerAOPack × aoPacks;
+// Example: 3 AO packs × $60,500 = $181,500
+```
+
+**O11 Tiered User Pricing:**
+```csharp
+// Users 1-100: Included in base
+// Users 101-1000: $12,100 per 100 users
+// Users 1001-10000: $2,420 per 100 users
+// Users 10001+: $242 per 100 users
+```
+
+**Add-On Pricing (Per AO Pack):**
+```csharp
+decimal addOnCost = perPackRate × aoPacks × quantity;
+// Example: 3 packs × $6,050 × 2 Non-Prod Runtimes = $36,300
+```
+
+**Cloud VM Pricing (Self-Managed):**
+```csharp
+decimal monthlyVMCost = hourlyRate × 730 × serversPerEnv × totalEnvironments;
+// Example: $0.192 × 730 × 2 × 4 = $1,121.28/month
+```
+
+### Feature Availability
+
+| Feature | ODC | O11 Cloud | O11 Self-Managed |
+|---------|-----|-----------|------------------|
+| High Availability | Yes | Yes | No |
+| Sentry | Yes | Yes | No |
+| Log Streaming | N/A | Yes | No |
+| Load Test Env | N/A | Yes | No |
+| Database Replica | N/A | Yes | No |
+| Disaster Recovery | N/A | No | Yes |
+
+See [OutSystems Pricing Models](models.md#outsystems-pricing-models) for complete model documentation.
+
+---
+
 ## CostEstimationService
 
 **File:** `Services/CostEstimationService.cs`

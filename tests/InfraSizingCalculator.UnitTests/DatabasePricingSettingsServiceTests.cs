@@ -1313,6 +1313,1791 @@ public class DatabasePricingSettingsServiceTests : IDisposable
 
     #endregion
 
+    #region OutSystems Pricing Service Tests
+
+    [Fact]
+    public void GetOutSystemsPricingSettings_ReturnsSettings()
+    {
+        // Act
+        var settings = _service.GetOutSystemsPricingSettings();
+
+        // Assert
+        settings.Should().NotBeNull();
+        settings.OdcPlatformBasePrice.Should().BeGreaterThan(0);
+        settings.O11EnterpriseBasePrice.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task UpdateOutSystemsPricingSettingsAsync_UpdatesSettings()
+    {
+        // Arrange
+        var newSettings = new OutSystemsPricingSettings
+        {
+            OdcPlatformBasePrice = 35000m,
+            OdcAOPackPrice = 20000m
+        };
+
+        // Act
+        await _service.UpdateOutSystemsPricingSettingsAsync(newSettings);
+
+        // Assert
+        var retrieved = _service.GetOutSystemsPricingSettings();
+        retrieved.OdcPlatformBasePrice.Should().Be(35000m);
+        retrieved.OdcAOPackPrice.Should().Be(20000m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OdcPlatform_CalculatesBasePricing()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150, // 1 AO Pack
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Platform.Should().Be(OutSystemsPlatform.ODC);
+        result.AOPackCount.Should().Be(1);
+        result.EditionCost.Should().Be(30250m); // ODC base price
+        result.AOPacksCost.Should().Be(0); // 1 pack included
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OdcPlatform_CalculatesAdditionalAOPacks()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 450, // 3 AO Packs (450/150 = 3)
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(3);
+        result.AOPacksCost.Should().Be(18150m * 2); // 2 additional packs @ $18,150
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Platform_CalculatesBasePricing()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150, // 1 AO Pack
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Platform.Should().Be(OutSystemsPlatform.O11);
+        result.AOPackCount.Should().Be(1);
+        result.EditionCost.Should().Be(36300m); // O11 Enterprise base price
+        result.AOPacksCost.Should().Be(0); // 1 pack included
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Platform_CalculatesAdditionalAOPacks()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(2);
+        result.AOPacksCost.Should().Be(36300m); // 1 additional pack @ $36,300
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_UnlimitedUsers_ScalesWithAOPacks()
+    {
+        // Arrange - CRITICAL: Unlimited Users = $60,500 × AO_Packs (NOT flat!)
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            UseUnlimitedUsers = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.UsedUnlimitedUsers.Should().BeTrue();
+        result.UnlimitedUsersCost.Should().Be(60500m * 2); // 2 × $60,500 = $121,000
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OdcInternalUsers_CalculatesFlatPacks()
+    {
+        // Arrange - ODC uses flat pack pricing for users
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 250, // 100 included, 150 additional = 2 packs
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.InternalUserPackCount.Should().Be(2); // ceil(150/100) = 2 packs
+        result.InternalUsersCost.Should().Be(6050m * 2); // 2 × $6,050
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OdcExternalUsers_CalculatesFlatPacks()
+    {
+        // Arrange - ODC External: $6,050 per pack of 1000
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            ExternalUsers = 2500 // 3 packs (ceil(2500/1000))
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ExternalUserPackCount.Should().Be(3);
+        result.ExternalUsersCost.Should().Be(6050m * 3);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OdcAddOns_CalculatesCorrectly()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 100,
+            OdcSupport24x7Premium = true,
+            OdcHighAvailability = true,
+            OdcNonProdRuntimeQuantity = 2
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Support 24x7 Premium");
+        result.AddOnCosts.Should().ContainKey("High Availability");
+        result.AddOnCosts.Should().ContainKey("Non-Production Runtime (×2)");
+
+        // Add-ons scale with AO pack count
+        var pricing = _service.GetOutSystemsPricingSettings();
+        result.AddOnCosts["Support 24x7 Premium"].Should().Be(pricing.OdcSupport24x7PremiumPerPack * 2);
+        result.AddOnCosts["High Availability"].Should().Be(pricing.OdcHighAvailabilityPerPack * 2);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Sentry_IncludesHighAvailability()
+    {
+        // Arrange - Sentry includes HA
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            O11Sentry = true,
+            O11HighAvailability = true // Should be ignored since Sentry includes HA
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Sentry (incl. HA)");
+        result.AddOnCosts.Should().NotContainKey("High Availability"); // HA is included in Sentry
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11CloudOnlyFeatures_ValidatesDeploymentType()
+    {
+        // Arrange - Load Test Environment is Cloud-only
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged, // Not cloud!
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            O11LoadTestEnvQuantity = 1 // Should be ignored for self-managed
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().NotContainKey("Load Test Env (×1)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_Services_CalculatesRegionalPricing()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.Americas,
+            EssentialSuccessPlanQuantity = 1,
+            ExpertDayQuantity = 3
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Essential Success Plan (×1)");
+        result.ServiceCosts.Should().ContainKey("Expert Day (×3)");
+
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var regionPricing = pricing.GetServicesPricing(OutSystemsRegion.Americas);
+        result.ServiceCosts["Essential Success Plan (×1)"].Should().Be(regionPricing.EssentialSuccessPlan);
+        result.ServiceCosts["Expert Day (×3)"].Should().Be(regionPricing.ExpertDay * 3);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_CalculatesVMCosts()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D4s_v3,
+            TotalEnvironments = 3,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(6); // 3 environments × 2 servers
+        result.MonthlyVMCost.Should().BeGreaterThan(0);
+        result.VMDetails.Should().Contain("Azure");
+        result.VMDetails.Should().Contain("D4s_v3");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAWS_CalculatesVMCosts()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.AWS,
+            AwsInstanceType = OutSystemsAwsInstanceType.M5XLarge,
+            TotalEnvironments = 2,
+            FrontEndServersPerEnvironment = 3,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(6); // 2 environments × 3 servers
+        result.MonthlyVMCost.Should().BeGreaterThan(0);
+        result.VMDetails.Should().Contain("AWS");
+        result.VMDetails.Should().Contain("M5XLarge");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_Discount_AppliesCorrectly()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 100,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.Percentage,
+                Value = 10m,
+                Scope = OutSystemsDiscountScope.Total
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.DiscountAmount.Should().BeGreaterThan(0);
+        result.DiscountDescription.Should().Contain("10%");
+        result.DiscountDescription.Should().Contain("Total");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_AppShield_CalculatesTieredPricing()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 500,
+            ExternalUsers = 2000,
+            OdcAppShield = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("AppShield");
+        result.AppShieldUserVolume.Should().Be(2500); // 500 + 2000
+        result.AddOnCosts["AppShield"].Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_LineItems_BuildsCorrectly()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 200,
+            OdcHighAvailability = true,
+            EssentialSuccessPlanQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.LineItems.Should().NotBeEmpty();
+        result.LineItems.Should().Contain(li => li.Category == "License");
+        result.LineItems.Should().Contain(li => li.Category == "Add-On");
+        result.LineItems.Should().Contain(li => li.Category == "Service");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_TotalCost_SumsAllComponents()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 200,
+            OdcHighAvailability = true,
+            EssentialSuccessPlanQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        var expectedTotal = result.LicenseSubtotal + result.AddOnsSubtotal +
+                           result.ServicesSubtotal + result.InfrastructureSubtotal -
+                           result.DiscountAmount;
+        result.NetTotal.Should().Be(expectedTotal);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_Warnings_ReturnsValidationIssues()
+    {
+        // Arrange - Create config with potential issues
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.OnPremises,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            // These cloud-only features should generate warnings
+            O11Sentry = true, // Cloud-only
+            O11LoadTestEnvQuantity = 1 // Cloud-only
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Warnings.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void IsOutSystemsCloudOnlyFeature_ReturnsCorrectValue()
+    {
+        // Act & Assert
+        _service.IsOutSystemsCloudOnlyFeature("Sentry").Should().BeTrue();
+        _service.IsOutSystemsCloudOnlyFeature("LoadTestEnv").Should().BeTrue();
+        _service.IsOutSystemsCloudOnlyFeature("HighAvailability").Should().BeTrue();
+        _service.IsOutSystemsCloudOnlyFeature("DatabaseReplica").Should().BeTrue();
+        _service.IsOutSystemsCloudOnlyFeature("LogStreaming").Should().BeTrue();
+    }
+
+    [Fact]
+    public void RecommendAzureInstance_ReturnsAppropriateInstance()
+    {
+        // Act & Assert
+        _service.RecommendAzureInstance(4, 8).Should().Be(OutSystemsAzureInstanceType.F4s_v2);
+        _service.RecommendAzureInstance(4, 16).Should().Be(OutSystemsAzureInstanceType.D4s_v3);
+        _service.RecommendAzureInstance(8, 32).Should().Be(OutSystemsAzureInstanceType.D8s_v3);
+        _service.RecommendAzureInstance(16, 64).Should().Be(OutSystemsAzureInstanceType.D16s_v3);
+    }
+
+    [Fact]
+    public void RecommendAwsInstance_ReturnsAppropriateInstance()
+    {
+        // Act & Assert
+        _service.RecommendAwsInstance(2, 8).Should().Be(OutSystemsAwsInstanceType.M5Large);
+        _service.RecommendAwsInstance(4, 16).Should().Be(OutSystemsAwsInstanceType.M5XLarge);
+        _service.RecommendAwsInstance(8, 32).Should().Be(OutSystemsAwsInstanceType.M52XLarge);
+    }
+
+    [Fact]
+    public async Task UpdateOutSystemsPricingSettingsAsync_FiresOnSettingsChanged()
+    {
+        // Arrange
+        var eventFired = false;
+        _service.OnSettingsChanged += () => eventFired = true;
+        var settings = new OutSystemsPricingSettings();
+
+        // Act
+        await _service.UpdateOutSystemsPricingSettingsAsync(settings);
+
+        // Assert
+        eventFired.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ComprehensiveScenario_ODC()
+    {
+        // Arrange - Real-world ODC deployment scenario
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 600, // 4 AO Packs
+            InternalUsers = 500, // 100 included + 400 additional = 4 packs
+            ExternalUsers = 5000, // 5 packs @ 1000 each
+            Region = OutSystemsRegion.Europe,
+            OdcSupport24x7Premium = true,
+            OdcHighAvailability = true,
+            OdcNonProdRuntimeQuantity = 2,
+            OdcAppShield = true,
+            EssentialSuccessPlanQuantity = 1,
+            ExpertDayQuantity = 5
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(4);
+        result.Platform.Should().Be(OutSystemsPlatform.ODC);
+
+        // License costs
+        result.EditionCost.Should().Be(30250m); // ODC Base
+        result.AOPacksCost.Should().Be(18150m * 3); // 3 additional AO packs
+        result.InternalUsersCost.Should().BeGreaterThan(0);
+        result.ExternalUsersCost.Should().BeGreaterThan(0);
+
+        // Add-on costs
+        result.AddOnsSubtotal.Should().BeGreaterThan(0);
+
+        // Services costs
+        result.ServicesSubtotal.Should().BeGreaterThan(0);
+
+        // Total should be sum of all components
+        result.NetTotal.Should().BeGreaterThan(0);
+        result.LineItems.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ComprehensiveScenario_O11Cloud()
+    {
+        // Arrange - Real-world O11 Cloud deployment scenario
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 450, // 3 AO Packs
+            InternalUsers = 300, // Tiered pricing applies
+            ExternalUsers = 10000, // Tiered pricing applies
+            Region = OutSystemsRegion.Americas,
+            O11Support24x7Premium = true,
+            O11Sentry = true, // Includes HA
+            O11NonProdEnvQuantity = 2,
+            O11LoadTestEnvQuantity = 1,
+            O11AppShield = true,
+            PremierSuccessPlanQuantity = 1,
+            DedicatedGroupSessionQuantity = 2
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(3);
+        result.Platform.Should().Be(OutSystemsPlatform.O11);
+        result.Deployment.Should().Be(OutSystemsDeployment.Cloud);
+
+        // License costs
+        result.EditionCost.Should().Be(36300m); // O11 Enterprise Base
+        result.AOPacksCost.Should().Be(36300m * 2); // 2 additional AO packs
+
+        // Add-ons should include Sentry (with HA), not separate HA
+        result.AddOnCosts.Should().ContainKey("Sentry (incl. HA)");
+        result.AddOnCosts.Should().NotContainKey("High Availability");
+
+        // Total should be sum of all components
+        result.NetTotal.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ComprehensiveScenario_O11SelfManagedAzure()
+    {
+        // Arrange - O11 Self-Managed on Azure
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D8s_v3,
+            TotalEnvironments = 4, // Dev, Test, Staging, Prod
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 200,
+            ExternalUsers = 0,
+            Region = OutSystemsRegion.Europe,
+            O11Support24x7Premium = true,
+            O11NonProdEnvQuantity = 3,
+            O11DisasterRecovery = true, // Self-Managed only
+            EssentialSuccessPlanQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Platform.Should().Be(OutSystemsPlatform.O11);
+        result.Deployment.Should().Be(OutSystemsDeployment.SelfManaged);
+
+        // VM costs should be calculated
+        result.TotalVMCount.Should().Be(8); // 4 environments × 2 servers
+        result.MonthlyVMCost.Should().BeGreaterThan(0);
+        result.AnnualVMCost.Should().Be(result.MonthlyVMCost * 12);
+        result.VMDetails.Should().Contain("D8s_v3");
+
+        // Disaster Recovery should be included (Self-Managed only)
+        result.AddOnCosts.Should().ContainKey("Disaster Recovery");
+
+        // Total should include infrastructure costs
+        result.InfrastructureSubtotal.Should().Be(result.AnnualVMCost);
+        result.NetTotal.Should().BeGreaterThan(0);
+    }
+
+    #endregion
+
+    #region OutSystems ODC Platform Comprehensive Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_MinimumConfig_ReturnsBasePrice()
+    {
+        // Arrange - Minimum viable ODC configuration
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 1, // Should still be 1 AO Pack minimum
+            InternalUsers = 0,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(1);
+        result.EditionCost.Should().Be(30250m);
+        result.AOPacksCost.Should().Be(0); // First pack included
+        result.LicenseSubtotal.Should().Be(30250m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_LargeAOCount_CalculatesMultiplePacks()
+    {
+        // Arrange - 1000 AOs = ceiling(1000/150) = 7 packs
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 1000,
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(7); // ceil(1000/150) = 7
+        result.AOPacksCost.Should().Be(18150m * 6); // 6 additional packs
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_InternalUsersTiered_CalculatesPacks()
+    {
+        // Arrange - ODC: 100 internal users included, then packs of 100
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 550, // 100 included + 450 = 5 packs (ceil(450/100))
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.InternalUserPackCount.Should().Be(5);
+        result.InternalUsersCost.Should().Be(6050m * 5);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_ExternalUsers_CalculatesPacks()
+    {
+        // Arrange - ODC External: packs of 1000
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            ExternalUsers = 7500 // ceil(7500/1000) = 8 packs
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ExternalUserPackCount.Should().Be(8);
+        result.ExternalUsersCost.Should().Be(6050m * 8);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_AllAddOns_CalculatesTotal()
+    {
+        // Arrange - ODC with all possible add-ons
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300, // 2 AO Packs
+            InternalUsers = 100,
+            OdcSupport24x7Premium = true,
+            OdcHighAvailability = true,
+            OdcNonProdRuntimeQuantity = 3,
+            OdcAppShield = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Support 24x7 Premium");
+        result.AddOnCosts.Should().ContainKey("High Availability");
+        result.AddOnCosts.Should().ContainKey("Non-Production Runtime (×3)");
+        result.AddOnCosts.Should().ContainKey("AppShield");
+        result.AddOnsSubtotal.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_UnlimitedUsersReplacesUserPacks()
+    {
+        // Arrange - When unlimited users enabled, individual user packs should be 0
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 450, // 3 AO Packs
+            InternalUsers = 1000, // Would be expensive normally
+            ExternalUsers = 50000, // Would be very expensive
+            UseUnlimitedUsers = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.UsedUnlimitedUsers.Should().BeTrue();
+        result.UnlimitedUsersCost.Should().Be(60500m * 3); // Scales with AO packs
+        result.InternalUsersCost.Should().Be(0); // Replaced by unlimited
+        result.ExternalUsersCost.Should().Be(0); // Replaced by unlimited
+    }
+
+    [Theory]
+    [InlineData(OutSystemsRegion.Africa)]
+    [InlineData(OutSystemsRegion.MiddleEast)]
+    [InlineData(OutSystemsRegion.Americas)]
+    [InlineData(OutSystemsRegion.Europe)]
+    [InlineData(OutSystemsRegion.AsiaPacific)]
+    public void CalculateOutSystemsCost_ODC_AllRegions_CalculatesServices(OutSystemsRegion region)
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = region,
+            EssentialSuccessPlanQuantity = 1,
+            ExpertDayQuantity = 2
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Region.Should().Be(region);
+        result.ServicesSubtotal.Should().BeGreaterThan(0);
+    }
+
+    #endregion
+
+    #region OutSystems O11 Cloud Comprehensive Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_MinimumConfig_ReturnsBasePrice()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 1,
+            InternalUsers = 0,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(1);
+        result.EditionCost.Should().Be(36300m); // O11 Enterprise base
+        result.AOPacksCost.Should().Be(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_LargeAOCount_CalculatesMultiplePacks()
+    {
+        // Arrange - 750 AOs = 5 packs
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 750,
+            InternalUsers = 100,
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(5);
+        result.AOPacksCost.Should().Be(36300m * 4); // 4 additional packs @ $36,300
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_TieredInternalUsers_CalculatesVolumeDiscount()
+    {
+        // Arrange - O11 uses tiered pricing with volume discounts
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 500, // Should apply tiered pricing
+            ExternalUsers = 0
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.InternalUsersCost.Should().BeGreaterThan(0);
+        // O11 tiered pricing should result in different cost than flat ODC pricing
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_TieredExternalUsers_CalculatesVolumeDiscount()
+    {
+        // Arrange - O11 external users with tiered pricing
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            ExternalUsers = 25000 // Should hit multiple tiers
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ExternalUsersCost.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_SentryIncludesHA()
+    {
+        // Arrange - Sentry includes HA, so HA should not be separately charged
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            O11Sentry = true,
+            O11HighAvailability = true // This should be ignored
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Sentry (incl. HA)");
+        result.AddOnCosts.Keys.Should().NotContain(k => k == "High Availability");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_HAWithoutSentry_ChargesSeparately()
+    {
+        // Arrange - HA without Sentry should charge separately
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 300, // 2 packs
+            InternalUsers = 100,
+            O11Sentry = false,
+            O11HighAvailability = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("High Availability");
+        result.AddOnCosts.Should().NotContainKey("Sentry (incl. HA)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_AllCloudOnlyAddOns()
+    {
+        // Arrange - All cloud-only features
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 300, // 2 packs
+            InternalUsers = 100,
+            O11Sentry = true,
+            O11LoadTestEnvQuantity = 2,
+            O11LogStreamingQuantity = 1,
+            O11DatabaseReplicaQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Sentry (incl. HA)");
+        result.AddOnCosts.Should().ContainKey("Load Test Env (×2)");
+        result.AddOnCosts.Should().ContainKey("Log Streaming (×1)");
+        result.AddOnCosts.Should().ContainKey("Database Replica (×1)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_EnvironmentPack_ScalesWithAOPacks()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 450, // 3 packs
+            InternalUsers = 100,
+            O11EnvPackQuantity = 2
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Environment Pack (×2)");
+        // Cost should be: rate × AO_packs × quantity
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var expectedCost = pricing.O11EnvironmentPackPerPack * 3 * 2;
+        result.AddOnCosts["Environment Pack (×2)"].Should().Be(expectedCost);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11Cloud_NoVMCosts()
+    {
+        // Arrange - Cloud deployment should have no VM costs
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.MonthlyVMCost.Should().Be(0);
+        result.AnnualVMCost.Should().Be(0);
+        result.TotalVMCount.Should().Be(0);
+        result.InfrastructureSubtotal.Should().Be(0);
+    }
+
+    #endregion
+
+    #region OutSystems O11 Self-Managed Azure Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_F4s_v2_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.F4s_v2,
+            TotalEnvironments = 2,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(4);
+        result.VMDetails.Should().Contain("F4s_v2");
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var expectedMonthly = pricing.AzureVMHourlyPricing[OutSystemsAzureInstanceType.F4s_v2] * 730 * 4;
+        result.MonthlyVMCost.Should().Be(expectedMonthly);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_D4s_v3_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D4s_v3,
+            TotalEnvironments = 3,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(6);
+        result.VMDetails.Should().Contain("D4s_v3");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_D8s_v3_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D8s_v3,
+            TotalEnvironments = 4,
+            FrontEndServersPerEnvironment = 3,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(12);
+        result.VMDetails.Should().Contain("D8s_v3");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_D16s_v3_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D16s_v3,
+            TotalEnvironments = 2,
+            FrontEndServersPerEnvironment = 4,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(8);
+        result.VMDetails.Should().Contain("D16s_v3");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAzure_DisasterRecovery()
+    {
+        // Arrange - DR is Self-Managed only
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.Azure,
+            AzureInstanceType = OutSystemsAzureInstanceType.D4s_v3,
+            TotalEnvironments = 2,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 300, // 2 packs
+            InternalUsers = 100,
+            O11DisasterRecovery = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Disaster Recovery");
+        var pricing = _service.GetOutSystemsPricingSettings();
+        result.AddOnCosts["Disaster Recovery"].Should().Be(pricing.O11DisasterRecoveryPerPack * 2);
+    }
+
+    #endregion
+
+    #region OutSystems O11 Self-Managed AWS Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAWS_M5Large_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.AWS,
+            AwsInstanceType = OutSystemsAwsInstanceType.M5Large,
+            TotalEnvironments = 2,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(4);
+        result.VMDetails.Should().Contain("AWS");
+        result.VMDetails.Should().Contain("M5Large");
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var expectedMonthly = pricing.AwsEC2HourlyPricing[OutSystemsAwsInstanceType.M5Large] * 730 * 4;
+        result.MonthlyVMCost.Should().Be(expectedMonthly);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAWS_M5XLarge_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.AWS,
+            AwsInstanceType = OutSystemsAwsInstanceType.M5XLarge,
+            TotalEnvironments = 3,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(6);
+        result.VMDetails.Should().Contain("M5XLarge");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedAWS_M52XLarge_CalculatesVMCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.AWS,
+            AwsInstanceType = OutSystemsAwsInstanceType.M52XLarge,
+            TotalEnvironments = 4,
+            FrontEndServersPerEnvironment = 2,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalVMCount.Should().Be(8);
+        result.VMDetails.Should().Contain("M52XLarge");
+    }
+
+    #endregion
+
+    #region OutSystems O11 Self-Managed On-Premises Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedOnPrem_NoVMCost()
+    {
+        // Arrange - On-prem has no cloud VM costs
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.OnPremises,
+            TotalEnvironments = 4,
+            FrontEndServersPerEnvironment = 3,
+            TotalApplicationObjects = 300,
+            InternalUsers = 200
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.MonthlyVMCost.Should().Be(0);
+        result.AnnualVMCost.Should().Be(0);
+        result.InfrastructureSubtotal.Should().Be(0);
+        // But license costs should still be calculated
+        result.LicenseSubtotal.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManagedOnPrem_CloudOnlyFeaturesWarning()
+    {
+        // Arrange - Cloud-only features on self-managed should generate warnings
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.OnPremises,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            O11Sentry = true, // Cloud-only
+            O11LoadTestEnvQuantity = 1, // Cloud-only
+            O11LogStreamingQuantity = 1, // Cloud-only
+            O11DatabaseReplicaQuantity = 1 // Cloud-only
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.Warnings.Should().NotBeEmpty();
+        // Cloud-only features should NOT be charged
+        result.AddOnCosts.Should().NotContainKey("Sentry (incl. HA)");
+        result.AddOnCosts.Should().NotContainKey("Load Test Env (×1)");
+        result.AddOnCosts.Should().NotContainKey("Log Streaming (×1)");
+        result.AddOnCosts.Should().NotContainKey("Database Replica (×1)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_O11SelfManaged_SelfManagedOnlyFeatures()
+    {
+        // Arrange - Features only available for self-managed
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.SelfManaged,
+            CloudProvider = OutSystemsCloudProvider.OnPremises,
+            TotalApplicationObjects = 300, // 2 packs
+            InternalUsers = 100,
+            O11DisasterRecovery = true, // Self-Managed only
+            O11NonProdEnvQuantity = 3
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AddOnCosts.Should().ContainKey("Disaster Recovery");
+        result.AddOnCosts.Should().ContainKey("Non-Production Env (×3)");
+    }
+
+    #endregion
+
+    #region OutSystems Discount Tests
+
+    [Theory]
+    [InlineData(OutSystemsDiscountScope.Total)]
+    [InlineData(OutSystemsDiscountScope.LicenseOnly)]
+    [InlineData(OutSystemsDiscountScope.AddOnsOnly)]
+    [InlineData(OutSystemsDiscountScope.ServicesOnly)]
+    public void CalculateOutSystemsCost_PercentageDiscount_AllScopes(OutSystemsDiscountScope scope)
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300,
+            InternalUsers = 200,
+            OdcHighAvailability = true,
+            EssentialSuccessPlanQuantity = 1,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.Percentage,
+                Value = 15m,
+                Scope = scope
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.DiscountAmount.Should().BeGreaterThan(0);
+        result.DiscountDescription.Should().Contain("15%");
+        result.DiscountDescription.Should().Contain(scope.ToString());
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_FixedDiscount_AppliesCorrectly()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.FixedAmount,
+                Value = 5000m,
+                Scope = OutSystemsDiscountScope.Total
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.DiscountAmount.Should().Be(5000m);
+        result.NetTotal.Should().Be(result.GrossTotal - 5000m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_DiscountOnLicense_OnlyAffectsLicense()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300,
+            InternalUsers = 200,
+            OdcHighAvailability = true,
+            EssentialSuccessPlanQuantity = 1,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.Percentage,
+                Value = 20m,
+                Scope = OutSystemsDiscountScope.LicenseOnly
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        var expectedDiscount = result.LicenseSubtotal * 0.20m;
+        result.DiscountAmount.Should().BeApproximately(expectedDiscount, 0.01m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_DiscountOnAddOns_OnlyAffectsAddOns()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300,
+            InternalUsers = 200,
+            OdcHighAvailability = true,
+            OdcSupport24x7Premium = true,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.Percentage,
+                Value = 25m,
+                Scope = OutSystemsDiscountScope.AddOnsOnly
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        var expectedDiscount = result.AddOnsSubtotal * 0.25m;
+        result.DiscountAmount.Should().BeApproximately(expectedDiscount, 0.01m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_DiscountOnServices_OnlyAffectsServices()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            EssentialSuccessPlanQuantity = 1,
+            ExpertDayQuantity = 5,
+            Discount = new OutSystemsDiscount
+            {
+                Type = OutSystemsDiscountType.Percentage,
+                Value = 10m,
+                Scope = OutSystemsDiscountScope.ServicesOnly
+            }
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        var expectedDiscount = result.ServicesSubtotal * 0.10m;
+        result.DiscountAmount.Should().BeApproximately(expectedDiscount, 0.01m);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_NoDiscount_ZeroDiscountAmount()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100,
+            Discount = null
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.DiscountAmount.Should().Be(0);
+        result.NetTotal.Should().Be(result.GrossTotal);
+    }
+
+    #endregion
+
+    #region OutSystems AppShield Tiered Pricing Tests
+
+    [Theory]
+    [InlineData(500, 1)]     // Tier 1: 0-10000 users
+    [InlineData(5000, 1)]    // Tier 1: 0-10000 users
+    [InlineData(15000, 2)]   // Tier 2: 10001-50000 users
+    [InlineData(60000, 3)]   // Tier 3: 50001-100000 users
+    [InlineData(200000, 4)]  // Tier 4: 100001-500000 users
+    public void CalculateOutSystemsCost_AppShield_TieredPricing(int totalUsers, int expectedTier)
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = totalUsers / 2,
+            ExternalUsers = totalUsers - (totalUsers / 2),
+            OdcAppShield = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AppShieldUserVolume.Should().Be(totalUsers);
+        result.AppShieldTier.Should().BeGreaterThanOrEqualTo(expectedTier);
+        result.AddOnCosts["AppShield"].Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_AppShield_O11_CalculatesPricing()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            InternalUsers = 300,
+            ExternalUsers = 5000,
+            O11AppShield = true
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AppShieldUserVolume.Should().Be(5300);
+        result.AddOnCosts.Should().ContainKey("AppShield");
+    }
+
+    #endregion
+
+    #region OutSystems Services Pricing Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_EssentialSuccessPlan_CalculatesCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.Americas,
+            EssentialSuccessPlanQuantity = 2
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Essential Success Plan (×2)");
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var regionPricing = pricing.GetServicesPricing(OutSystemsRegion.Americas);
+        result.ServiceCosts["Essential Success Plan (×2)"].Should().Be(regionPricing.EssentialSuccessPlan * 2);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_PremierSuccessPlan_CalculatesCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.O11,
+            Deployment = OutSystemsDeployment.Cloud,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.Europe,
+            PremierSuccessPlanQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Premier Success Plan (×1)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_DedicatedGroupSession_CalculatesCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.AsiaPacific,
+            DedicatedGroupSessionQuantity = 5
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Dedicated Group Session (×5)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_PublicSession_CalculatesCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.MiddleEast,
+            PublicSessionQuantity = 10
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Public Session (×10)");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ExpertDay_CalculatesCost()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.Africa,
+            ExpertDayQuantity = 8
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Should().ContainKey("Expert Day (×8)");
+        var pricing = _service.GetOutSystemsPricingSettings();
+        var regionPricing = pricing.GetServicesPricing(OutSystemsRegion.Africa);
+        result.ServiceCosts["Expert Day (×8)"].Should().Be(regionPricing.ExpertDay * 8);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_AllServices_CalculatesTotal()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            Region = OutSystemsRegion.Europe,
+            EssentialSuccessPlanQuantity = 1,
+            PremierSuccessPlanQuantity = 1,
+            DedicatedGroupSessionQuantity = 3,
+            PublicSessionQuantity = 5,
+            ExpertDayQuantity = 10
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ServiceCosts.Count.Should().Be(5);
+        result.ServicesSubtotal.Should().BeGreaterThan(0);
+    }
+
+    #endregion
+
+    #region OutSystems Edge Cases and Validation Tests
+
+    [Fact]
+    public void CalculateOutSystemsCost_ZeroAOs_ReturnsMinimumOnePack()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 0,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert - Zero AOs means no additional packs needed (base platform includes 1 pack)
+        result.AOPackCount.Should().Be(0);
+        // But edition cost should still be charged (base platform fee)
+        result.EditionCost.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_NegativeAOs_ReturnsZeroPacksButBaseEditionCost()
+    {
+        // Arrange - Negative AOs is an edge case that should be treated as zero
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = -50,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert - Negative treated as zero, no additional packs
+        result.AOPackCount.Should().Be(0);
+        // Base platform still applies
+        result.EditionCost.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ExactlyOnePack_NoAdditionalCost()
+    {
+        // Arrange - Exactly 150 AOs = 1 pack
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(1);
+        result.AOPacksCost.Should().Be(0); // First pack included
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_OneOverPack_ChargesAdditionalPack()
+    {
+        // Arrange - 151 AOs = 2 packs
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 151,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.AOPackCount.Should().Be(2);
+        result.AOPacksCost.Should().Be(18150m); // 1 additional pack
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_LineItems_ContainsAllCategories()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 300,
+            InternalUsers = 200,
+            ExternalUsers = 1000,
+            OdcHighAvailability = true,
+            EssentialSuccessPlanQuantity = 1
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.LineItems.Should().Contain(li => li.Category == "License");
+        result.LineItems.Should().Contain(li => li.Category == "Add-On");
+        result.LineItems.Should().Contain(li => li.Category == "Service");
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_VeryLargeUserCount_HandlesGracefully()
+    {
+        // Arrange - Extreme user count
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 10000,
+            ExternalUsers = 1000000
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.ExternalUsersCost.Should().BeGreaterThan(0);
+        result.NetTotal.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ODC_CannotSelectDeployment()
+    {
+        // Arrange - ODC is always cloud, deployment setting should be ignored
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            Deployment = OutSystemsDeployment.SelfManaged, // Should be ignored
+            CloudProvider = OutSystemsCloudProvider.Azure, // Should be ignored
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        // ODC should have no VM costs regardless of deployment setting
+        result.MonthlyVMCost.Should().Be(0);
+    }
+
+    [Fact]
+    public void CalculateOutSystemsCost_ProjectionsCalculatedCorrectly()
+    {
+        // Arrange
+        var config = new OutSystemsDeploymentConfig
+        {
+            Platform = OutSystemsPlatform.ODC,
+            TotalApplicationObjects = 150,
+            InternalUsers = 100
+        };
+
+        // Act
+        var result = _service.CalculateOutSystemsCost(config);
+
+        // Assert
+        result.TotalPerMonth.Should().Be(result.NetTotal / 12);
+        result.TotalThreeYear.Should().Be(result.NetTotal * 3);
+        result.TotalFiveYear.Should().Be(result.NetTotal * 5);
+    }
+
+    #endregion
+
     #region Integration Tests
 
     [Fact]

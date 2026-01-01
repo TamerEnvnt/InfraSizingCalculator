@@ -3,21 +3,64 @@ namespace InfraSizingCalculator.Models.Pricing;
 #region Enums
 
 /// <summary>
-/// OutSystems edition types
+/// OutSystems platform type (ODC vs O11)
 /// </summary>
-public enum OutSystemsEdition
+public enum OutSystemsPlatform
 {
-    Standard,       // Starting tier for small-medium deployments (1 AO pack included)
-    Enterprise      // Full-featured for large enterprise deployments (1 AO pack included)
+    /// <summary>OutSystems Developer Cloud - Cloud-native, Kubernetes-based, fully managed</summary>
+    ODC,
+    /// <summary>OutSystems 11 - Traditional .NET platform</summary>
+    O11
 }
 
 /// <summary>
-/// OutSystems deployment types
+/// OutSystems O11 deployment type (Cloud vs Self-Managed)
+/// Only applicable for O11 platform
 /// </summary>
-public enum OutSystemsDeploymentType
+public enum OutSystemsDeployment
 {
-    Cloud,          // OutSystems Cloud (managed PaaS)
-    SelfManaged     // Self-managed on-premises or private cloud
+    /// <summary>OutSystems managed cloud infrastructure</summary>
+    Cloud,
+    /// <summary>Customer-managed infrastructure (on-premises or private cloud)</summary>
+    SelfManaged
+}
+
+/// <summary>
+/// Service pricing region - affects Bootcamps and Expert Days pricing
+/// </summary>
+public enum OutSystemsRegion
+{
+    Africa,
+    MiddleEast,
+    Americas,
+    Europe,
+    AsiaPacific
+}
+
+/// <summary>
+/// Discount type for manual discounts
+/// </summary>
+public enum OutSystemsDiscountType
+{
+    /// <summary>Percentage discount (0-100)</summary>
+    Percentage,
+    /// <summary>Fixed dollar amount discount</summary>
+    FixedAmount
+}
+
+/// <summary>
+/// Discount scope - which part of the quote the discount applies to
+/// </summary>
+public enum OutSystemsDiscountScope
+{
+    /// <summary>Apply to entire quote (License + Add-Ons + Services)</summary>
+    Total,
+    /// <summary>Apply only to License costs (Edition + AOs + Users)</summary>
+    LicenseOnly,
+    /// <summary>Apply only to Add-Ons costs</summary>
+    AddOnsOnly,
+    /// <summary>Apply only to Services costs</summary>
+    ServicesOnly
 }
 
 /// <summary>
@@ -25,63 +68,99 @@ public enum OutSystemsDeploymentType
 /// </summary>
 public enum OutSystemsCloudProvider
 {
-    OnPremises,     // Traditional on-premises data center
-    Azure,          // Microsoft Azure
-    AWS             // Amazon Web Services
+    OnPremises,
+    Azure,
+    AWS
 }
 
 /// <summary>
-/// Azure VM instance types recommended for OutSystems
-/// Based on OutSystems hardware requirements documentation
+/// Azure VM instance types for OutSystems self-managed
 /// </summary>
 public enum OutSystemsAzureInstanceType
 {
-    F4s_v2,         // 4 vCPU, 8 GB RAM - Default/recommended
-    D4s_v3,         // 4 vCPU, 16 GB RAM
-    D8s_v3,         // 8 vCPU, 32 GB RAM
-    D16s_v3         // 16 vCPU, 64 GB RAM
+    F4s_v2,     // 4 vCPU, 8 GB RAM - Default
+    D4s_v3,     // 4 vCPU, 16 GB RAM
+    D8s_v3,     // 8 vCPU, 32 GB RAM
+    D16s_v3     // 16 vCPU, 64 GB RAM
 }
 
 /// <summary>
-/// AWS EC2 instance types recommended for OutSystems
-/// Based on OutSystems hardware requirements documentation
+/// AWS EC2 instance types for OutSystems self-managed
 /// </summary>
 public enum OutSystemsAwsInstanceType
 {
-    M5Large,        // 2 vCPU, 8 GB RAM
-    M5XLarge,       // 4 vCPU, 16 GB RAM
-    M52XLarge       // 8 vCPU, 32 GB RAM
+    M5Large,    // 2 vCPU, 8 GB RAM
+    M5XLarge,   // 4 vCPU, 16 GB RAM
+    M52XLarge   // 8 vCPU, 32 GB RAM
+}
+
+// ==================== BACKWARD COMPATIBILITY ====================
+// These enums exist for backward compatibility with existing UI components
+// They will be removed in Phase 5 when the UI is updated to use the new model
+
+/// <summary>
+/// DEPRECATED: Use OutSystemsPlatform + OutSystemsDeployment instead
+/// Maintained for backward compatibility with existing UI
+/// </summary>
+[Obsolete("Use OutSystemsPlatform + OutSystemsDeployment instead")]
+public enum OutSystemsDeploymentType
+{
+    Cloud,
+    SelfManaged
 }
 
 /// <summary>
-/// OutSystems user license types
+/// DEPRECATED: Use OutSystemsPlatform instead
+/// The new model uses Platform (ODC vs O11) rather than Standard vs Enterprise
+/// Maintained for backward compatibility with existing UI
 /// </summary>
-public enum OutSystemsUserLicenseType
+[Obsolete("Use OutSystemsPlatform instead. ODC and O11 have different pricing models.")]
+public enum OutSystemsEdition
 {
-    Named,          // Named users - each user has dedicated license
-    Concurrent,     // Concurrent users - shared floating licenses
-    External,       // External/Anonymous - session-based for public apps (1,000 per pack)
-    Unlimited       // Unlimited users - flat fee option
+    Standard,
+    Enterprise
 }
 
-/// <summary>
-/// OutSystems Success Plan tiers (support and services)
-/// </summary>
-public enum OutSystemsSuccessPlan
-{
-    None,           // No additional support
-    Essential,      // Essential Success Plan
-    Premier         // Premier Success Plan (enhanced support)
-}
+#endregion
+
+#region Discount
 
 /// <summary>
-/// OutSystems support tier (legacy - for backwards compatibility)
+/// Manual discount configuration
 /// </summary>
-public enum OutSystemsSupportTier
+public class OutSystemsDiscount
 {
-    Standard,       // Included in subscription
-    Premium,        // 24/7 with faster SLAs
-    Elite           // Dedicated support with custom SLAs
+    /// <summary>Type of discount (Percentage or Fixed Amount)</summary>
+    public OutSystemsDiscountType Type { get; set; } = OutSystemsDiscountType.Percentage;
+
+    /// <summary>Scope of discount (Total, License, Add-Ons, or Services)</summary>
+    public OutSystemsDiscountScope Scope { get; set; } = OutSystemsDiscountScope.Total;
+
+    /// <summary>Discount value (percentage 0-100 or fixed dollar amount)</summary>
+    public decimal Value { get; set; }
+
+    /// <summary>Optional notes about the discount (e.g., "Partner discount")</summary>
+    public string? Notes { get; set; }
+
+    /// <summary>Calculate discount amount for given subtotals</summary>
+    public decimal CalculateDiscount(decimal licenseSubtotal, decimal addOnsSubtotal, decimal servicesSubtotal)
+    {
+        decimal applicableAmount = Scope switch
+        {
+            OutSystemsDiscountScope.Total => licenseSubtotal + addOnsSubtotal + servicesSubtotal,
+            OutSystemsDiscountScope.LicenseOnly => licenseSubtotal,
+            OutSystemsDiscountScope.AddOnsOnly => addOnsSubtotal,
+            OutSystemsDiscountScope.ServicesOnly => servicesSubtotal,
+            _ => licenseSubtotal + addOnsSubtotal + servicesSubtotal
+        };
+
+        return Type switch
+        {
+            OutSystemsDiscountType.Percentage => applicableAmount * (Value / 100m),
+            OutSystemsDiscountType.FixedAmount => Math.Min(Value, applicableAmount),
+            _ => 0
+        };
+    }
 }
 
 #endregion
@@ -90,355 +169,315 @@ public enum OutSystemsSupportTier
 
 /// <summary>
 /// Complete OutSystems pricing configuration
-/// Based on OutSystems Partner Price Calculator (2024/2025)
+/// Verified against OutSystems Partner Calculator (January 2026)
 /// All prices are annual unless otherwise noted
 /// </summary>
 public class OutSystemsPricingSettings
 {
-    // ==================== EDITION PRICING ====================
+    // ==================== ODC PLATFORM PRICING ====================
 
     /// <summary>
-    /// Standard Edition base subscription (annual)
-    /// Includes 1 AO pack (150 AOs)
+    /// ODC Platform base price (annual)
+    /// Includes: 150 AOs (1 pack), 100 Internal Users, 2 runtimes (Dev, Prod), 8x5 Support
+    /// Verified: $30,250
     /// </summary>
-    public decimal StandardEditionBasePrice { get; set; } = 36300m;
-    public int StandardEditionAOsIncluded { get; set; } = 150;
-    public int StandardEditionInternalUsersIncluded { get; set; } = 100;
+    public decimal OdcPlatformBasePrice { get; set; } = 30250m;
 
     /// <summary>
-    /// Enterprise Edition base subscription (annual)
-    /// Includes 1 AO pack (150 AOs), same base price as Standard
-    /// Enterprise adds features, not more included AOs
+    /// ODC Additional AO pack price (150 AOs per pack)
+    /// Verified: $18,150 per pack
     /// </summary>
-    public decimal EnterpriseEditionBasePrice { get; set; } = 36300m;
-    public int EnterpriseEditionAOsIncluded { get; set; } = 150;
-    public int EnterpriseEditionInternalUsersIncluded { get; set; } = 500;
-
-    // ==================== APPLICATION OBJECTS ====================
+    public decimal OdcAOPackPrice { get; set; } = 18150m;
 
     /// <summary>
-    /// AO pack size (150 AOs per pack)
-    /// AOs = screens + database tables + API methods
+    /// ODC Internal User pack price (100 users per pack)
+    /// First pack (100 users) included in base
+    /// Verified: $6,050 per pack
     /// </summary>
-    public int AOPackSize { get; set; } = 150;
+    public decimal OdcInternalUserPackPrice { get; set; } = 6050m;
 
     /// <summary>
-    /// Price per additional AO pack (150 AOs) per year
-    /// From Partner Calculator: $36,300 per pack
+    /// ODC External User pack price (1000 users per pack)
+    /// No packs included in base
+    /// Verified: $6,050 per pack
     /// </summary>
-    public decimal AdditionalAOPackPrice { get; set; } = 36300m;
+    public decimal OdcExternalUserPackPrice { get; set; } = 6050m;
 
-    // ==================== USER LICENSING ====================
+    // ==================== O11 PLATFORM PRICING ====================
 
     /// <summary>
-    /// Internal user pack size (100 users per pack)
+    /// O11 Enterprise Edition base price (annual)
+    /// Includes: 150 AOs (1 pack), 100 Internal Users, 3 environments (Dev, Non-Prod, Prod), 24x7 Support
+    /// Verified: $36,300
     /// </summary>
-    public int InternalUserPackSize { get; set; } = 100;
+    public decimal O11EnterpriseBasePrice { get; set; } = 36300m;
 
     /// <summary>
-    /// Price per additional internal user pack (100 users) per year
+    /// O11 Additional AO pack price (150 AOs per pack)
+    /// Verified: $36,300 per pack
     /// </summary>
-    public decimal AdditionalInternalUserPackPrice { get; set; } = 6000m;
+    public decimal O11AOPackPrice { get; set; } = 36300m;
+
+    // ==================== UNLIMITED USERS (Both Platforms) ====================
 
     /// <summary>
-    /// External user pack size (1,000 sessions per pack)
-    /// From Partner Calculator: 1,000 pack
+    /// Unlimited Users price PER AO PACK (not flat fee!)
+    /// Formula: $60,500 × Number of AO Packs
+    /// Verified from tooltip: "$60,500.00 per pack of AOs"
     /// </summary>
-    public int ExternalUserPackSize { get; set; } = 1000;
+    public decimal UnlimitedUsersPerAOPack { get; set; } = 60500m;
+
+    // ==================== O11 TIERED USER PRICING ====================
 
     /// <summary>
-    /// External user pack price per year
-    /// From Partner Calculator: $4,840 per 1,000 pack
+    /// O11 Internal User tiered pricing (per 100 users)
+    /// First 100 included in Enterprise Edition
     /// </summary>
-    public decimal ExternalUserPackPricePerYear { get; set; } = 4840m;
+    public List<OutSystemsUserTier> O11InternalUserTiers { get; set; } = new()
+    {
+        new() { MinUsers = 200, MaxUsers = 1000, PricePerPack = 12100m, PackSize = 100 },
+        new() { MinUsers = 1100, MaxUsers = 10000, PricePerPack = 2420m, PackSize = 100 },
+        new() { MinUsers = 10100, MaxUsers = 100000000, PricePerPack = 242m, PackSize = 100 }
+    };
 
     /// <summary>
-    /// Unlimited users option - flat fee per year
-    /// From Partner Calculator: $181,500
+    /// O11 External User tiered pricing (per 1000 users)
+    /// No users included in Enterprise Edition
     /// </summary>
-    public decimal UnlimitedUsersPrice { get; set; } = 181500m;
+    public List<OutSystemsUserTier> O11ExternalUserTiers { get; set; } = new()
+    {
+        new() { MinUsers = 1, MaxUsers = 10000, PricePerPack = 4840m, PackSize = 1000 },
+        new() { MinUsers = 11000, MaxUsers = 250000, PricePerPack = 1452m, PackSize = 1000 },
+        new() { MinUsers = 251000, MaxUsers = 100000000, PricePerPack = 30.25m, PackSize = 1000 }
+    };
 
-    // ==================== ADD-ONS (AO-Pack Scaled) ====================
-    // These add-ons scale with the number of AO packs: cost = rate * aoPackCount
+    // ==================== ODC ADD-ONS (Per AO Pack) ====================
+
+    /// <summary>ODC Support 24x7 Extended: $6,050 per pack of AOs</summary>
+    public decimal OdcSupport24x7ExtendedPerPack { get; set; } = 6050m;
+
+    /// <summary>ODC Support 24x7 Premium: $9,680 per pack of AOs</summary>
+    public decimal OdcSupport24x7PremiumPerPack { get; set; } = 9680m;
+
+    /// <summary>ODC High Availability: $18,150 per pack of AOs</summary>
+    public decimal OdcHighAvailabilityPerPack { get; set; } = 18150m;
+
+    /// <summary>ODC Non-Production Runtime: $6,050 per pack of AOs (supports quantity)</summary>
+    public decimal OdcNonProdRuntimePerPack { get; set; } = 6050m;
+
+    /// <summary>ODC Private Gateway: $1,210 per pack of AOs</summary>
+    public decimal OdcPrivateGatewayPerPack { get; set; } = 1210m;
+
+    /// <summary>ODC Sentry: $6,050 per pack of AOs</summary>
+    public decimal OdcSentryPerPack { get; set; } = 6050m;
+
+    // ==================== O11 ADD-ONS (Per AO Pack) ====================
+
+    /// <summary>O11 Support 24x7 Premium: $3,630 per pack of AOs</summary>
+    public decimal O11Support24x7PremiumPerPack { get; set; } = 3630m;
+
+    /// <summary>O11 High Availability: $12,100 per pack of AOs (Cloud only)</summary>
+    public decimal O11HighAvailabilityPerPack { get; set; } = 12100m;
+
+    /// <summary>O11 Sentry (includes HA): $24,200 per pack of AOs (Cloud only)</summary>
+    public decimal O11SentryPerPack { get; set; } = 24200m;
+
+    /// <summary>O11 Non-Production Environment: $3,630 per pack of AOs (supports quantity)</summary>
+    public decimal O11NonProdEnvPerPack { get; set; } = 3630m;
+
+    /// <summary>O11 Load Test Environment: $6,050 per pack of AOs (Cloud only)</summary>
+    public decimal O11LoadTestEnvPerPack { get; set; } = 6050m;
+
+    /// <summary>O11 Environment Pack: $9,680 per pack of AOs (supports quantity)</summary>
+    public decimal O11EnvironmentPackPerPack { get; set; } = 9680m;
+
+    /// <summary>O11 Disaster Recovery: $12,100 per pack of AOs (Self-Managed only)</summary>
+    public decimal O11DisasterRecoveryPerPack { get; set; } = 12100m;
+
+    // ==================== O11 ADD-ONS (Flat Fee) ====================
+
+    /// <summary>O11 Log Streaming: $7,260 flat (Cloud only)</summary>
+    public decimal O11LogStreamingFlat { get; set; } = 7260m;
+
+    /// <summary>O11 Database Replica: $96,800 flat (Cloud only)</summary>
+    public decimal O11DatabaseReplicaFlat { get; set; } = 96800m;
+
+    // ==================== APPSHIELD TIERED PRICING (Both Platforms) ====================
 
     /// <summary>
-    /// 24x7 Premium Support per AO pack per year
-    /// From Partner Calculator: $3,630 per pack (total shown: $10,890 for 3 packs)
+    /// AppShield tiered pricing (flat price per tier, not per-user)
+    /// 19 tiers from 0-15M users
     /// </summary>
-    public decimal Support24x7PremiumPerAOPack { get; set; } = 3630m;
+    public List<OutSystemsAppShieldTier> AppShieldTiers { get; set; } = new()
+    {
+        new() { Tier = 1, MinUsers = 0, MaxUsers = 10000, Price = 18150m },
+        new() { Tier = 2, MinUsers = 10001, MaxUsers = 50000, Price = 32670m },
+        new() { Tier = 3, MinUsers = 50001, MaxUsers = 100000, Price = 54450m },
+        new() { Tier = 4, MinUsers = 100001, MaxUsers = 500000, Price = 96800m },
+        new() { Tier = 5, MinUsers = 500001, MaxUsers = 1000000, Price = 234740m },
+        new() { Tier = 6, MinUsers = 1000001, MaxUsers = 2000000, Price = 275880m },
+        new() { Tier = 7, MinUsers = 2000001, MaxUsers = 3000000, Price = 358160m },
+        new() { Tier = 8, MinUsers = 3000001, MaxUsers = 4000000, Price = 411400m },
+        new() { Tier = 9, MinUsers = 4000001, MaxUsers = 5000000, Price = 508200m },
+        new() { Tier = 10, MinUsers = 5000001, MaxUsers = 6000000, Price = 605000m },
+        new() { Tier = 11, MinUsers = 6000001, MaxUsers = 7000000, Price = 701800m },
+        new() { Tier = 12, MinUsers = 7000001, MaxUsers = 8000000, Price = 798600m },
+        new() { Tier = 13, MinUsers = 8000001, MaxUsers = 9000000, Price = 895400m },
+        new() { Tier = 14, MinUsers = 9000001, MaxUsers = 10000000, Price = 992200m },
+        new() { Tier = 15, MinUsers = 10000001, MaxUsers = 11000000, Price = 1089000m },
+        new() { Tier = 16, MinUsers = 11000001, MaxUsers = 12000000, Price = 1185800m },
+        new() { Tier = 17, MinUsers = 12000001, MaxUsers = 13000000, Price = 1282600m },
+        new() { Tier = 18, MinUsers = 13000001, MaxUsers = 14000000, Price = 1379400m },
+        new() { Tier = 19, MinUsers = 14000001, MaxUsers = 15000000, Price = 1476200m }
+    };
+
+    // ==================== SERVICES PRICING BY REGION ====================
 
     /// <summary>
-    /// Non-Production Environment add-on per AO pack per year
-    /// From Partner Calculator: $3,630 per pack
+    /// Services pricing by region
+    /// Success Plans are same across regions, Bootcamps and Expert Days vary
     /// </summary>
-    public decimal NonProductionEnvPerAOPack { get; set; } = 3630m;
+    public Dictionary<OutSystemsRegion, OutSystemsRegionServicePricing> ServicesPricingByRegion { get; set; } = new()
+    {
+        {
+            OutSystemsRegion.Africa, new OutSystemsRegionServicePricing
+            {
+                EssentialSuccessPlan = 30250m,
+                PremierSuccessPlan = 60500m,
+                DedicatedGroupSession = 2670m,
+                PublicSession = 480m,
+                ExpertDay = 1400m
+            }
+        },
+        {
+            OutSystemsRegion.MiddleEast, new OutSystemsRegionServicePricing
+            {
+                EssentialSuccessPlan = 30250m,
+                PremierSuccessPlan = 60500m,
+                DedicatedGroupSession = 3820m,
+                PublicSession = 720m,
+                ExpertDay = 2130m
+            }
+        },
+        {
+            OutSystemsRegion.Americas, new OutSystemsRegionServicePricing
+            {
+                EssentialSuccessPlan = 30250m,
+                PremierSuccessPlan = 60500m,
+                DedicatedGroupSession = 2670m, // TBD - using Africa as default
+                PublicSession = 480m,
+                ExpertDay = 1400m
+            }
+        },
+        {
+            OutSystemsRegion.Europe, new OutSystemsRegionServicePricing
+            {
+                EssentialSuccessPlan = 30250m,
+                PremierSuccessPlan = 60500m,
+                DedicatedGroupSession = 2670m, // TBD - using Africa as default
+                PublicSession = 480m,
+                ExpertDay = 1400m
+            }
+        },
+        {
+            OutSystemsRegion.AsiaPacific, new OutSystemsRegionServicePricing
+            {
+                EssentialSuccessPlan = 30250m,
+                PremierSuccessPlan = 60500m,
+                DedicatedGroupSession = 2670m, // TBD - using Africa as default
+                PublicSession = 480m,
+                ExpertDay = 1400m
+            }
+        }
+    };
 
-    /// <summary>
-    /// Load Testing Environment add-on per AO pack per year (Cloud only)
-    /// From Partner Calculator: $6,050 per pack
-    /// </summary>
-    public decimal LoadTestEnvPerAOPack { get; set; } = 6050m;
+    // ==================== CLOUD VM PRICING (Self-Managed) ====================
 
-    /// <summary>
-    /// Environment Pack add-on per AO pack per year
-    /// From Partner Calculator: $9,680 per pack
-    /// </summary>
-    public decimal EnvironmentPackPerAOPack { get; set; } = 9680m;
-
-    /// <summary>
-    /// High Availability add-on per AO pack per year (Cloud only)
-    /// From Partner Calculator: $12,100 per pack (total shown: $36,300 for 3 packs)
-    /// </summary>
-    public decimal HighAvailabilityPerAOPack { get; set; } = 12100m;
-
-    /// <summary>
-    /// Sentry add-on per AO pack per year (Cloud only, includes HA)
-    /// From Partner Calculator: $24,200 per pack (total shown: $72,600 for 3 packs)
-    /// </summary>
-    public decimal SentryPerAOPack { get; set; } = 24200m;
-
-    /// <summary>
-    /// Disaster Recovery add-on per AO pack per year
-    /// From Partner Calculator: $12,100 per pack (total shown: $36,300 for 3 packs)
-    /// </summary>
-    public decimal DisasterRecoveryPerAOPack { get; set; } = 12100m;
-
-    // ==================== ADD-ONS (Flat Fee) ====================
-
-    /// <summary>
-    /// Log Streaming add-on per year (Cloud only)
-    /// From Partner Calculator: $7,260
-    /// </summary>
-    public decimal LogStreamingPrice { get; set; } = 7260m;
-
-    /// <summary>
-    /// Database Replica add-on (Cloud only)
-    /// From Partner Calculator: $96,800
-    /// </summary>
-    public decimal DatabaseReplicaPrice { get; set; } = 96800m;
-
-    /// <summary>
-    /// AppShield per user per year
-    /// Estimated: ~$16.50 per user
-    /// </summary>
-    public decimal AppShieldPerUser { get; set; } = 16.50m;
-
-    // ==================== SERVICES ====================
-
-    /// <summary>
-    /// Essential Success Plan per year
-    /// From Partner Calculator: $30,250
-    /// </summary>
-    public decimal EssentialSuccessPlanPrice { get; set; } = 30250m;
-
-    /// <summary>
-    /// Premier Success Plan per year
-    /// From Partner Calculator: $60,500
-    /// </summary>
-    public decimal PremierSuccessPlanPrice { get; set; } = 60500m;
-
-    /// <summary>
-    /// Dedicated Group Session (training)
-    /// From Partner Calculator: $3,820
-    /// </summary>
-    public decimal DedicatedGroupSessionPrice { get; set; } = 3820m;
-
-    /// <summary>
-    /// Public Session (training)
-    /// From Partner Calculator: $720
-    /// </summary>
-    public decimal PublicSessionPrice { get; set; } = 720m;
-
-    /// <summary>
-    /// Expert Day (consulting)
-    /// From Partner Calculator: $2,640
-    /// </summary>
-    public decimal ExpertDayPrice { get; set; } = 2640m;
-
-    // ==================== LEGACY SELF-MANAGED (for backward compatibility) ====================
-
-    public decimal SelfManagedBasePrice { get; set; } = 48000m;
-    public decimal SelfManagedPerEnvironmentPrice { get; set; } = 9600m;
-    public decimal SelfManagedPerFrontEndPrice { get; set; } = 4800m;
-
-    // ==================== LEGACY SUPPORT (for backward compatibility) ====================
-
-    public decimal PremiumSupportPercent { get; set; } = 15m;
-    public decimal EliteSupportPercent { get; set; } = 25m;
-
-    // ==================== CLOUD VM PRICING (Hourly Rates) ====================
-
-    /// <summary>
-    /// Azure VM hourly pricing (East US region, Pay-as-you-go)
-    /// </summary>
     public Dictionary<OutSystemsAzureInstanceType, decimal> AzureVMHourlyPricing { get; set; } = new()
     {
-        { OutSystemsAzureInstanceType.F4s_v2, 0.169m },   // 4 vCPU, 8 GB
-        { OutSystemsAzureInstanceType.D4s_v3, 0.192m },   // 4 vCPU, 16 GB
-        { OutSystemsAzureInstanceType.D8s_v3, 0.384m },   // 8 vCPU, 32 GB
-        { OutSystemsAzureInstanceType.D16s_v3, 0.768m }   // 16 vCPU, 64 GB
+        { OutSystemsAzureInstanceType.F4s_v2, 0.169m },
+        { OutSystemsAzureInstanceType.D4s_v3, 0.192m },
+        { OutSystemsAzureInstanceType.D8s_v3, 0.384m },
+        { OutSystemsAzureInstanceType.D16s_v3, 0.768m }
     };
 
-    /// <summary>
-    /// AWS EC2 hourly pricing (us-east-1, On-Demand)
-    /// </summary>
     public Dictionary<OutSystemsAwsInstanceType, decimal> AwsEC2HourlyPricing { get; set; } = new()
     {
-        { OutSystemsAwsInstanceType.M5Large, 0.096m },    // 2 vCPU, 8 GB
-        { OutSystemsAwsInstanceType.M5XLarge, 0.192m },   // 4 vCPU, 16 GB
-        { OutSystemsAwsInstanceType.M52XLarge, 0.384m }   // 8 vCPU, 32 GB
+        { OutSystemsAwsInstanceType.M5Large, 0.096m },
+        { OutSystemsAwsInstanceType.M5XLarge, 0.192m },
+        { OutSystemsAwsInstanceType.M52XLarge, 0.384m }
     };
 
-    /// <summary>
-    /// Hours per month for VM cost calculation (730 hours = 365 days * 24 hours / 12 months)
-    /// </summary>
     public int HoursPerMonth { get; set; } = 730;
 
-    // ==================== CLOUD-ONLY FEATURES ====================
+    // ==================== PACK SIZES ====================
 
-    /// <summary>
-    /// Features that are only available in OutSystems Cloud deployments
-    /// </summary>
-    public static readonly HashSet<string> CloudOnlyFeatures = new()
-    {
-        "HighAvailability",
-        "Sentry",
-        "LoadTestEnv",
-        "LogStreaming",
-        "DatabaseReplica"
-    };
-
-    /// <summary>
-    /// Check if a feature is cloud-only
-    /// </summary>
-    public static bool IsCloudOnlyFeature(string featureName) => CloudOnlyFeatures.Contains(featureName);
+    public int AOPackSize { get; set; } = 150;
+    public int InternalUserPackSize { get; set; } = 100;
+    public int ExternalUserPackSize { get; set; } = 1000;
 
     // ==================== HELPER METHODS ====================
 
-    /// <summary>
-    /// Get edition base price
-    /// </summary>
-    public decimal GetEditionBasePrice(OutSystemsEdition edition) => edition switch
-    {
-        OutSystemsEdition.Standard => StandardEditionBasePrice,
-        OutSystemsEdition.Enterprise => EnterpriseEditionBasePrice,
-        _ => StandardEditionBasePrice
-    };
+    /// <summary>Calculate number of AO packs for given total AOs</summary>
+    public int CalculateAOPacks(int totalAOs) => Math.Max(1, (int)Math.Ceiling(totalAOs / (double)AOPackSize));
 
-    /// <summary>
-    /// Get included AOs for edition (1 pack = 150 AOs for both editions)
-    /// </summary>
-    public int GetIncludedAOs(OutSystemsEdition edition) => edition switch
+    /// <summary>Get AppShield price for given user volume</summary>
+    public decimal GetAppShieldPrice(int userVolume)
     {
-        OutSystemsEdition.Standard => StandardEditionAOsIncluded,
-        OutSystemsEdition.Enterprise => EnterpriseEditionAOsIncluded,
-        _ => StandardEditionAOsIncluded
-    };
-
-    /// <summary>
-    /// Get included internal users for edition
-    /// </summary>
-    public int GetIncludedInternalUsers(OutSystemsEdition edition) => edition switch
-    {
-        OutSystemsEdition.Standard => StandardEditionInternalUsersIncluded,
-        OutSystemsEdition.Enterprise => EnterpriseEditionInternalUsersIncluded,
-        _ => StandardEditionInternalUsersIncluded
-    };
-
-    /// <summary>
-    /// Calculate number of AO packs needed
-    /// </summary>
-    public int CalculateAOPackCount(int totalAOs)
-    {
-        if (totalAOs <= 0) return 1; // Minimum 1 pack
-        return (int)Math.Ceiling(totalAOs / (double)AOPackSize);
+        var tier = AppShieldTiers.FirstOrDefault(t => userVolume >= t.MinUsers && userVolume <= t.MaxUsers);
+        return tier?.Price ?? AppShieldTiers.Last().Price;
     }
 
-    /// <summary>
-    /// Calculate cost for additional AOs beyond what's included in edition
-    /// </summary>
-    public decimal CalculateAdditionalAOsCost(OutSystemsEdition edition, int totalAOs)
+    /// <summary>Get services pricing for region</summary>
+    public OutSystemsRegionServicePricing GetServicesPricing(OutSystemsRegion region)
     {
-        var included = GetIncludedAOs(edition);
-        if (totalAOs <= included) return 0;
-
-        var additional = totalAOs - included;
-        var packs = (int)Math.Ceiling(additional / (double)AOPackSize);
-        return packs * AdditionalAOPackPrice;
+        return ServicesPricingByRegion.TryGetValue(region, out var pricing)
+            ? pricing
+            : ServicesPricingByRegion[OutSystemsRegion.Africa]; // Default
     }
 
-    /// <summary>
-    /// Calculate AO-pack scaled add-on cost
-    /// Formula: perPackRate * aoPackCount
-    /// </summary>
-    public decimal CalculateAOPackScaledCost(decimal perPackRate, int totalAOs)
+    /// <summary>Check if feature is available for O11 deployment type</summary>
+    public static bool IsFeatureAvailable(string featureName, OutSystemsDeployment deployment)
     {
-        var packCount = CalculateAOPackCount(totalAOs);
-        return perPackRate * packCount;
+        // Cloud-only features
+        var cloudOnly = new HashSet<string> { "HighAvailability", "Sentry", "LogStreaming", "LoadTestEnv", "DatabaseReplica" };
+        // Self-Managed only features
+        var selfManagedOnly = new HashSet<string> { "DisasterRecovery" };
+
+        if (deployment == OutSystemsDeployment.SelfManaged && cloudOnly.Contains(featureName))
+            return false;
+        if (deployment == OutSystemsDeployment.Cloud && selfManagedOnly.Contains(featureName))
+            return false;
+        return true;
     }
+}
 
-    /// <summary>
-    /// Calculate external user pack cost
-    /// </summary>
-    public decimal CalculateExternalUsersCost(int userCount)
-    {
-        if (userCount <= 0) return 0;
-        var packs = (int)Math.Ceiling(userCount / (double)ExternalUserPackSize);
-        return packs * ExternalUserPackPricePerYear;
-    }
+/// <summary>User tier for O11 tiered pricing</summary>
+public class OutSystemsUserTier
+{
+    public int MinUsers { get; set; }
+    public int MaxUsers { get; set; }
+    public decimal PricePerPack { get; set; }
+    public int PackSize { get; set; }
+}
 
-    /// <summary>
-    /// Calculate monthly VM cost for Azure
-    /// </summary>
-    public decimal CalculateAzureMonthlyVMCost(OutSystemsAzureInstanceType instanceType, int serverCount)
-    {
-        if (!AzureVMHourlyPricing.TryGetValue(instanceType, out var hourlyRate))
-            return 0;
-        return hourlyRate * HoursPerMonth * serverCount;
-    }
+/// <summary>AppShield tier pricing</summary>
+public class OutSystemsAppShieldTier
+{
+    public int Tier { get; set; }
+    public int MinUsers { get; set; }
+    public int MaxUsers { get; set; }
+    public decimal Price { get; set; }
+}
 
-    /// <summary>
-    /// Calculate monthly VM cost for AWS
-    /// </summary>
-    public decimal CalculateAwsMonthlyVMCost(OutSystemsAwsInstanceType instanceType, int serverCount)
-    {
-        if (!AwsEC2HourlyPricing.TryGetValue(instanceType, out var hourlyRate))
-            return 0;
-        return hourlyRate * HoursPerMonth * serverCount;
-    }
-
-    /// <summary>
-    /// Calculate Success Plan cost
-    /// </summary>
-    public decimal CalculateSuccessPlanCost(OutSystemsSuccessPlan plan) => plan switch
-    {
-        OutSystemsSuccessPlan.Essential => EssentialSuccessPlanPrice,
-        OutSystemsSuccessPlan.Premier => PremierSuccessPlanPrice,
-        _ => 0
-    };
-
-    /// <summary>
-    /// Get Azure instance specs
-    /// </summary>
-    public static (int vCPU, int RamGB) GetAzureInstanceSpecs(OutSystemsAzureInstanceType instanceType) => instanceType switch
-    {
-        OutSystemsAzureInstanceType.F4s_v2 => (4, 8),
-        OutSystemsAzureInstanceType.D4s_v3 => (4, 16),
-        OutSystemsAzureInstanceType.D8s_v3 => (8, 32),
-        OutSystemsAzureInstanceType.D16s_v3 => (16, 64),
-        _ => (4, 8)
-    };
-
-    /// <summary>
-    /// Get AWS instance specs
-    /// </summary>
-    public static (int vCPU, int RamGB) GetAwsInstanceSpecs(OutSystemsAwsInstanceType instanceType) => instanceType switch
-    {
-        OutSystemsAwsInstanceType.M5Large => (2, 8),
-        OutSystemsAwsInstanceType.M5XLarge => (4, 16),
-        OutSystemsAwsInstanceType.M52XLarge => (8, 32),
-        _ => (2, 8)
-    };
+/// <summary>Region-specific services pricing</summary>
+public class OutSystemsRegionServicePricing
+{
+    public decimal EssentialSuccessPlan { get; set; }
+    public decimal PremierSuccessPlan { get; set; }
+    public decimal DedicatedGroupSession { get; set; }
+    public decimal PublicSession { get; set; }
+    public decimal ExpertDay { get; set; }
 }
 
 #endregion
@@ -450,197 +489,171 @@ public class OutSystemsPricingSettings
 /// </summary>
 public class OutSystemsDeploymentConfig
 {
-    // ==================== BASIC CONFIGURATION ====================
+    // ==================== PLATFORM & DEPLOYMENT ====================
 
-    public OutSystemsEdition Edition { get; set; } = OutSystemsEdition.Standard;
-    public OutSystemsDeploymentType DeploymentType { get; set; } = OutSystemsDeploymentType.Cloud;
+    /// <summary>Platform: ODC or O11</summary>
+    public OutSystemsPlatform Platform { get; set; } = OutSystemsPlatform.O11;
+
+    /// <summary>Deployment type (O11 only): Cloud or Self-Managed</summary>
+    public OutSystemsDeployment Deployment { get; set; } = OutSystemsDeployment.Cloud;
+
+    /// <summary>Service region for pricing</summary>
+    public OutSystemsRegion Region { get; set; } = OutSystemsRegion.Africa;
 
     // ==================== APPLICATION OBJECTS ====================
 
-    /// <summary>
-    /// Total Application Objects (AOs = screens + tables + API methods)
-    /// </summary>
+    /// <summary>Total Application Objects (AOs = screens + tables + API methods)</summary>
     public int TotalApplicationObjects { get; set; } = 150;
 
-    /// <summary>
-    /// Computed number of AO packs (read-only, calculated from TotalApplicationObjects)
-    /// </summary>
-    public int NumberOfAOPacks => (int)Math.Ceiling(TotalApplicationObjects / 150.0);
+    /// <summary>Calculated AO pack count</summary>
+    public int AOPacks => (int)Math.Ceiling(TotalApplicationObjects / 150.0);
 
-    // ==================== SELF-MANAGED CLOUD PROVIDER ====================
+    // ==================== USER CAPACITY ====================
 
-    /// <summary>
-    /// Cloud provider for self-managed deployments
-    /// </summary>
-    public OutSystemsCloudProvider CloudProvider { get; set; } = OutSystemsCloudProvider.OnPremises;
+    /// <summary>Use unlimited users pricing</summary>
+    public bool UseUnlimitedUsers { get; set; } = false;
 
-    /// <summary>
-    /// Azure instance type (when CloudProvider is Azure)
-    /// </summary>
-    public OutSystemsAzureInstanceType AzureInstanceType { get; set; } = OutSystemsAzureInstanceType.F4s_v2;
-
-    /// <summary>
-    /// AWS instance type (when CloudProvider is AWS)
-    /// </summary>
-    public OutSystemsAwsInstanceType AwsInstanceType { get; set; } = OutSystemsAwsInstanceType.M5XLarge;
-
-    /// <summary>
-    /// Number of front-end servers per environment (for self-managed)
-    /// </summary>
-    public int FrontEndServersPerEnvironment { get; set; } = 2;
-
-    // ==================== ENVIRONMENTS ====================
-
-    /// <summary>
-    /// Number of production environments
-    /// </summary>
-    public int ProductionEnvironments { get; set; } = 1;
-
-    /// <summary>
-    /// Number of non-production environments (Dev, Test, Stage, etc.)
-    /// </summary>
-    public int NonProductionEnvironments { get; set; } = 3;
-
-    /// <summary>
-    /// Total environments for VM count calculation
-    /// </summary>
-    public int TotalEnvironments => ProductionEnvironments + NonProductionEnvironments;
-
-    // ==================== USER LICENSING ====================
-
-    public OutSystemsUserLicenseType UserLicenseType { get; set; } = OutSystemsUserLicenseType.Named;
-
-    /// <summary>
-    /// Number of named/internal users
-    /// </summary>
+    /// <summary>Number of internal users (ignored if UseUnlimitedUsers)</summary>
     public int InternalUsers { get; set; } = 100;
 
-    /// <summary>
-    /// Number of external users (for External license type)
-    /// </summary>
+    /// <summary>Number of external users (ignored if UseUnlimitedUsers)</summary>
     public int ExternalUsers { get; set; } = 0;
 
     /// <summary>
-    /// Use unlimited users option
+    /// Expected user volume for AppShield when using Unlimited Users
+    /// Required if UseUnlimitedUsers = true and AppShield is enabled
     /// </summary>
-    public bool UseUnlimitedUsers { get; set; } = false;
+    public int? AppShieldUserVolume { get; set; }
 
-    // ==================== ADD-ONS ====================
+    // ==================== ODC ADD-ONS ====================
 
-    /// <summary>
-    /// Include 24x7 Premium Support add-on
-    /// </summary>
-    public bool Include24x7PremiumSupport { get; set; } = false;
+    /// <summary>ODC: Support 24x7 Extended (mutually exclusive with Premium)</summary>
+    public bool OdcSupport24x7Extended { get; set; } = false;
 
-    /// <summary>
-    /// Include additional Non-Production Environment
-    /// </summary>
-    public bool IncludeNonProductionEnv { get; set; } = false;
+    /// <summary>ODC: Support 24x7 Premium (mutually exclusive with Extended)</summary>
+    public bool OdcSupport24x7Premium { get; set; } = false;
 
-    /// <summary>
-    /// Include Load Testing Environment (Cloud only)
-    /// </summary>
-    public bool IncludeLoadTestEnv { get; set; } = false;
+    /// <summary>ODC: AppShield enabled</summary>
+    public bool OdcAppShield { get; set; } = false;
 
-    /// <summary>
-    /// Include Environment Pack add-on
-    /// </summary>
-    public bool IncludeEnvironmentPack { get; set; } = false;
+    /// <summary>ODC: High Availability</summary>
+    public bool OdcHighAvailability { get; set; } = false;
 
-    /// <summary>
-    /// Include High Availability (Cloud only)
-    /// </summary>
-    public bool IncludeHA { get; set; } = false;
+    /// <summary>ODC: Non-Production Runtime quantity (can be > 1)</summary>
+    public int OdcNonProdRuntimeQuantity { get; set; } = 0;
 
-    /// <summary>
-    /// Include Sentry (Cloud only, includes HA)
-    /// </summary>
-    public bool IncludeSentry { get; set; } = false;
+    /// <summary>ODC: Private Gateway</summary>
+    public bool OdcPrivateGateway { get; set; } = false;
 
-    /// <summary>
-    /// Include Disaster Recovery
-    /// </summary>
-    public bool IncludeDR { get; set; } = false;
+    /// <summary>ODC: Sentry</summary>
+    public bool OdcSentry { get; set; } = false;
 
-    /// <summary>
-    /// Include Log Streaming (Cloud only)
-    /// </summary>
-    public bool IncludeLogStreaming { get; set; } = false;
+    // ==================== O11 ADD-ONS ====================
 
-    /// <summary>
-    /// Include Database Replica (Cloud only)
-    /// </summary>
-    public bool IncludeDatabaseReplica { get; set; } = false;
+    /// <summary>O11: Support 24x7 Premium (Extended is included)</summary>
+    public bool O11Support24x7Premium { get; set; } = false;
 
-    /// <summary>
-    /// Include AppShield (number of users)
-    /// </summary>
-    public int AppShieldUsers { get; set; } = 0;
+    /// <summary>O11: AppShield enabled</summary>
+    public bool O11AppShield { get; set; } = false;
+
+    /// <summary>O11: High Availability (Cloud only, included when Sentry enabled)</summary>
+    public bool O11HighAvailability { get; set; } = false;
+
+    /// <summary>O11: Sentry with HA (Cloud only)</summary>
+    public bool O11Sentry { get; set; } = false;
+
+    /// <summary>O11: Log Streaming quantity (Cloud only)</summary>
+    public int O11LogStreamingQuantity { get; set; } = 0;
+
+    /// <summary>O11: Non-Production Environment quantity</summary>
+    public int O11NonProdEnvQuantity { get; set; } = 0;
+
+    /// <summary>O11: Load Test Environment quantity (Cloud only)</summary>
+    public int O11LoadTestEnvQuantity { get; set; } = 0;
+
+    /// <summary>O11: Environment Pack quantity</summary>
+    public int O11EnvPackQuantity { get; set; } = 0;
+
+    /// <summary>O11: Disaster Recovery (Self-Managed only)</summary>
+    public bool O11DisasterRecovery { get; set; } = false;
+
+    /// <summary>O11: Database Replica quantity (Cloud only)</summary>
+    public int O11DatabaseReplicaQuantity { get; set; } = 0;
 
     // ==================== SERVICES ====================
 
-    /// <summary>
-    /// Success Plan selection
-    /// </summary>
-    public OutSystemsSuccessPlan SuccessPlan { get; set; } = OutSystemsSuccessPlan.None;
+    /// <summary>Essential Success Plan quantity</summary>
+    public int EssentialSuccessPlanQuantity { get; set; } = 0;
 
-    /// <summary>
-    /// Number of Dedicated Group Sessions (training)
-    /// </summary>
-    public int DedicatedGroupSessions { get; set; } = 0;
+    /// <summary>Premier Success Plan quantity</summary>
+    public int PremierSuccessPlanQuantity { get; set; } = 0;
 
-    /// <summary>
-    /// Number of Public Sessions (training)
-    /// </summary>
-    public int PublicSessions { get; set; } = 0;
+    /// <summary>Dedicated Group Session quantity</summary>
+    public int DedicatedGroupSessionQuantity { get; set; } = 0;
 
-    /// <summary>
-    /// Number of Expert Days (consulting)
-    /// </summary>
-    public int ExpertDays { get; set; } = 0;
+    /// <summary>Public Session quantity</summary>
+    public int PublicSessionQuantity { get; set; } = 0;
 
-    // ==================== LEGACY (for backward compatibility) ====================
+    /// <summary>Expert Day quantity</summary>
+    public int ExpertDayQuantity { get; set; } = 0;
 
-    [Obsolete("Use InternalUsers instead")]
-    public int NamedUsers { get => InternalUsers; set => InternalUsers = value; }
+    // ==================== DISCOUNT ====================
 
-    [Obsolete("Use InternalUsers instead")]
-    public int ConcurrentUsers { get; set; } = 0;
+    /// <summary>Optional discount configuration</summary>
+    public OutSystemsDiscount? Discount { get; set; }
 
-    [Obsolete("Use ExternalUsers instead")]
-    public int ExternalSessions { get => ExternalUsers; set => ExternalUsers = value; }
+    // ==================== SELF-MANAGED INFRASTRUCTURE ====================
 
-    [Obsolete("Use SuccessPlan instead")]
-    public OutSystemsSupportTier SupportTier { get; set; } = OutSystemsSupportTier.Standard;
+    /// <summary>Cloud provider for self-managed</summary>
+    public OutSystemsCloudProvider CloudProvider { get; set; } = OutSystemsCloudProvider.OnPremises;
 
-    [Obsolete("Use FrontEndServersPerEnvironment instead")]
-    public int FrontEndServers { get => FrontEndServersPerEnvironment; set => FrontEndServersPerEnvironment = value; }
+    /// <summary>Azure instance type</summary>
+    public OutSystemsAzureInstanceType AzureInstanceType { get; set; } = OutSystemsAzureInstanceType.F4s_v2;
+
+    /// <summary>AWS instance type</summary>
+    public OutSystemsAwsInstanceType AwsInstanceType { get; set; } = OutSystemsAwsInstanceType.M5XLarge;
+
+    /// <summary>Front-end servers per environment</summary>
+    public int FrontEndServersPerEnvironment { get; set; } = 2;
+
+    /// <summary>Total environments for VM calculation</summary>
+    public int TotalEnvironments { get; set; } = 4;
 
     // ==================== VALIDATION ====================
 
-    /// <summary>
-    /// Validate configuration and return warnings for cloud-only features in self-managed
-    /// </summary>
+    /// <summary>Get validation warnings for current configuration</summary>
     public List<string> GetValidationWarnings()
     {
         var warnings = new List<string>();
 
-        if (DeploymentType == OutSystemsDeploymentType.SelfManaged)
+        if (Platform == OutSystemsPlatform.O11 && Deployment == OutSystemsDeployment.SelfManaged)
         {
-            if (IncludeHA)
-                warnings.Add("High Availability is a Cloud-only feature. It will be ignored for self-managed deployments.");
-            if (IncludeSentry)
-                warnings.Add("Sentry is a Cloud-only feature. It will be ignored for self-managed deployments.");
-            if (IncludeLoadTestEnv)
-                warnings.Add("Load Testing Environment is a Cloud-only feature. It will be ignored for self-managed deployments.");
-            if (IncludeLogStreaming)
-                warnings.Add("Log Streaming is a Cloud-only feature. It will be ignored for self-managed deployments.");
-            if (IncludeDatabaseReplica)
-                warnings.Add("Database Replica is a Cloud-only feature. It will be ignored for self-managed deployments.");
+            if (O11HighAvailability)
+                warnings.Add("High Availability is Cloud-only. It will not be included for Self-Managed.");
+            if (O11Sentry)
+                warnings.Add("Sentry is Cloud-only. It will not be included for Self-Managed.");
+            if (O11LogStreamingQuantity > 0)
+                warnings.Add("Log Streaming is Cloud-only. It will not be included for Self-Managed.");
+            if (O11LoadTestEnvQuantity > 0)
+                warnings.Add("Load Test Environment is Cloud-only. It will not be included for Self-Managed.");
+            if (O11DatabaseReplicaQuantity > 0)
+                warnings.Add("Database Replica is Cloud-only. It will not be included for Self-Managed.");
         }
 
-        if (IncludeSentry && IncludeHA)
-            warnings.Add("Sentry already includes High Availability. HA add-on will be ignored.");
+        if (Platform == OutSystemsPlatform.O11 && Deployment == OutSystemsDeployment.Cloud)
+        {
+            if (O11DisasterRecovery)
+                warnings.Add("Disaster Recovery is Self-Managed only. It will not be included for Cloud.");
+        }
+
+        if (O11Sentry && O11HighAvailability)
+            warnings.Add("Sentry includes High Availability. HA cost is included in Sentry.");
+
+        if (OdcSupport24x7Extended && OdcSupport24x7Premium)
+            warnings.Add("Support Extended and Premium are mutually exclusive. Only Premium will be applied.");
+
+        if (UseUnlimitedUsers && (OdcAppShield || O11AppShield) && !AppShieldUserVolume.HasValue)
+            warnings.Add("AppShield requires expected user volume when using Unlimited Users.");
 
         return warnings;
     }
@@ -657,46 +670,39 @@ public class OutSystemsPricingResult
 {
     // ==================== CONFIGURATION INFO ====================
 
-    public OutSystemsEdition Edition { get; set; }
-    public OutSystemsDeploymentType DeploymentType { get; set; }
-    public string DeploymentTypeName { get; set; } = string.Empty;
-    public OutSystemsCloudProvider CloudProvider { get; set; }
-
-    // ==================== AO DETAILS ====================
-
-    public int TotalAOs { get; set; }
+    public OutSystemsPlatform Platform { get; set; }
+    public OutSystemsDeployment Deployment { get; set; }
+    public OutSystemsRegion Region { get; set; }
     public int AOPackCount { get; set; }
-    public int IncludedAOs { get; set; }
-    public int AdditionalAOPacks { get; set; }
 
-    // ==================== LICENSE COSTS ====================
+    // ==================== LICENSE BREAKDOWN ====================
 
-    public decimal EditionBaseCost { get; set; }
-    public decimal AdditionalAOsCost { get; set; }
-    public decimal UserLicenseCost { get; set; }
-    public string? UserLicenseDetails { get; set; }
+    public decimal EditionCost { get; set; }
+    public decimal AOPacksCost { get; set; }
+    public decimal InternalUsersCost { get; set; }
+    public decimal ExternalUsersCost { get; set; }
+    public decimal UnlimitedUsersCost { get; set; }
 
-    public decimal LicenseSubtotal => EditionBaseCost + AdditionalAOsCost + UserLicenseCost;
+    public decimal LicenseSubtotal => EditionCost + AOPacksCost + InternalUsersCost + ExternalUsersCost + UnlimitedUsersCost;
 
-    // ==================== ADD-ON COSTS ====================
+    /// <summary>Detailed breakdown of license costs</summary>
+    public Dictionary<string, decimal> LicenseBreakdown { get; set; } = new();
 
-    public decimal Support24x7PremiumCost { get; set; }
-    public decimal NonProductionEnvCost { get; set; }
-    public decimal LoadTestEnvCost { get; set; }
-    public decimal EnvironmentPackCost { get; set; }
-    public decimal HACost { get; set; }
-    public decimal SentryCost { get; set; }
-    public decimal DRCost { get; set; }
-    public decimal LogStreamingCost { get; set; }
-    public decimal DatabaseReplicaCost { get; set; }
-    public decimal AppShieldCost { get; set; }
+    // ==================== ADD-ONS BREAKDOWN ====================
 
-    public decimal AddOnsSubtotal =>
-        Support24x7PremiumCost + NonProductionEnvCost + LoadTestEnvCost +
-        EnvironmentPackCost + HACost + SentryCost + DRCost +
-        LogStreamingCost + DatabaseReplicaCost + AppShieldCost;
+    /// <summary>Detailed breakdown of add-on costs by name</summary>
+    public Dictionary<string, decimal> AddOnCosts { get; set; } = new();
 
-    // ==================== INFRASTRUCTURE COSTS (Self-Managed on Cloud) ====================
+    public decimal AddOnsSubtotal => AddOnCosts.Values.Sum();
+
+    // ==================== SERVICES BREAKDOWN ====================
+
+    /// <summary>Detailed breakdown of services costs by name</summary>
+    public Dictionary<string, decimal> ServiceCosts { get; set; } = new();
+
+    public decimal ServicesSubtotal => ServiceCosts.Values.Sum();
+
+    // ==================== INFRASTRUCTURE (Self-Managed) ====================
 
     public decimal MonthlyVMCost { get; set; }
     public decimal AnnualVMCost => MonthlyVMCost * 12;
@@ -705,48 +711,59 @@ public class OutSystemsPricingResult
 
     public decimal InfrastructureSubtotal => AnnualVMCost;
 
-    // ==================== SERVICES COSTS ====================
-
-    public decimal SuccessPlanCost { get; set; }
-    public decimal TrainingCost { get; set; }
-    public decimal ExpertDaysCost { get; set; }
-
-    public decimal ServicesSubtotal => SuccessPlanCost + TrainingCost + ExpertDaysCost;
-
-    // ==================== LEGACY COSTS (for backward compatibility) ====================
-
-    [Obsolete("Use LicenseSubtotal + AddOnsSubtotal instead")]
-    public decimal EnvironmentCost { get; set; }
-    [Obsolete("Use InfrastructureSubtotal instead")]
-    public decimal FrontEndCost { get; set; }
-    [Obsolete("Use Support24x7PremiumCost instead")]
-    public decimal SupportCost { get; set; }
-
     // ==================== TOTALS ====================
 
-    public decimal TotalPerYear => LicenseSubtotal + AddOnsSubtotal + InfrastructureSubtotal + ServicesSubtotal;
-    public decimal TotalPerMonth => TotalPerYear / 12;
-    public decimal TotalThreeYear => TotalPerYear * 3;
-    public decimal TotalFiveYear => TotalPerYear * 5;
+    public decimal GrossTotal => LicenseSubtotal + AddOnsSubtotal + ServicesSubtotal + InfrastructureSubtotal;
+
+    /// <summary>Discount amount applied</summary>
+    public decimal DiscountAmount { get; set; }
+
+    /// <summary>Description of discount applied</summary>
+    public string? DiscountDescription { get; set; }
+
+    public decimal NetTotal => GrossTotal - DiscountAmount;
+
+    // ==================== PROJECTIONS ====================
+
+    public decimal TotalPerMonth => NetTotal / 12;
+    public decimal TotalThreeYear => NetTotal * 3;
+    public decimal TotalFiveYear => NetTotal * 5;
 
     // ==================== METADATA ====================
 
-    public string? EnvironmentDetails { get; set; }
+    /// <summary>Validation warnings</summary>
     public List<string> Warnings { get; set; } = new();
+
+    /// <summary>Cost optimization recommendations</summary>
+    public List<string> Recommendations { get; set; } = new();
+
+    /// <summary>Line items for detailed display</summary>
     public List<OutSystemsCostLineItem> LineItems { get; set; } = new();
+
+    // ==================== USER DETAILS (for transparency) ====================
+
+    public int InternalUserPackCount { get; set; }
+    public int ExternalUserPackCount { get; set; }
+    public bool UsedUnlimitedUsers { get; set; }
+    public int? AppShieldUserVolume { get; set; }
+    public int? AppShieldTier { get; set; }
 }
 
 /// <summary>
-/// Individual cost line item for detailed breakdown display
+/// Individual cost line item for detailed breakdown
 /// </summary>
 public class OutSystemsCostLineItem
 {
     public string Category { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public decimal UnitPrice { get; set; }
+    public int Quantity { get; set; } = 1;
     public decimal Amount { get; set; }
     public bool IsCloudOnly { get; set; }
+    public bool IsSelfManagedOnly { get; set; }
     public bool IsIncluded { get; set; }
+    public bool IsDisabled { get; set; }
 }
 
 #endregion

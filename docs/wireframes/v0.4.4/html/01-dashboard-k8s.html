@@ -11,16 +11,7 @@
     <!-- Header -->
     <header class="header">
       <div class="header-logo">InfraSizing</div>
-      <div class="header-center">
-        <div class="mode-toggle">
-          <button class="mode-btn k8s active">K8s</button>
-          <button class="mode-btn vm" onclick="window.location.href='02-dashboard-vm.html'">VM</button>
-        </div>
-        <span style="font-size: 12px; color: var(--color-text-secondary);">
-          Production Cluster
-          <span class="badge badge-k8s" style="margin-left: 4px;">OpenShift</span>
-        </span>
-      </div>
+      <div class="header-center"></div>
       <div class="header-right">
         <button class="btn btn-sm btn-secondary">Export</button>
         <button class="btn btn-sm btn-primary">Calculate</button>
@@ -172,6 +163,14 @@
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
+        </div>
+
+        <!-- Mode Selection -->
+        <div style="padding: 12px; border-bottom: 1px solid var(--color-border);">
+          <div class="mode-toggle" style="width: 100%;">
+            <button class="mode-btn k8s active" style="flex: 1;">Kubernetes</button>
+            <button class="mode-btn vm" style="flex: 1;" onclick="window.location.href='02-dashboard-vm.html'">Virtual Machines</button>
+          </div>
         </div>
 
         <!-- Config Tabs -->

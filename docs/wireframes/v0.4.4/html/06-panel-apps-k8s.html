@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apps Panel - K8s Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='01-dashboard-k8s.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-k8s" style="margin-right: 8px;">K8s</span>
+        Application Configuration
+      </h2>
+      <button class="panel-close" onclick="window.location.href='01-dashboard-k8s.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>K8s-Specific Apps Panel</strong>
+        Shows pod counts, replicas, and resource requests - Kubernetes concepts.
+        Compare with <a href="07-panel-apps-vm.html">VM Apps Panel</a> - uses server roles instead!
+      </div>
+
+      <!-- Platform Selection -->
+      <!-- Reference: [LOWCODE] Mendix/OutSystems Sizing -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Application Platform</h4>
+
+        <div class="form-group">
+          <label class="form-label">Platform Type</label>
+          <div class="selection-grid">
+            <div class="selection-card selected">
+              <div class="selection-card-icon">🟦</div>
+              <div class="selection-card-label">Mendix</div>
+              <div class="selection-card-desc">Low-code platform</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">🟧</div>
+              <div class="selection-card-label">OutSystems</div>
+              <div class="selection-card-desc">Low-code platform</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">🐳</div>
+              <div class="selection-card-label">Native Containers</div>
+              <div class="selection-card-desc">Custom workloads</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Mendix App Tiers - K8s Specific -->
+      <!-- Reference: [LOWCODE] Mendix App Sizing -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Mendix Applications by Tier</h4>
+
+        <div class="wireframe-note">
+          <strong>K8s-Only: Pod Counts & Replicas</strong>
+          These fields calculate pod counts and replica requirements.
+          VM mode uses "server roles" instead.
+        </div>
+
+        <table class="table" style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Apps</th>
+              <th>Replicas</th>
+              <th>Pods</th>
+              <th>CPU (m)</th>
+              <th>Memory</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <strong>S (Small)</strong>
+                <div class="text-sm text-secondary">Light apps, few users</div>
+              </td>
+              <td><input type="number" class="form-input" value="5" style="width: 60px;"></td>
+              <td>2</td>
+              <td><strong>10</strong></td>
+              <td>500m</td>
+              <td>1 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>M (Medium)</strong>
+                <div class="text-sm text-secondary">Standard apps</div>
+              </td>
+              <td><input type="number" class="form-input" value="10" style="width: 60px;"></td>
+              <td>2</td>
+              <td><strong>20</strong></td>
+              <td>1000m</td>
+              <td>2 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>L (Large)</strong>
+                <div class="text-sm text-secondary">Heavy workloads</div>
+              </td>
+              <td><input type="number" class="form-input" value="3" style="width: 60px;"></td>
+              <td>3</td>
+              <td><strong>9</strong></td>
+              <td>2000m</td>
+              <td>4 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>XL (Extra Large)</strong>
+                <div class="text-sm text-secondary">Critical, high-traffic</div>
+              </td>
+              <td><input type="number" class="form-input" value="2" style="width: 60px;"></td>
+              <td>3</td>
+              <td><strong>6</strong></td>
+              <td>4000m</td>
+              <td>8 GB</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--color-accent-light);">
+              <td><strong>Total</strong></td>
+              <td><strong>20</strong></td>
+              <td>-</td>
+              <td><strong>45</strong></td>
+              <td>31.5 CPU</td>
+              <td>62 GB</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="form-hint" style="margin-top: 8px;">
+          Reference: [LOWCODE] Mendix Sizing Guide - Pod resources per tier
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Resource Requests/Limits - K8s Specific -->
+      <!-- Reference: [K8S-CLOUD] Resource Management -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Resource Requests & Limits</h4>
+
+        <div class="wireframe-note">
+          <strong>K8s-Only Concept</strong>
+          Resource requests/limits are Kubernetes concepts for QoS.
+          Does NOT exist in VM mode.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Request/Limit Ratio</label>
+          <select class="form-select">
+            <option>Guaranteed (1:1) - Production</option>
+            <option selected>Burstable (1:2) - Standard</option>
+            <option>Best Effort (1:4) - Development</option>
+          </select>
+          <div class="form-hint">
+            Guaranteed: requests = limits (no overcommit)<br>
+            Burstable: limits > requests (allows bursting)
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>QoS Classes (Kubernetes)</strong>
+          <ul style="margin: 8px 0 0 20px;">
+            <li><strong>Guaranteed</strong>: Won't be evicted unless OOM</li>
+            <li><strong>Burstable</strong>: Can use more if available</li>
+            <li><strong>BestEffort</strong>: First to be evicted</li>
+          </ul>
+          <span class="text-sm text-secondary">Reference: [K8S-CLOUD] Resource QoS</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Platform Services - K8s Specific -->
+      <!-- Reference: [LOWCODE] Mendix Platform Components -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Platform Services (Pods)</h4>
+
+        <div class="wireframe-note">
+          <strong>K8s-Only: Platform Pods</strong>
+          These run as Kubernetes pods. VM mode has different deployment model.
+        </div>
+
+        <div style="display: grid; gap: 12px;">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">Build Server</div>
+              <div class="text-sm text-secondary">CI/CD for Mendix apps</div>
+            </div>
+            <div class="text-sm" style="text-align: right;">
+              <div>2 pods × 4 vCPU</div>
+              <div class="text-secondary">8 GB each</div>
+            </div>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">Storage Service</div>
+              <div class="text-sm text-secondary">File storage backend</div>
+            </div>
+            <div class="text-sm" style="text-align: right;">
+              <div>3 pods × 2 vCPU</div>
+              <div class="text-secondary">4 GB each</div>
+            </div>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">Monitoring Stack</div>
+              <div class="text-sm text-secondary">Prometheus + Grafana</div>
+            </div>
+            <div class="text-sm" style="text-align: right;">
+              <div>3 pods × 1 vCPU</div>
+              <div class="text-secondary">2 GB each</div>
+            </div>
+          </label>
+
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" style="width: 18px; height: 18px;">
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">Logging (ELK)</div>
+              <div class="text-sm text-secondary">Elasticsearch, Logstash, Kibana</div>
+            </div>
+            <div class="text-sm" style="text-align: right;">
+              <div>5 pods × 4 vCPU</div>
+              <div class="text-secondary">16 GB each</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Pod Density Calculation -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Pod Density Analysis</h4>
+
+        <div class="info-box">
+          <strong>Total Pod Count</strong>
+          <ul style="margin: 8px 0 0 20px;">
+            <li>Application Pods: 45</li>
+            <li>Platform Services: 13</li>
+            <li>System Pods (per node): ~30</li>
+            <li><strong>Total: 58 user pods</strong></li>
+          </ul>
+          <br>
+          With max pods = 110 per node:<br>
+          <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
+            Min Worker Nodes = 58 / (110 - 30) = 0.73 → 1 node
+          </code><br>
+          <span class="text-sm text-secondary">+ HA requirements = 3 nodes minimum</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='01-dashboard-k8s.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='01-dashboard-k8s.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a> |
+    Compare: <a href="07-panel-apps-vm.html" style="color: var(--color-vm);">VM Apps Panel</a>
+  </footer>
+</body>
+</html>

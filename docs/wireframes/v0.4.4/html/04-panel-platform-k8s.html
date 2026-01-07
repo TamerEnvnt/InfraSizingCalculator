@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Panel - K8s Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <!-- Dimmed Background (Dashboard) -->
+  <div class="panel-overlay" onclick="window.location.href='01-dashboard-k8s.html'"></div>
+
+  <!-- Main Dashboard (dimmed) -->
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+    <div class="header-center">
+      <span style="font-size: 14px; color: var(--color-text-secondary);">
+        Production K8s Cluster
+        <span class="badge badge-k8s" style="margin-left: 8px;">OpenShift</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- Slide-out Panel -->
+  <!-- Reference: [UX-REF] Section 4.3 - Slide-Out Panels vs Modals -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-k8s" style="margin-right: 8px;">K8s</span>
+        Platform Configuration
+      </h2>
+      <button class="panel-close" onclick="window.location.href='01-dashboard-k8s.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>K8s-Specific Platform Panel</strong>
+        This panel shows Kubernetes distribution selection with control plane configuration.
+        Compare with <a href="05-panel-platform-vm.html">VM Platform Panel</a> for different fields.
+      </div>
+
+      <!-- Distribution Selection -->
+      <!-- Reference: [K8S-CLOUD] and [K8S-ONPREM] -->
+      <div class="form-group">
+        <label class="form-label">Kubernetes Distribution</label>
+        <select class="form-select">
+          <optgroup label="Cloud Managed">
+            <option>Amazon EKS</option>
+            <option>Azure AKS</option>
+            <option>Google GKE</option>
+            <option>DigitalOcean DOKS</option>
+            <option>Linode LKE</option>
+          </optgroup>
+          <optgroup label="Enterprise On-Prem">
+            <option selected>Red Hat OpenShift</option>
+            <option>VMware Tanzu</option>
+            <option>Mirantis MKE</option>
+          </optgroup>
+          <optgroup label="Lightweight">
+            <option>K3s</option>
+            <option>MicroK8s</option>
+            <option>k0s</option>
+          </optgroup>
+          <optgroup label="Self-Hosted">
+            <option>RKE2</option>
+            <option>Vanilla Kubernetes</option>
+          </optgroup>
+        </select>
+        <div class="form-hint">46 distributions available. Reference: [K8S-CLOUD], [K8S-ONPREM]</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- OpenShift-Specific Fields -->
+      <!-- Reference: [K8S-ONPREM] OpenShift Control Plane Sizing -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">OpenShift Configuration</h4>
+
+        <div class="form-group">
+          <label class="form-label">OpenShift Version</label>
+          <select class="form-select">
+            <option>4.14 (Latest stable)</option>
+            <option selected>4.13 (Extended Update Support)</option>
+            <option>4.12</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Control Plane Nodes</label>
+          <div class="radio-group">
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">1 Node</div>
+                <div class="radio-desc">Development only, no HA</div>
+              </div>
+            </div>
+            <div class="radio-item selected">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">3 Nodes</div>
+                <div class="radio-desc">Production standard, tolerates 1 failure</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">5 Nodes</div>
+                <div class="radio-desc">Large clusters, tolerates 2 failures</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-hint">Reference: [K8S-ONPREM] etcd quorum requirements</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Infrastructure Nodes</label>
+          <div class="slider-container">
+            <input type="range" class="slider" min="0" max="10" value="3">
+            <span class="slider-value">3</span>
+          </div>
+          <div class="form-hint">For ingress controllers, monitoring, logging</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Control Plane Sizing (auto-calculated) -->
+        <div class="info-box">
+          <strong>Control Plane Sizing (Auto-calculated)</strong><br>
+          Based on worker count (6 workers), recommended CP specs:<br><br>
+          <table style="width: 100%; font-size: 12px;">
+            <tr>
+              <td style="padding: 4px 0;"><strong>vCPU:</strong></td>
+              <td>8 cores</td>
+              <td style="color: var(--color-text-secondary);">(26-100 workers tier)</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0;"><strong>Memory:</strong></td>
+              <td>32 GB</td>
+              <td style="color: var(--color-text-secondary);">(recommended for production)</td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0;"><strong>Storage:</strong></td>
+              <td>200 GB SSD</td>
+              <td style="color: var(--color-text-secondary);">(for etcd + logs)</td>
+            </tr>
+          </table>
+          <div style="margin-top: 8px; font-size: 11px; color: var(--color-text-secondary);">
+            Reference: [K8S-ONPREM] OpenShift control plane sizing by worker count
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Feature Toggles -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Features</h4>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">OpenShift Data Foundation (ODF)</div>
+              <div class="text-sm text-secondary">Software-defined storage with Ceph</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">High Availability</div>
+              <div class="text-sm text-secondary">Multi-master with automatic failover</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">FIPS Mode</div>
+              <div class="text-sm text-secondary">Federal security compliance</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Licensing Info -->
+      <div class="warning-box">
+        <strong>OpenShift Licensing</strong><br>
+        Red Hat OpenShift subscription: ~$2,500/node/year<br>
+        <span class="text-sm">Includes support, updates, and certified operators</span>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='01-dashboard-k8s.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='01-dashboard-k8s.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Wireframe Index</a> |
+    Compare: <a href="05-panel-platform-vm.html" style="color: var(--color-vm);">VM Platform Panel</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Growth Panel | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='01-dashboard-k8s.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Growth Planning</h2>
+      <button class="panel-close" onclick="window.location.href='01-dashboard-k8s.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Planning Horizon -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Planning Horizon</h4>
+
+        <div class="form-group">
+          <label class="form-label">Projection Period</label>
+          <div class="slider-container">
+            <input type="range" class="slider" min="1" max="5" value="3">
+            <span class="slider-value">3 years</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Growth Model</label>
+          <div class="radio-group">
+            <div class="radio-item selected">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Linear Growth</div>
+                <div class="radio-desc">Steady percentage increase each year</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Exponential Growth</div>
+                <div class="radio-desc">Compound growth (startups)</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Step Function</div>
+                <div class="radio-desc">Planned expansions at specific dates</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Growth Rates -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Growth Rates</h4>
+
+        <div class="form-group">
+          <label class="form-label">Application Growth Rate</label>
+          <div class="slider-container">
+            <span class="text-sm">0%</span>
+            <input type="range" class="slider" min="0" max="50" value="20" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">20%/year</span>
+          </div>
+          <div class="form-hint">New applications added per year</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">User Growth Rate</label>
+          <div class="slider-container">
+            <span class="text-sm">0%</span>
+            <input type="range" class="slider" min="0" max="100" value="30" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">30%/year</span>
+          </div>
+          <div class="form-hint">Concurrent users increase per year</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Data Growth Rate</label>
+          <div class="slider-container">
+            <span class="text-sm">0%</span>
+            <input type="range" class="slider" min="0" max="100" value="40" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">40%/year</span>
+          </div>
+          <div class="form-hint">Storage requirements increase per year</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Projected Resources -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Resource Projections</h4>
+
+        <table class="table" style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Now</th>
+              <th>Year 1</th>
+              <th>Year 2</th>
+              <th>Year 3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Applications</strong></td>
+              <td>20</td>
+              <td>24</td>
+              <td>29</td>
+              <td>35</td>
+            </tr>
+            <tr>
+              <td><strong>CPU (cores)</strong></td>
+              <td>64</td>
+              <td>77</td>
+              <td>92</td>
+              <td>111</td>
+            </tr>
+            <tr>
+              <td><strong>Memory (GB)</strong></td>
+              <td>256</td>
+              <td>307</td>
+              <td>369</td>
+              <td>442</td>
+            </tr>
+            <tr>
+              <td><strong>Storage (TB)</strong></td>
+              <td>2.0</td>
+              <td>2.8</td>
+              <td>3.9</td>
+              <td>5.5</td>
+            </tr>
+            <tr style="background: var(--color-accent-light);">
+              <td><strong>Est. Cost ($/mo)</strong></td>
+              <td>$4,200</td>
+              <td>$5,040</td>
+              <td>$6,050</td>
+              <td>$7,260</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Headroom Settings -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Capacity Headroom</h4>
+
+        <div class="form-group">
+          <label class="form-label">CPU Headroom</label>
+          <div class="slider-container">
+            <span class="text-sm">10%</span>
+            <input type="range" class="slider" min="10" max="50" value="25" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">25%</span>
+          </div>
+          <div class="form-hint">Buffer for traffic spikes and growth</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Memory Headroom</label>
+          <div class="slider-container">
+            <span class="text-sm">10%</span>
+            <input type="range" class="slider" min="10" max="50" value="20" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">20%</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Storage Headroom</label>
+          <div class="slider-container">
+            <span class="text-sm">10%</span>
+            <input type="range" class="slider" min="10" max="50" value="30" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">30%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Expansion Recommendations -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Expansion Timeline</h4>
+
+        <div class="info-box">
+          <strong>Recommended Expansion Points</strong>
+          <div style="margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="width: 8px; height: 8px; background: var(--color-success); border-radius: 50%;"></div>
+              <div style="flex: 1;">
+                <strong>Month 8</strong>: Add 1 worker node
+                <div class="text-sm text-secondary">CPU utilization will reach 75%</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="width: 8px; height: 8px; background: var(--color-warning); border-radius: 50%;"></div>
+              <div style="flex: 1;">
+                <strong>Month 14</strong>: Add 2 worker nodes + storage
+                <div class="text-sm text-secondary">Memory will reach 80%, storage 70%</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 8px; height: 8px; background: var(--color-error); border-radius: 50%;"></div>
+              <div style="flex: 1;">
+                <strong>Month 24</strong>: Major infrastructure upgrade
+                <div class="text-sm text-secondary">Consider additional control plane capacity</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Scaling Strategy -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Scaling Strategy</h4>
+
+        <div class="form-group">
+          <label class="form-label">Preferred Scaling Method</label>
+          <div class="radio-group">
+            <div class="radio-item selected">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Horizontal (Add Nodes)</div>
+                <div class="radio-desc">Add more smaller nodes as needed</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Vertical (Bigger Nodes)</div>
+                <div class="radio-desc">Upgrade existing nodes to larger sizes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <strong>Budget Alert</strong><br>
+          At current growth rates, infrastructure costs will increase by <strong>73%</strong> over 3 years.
+          Consider reserved instances or multi-year commitments for cost optimization.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='01-dashboard-k8s.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='01-dashboard-k8s.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a>
+  </footer>
+</body>
+</html>

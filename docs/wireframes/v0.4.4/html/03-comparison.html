@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scenario Comparison | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .comparison-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .scenario-selector {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .scenario-select {
+      flex: 1;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .scenario-select select {
+      width: 100%;
+      border: none;
+      background: none;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .comparison-table {
+      flex: 1;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .comparison-table th, .comparison-table td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .comparison-table th {
+      background: var(--color-bg);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+    }
+
+    .comparison-table th:first-child {
+      width: 140px;
+    }
+
+    .metric-label {
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .metric-value {
+      text-align: center;
+    }
+
+    .best {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+      font-weight: 600;
+    }
+
+    .worst {
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .analysis-row {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .analysis-card {
+      flex: 1;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      border-left-width: 3px;
+    }
+
+    .analysis-card.k8s { border-left-color: var(--color-k8s); }
+    .analysis-card.vm { border-left-color: var(--color-vm); }
+
+    .analysis-card h4 {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .analysis-card p {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">InfraSizing</div>
+      <div class="header-center">
+        <span style="font-size: 12px; font-weight: 500;">Scenario Comparison</span>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='13-landing-auth.html'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+        <button class="btn btn-sm btn-primary">Export</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="main">
+        <div class="comparison-area">
+          <!-- Scenario Selector -->
+          <div class="scenario-selector">
+            <div class="scenario-select">
+              <div class="text-xs text-secondary" style="margin-bottom: 2px;">Scenario 1</div>
+              <select>
+                <option selected>Production K8s Cluster</option>
+                <option>VM Infrastructure</option>
+                <option>Dev/Test EKS</option>
+              </select>
+            </div>
+            <div class="scenario-select">
+              <div class="text-xs text-secondary" style="margin-bottom: 2px;">Scenario 2</div>
+              <select>
+                <option>Production K8s Cluster</option>
+                <option selected>VM Infrastructure</option>
+                <option>Dev/Test EKS</option>
+              </select>
+            </div>
+            <div class="scenario-select">
+              <div class="text-xs text-secondary" style="margin-bottom: 2px;">Scenario 3</div>
+              <select>
+                <option>Production K8s Cluster</option>
+                <option>VM Infrastructure</option>
+                <option selected>Dev/Test EKS</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Comparison Table -->
+          <div class="comparison-table" style="flex: 1; overflow: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th style="text-align: center;">
+                    <span class="badge badge-k8s">K8s</span>
+                    <div style="margin-top: 2px;">Production K8s</div>
+                  </th>
+                  <th style="text-align: center;">
+                    <span class="badge badge-vm">VM</span>
+                    <div style="margin-top: 2px;">VM Infra</div>
+                  </th>
+                  <th style="text-align: center;">
+                    <span class="badge badge-k8s">K8s</span>
+                    <div style="margin-top: 2px;">Dev/Test EKS</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="metric-label">Platform</td>
+                  <td class="metric-value">OpenShift 4.14</td>
+                  <td class="metric-value">vSphere 8</td>
+                  <td class="metric-value">Amazon EKS</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Compute Units</td>
+                  <td class="metric-value">12 nodes</td>
+                  <td class="metric-value">18 VMs</td>
+                  <td class="metric-value best">6 nodes</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Total CPU</td>
+                  <td class="metric-value">96 vCPU</td>
+                  <td class="metric-value worst">144 vCPU</td>
+                  <td class="metric-value best">48 vCPU</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Total Memory</td>
+                  <td class="metric-value">384 GB</td>
+                  <td class="metric-value worst">576 GB</td>
+                  <td class="metric-value best">192 GB</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Storage</td>
+                  <td class="metric-value">2.4 TB</td>
+                  <td class="metric-value worst">3.6 TB</td>
+                  <td class="metric-value best">1.2 TB</td>
+                </tr>
+                <tr style="font-weight: 600;">
+                  <td class="metric-label">Monthly Cost</td>
+                  <td class="metric-value">$4,250</td>
+                  <td class="metric-value">$3,850</td>
+                  <td class="metric-value best">$1,200</td>
+                </tr>
+                <tr style="font-weight: 600;">
+                  <td class="metric-label">5-Year TCO</td>
+                  <td class="metric-value">$255,000</td>
+                  <td class="metric-value worst">$310,000</td>
+                  <td class="metric-value best">$72,000</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">HA Level</td>
+                  <td class="metric-value best">Full HA (3 CP)</td>
+                  <td class="metric-value">N+1 Failover</td>
+                  <td class="metric-value worst">Single Zone</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Applications</td>
+                  <td class="metric-value">20 apps</td>
+                  <td class="metric-value">20 apps</td>
+                  <td class="metric-value">8 apps</td>
+                </tr>
+                <tr>
+                  <td class="metric-label">Cost per App</td>
+                  <td class="metric-value">$212.50/mo</td>
+                  <td class="metric-value worst">$192.50/mo</td>
+                  <td class="metric-value best">$150.00/mo</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Analysis Cards -->
+          <div class="analysis-row">
+            <div class="analysis-card k8s">
+              <h4>Production K8s Cluster</h4>
+              <p><strong>Best for:</strong> Enterprise production workloads<br>
+              <strong>Trade-off:</strong> Higher cost, requires K8s expertise</p>
+            </div>
+            <div class="analysis-card vm">
+              <h4>VM Infrastructure</h4>
+              <p><strong>Best for:</strong> Traditional workloads, existing VM skills<br>
+              <strong>Trade-off:</strong> Higher resource usage, manual scaling</p>
+            </div>
+            <div class="analysis-card k8s">
+              <h4>Dev/Test EKS</h4>
+              <p><strong>Best for:</strong> Development and testing environments<br>
+              <strong>Trade-off:</strong> Limited capacity, not for production</p>
+            </div>
+          </div>
+
+          <!-- Recommendation -->
+          <div class="info-box" style="flex-shrink: 0;">
+            <strong>Recommendation:</strong> Production K8s for main workloads (best HA + cost balance). Use EKS for dev/test to reduce costs by 72%.
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Panel - Filters/Options -->
+      <div class="side-panel">
+        <div class="side-panel-header">
+          <div class="side-panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Comparison Options
+          </div>
+        </div>
+
+        <div class="side-panel-body">
+          <div class="form-group">
+            <label class="form-label">Highlight Best</label>
+            <div class="radio-group">
+              <div class="radio-item selected">
+                <div class="radio-circle"></div>
+                <div class="radio-label">Lowest Cost</div>
+              </div>
+              <div class="radio-item">
+                <div class="radio-circle"></div>
+                <div class="radio-label">Highest Availability</div>
+              </div>
+              <div class="radio-item">
+                <div class="radio-circle"></div>
+                <div class="radio-label">Best Performance</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="form-group">
+            <label class="form-label">Show Metrics</label>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" checked> Platform Info
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" checked> Resource Usage
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" checked> Cost Analysis
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" checked> HA Configuration
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox"> Growth Projections
+              </label>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="form-group">
+            <label class="form-label">Time Horizon</label>
+            <select class="form-select">
+              <option>1 Year</option>
+              <option>3 Years</option>
+              <option selected>5 Years</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Currency</label>
+            <select class="form-select">
+              <option selected>USD ($)</option>
+              <option>EUR (€)</option>
+              <option>GBP (£)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="side-panel-footer">
+          <button class="btn btn-ghost btn-sm">Reset</button>
+          <button class="btn btn-primary btn-sm">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Link -->
+  <div style="position: fixed; bottom: 8px; left: 8px; font-size: 10px;">
+    <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+  </div>
+</body>
+</html>

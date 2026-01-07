@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node Specs Panel - K8s Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='01-dashboard-k8s.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-k8s" style="margin-right: 8px;">K8s</span>
+        Node Specifications
+      </h2>
+      <button class="panel-close" onclick="window.location.href='01-dashboard-k8s.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>K8s-Specific Node Specs</strong>
+        Shows instance types, max pods, and storage classes - K8s concepts.
+        Compare with <a href="09-panel-nodespecs-vm.html">VM Node Specs</a> - different fields!
+      </div>
+
+      <!-- Worker Node Size Presets -->
+      <!-- Reference: [K8S-CLOUD] Instance Types -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Worker Node Size</h4>
+
+        <div class="form-group">
+          <label class="form-label">Instance Size Preset</label>
+          <div class="radio-group">
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Small (4 vCPU, 16 GB)</div>
+                <div class="radio-desc">Light workloads, dev/test</div>
+              </div>
+            </div>
+            <div class="radio-item selected">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Medium (8 vCPU, 32 GB)</div>
+                <div class="radio-desc">Standard production workloads</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Large (16 vCPU, 64 GB)</div>
+                <div class="radio-desc">Memory-intensive apps</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Custom</div>
+                <div class="radio-desc">Specify custom vCPU and memory</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Custom vCPU</label>
+          <input type="number" class="form-input" value="8" disabled style="background: var(--color-bg);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Custom Memory (GB)</label>
+          <input type="number" class="form-input" value="32" disabled style="background: var(--color-bg);">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Max Pods - K8s Specific -->
+      <!-- Reference: [K8S-CLOUD] Pod Limits -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Pod Configuration</h4>
+
+        <div class="wireframe-note">
+          <strong>K8s-Only Field</strong>
+          Max Pods per node is a Kubernetes-specific setting. Does NOT exist in VM mode.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Max Pods per Node</label>
+          <div class="slider-container">
+            <input type="range" class="slider" min="30" max="250" value="110">
+            <span class="slider-value">110</span>
+          </div>
+          <div class="form-hint">Default: 110, Max: 250 (K8s limit). Reference: [K8S-CLOUD]</div>
+        </div>
+
+        <div class="info-box">
+          <strong>Max Pods Formula (AKS)</strong><br>
+          <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+            Max Pods = (ENIs × (IPs per ENI - 1)) + 2
+          </code><br>
+          <span class="text-sm text-secondary">Reference: [K8S-CLOUD] EKS Max Pods</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Storage Class - K8s Specific -->
+      <!-- Reference: [K8S-ONPREM] Storage -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Storage Configuration</h4>
+
+        <div class="wireframe-note">
+          <strong>K8s-Only Field</strong>
+          Storage Classes are a Kubernetes concept for dynamic provisioning.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Storage Class</label>
+          <select class="form-select">
+            <option>gp3 (AWS EBS)</option>
+            <option selected>premium-rwo (OpenShift ODF)</option>
+            <option>standard (Default)</option>
+            <option>local-storage (NVMe)</option>
+          </select>
+          <div class="form-hint">For PersistentVolumeClaims. Reference: [K8S-ONPREM]</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Default Storage per Node (GB)</label>
+          <input type="number" class="form-input" value="200">
+          <div class="form-hint">Local storage for container images and ephemeral data</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Resource Requests/Limits - K8s Specific -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Resource Reservation</h4>
+
+        <div class="info-box">
+          <strong>AKS Memory Reservation Formula</strong><br>
+          <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+            Reserved = MIN((20 MB × Max_Pods) + 50 MB, 25% × Total_Memory)
+          </code><br><br>
+          With 110 max pods and 32 GB RAM:<br>
+          <ul style="margin: 4px 0 0 20px;">
+            <li>Calculated: (20 × 110) + 50 = 2,250 MB</li>
+            <li>25% cap: 8,192 MB</li>
+            <li><strong>Reserved: 2,250 MB (2.2 GB)</strong></li>
+          </ul>
+          <span class="text-sm text-secondary">Reference: [K8S-CLOUD] AKS Memory Reservation</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">System Reserved CPU</label>
+          <input type="text" class="form-input" value="100m" disabled style="background: var(--color-bg);">
+          <div class="form-hint">Reserved for kubelet and system services</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">System Reserved Memory</label>
+          <input type="text" class="form-input" value="2.2 GB" disabled style="background: var(--color-bg);">
+          <div class="form-hint">Auto-calculated based on formula above</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='01-dashboard-k8s.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='01-dashboard-k8s.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a> |
+    Compare: <a href="09-panel-nodespecs-vm.html" style="color: var(--color-vm);">VM Node Specs</a>
+  </footer>
+</body>
+</html>

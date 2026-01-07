@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM Specs Panel - VM Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='02-dashboard-vm.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-vm" style="margin-right: 8px;">VM</span>
+        VM Specifications
+      </h2>
+      <button class="panel-close" onclick="window.location.href='02-dashboard-vm.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>VM-Specific Specs Panel</strong>
+        Shows VM templates and overcommit sliders - VM concepts.
+        Compare with <a href="08-panel-nodespecs-k8s.html">K8s Node Specs</a> - completely different!
+      </div>
+
+      <!-- VM Templates -->
+      <!-- Reference: [VM-REF] Section 5 - VM Sizing Templates -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">VM Templates</h4>
+
+        <table class="table" style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Template</th>
+              <th>vCPU</th>
+              <th>Memory</th>
+              <th>Storage</th>
+              <th>Use Case</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: var(--color-accent-light);">
+              <td><strong>Small</strong></td>
+              <td>2</td>
+              <td>4-8 GB</td>
+              <td>60 GB</td>
+              <td>Utility, lightweight</td>
+            </tr>
+            <tr>
+              <td><strong>Medium</strong></td>
+              <td>4</td>
+              <td>8-16 GB</td>
+              <td>120 GB</td>
+              <td>Web, app servers</td>
+            </tr>
+            <tr>
+              <td><strong>Large</strong></td>
+              <td>8-16</td>
+              <td>32-64 GB</td>
+              <td>200 GB</td>
+              <td>Large apps, CI/CD</td>
+            </tr>
+            <tr>
+              <td><strong>DB Small</strong></td>
+              <td>4</td>
+              <td>32 GB</td>
+              <td>200 GB</td>
+              <td>Small OLTP</td>
+            </tr>
+            <tr>
+              <td><strong>DB Large</strong></td>
+              <td>16</td>
+              <td>128-256 GB</td>
+              <td>500+ GB</td>
+              <td>Large databases</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="form-hint" style="margin-top: 8px;">Reference: [VM-REF] Section 5 - VM Sizing Templates</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Overcommit Sliders - VM Specific -->
+      <!-- Reference: [VM-REF] Section 4 - Overcommit Ratios -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Resource Overcommit</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only Fields</strong>
+          Overcommit ratios do NOT exist in K8s mode. K8s uses resource requests/limits instead.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CPU Overcommit Ratio</label>
+          <div class="slider-container">
+            <span class="text-sm" style="min-width: 30px;">1:1</span>
+            <input type="range" class="slider" min="1" max="10" value="2" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px; font-weight: 600;">2:1</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); margin-top: 4px;">
+            <span>No overcommit</span>
+            <span style="color: var(--color-success);">Prod: 1:1-2:1</span>
+            <span style="color: var(--color-warning);">Test: 4:1-6:1</span>
+            <span>Max</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Memory Overcommit Ratio</label>
+          <div class="slider-container">
+            <span class="text-sm" style="min-width: 30px;">1:1</span>
+            <input type="range" class="slider" min="1" max="2" value="1" step="0.25" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px; font-weight: 600;">1:1</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); margin-top: 4px;">
+            <span style="color: var(--color-success);">Recommended</span>
+            <span style="color: var(--color-warning);">Risky</span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <strong>Production Warning</strong><br>
+          Memory overcommit is NOT recommended for production workloads.
+          It can cause swapping and performance degradation under load.
+          <br><span class="text-sm">Reference: [VM-REF] Section 4</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Host Sizing - VM Specific -->
+      <!-- Reference: [VM-REF] Section 6 -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Physical Host Specs</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only Section</strong>
+          Physical host sizing does NOT exist in K8s mode (cloud manages infrastructure).
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Host CPU Cores</label>
+          <select class="form-select">
+            <option>16 cores (2 × 8-core CPU)</option>
+            <option selected>32 cores (2 × 16-core CPU)</option>
+            <option>64 cores (2 × 32-core CPU)</option>
+            <option>128 cores (2 × 64-core CPU)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Host Memory (GB)</label>
+          <select class="form-select">
+            <option>128 GB</option>
+            <option selected>256 GB</option>
+            <option>512 GB</option>
+            <option>1024 GB (1 TB)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Hypervisor Overhead</label>
+          <input type="text" class="form-input" value="8 GB" disabled style="background: var(--color-bg);">
+          <div class="form-hint">Reserved for vSphere hypervisor. Reference: [VM-REF]</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Capacity Calculation - VM Specific -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Capacity Calculation</h4>
+
+        <div class="info-box">
+          <strong>VMs per Host Formula ([VM-REF])</strong><br>
+          <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+            VMs = (Host_Memory - Hypervisor_Overhead - HA_Reserve) / Avg_VM_Memory
+          </code><br><br>
+          With current settings (256 GB host, 25% HA reserve):<br>
+          <ul style="margin: 4px 0 0 20px;">
+            <li>Usable Memory: 256 - 8 = 248 GB</li>
+            <li>After HA: 248 × 0.75 = 186 GB</li>
+            <li>Avg VM Memory: ~20 GB</li>
+            <li><strong>VMs per Host: ~9 VMs</strong></li>
+          </ul>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+          <div class="card" style="text-align: center; padding: 12px;">
+            <div class="text-sm text-secondary">vCPU Capacity</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-vm);">64</div>
+            <div class="text-sm text-secondary">per host (2:1 ratio)</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 12px;">
+            <div class="text-sm text-secondary">Memory Capacity</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-vm);">186 GB</div>
+            <div class="text-sm text-secondary">usable per host</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='02-dashboard-vm.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='02-dashboard-vm.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a> |
+    Compare: <a href="08-panel-nodespecs-k8s.html" style="color: var(--color-k8s);">K8s Node Specs</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Panel - VM Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <!-- Dimmed Background (Dashboard) -->
+  <div class="panel-overlay" onclick="window.location.href='02-dashboard-vm.html'"></div>
+
+  <!-- Main Dashboard (dimmed) -->
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+    <div class="header-center">
+      <span style="font-size: 14px; color: var(--color-text-secondary);">
+        Production VM Infrastructure
+        <span class="badge badge-vm" style="margin-left: 8px;">vSphere 8</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- Slide-out Panel -->
+  <!-- Reference: [UX-REF] Section 4.3 - Slide-Out Panels vs Modals -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-vm" style="margin-right: 8px;">VM</span>
+        Hypervisor Configuration
+      </h2>
+      <button class="panel-close" onclick="window.location.href='02-dashboard-vm.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>VM-Specific Platform Panel</strong>
+        This panel shows hypervisor selection with environment-based overcommit ratios.
+        Compare with <a href="04-panel-platform-k8s.html">K8s Platform Panel</a> - completely different fields!
+      </div>
+
+      <!-- Hypervisor Selection -->
+      <!-- Reference: [VM-REF] Section 1-3 -->
+      <div class="form-group">
+        <label class="form-label">Hypervisor</label>
+        <div class="selection-grid">
+          <div class="selection-card selected">
+            <div class="selection-card-icon">🔷</div>
+            <div class="selection-card-label">VMware vSphere</div>
+            <div class="selection-card-desc">Enterprise, DRS, vMotion</div>
+          </div>
+          <div class="selection-card">
+            <div class="selection-card-icon">🔶</div>
+            <div class="selection-card-label">Microsoft Hyper-V</div>
+            <div class="selection-card-desc">Windows integration</div>
+          </div>
+          <div class="selection-card">
+            <div class="selection-card-icon">🟢</div>
+            <div class="selection-card-label">Proxmox VE</div>
+            <div class="selection-card-desc">Open source, Ceph</div>
+          </div>
+          <div class="selection-card">
+            <div class="selection-card-icon">🟣</div>
+            <div class="selection-card-label">Nutanix AHV</div>
+            <div class="selection-card-desc">HCI platform</div>
+          </div>
+        </div>
+        <div class="form-hint">Reference: [VM-REF] Sections 1-3</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- vSphere-Specific Fields -->
+      <!-- Reference: [VM-REF] Section 1 - VMware vSphere 8 -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">vSphere 8 Configuration</h4>
+
+        <div class="form-group">
+          <label class="form-label">vSphere Version</label>
+          <select class="form-select">
+            <option selected>vSphere 8.0 U2</option>
+            <option>vSphere 8.0 U1</option>
+            <option>vSphere 7.0 U3</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Environment Type</label>
+          <div class="radio-group">
+            <div class="radio-item selected">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Production</div>
+                <div class="radio-desc">CPU 1:1-2:1, No memory overcommit</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Staging</div>
+                <div class="radio-desc">CPU 2:1-3:1, Conservative memory</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Test/QA</div>
+                <div class="radio-desc">CPU 4:1-6:1, Moderate overcommit</div>
+              </div>
+            </div>
+            <div class="radio-item">
+              <div class="radio-circle"></div>
+              <div class="radio-content">
+                <div class="radio-label">Development</div>
+                <div class="radio-desc">CPU 6:1-8:1, Higher flexibility</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-hint">Reference: [VM-REF] Section 4 - Environment-Based Overcommit Ratios</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Overcommit Ratios (VM-Specific) -->
+      <!-- Reference: [VM-REF] Section 4 -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Overcommit Ratios</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only Field</strong>
+          Overcommit ratios do NOT exist in K8s mode. This is a key differentiator.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">CPU Overcommit Ratio</label>
+          <div class="slider-container">
+            <span class="text-sm">1:1</span>
+            <input type="range" class="slider" min="1" max="10" value="2" style="flex: 1;">
+            <span class="slider-value" style="min-width: 50px;">2:1</span>
+          </div>
+          <div class="form-hint">Production recommended: 1:1 to 2:1</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Memory Strategy</label>
+          <select class="form-select">
+            <option selected>No Overcommit (Production)</option>
+            <option>Conservative (1.25:1)</option>
+            <option>Moderate (1.5:1) - Use with caution</option>
+          </select>
+          <div class="form-hint">Memory overcommit NOT recommended for production ([VM-REF])</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- vSphere Features -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">vSphere Features</h4>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">DRS (Distributed Resource Scheduler)</div>
+              <div class="text-sm text-secondary">Automatic VM load balancing across hosts</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">vSphere HA</div>
+              <div class="text-sm text-secondary">Automatic VM restart on host failure</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">vSAN Storage</div>
+              <div class="text-sm text-secondary">Software-defined hyper-converged storage</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 500;">Memory Reclamation</div>
+              <div class="text-sm text-secondary">TPS, Ballooning, Compression enabled</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- HA Reserve Calculation -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">HA Reserve</h4>
+
+        <div class="form-group">
+          <label class="form-label">Host Failure Tolerance</label>
+          <div class="slider-container">
+            <input type="range" class="slider" min="1" max="3" value="1">
+            <span class="slider-value">1 host</span>
+          </div>
+          <div class="form-hint">Reserve capacity to handle N host failures</div>
+        </div>
+
+        <div class="info-box">
+          <strong>HA Admission Control</strong><br>
+          With 1 host tolerance and 4 hosts:<br>
+          <ul style="margin: 8px 0 0 20px;">
+            <li>Reserved capacity: 25% (1/4 hosts)</li>
+            <li>Usable capacity: 75%</li>
+            <li>Any single host can fail without VM impact</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Licensing Info (Different from K8s!) -->
+      <div class="warning-box">
+        <strong>VMware Licensing</strong><br>
+        vSphere Enterprise Plus: ~$6,000/CPU socket/year<br>
+        vSAN: Additional ~$3,500/CPU socket/year<br>
+        <span class="text-sm">Reference: [VM-REF] Section 1 - vSphere 8 Licensing</span>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='02-dashboard-vm.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='02-dashboard-vm.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Wireframe Index</a> |
+    Compare: <a href="04-panel-platform-k8s.html" style="color: var(--color-k8s);">K8s Platform Panel</a>
+  </footer>
+</body>
+</html>

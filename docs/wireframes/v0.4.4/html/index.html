@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InfraSizing Calculator - Wireframes v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    /* Override no-scroll for index page - this page needs to scroll */
+    html, body {
+      height: auto;
+      overflow: auto;
+    }
+
+    .wireframe-index {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .wireframe-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .wireframe-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .wireframe-header p {
+      color: var(--color-text-secondary);
+      font-size: 16px;
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: var(--color-accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .design-principles {
+      background: linear-gradient(135deg, #e0edff 0%, #ede9fe 100%);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+
+    .design-principles h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .principle-item {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .principle-item h4 {
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--color-accent);
+    }
+
+    .principle-item p {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+    }
+
+    .wireframe-section {
+      margin-bottom: 40px;
+    }
+
+    .wireframe-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wireframe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .wireframe-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .wireframe-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .wireframe-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .wireframe-card-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--color-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .wireframe-card-icon.k8s { background: #e0edff; color: var(--color-k8s); }
+    .wireframe-card-icon.vm { background: #ede9fe; color: var(--color-vm); }
+    .wireframe-card-icon.both { background: #f0fdf4; color: var(--color-success); }
+    .wireframe-card-icon.auth { background: #fef3c7; color: var(--color-warning); }
+
+    .wireframe-card-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .wireframe-card-desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .wireframe-card-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .wireframe-card-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--color-bg);
+      color: var(--color-text-secondary);
+    }
+
+    .wireframe-card-tag.k8s { background: #e0edff; color: var(--color-k8s); }
+    .wireframe-card-tag.vm { background: #ede9fe; color: var(--color-vm); }
+    .wireframe-card-tag.new { background: #dcfce7; color: #16a34a; }
+
+    .deprecated-section {
+      opacity: 0.6;
+    }
+
+    .deprecated-section h2 {
+      color: var(--color-text-secondary);
+    }
+
+    .deprecated-badge {
+      font-size: 10px;
+      background: #fef2f2;
+      color: #dc2626;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .deprecated-note {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #fef2f2;
+      border-radius: 6px;
+      border-left: 3px solid #dc2626;
+    }
+
+    .reference-section {
+      background: var(--color-bg);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 32px;
+    }
+
+    .reference-section h3 {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .reference-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .reference-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: var(--color-surface);
+      border-radius: 6px;
+      font-size: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .reference-item:hover {
+      box-shadow: var(--shadow-sm);
+    }
+
+    .reference-id {
+      font-weight: 600;
+      color: var(--color-accent);
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wireframe-index">
+    <header class="wireframe-header">
+      <h1>Infrastructure Sizing Calculator <span class="version-badge">v0.4.4</span></h1>
+      <p>Wireframe Prototypes - No-Scroll, Split-Layout Design</p>
+    </header>
+
+    <!-- Design Principles -->
+    <div class="design-principles">
+      <h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        Design Principles (v0.4.4)
+      </h3>
+      <div class="principles-grid">
+        <div class="principle-item">
+          <h4>No Scrolling</h4>
+          <p>Every page fits within the viewport. Fixed height containers with overflow hidden.</p>
+        </div>
+        <div class="principle-item">
+          <h4>Split Layout</h4>
+          <p>Configuration panel visible alongside main content during the entire configuration journey.</p>
+        </div>
+        <div class="principle-item">
+          <h4>Embedded Panels</h4>
+          <p>Panels are part of dashboards (not overlays). Results and config visible simultaneously.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- K8s Dashboard Tabs -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        K8s Dashboard - All Tabs
+      </h2>
+      <div class="wireframe-grid">
+        <a href="01-dashboard-k8s.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">P</div>
+            <div class="wireframe-card-title">K8s - Platform Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Distribution selection (OpenShift, RKE2, K3s). Environment type and version config.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Platform</span>
+            <span class="wireframe-card-tag new">Active</span>
+          </div>
+        </a>
+
+        <a href="01b-dashboard-k8s-apps.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">A</div>
+            <div class="wireframe-card-title">K8s - Apps Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Application configuration - Mendix Runtimes, Database Proxies, Native Containers with resource requests.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Apps</span>
+          </div>
+        </a>
+
+        <a href="01c-dashboard-k8s-nodespecs.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">S</div>
+            <div class="wireframe-card-title">K8s - Specs Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Worker node sizing - Small/Medium/Large/XLarge selection, max pods, storage class, instance type.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Specs</span>
+          </div>
+        </a>
+
+        <a href="01d-dashboard-k8s-pricing.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">$</div>
+            <div class="wireframe-card-title">K8s - Pricing Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Currency, pricing model (On-Demand/Reserved), license tier, support level, storage/network costs.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Pricing</span>
+          </div>
+        </a>
+
+        <a href="01e-dashboard-k8s-growth.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">G</div>
+            <div class="wireframe-card-title">K8s - Growth Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Projection period, growth rates (app, resource, storage), headroom buffer configuration.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Growth</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- VM Dashboard Tabs -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 20h12"/><path d="M12 18v2"/>
+        </svg>
+        VM Dashboard - All Tabs
+      </h2>
+      <div class="wireframe-grid">
+        <a href="02-dashboard-vm.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">H</div>
+            <div class="wireframe-card-title">VM - Hypervisor Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Hypervisor selection (vSphere, Hyper-V, KVM, Proxmox). Environment type and version config.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Hypervisor</span>
+            <span class="wireframe-card-tag new">Active</span>
+          </div>
+        </a>
+
+        <a href="02b-dashboard-vm-servers.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">S</div>
+            <div class="wireframe-card-title">VM - Servers Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Server role allocation - App, Database, Web, Utility server counts with resource hints.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Servers</span>
+          </div>
+        </a>
+
+        <a href="02c-dashboard-vm-templates.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">T</div>
+            <div class="wireframe-card-title">VM - Templates Tab</div>
+          </div>
+          <div class="wireframe-card-desc">VM templates per role - vCPU and RAM allocation for App, DB, Web, Utility servers.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Templates</span>
+          </div>
+        </a>
+
+        <a href="02d-dashboard-vm-pricing.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">$</div>
+            <div class="wireframe-card-title">VM - Pricing Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Currency, cost model (On-Prem/Leased/Cloud), license tier, support contract, hardware costs.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Pricing</span>
+          </div>
+        </a>
+
+        <a href="02e-dashboard-vm-growth.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">G</div>
+            <div class="wireframe-card-title">VM - Growth Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Projection period, growth rates, HA reserve buffer configuration for VM expansion.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Growth</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- K8s Guest Dashboard Tabs -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        K8s Guest Dashboard - All Tabs
+        <span style="font-size: 11px; color: var(--color-warning); margin-left: 8px;">Guest Mode</span>
+      </h2>
+      <div class="wireframe-grid">
+        <a href="01-dashboard-k8s-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">P</div>
+            <div class="wireframe-card-title">K8s Guest - Platform Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Distribution selection with guest banner and Sign In/Sign Up buttons.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Platform</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="01b-dashboard-k8s-apps-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">A</div>
+            <div class="wireframe-card-title">K8s Guest - Apps Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Application configuration in guest mode - Mendix Runtimes, DB Proxies, Native Containers.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Apps</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="01c-dashboard-k8s-nodespecs-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">S</div>
+            <div class="wireframe-card-title">K8s Guest - Specs Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Worker node sizing in guest mode - node size, max pods, storage class.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Specs</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="01d-dashboard-k8s-pricing-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">$</div>
+            <div class="wireframe-card-title">K8s Guest - Pricing Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Pricing configuration in guest mode - currency, pricing model, license tier.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Pricing</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="01e-dashboard-k8s-growth-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">G</div>
+            <div class="wireframe-card-title">K8s Guest - Growth Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Growth planning in guest mode - projection period, growth rates, headroom.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+            <span class="wireframe-card-tag">Growth</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- VM Guest Dashboard Tabs -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 20h12"/><path d="M12 18v2"/>
+        </svg>
+        VM Guest Dashboard - All Tabs
+        <span style="font-size: 11px; color: var(--color-warning); margin-left: 8px;">Guest Mode</span>
+      </h2>
+      <div class="wireframe-grid">
+        <a href="02-dashboard-vm-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">H</div>
+            <div class="wireframe-card-title">VM Guest - Hypervisor Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Hypervisor selection with guest banner and Sign In/Sign Up buttons.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Hypervisor</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="02b-dashboard-vm-servers-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">S</div>
+            <div class="wireframe-card-title">VM Guest - Servers Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Server role allocation in guest mode - App, Database, Web, Utility counts.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Servers</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="02c-dashboard-vm-templates-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">T</div>
+            <div class="wireframe-card-title">VM Guest - Templates Tab</div>
+          </div>
+          <div class="wireframe-card-desc">VM templates in guest mode - vCPU and RAM allocation per role.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Templates</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="02d-dashboard-vm-pricing-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">$</div>
+            <div class="wireframe-card-title">VM Guest - Pricing Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Pricing configuration in guest mode - cost model, license tier, hardware costs.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Pricing</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+
+        <a href="02e-dashboard-vm-growth-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">G</div>
+            <div class="wireframe-card-title">VM Guest - Growth Tab</div>
+          </div>
+          <div class="wireframe-card-desc">Growth planning in guest mode - projection period, growth rates, HA reserve.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+            <span class="wireframe-card-tag">Growth</span>
+            <span class="wireframe-card-tag" style="background:#fef3c7;color:#d97706;">Guest</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Comparison Page -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Comparison Page
+      </h2>
+      <div class="wireframe-grid">
+        <a href="03-comparison.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon both">C</div>
+            <div class="wireframe-card-title">Scenario Comparison</div>
+          </div>
+          <div class="wireframe-card-desc">Compare 3 scenarios side-by-side. Compact table with options panel for filtering.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Compare</span>
+            <span class="wireframe-card-tag new">Split-Layout</span>
+            <span class="wireframe-card-tag">No Scroll</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Authentication Pages -->
+    <section class="wireframe-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Authentication & Settings
+      </h2>
+      <div class="wireframe-grid">
+        <a href="12-landing-guest.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">L</div>
+            <div class="wireframe-card-title">Landing - Guest</div>
+          </div>
+          <div class="wireframe-card-desc">Guest landing with single action card, login prompt, and feature highlights.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Guest</span>
+            <span class="wireframe-card-tag new">No Scroll</span>
+          </div>
+        </a>
+
+        <a href="13-landing-auth.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">L</div>
+            <div class="wireframe-card-title">Landing - Authenticated</div>
+          </div>
+          <div class="wireframe-card-desc">Auth landing with load/create action cards and recent scenarios grid.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Auth</span>
+            <span class="wireframe-card-tag new">No Scroll</span>
+          </div>
+        </a>
+
+        <a href="14-login.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">I</div>
+            <div class="wireframe-card-title">Login Page</div>
+          </div>
+          <div class="wireframe-card-desc">Centered login card with social auth (Google, Microsoft) and SSO link.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Auth</span>
+            <span class="wireframe-card-tag new">No Scroll</span>
+          </div>
+        </a>
+
+        <a href="15-register.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">R</div>
+            <div class="wireframe-card-title">Register Page</div>
+          </div>
+          <div class="wireframe-card-desc">Split-layout with benefits sidebar (left) and registration form (right).</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Auth</span>
+            <span class="wireframe-card-tag new">Split-Layout</span>
+          </div>
+        </a>
+
+        <a href="16-settings.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">S</div>
+            <div class="wireframe-card-title">Settings Page</div>
+          </div>
+          <div class="wireframe-card-desc">Split-layout with navigation sidebar and settings content area.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Settings</span>
+            <span class="wireframe-card-tag new">Split-Layout</span>
+          </div>
+        </a>
+
+        <a href="17-scenarios.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon auth">M</div>
+            <div class="wireframe-card-title">My Scenarios</div>
+          </div>
+          <div class="wireframe-card-desc">Scenario list with search, filter, and grid layout for all saved scenarios.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Scenarios</span>
+            <span class="wireframe-card-tag new">New</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Deprecated Panels -->
+    <section class="wireframe-section deprecated-section">
+      <h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83"/>
+        </svg>
+        Configuration Panels
+        <span class="deprecated-badge">Deprecated</span>
+      </h2>
+      <div class="deprecated-note">
+        These standalone panel pages are now deprecated. In v0.4.4, configuration panels are embedded directly into the dashboard pages (01-dashboard-k8s.html and 02-dashboard-vm.html) as part of the split-layout design. These files are kept for reference only.
+      </div>
+      <div class="wireframe-grid">
+        <a href="04-panel-platform-k8s.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">P</div>
+            <div class="wireframe-card-title">Platform Panel - K8s</div>
+          </div>
+          <div class="wireframe-card-desc">Distribution selection. Now embedded in K8s dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+          </div>
+        </a>
+
+        <a href="05-panel-platform-vm.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">P</div>
+            <div class="wireframe-card-title">Platform Panel - VM</div>
+          </div>
+          <div class="wireframe-card-desc">Hypervisor selection. Now embedded in VM dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+          </div>
+        </a>
+
+        <a href="06-panel-apps-k8s.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">A</div>
+            <div class="wireframe-card-title">Applications Panel - K8s</div>
+          </div>
+          <div class="wireframe-card-desc">Pod configuration. Now embedded in K8s dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+          </div>
+        </a>
+
+        <a href="07-panel-apps-vm.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">A</div>
+            <div class="wireframe-card-title">Applications Panel - VM</div>
+          </div>
+          <div class="wireframe-card-desc">VM allocation. Now embedded in VM dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+          </div>
+        </a>
+
+        <a href="08-panel-nodespecs-k8s.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon k8s">N</div>
+            <div class="wireframe-card-title">Node Specs Panel - K8s</div>
+          </div>
+          <div class="wireframe-card-desc">Worker node sizing. Now embedded in K8s dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag k8s">K8s</span>
+          </div>
+        </a>
+
+        <a href="09-panel-nodespecs-vm.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon vm">N</div>
+            <div class="wireframe-card-title">Node Specs Panel - VM</div>
+          </div>
+          <div class="wireframe-card-desc">VM templates. Now embedded in VM dashboard.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag vm">VM</span>
+          </div>
+        </a>
+
+        <a href="10-panel-pricing.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon both">$</div>
+            <div class="wireframe-card-title">Pricing Panel</div>
+          </div>
+          <div class="wireframe-card-desc">Cost configuration. Now embedded in dashboards.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Shared</span>
+          </div>
+        </a>
+
+        <a href="11-panel-growth.html" class="wireframe-card">
+          <div class="wireframe-card-header">
+            <div class="wireframe-card-icon both">G</div>
+            <div class="wireframe-card-title">Growth Panel</div>
+          </div>
+          <div class="wireframe-card-desc">Growth planning. Now embedded in dashboards.</div>
+          <div class="wireframe-card-meta">
+            <span class="wireframe-card-tag">Shared</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Vendor Research References -->
+    <div class="reference-section">
+      <h3>Vendor Research References</h3>
+      <p style="margin-bottom: 12px; color: var(--color-text-secondary); font-size: 12px;">
+        Design decisions linked to research documents:
+      </p>
+      <div class="reference-grid">
+        <a href="../../../vendor-specs/ux-ui/enterprise-dashboard-best-practices.md" class="reference-item">
+          <span class="reference-id">[UX-REF]</span>
+          <span>Enterprise Dashboard UX/UI</span>
+        </a>
+        <a href="../../../vendor-specs/k8s/K8S_CLOUD_SIZING_RESEARCH.md" class="reference-item">
+          <span class="reference-id">[K8S-CLOUD]</span>
+          <span>K8s Cloud Provider Sizing</span>
+        </a>
+        <a href="../../../vendor-specs/k8s/ON_PREMISES_K8S_DISTRIBUTIONS.md" class="reference-item">
+          <span class="reference-id">[K8S-ONPREM]</span>
+          <span>K8s On-Premises Distributions</span>
+        </a>
+        <a href="../../../vendor-specs/VM_HYPERVISOR_BEST_PRACTICES.md" class="reference-item">
+          <span class="reference-id">[VM-REF]</span>
+          <span>VM/Hypervisor Best Practices</span>
+        </a>
+        <a href="../../../vendor-specs/lowcode/LOW_CODE_SIZING_RESEARCH.md" class="reference-item">
+          <span class="reference-id">[LOWCODE]</span>
+          <span>Low-Code Platform Sizing</span>
+        </a>
+        <a href="../plan/WIREFRAME_REDESIGN_PLAN.md" class="reference-item">
+          <span class="reference-id">[PLAN]</span>
+          <span>Master Wireframe Redesign Plan</span>
+        </a>
+      </div>
+    </div>
+
+    <footer style="text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--color-border); color: var(--color-text-secondary); font-size: 12px;">
+      <p>Infrastructure Sizing Calculator - Wireframes v0.4.4</p>
+      <p style="margin-top: 4px;">Updated: January 7, 2026 | Status: Split-Layout Design Complete</p>
+    </footer>
+  </div>
+</body>
+</html>

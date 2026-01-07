@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scenarios | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .scenarios-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      overflow: hidden;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .scenarios-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .scenarios-header h1 {
+      font-size: 18px;
+    }
+
+    .scenarios-toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      gap: 6px;
+      width: 220px;
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--color-accent);
+    }
+
+    .scenarios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .scenario-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scenario-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .scenario-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .scenario-card-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .scenario-card-desc {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .scenario-card-meta {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .scenario-card-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      padding-top: 8px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .scenario-card-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scenario-card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--color-text-secondary);
+    }
+
+    .empty-state svg {
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header - Auth -->
+    <header class="header">
+      <div class="header-logo" style="cursor: pointer;" onclick="window.location.href='13-landing-auth.html'">InfraSizing Calculator</div>
+      <div class="header-center"></div>
+      <div class="header-right">
+        <a href="16-settings.html" class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+          </svg>
+        </a>
+        <div style="display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="window.location.href='13-landing-auth.html'">
+          <div style="width: 28px; height: 28px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 10px;">T</div>
+          <span style="font-size: 12px; font-weight: 500;">Tamer</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Scenarios Content -->
+    <div class="scenarios-content">
+      <!-- Header -->
+      <div class="scenarios-header">
+        <div>
+          <h1>My Scenarios</h1>
+          <p style="font-size: 11px; color: var(--color-text-secondary);">7 scenarios saved</p>
+        </div>
+        <div class="scenarios-toolbar">
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="text" placeholder="Search scenarios...">
+          </div>
+          <button class="filter-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filter
+          </button>
+          <a href="01-dashboard-k8s.html" class="btn btn-primary btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Scenario
+          </a>
+        </div>
+      </div>
+
+      <!-- Scenarios Grid -->
+      <div class="scenarios-grid">
+        <!-- Scenario 1 -->
+        <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">Production K8s Cluster</span>
+            <span class="badge badge-k8s">K8s</span>
+          </div>
+          <div class="scenario-card-desc">Main production cluster for Mendix applications</div>
+          <div class="scenario-card-meta">OpenShift 4.14 &bull; Modified 2 hours ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              12 nodes
+            </div>
+            <div class="scenario-card-stat">$4,250/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 2 -->
+        <div class="scenario-card" onclick="window.location.href='02-dashboard-vm.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">VM Infrastructure</span>
+            <span class="badge badge-vm">VM</span>
+          </div>
+          <div class="scenario-card-desc">Traditional VM setup for legacy applications</div>
+          <div class="scenario-card-meta">vSphere 8 &bull; Modified yesterday</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="14" rx="2"/>
+              </svg>
+              18 VMs
+            </div>
+            <div class="scenario-card-stat">$3,850/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 3 -->
+        <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">Dev/Test EKS</span>
+            <span class="badge badge-k8s">K8s</span>
+          </div>
+          <div class="scenario-card-desc">Development and testing cluster on AWS</div>
+          <div class="scenario-card-meta">Amazon EKS &bull; Modified 3 days ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              6 nodes
+            </div>
+            <div class="scenario-card-stat">$1,200/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 4 -->
+        <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">Staging RKE2</span>
+            <span class="badge badge-k8s">K8s</span>
+          </div>
+          <div class="scenario-card-desc">Pre-production staging environment</div>
+          <div class="scenario-card-meta">RKE2 &bull; Modified 1 week ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              9 nodes
+            </div>
+            <div class="scenario-card-stat">$2,800/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 5 -->
+        <div class="scenario-card" onclick="window.location.href='02-dashboard-vm.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">Hyper-V Test Lab</span>
+            <span class="badge badge-vm">VM</span>
+          </div>
+          <div class="scenario-card-desc">Internal testing with Hyper-V</div>
+          <div class="scenario-card-meta">Hyper-V 2022 &bull; Modified 2 weeks ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="14" rx="2"/>
+              </svg>
+              8 VMs
+            </div>
+            <div class="scenario-card-stat">$1,500/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 6 -->
+        <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">AKS Production</span>
+            <span class="badge badge-k8s">K8s</span>
+          </div>
+          <div class="scenario-card-desc">Azure Kubernetes Service production</div>
+          <div class="scenario-card-meta">Azure AKS &bull; Modified 3 weeks ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              15 nodes
+            </div>
+            <div class="scenario-card-stat">$5,100/mo</div>
+          </div>
+        </div>
+
+        <!-- Scenario 7 -->
+        <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+          <div class="scenario-card-header">
+            <span class="scenario-card-title">GKE Multi-Region</span>
+            <span class="badge badge-k8s">K8s</span>
+          </div>
+          <div class="scenario-card-desc">Google Kubernetes Engine multi-region setup</div>
+          <div class="scenario-card-meta">Google GKE &bull; Modified 1 month ago</div>
+          <div class="scenario-card-stats">
+            <div class="scenario-card-stat">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+              24 nodes
+            </div>
+            <div class="scenario-card-stat">$8,400/mo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 8px; text-align: center; border-top: 1px solid var(--color-border); font-size: 10px; flex-shrink: 0;">
+      <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+    </div>
+  </div>
+</body>
+</html>

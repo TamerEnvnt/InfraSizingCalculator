@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing - Guest | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .landing-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .landing-hero {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .landing-hero h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .landing-hero p {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      max-width: 500px;
+    }
+
+    .action-card {
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: 10px;
+      padding: 24px 32px;
+      width: 320px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .action-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .action-card-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--color-accent-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      color: var(--color-accent);
+    }
+
+    .action-card h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .action-card p {
+      color: var(--color-text-secondary);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .login-prompt {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .features-row {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+    }
+
+    .feature-item {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 6px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .feature-item h4 {
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .feature-item p {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      max-width: 160px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header - Guest -->
+    <header class="header">
+      <div class="header-logo">InfraSizing Calculator</div>
+      <div class="header-center"></div>
+      <div class="header-right">
+        <a href="14-login.html" class="btn btn-sm btn-secondary">Sign In</a>
+        <a href="15-register.html" class="btn btn-sm btn-primary">Sign Up</a>
+      </div>
+    </header>
+
+    <!-- Landing Content -->
+    <div class="landing-content">
+      <!-- Hero -->
+      <div class="landing-hero">
+        <h1>Infrastructure Sizing Made Simple</h1>
+        <p>Calculate optimal K8s cluster or VM infrastructure sizing with cost estimation</p>
+      </div>
+
+      <!-- Action Card -->
+      <a href="01-dashboard-k8s.html" class="action-card">
+        <div class="action-card-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+        <h3>Create New Scenario</h3>
+        <p>Start calculating your infrastructure requirements</p>
+        <span class="btn btn-primary btn-sm" style="width: 100%;">Get Started</span>
+      </a>
+
+      <!-- Login Prompt -->
+      <div class="login-prompt">
+        <strong>Sign in to save and compare scenarios</strong>
+        <div style="margin-top: 8px;">
+          <a href="14-login.html" class="btn btn-secondary btn-sm">Sign In</a>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="features-row">
+        <div class="feature-item">
+          <div class="feature-icon" style="background: #e0edff; color: var(--color-k8s);">K8s</div>
+          <h4>46 Distributions</h4>
+          <p>EKS, AKS, GKE, OpenShift, RKE2, K3s...</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background: #ede9fe; color: var(--color-vm);">VM</div>
+          <h4>7 Hypervisors</h4>
+          <p>vSphere, Hyper-V, Proxmox, Nutanix...</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon" style="background: #d1fae5; color: var(--color-success);">$</div>
+          <h4>Cost Estimation</h4>
+          <p>Hardware, licenses, operations TCO</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 8px; text-align: center; border-top: 1px solid var(--color-border); font-size: 10px;">
+      <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+    </div>
+  </div>
+</body>
+</html>

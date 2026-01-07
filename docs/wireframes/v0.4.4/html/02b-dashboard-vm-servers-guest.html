@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard VM Guest - Servers Tab | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header - Guest Mode -->
+    <header class="header">
+      <div class="header-logo">InfraSizing</div>
+      <div class="header-center">
+        <div class="mode-toggle">
+          <button class="mode-btn k8s" onclick="window.location.href='01-dashboard-k8s-guest.html'">K8s</button>
+          <button class="mode-btn vm active">VM</button>
+        </div>
+        <span style="font-size: 12px; color: var(--color-text-secondary);">
+          Production Infrastructure
+          <span class="badge badge-vm" style="margin-left: 4px;">vSphere 8</span>
+        </span>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-sm btn-secondary">Export</button>
+        <button class="btn btn-sm btn-primary">Calculate</button>
+        <button class="btn btn-sm btn-ghost" onclick="window.location.href='14-login.html'">Sign In</button>
+        <button class="btn btn-sm btn-primary" onclick="window.location.href='15-register.html'">Sign Up</button>
+      </div>
+    </header>
+
+    <!-- Content: Main + Side Panel -->
+    <div class="content">
+      <!-- Main Results Area -->
+      <div class="main">
+        <div class="dashboard">
+          <!-- Guest Banner -->
+          <div class="info-box" style="margin-bottom: 12px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 3px solid var(--color-warning);">
+            <strong>Guest Mode</strong> - <a href="14-login.html" style="color: var(--color-accent);">Sign in</a> to save scenarios and access full features.
+          </div>
+
+          <!-- Summary Row -->
+          <div class="summary-row">
+            <div class="summary-card highlight">
+              <div class="summary-icon vm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 20h12"/><path d="M12 18v2"/>
+                </svg>
+              </div>
+              <div class="summary-content">
+                <div class="summary-label">Total VMs</div>
+                <div class="summary-value">18</div>
+                <div class="summary-sub">6 App + 4 DB + 4 Web + 4 Util</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon warning">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                </svg>
+              </div>
+              <div class="summary-content">
+                <div class="summary-label">Physical Hosts</div>
+                <div class="summary-value">4</div>
+                <div class="summary-sub">25% HA reserve</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon accent">$</div>
+              <div class="summary-content">
+                <div class="summary-label">Monthly Cost</div>
+                <div class="summary-value">$3,850</div>
+                <div class="summary-sub">Hardware + licenses</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Grid -->
+          <div class="results-area">
+            <!-- Infrastructure Overview -->
+            <div class="result-card">
+              <div class="result-header">
+                Infrastructure Overview
+                <span class="badge badge-vm">vSphere 8</span>
+              </div>
+              <div class="result-body">
+                <table class="table">
+                  <thead>
+                    <tr><th>Role</th><th>Qty</th><th>vCPU</th><th>RAM</th><th>Disk</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><span class="badge badge-vm">App Server</span></td><td>6</td><td>4</td><td>16GB</td><td>120GB</td></tr>
+                    <tr><td><span class="badge badge-warning">Database</span></td><td>4</td><td>8</td><td>64GB</td><td>500GB</td></tr>
+                    <tr><td><span class="badge badge-success">Web Server</span></td><td>4</td><td>2</td><td>8GB</td><td>60GB</td></tr>
+                    <tr><td><span class="badge" style="background:#f3f4f6;color:#6b7280;">Utility</span></td><td>4</td><td>2</td><td>4GB</td><td>60GB</td></tr>
+                  </tbody>
+                  <tfoot><tr style="font-weight:600;"><td>Total</td><td>18</td><td>72</td><td>360GB</td><td>2.96TB</td></tr></tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- Host Requirements -->
+            <div class="result-card">
+              <div class="result-header">Physical Host Requirements</div>
+              <div class="result-body">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
+                  <div style="text-align: center; padding: 6px; background: var(--color-bg); border-radius: 4px;">
+                    <div class="text-xs text-secondary">Hosts</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--color-vm);">4</div>
+                  </div>
+                  <div style="text-align: center; padding: 6px; background: var(--color-bg); border-radius: 4px;">
+                    <div class="text-xs text-secondary">Per Host</div>
+                    <div style="font-size: 14px; font-weight: 600;">32/256</div>
+                    <div class="text-xs text-secondary">vCPU/GB</div>
+                  </div>
+                  <div style="text-align: center; padding: 6px; background: var(--color-bg); border-radius: 4px;">
+                    <div class="text-xs text-secondary">VMs/Host</div>
+                    <div style="font-size: 18px; font-weight: 700;">4-5</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overcommit Analysis -->
+            <div class="result-card">
+              <div class="result-header">Overcommit Analysis</div>
+              <div class="result-body">
+                <table class="table">
+                  <thead>
+                    <tr><th>Resource</th><th>Allocated</th><th>Physical</th><th>Ratio</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>CPU</td><td>72 vCPU</td><td>128 cores</td><td>0.56:1</td><td><span class="badge badge-success">OK</span></td></tr>
+                    <tr><td>Memory</td><td>360 GB</td><td>1024 GB</td><td>0.35:1</td><td><span class="badge badge-success">OK</span></td></tr>
+                    <tr><td>Storage</td><td>2.96 TB</td><td>8 TB</td><td>0.37:1</td><td><span class="badge badge-success">OK</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="result-card">
+              <div class="result-header">Cost Breakdown</div>
+              <div class="result-body">
+                <table class="table">
+                  <tbody>
+                    <tr><td>vSphere License</td><td style="text-align:right">$850/mo</td></tr>
+                    <tr><td>Hardware (4 hosts)</td><td style="text-align:right">$2,100/mo</td></tr>
+                    <tr><td>Storage (vSAN)</td><td style="text-align:right">$650/mo</td></tr>
+                    <tr><td>Operations/Support</td><td style="text-align:right">$250/mo</td></tr>
+                  </tbody>
+                  <tfoot><tr style="font-weight:600;"><td>Total</td><td style="text-align:right">$3,850/mo</td></tr></tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Panel - Servers Configuration -->
+      <div class="side-panel">
+        <div class="side-panel-header">
+          <div class="side-panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83"/>
+            </svg>
+            Configuration
+          </div>
+        </div>
+
+        <!-- Config Tabs - Servers Active -->
+        <div class="side-panel-tabs">
+          <button class="side-panel-tab" onclick="window.location.href='02-dashboard-vm-guest.html'">Hypervisor</button>
+          <button class="side-panel-tab active">Servers</button>
+          <button class="side-panel-tab" onclick="window.location.href='02c-dashboard-vm-templates-guest.html'">Templates</button>
+          <button class="side-panel-tab" onclick="window.location.href='02d-dashboard-vm-pricing-guest.html'">Pricing</button>
+          <button class="side-panel-tab" onclick="window.location.href='02e-dashboard-vm-growth-guest.html'">Growth</button>
+        </div>
+
+        <!-- Panel Body: Servers Config -->
+        <div class="side-panel-body">
+          <div class="form-group">
+            <label class="form-label">Server Role Allocation</label>
+            <div class="form-hint" style="margin-bottom: 8px;">Adjust VM count per role</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span class="badge badge-vm" style="margin-right: 4px;">App</span>
+              Application Servers
+            </label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="20" value="6">
+              <span class="slider-value">6</span>
+            </div>
+            <div class="form-hint">Mendix runtime, OutSystems</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span class="badge badge-warning" style="margin-right: 4px;">DB</span>
+              Database Servers
+            </label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="10" value="4">
+              <span class="slider-value">4</span>
+            </div>
+            <div class="form-hint">SQL Server, PostgreSQL</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span class="badge badge-success" style="margin-right: 4px;">Web</span>
+              Web Servers
+            </label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="10" value="4">
+              <span class="slider-value">4</span>
+            </div>
+            <div class="form-hint">IIS, Nginx, Load balancers</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span class="badge" style="background:#f3f4f6;color:#6b7280;margin-right: 4px;">Util</span>
+              Utility Servers
+            </label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="0" max="10" value="4">
+              <span class="slider-value">4</span>
+            </div>
+            <div class="form-hint">Build, monitoring, jumpbox</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="info-box">
+            <strong>Total Servers: 18</strong>
+            <div style="font-size: 10px; margin-top: 4px;">
+              72 vCPU &bull; 360GB RAM &bull; 2.96TB Disk
+            </div>
+          </div>
+        </div>
+
+        <div class="side-panel-footer">
+          <button class="btn btn-ghost btn-sm">Reset</button>
+          <button class="btn btn-primary btn-sm">Apply Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position: fixed; bottom: 8px; left: 8px; font-size: 10px;">
+    <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+  </div>
+</body>
+</html>

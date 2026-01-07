@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing - Authenticated | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .landing-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      overflow: hidden;
+    }
+
+    .landing-hero {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .landing-hero h1 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .landing-hero p {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .action-cards {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .action-card {
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      width: 240px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+      text-align: center;
+    }
+
+    .action-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .action-card-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--color-accent-light);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      color: var(--color-accent);
+    }
+
+    .action-card h3 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .action-card p {
+      color: var(--color-text-secondary);
+      font-size: 11px;
+    }
+
+    .recent-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .recent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .recent-header h3 {
+      font-size: 14px;
+    }
+
+    .recent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .scenario-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scenario-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .scenario-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .scenario-card-title {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .scenario-card-meta {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+    }
+
+    .scenario-card-stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 11px;
+    }
+
+    .scenario-card-stat {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header - Auth -->
+    <header class="header">
+      <div class="header-logo">InfraSizing Calculator</div>
+      <div class="header-center"></div>
+      <div class="header-right">
+        <a href="16-settings.html" class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+          </svg>
+        </a>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 28px; height: 28px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 10px;">T</div>
+          <span style="font-size: 12px; font-weight: 500;">Tamer</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Landing Content -->
+    <div class="landing-content">
+      <!-- Hero -->
+      <div class="landing-hero">
+        <h1>Welcome back, Tamer</h1>
+        <p>Continue working on your infrastructure sizing scenarios</p>
+      </div>
+
+      <!-- Action Cards -->
+      <div class="action-cards">
+        <a href="17-scenarios.html" class="action-card">
+          <div class="action-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <h3>Load Scenario</h3>
+          <p>Open a saved scenario</p>
+        </a>
+
+        <a href="01-dashboard-k8s.html" class="action-card">
+          <div class="action-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <h3>Create New Scenario</h3>
+          <p>Start a new calculation</p>
+        </a>
+      </div>
+
+      <!-- Recent Scenarios -->
+      <div class="recent-section">
+        <div class="recent-header">
+          <h3>Recent Scenarios</h3>
+          <a href="17-scenarios.html" style="font-size: 11px; color: var(--color-accent); text-decoration: none;">View All</a>
+        </div>
+
+        <div class="recent-grid">
+          <div class="scenario-card" onclick="window.location.href='01-dashboard-k8s.html'">
+            <div class="scenario-card-header">
+              <span class="scenario-card-title">Production K8s Cluster</span>
+              <span class="badge badge-k8s">K8s</span>
+            </div>
+            <div class="scenario-card-meta">OpenShift 4.14 &bull; 2 hours ago</div>
+            <div class="scenario-card-stats">
+              <div class="scenario-card-stat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                </svg>
+                12 nodes
+              </div>
+              <div class="scenario-card-stat">$4,250/mo</div>
+            </div>
+          </div>
+
+          <div class="scenario-card" onclick="window.location.href='02-dashboard-vm.html'">
+            <div class="scenario-card-header">
+              <span class="scenario-card-title">VM Infrastructure</span>
+              <span class="badge badge-vm">VM</span>
+            </div>
+            <div class="scenario-card-meta">vSphere 8 &bull; Yesterday</div>
+            <div class="scenario-card-stats">
+              <div class="scenario-card-stat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="14" rx="2"/>
+                </svg>
+                18 VMs
+              </div>
+              <div class="scenario-card-stat">$3,850/mo</div>
+            </div>
+          </div>
+
+          <div class="scenario-card">
+            <div class="scenario-card-header">
+              <span class="scenario-card-title">Dev/Test EKS</span>
+              <span class="badge badge-k8s">K8s</span>
+            </div>
+            <div class="scenario-card-meta">Amazon EKS &bull; 3 days ago</div>
+            <div class="scenario-card-stats">
+              <div class="scenario-card-stat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                </svg>
+                6 nodes
+              </div>
+              <div class="scenario-card-stat">$1,200/mo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 8px; text-align: center; border-top: 1px solid var(--color-border); font-size: 10px;">
+      <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+    </div>
+  </div>
+</body>
+</html>

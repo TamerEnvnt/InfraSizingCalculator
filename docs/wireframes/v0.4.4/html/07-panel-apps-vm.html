@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apps Panel - VM Mode | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='02-dashboard-vm.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">
+        <span class="badge badge-vm" style="margin-right: 8px;">VM</span>
+        Server Role Configuration
+      </h2>
+      <button class="panel-close" onclick="window.location.href='02-dashboard-vm.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="wireframe-note">
+        <strong>VM-Specific Apps Panel</strong>
+        Shows server ROLES (App, DB, Web) with VM counts - not pods/replicas.
+        Compare with <a href="06-panel-apps-k8s.html">K8s Apps Panel</a> - completely different!
+      </div>
+
+      <!-- Platform Selection -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Application Platform</h4>
+
+        <div class="form-group">
+          <label class="form-label">Platform Type</label>
+          <div class="selection-grid">
+            <div class="selection-card selected">
+              <div class="selection-card-icon">🟦</div>
+              <div class="selection-card-label">Mendix</div>
+              <div class="selection-card-desc">Low-code platform</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">🟧</div>
+              <div class="selection-card-label">OutSystems</div>
+              <div class="selection-card-desc">Low-code platform</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">📦</div>
+              <div class="selection-card-label">Traditional</div>
+              <div class="selection-card-desc">.NET, Java, etc.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Server Roles - VM Specific -->
+      <!-- Reference: [VM-REF] Section 5 - VM Roles -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Server Roles</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only: Server Roles</strong>
+          VMs are organized by role (App, DB, Web), not by pod/replica like K8s.
+          Each role maps to VM templates with specific sizing.
+        </div>
+
+        <table class="table" style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>VMs</th>
+              <th>Template</th>
+              <th>vCPU</th>
+              <th>Memory</th>
+              <th>Storage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <strong>Application Servers</strong>
+                <div class="text-sm text-secondary">Mendix runtime</div>
+              </td>
+              <td><input type="number" class="form-input" value="4" style="width: 60px;"></td>
+              <td>
+                <select class="form-select" style="width: 100px;">
+                  <option>Small</option>
+                  <option selected>Medium</option>
+                  <option>Large</option>
+                </select>
+              </td>
+              <td>4</td>
+              <td>16 GB</td>
+              <td>120 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Database Servers</strong>
+                <div class="text-sm text-secondary">SQL Server / PostgreSQL</div>
+              </td>
+              <td><input type="number" class="form-input" value="2" style="width: 60px;"></td>
+              <td>
+                <select class="form-select" style="width: 100px;">
+                  <option>DB Small</option>
+                  <option selected>DB Large</option>
+                </select>
+              </td>
+              <td>16</td>
+              <td>128 GB</td>
+              <td>500 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Web Servers</strong>
+                <div class="text-sm text-secondary">IIS / nginx reverse proxy</div>
+              </td>
+              <td><input type="number" class="form-input" value="2" style="width: 60px;"></td>
+              <td>
+                <select class="form-select" style="width: 100px;">
+                  <option selected>Small</option>
+                  <option>Medium</option>
+                </select>
+              </td>
+              <td>2</td>
+              <td>8 GB</td>
+              <td>60 GB</td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Utility Servers</strong>
+                <div class="text-sm text-secondary">Build, monitoring, backup</div>
+              </td>
+              <td><input type="number" class="form-input" value="3" style="width: 60px;"></td>
+              <td>
+                <select class="form-select" style="width: 100px;">
+                  <option selected>Small</option>
+                  <option>Medium</option>
+                </select>
+              </td>
+              <td>2</td>
+              <td>8 GB</td>
+              <td>60 GB</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--color-accent-light);">
+              <td><strong>Total</strong></td>
+              <td><strong>11 VMs</strong></td>
+              <td>-</td>
+              <td><strong>58 vCPU</strong></td>
+              <td><strong>344 GB</strong></td>
+              <td><strong>1.8 TB</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="form-hint" style="margin-top: 8px;">
+          Reference: [VM-REF] Section 5 - VM Sizing Templates
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- High Availability - VM Specific -->
+      <!-- Reference: [VM-REF] Section 6 - HA Configuration -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">High Availability</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only: HA Patterns</strong>
+          VMs use traditional HA patterns (active-passive, clustering).
+          K8s handles HA through pod replicas automatically.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Database HA Mode</label>
+          <select class="form-select">
+            <option>Standalone (No HA)</option>
+            <option selected>Active-Passive (Failover)</option>
+            <option>Always On (SQL Server)</option>
+            <option>Replication (PostgreSQL)</option>
+          </select>
+          <div class="form-hint">Adds 1 standby DB server per primary</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Application Server HA</label>
+          <select class="form-select">
+            <option>No HA</option>
+            <option selected>Load Balanced (N+1)</option>
+            <option>Active-Active Cluster</option>
+          </select>
+          <div class="form-hint">N+1 adds 1 spare app server for failover</div>
+        </div>
+
+        <div class="info-box">
+          <strong>HA Impact on VM Count</strong>
+          <ul style="margin: 8px 0 0 20px;">
+            <li>Base VMs: 11</li>
+            <li>DB Standby: +2 VMs</li>
+            <li>App N+1: +1 VM</li>
+            <li><strong>Total with HA: 14 VMs</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Resource Calculation - VM Specific -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Physical Resource Requirements</h4>
+
+        <div class="wireframe-note">
+          <strong>VM-Only: Physical Host Calculation</strong>
+          Calculates hosts needed based on overcommit ratios.
+          K8s abstracts this away (cloud provider handles it).
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div class="card" style="padding: 16px;">
+            <div class="text-sm text-secondary">Total vCPU Requested</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-vm);">58</div>
+            <div class="text-sm text-secondary">across 14 VMs</div>
+          </div>
+          <div class="card" style="padding: 16px;">
+            <div class="text-sm text-secondary">Total Memory Requested</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-vm);">344 GB</div>
+            <div class="text-sm text-secondary">no overcommit</div>
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 16px;">
+          <strong>Host Capacity Calculation</strong><br>
+          With 2:1 CPU overcommit and 256 GB hosts:
+          <ul style="margin: 8px 0 0 20px;">
+            <li>Physical CPU needed: 58 / 2 = 29 cores</li>
+            <li>Physical RAM needed: 344 GB (no overcommit)</li>
+            <li>Hosts for CPU: 29 / 32 = 1 host</li>
+            <li>Hosts for RAM: 344 / (256-8) = 1.4 → 2 hosts</li>
+            <li><strong>Minimum Hosts: 2</strong> (memory bound)</li>
+            <li>With N+1 HA: <strong>3 hosts</strong></li>
+          </ul>
+          <span class="text-sm text-secondary">Reference: [VM-REF] Section 6</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Storage IOPS - VM Specific -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Storage Performance</h4>
+
+        <div class="form-group">
+          <label class="form-label">Database Storage Tier</label>
+          <select class="form-select">
+            <option>Standard HDD (500 IOPS)</option>
+            <option>Standard SSD (3,000 IOPS)</option>
+            <option selected>Premium SSD (10,000 IOPS)</option>
+            <option>NVMe (100,000+ IOPS)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Application Storage Tier</label>
+          <select class="form-select">
+            <option>Standard HDD</option>
+            <option selected>Standard SSD</option>
+            <option>Premium SSD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='02-dashboard-vm.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='02-dashboard-vm.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a> |
+    Compare: <a href="06-panel-apps-k8s.html" style="color: var(--color-k8s);">K8s Apps Panel</a>
+  </footer>
+</body>
+</html>

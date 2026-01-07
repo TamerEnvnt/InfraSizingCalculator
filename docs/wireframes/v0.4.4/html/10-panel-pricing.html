@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing Panel | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+</head>
+<body>
+  <div class="panel-overlay" onclick="window.location.href='01-dashboard-k8s.html'"></div>
+
+  <header class="header" style="opacity: 0.5; pointer-events: none;">
+    <div class="header-logo">InfraSizing</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Pricing Configuration</h2>
+      <button class="panel-close" onclick="window.location.href='01-dashboard-k8s.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Pricing Model Selection -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Pricing Model</h4>
+
+        <div class="form-group">
+          <div class="selection-grid">
+            <div class="selection-card selected">
+              <div class="selection-card-icon">🏢</div>
+              <div class="selection-card-label">On-Premises</div>
+              <div class="selection-card-desc">CapEx + OpEx model</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">☁️</div>
+              <div class="selection-card-label">Cloud</div>
+              <div class="selection-card-desc">Pay-as-you-go</div>
+            </div>
+            <div class="selection-card">
+              <div class="selection-card-icon">🔀</div>
+              <div class="selection-card-label">Hybrid</div>
+              <div class="selection-card-desc">Mixed deployment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Hardware Costs -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Hardware Costs (On-Prem)</h4>
+
+        <div class="form-group">
+          <label class="form-label">Server Cost per Host</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span>$</span>
+            <input type="number" class="form-input" value="15000" style="flex: 1;">
+          </div>
+          <div class="form-hint">32-core, 256GB RAM server</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Storage Cost per TB</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span>$</span>
+            <input type="number" class="form-input" value="500" style="flex: 1;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Network Equipment</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span>$</span>
+            <input type="number" class="form-input" value="5000" style="flex: 1;">
+          </div>
+          <div class="form-hint">Switches, load balancers</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Hardware Refresh Cycle</label>
+          <select class="form-select">
+            <option>3 years</option>
+            <option selected>5 years</option>
+            <option>7 years</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Licensing - Mode-Specific -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Platform Licensing</h4>
+
+        <!-- K8s Licensing (shown when K8s mode) -->
+        <div class="wireframe-note">
+          <strong>Mode-Specific Licensing</strong>
+          K8s shows distribution licensing. VM shows hypervisor licensing.
+        </div>
+
+        <div style="border: 1px solid var(--color-k8s); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span class="badge badge-k8s">K8s</span>
+            <strong>Distribution Licensing</strong>
+          </div>
+
+          <table class="table" style="font-size: 13px;">
+            <thead>
+              <tr>
+                <th>Distribution</th>
+                <th>Model</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>OpenShift</td>
+                <td>Per core subscription</td>
+                <td>$1,500/core/year</td>
+              </tr>
+              <tr>
+                <td>Tanzu</td>
+                <td>Per core subscription</td>
+                <td>$1,200/core/year</td>
+              </tr>
+              <tr>
+                <td>Rancher</td>
+                <td>Per node subscription</td>
+                <td>$500/node/year</td>
+              </tr>
+              <tr>
+                <td>Vanilla K8s</td>
+                <td>Open source</td>
+                <td>$0 (support extra)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- VM Licensing (shown when VM mode) -->
+        <div style="border: 1px solid var(--color-vm); border-radius: 8px; padding: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span class="badge badge-vm">VM</span>
+            <strong>Hypervisor Licensing</strong>
+          </div>
+
+          <table class="table" style="font-size: 13px;">
+            <thead>
+              <tr>
+                <th>Hypervisor</th>
+                <th>Model</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>vSphere Enterprise+</td>
+                <td>Per CPU socket</td>
+                <td>$6,000/socket/year</td>
+              </tr>
+              <tr>
+                <td>vSAN</td>
+                <td>Per CPU socket</td>
+                <td>$3,500/socket/year</td>
+              </tr>
+              <tr>
+                <td>Hyper-V</td>
+                <td>Windows Server DC</td>
+                <td>$6,155/2-core pack</td>
+              </tr>
+              <tr>
+                <td>Proxmox VE</td>
+                <td>Subscription optional</td>
+                <td>$0-$500/server/year</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Application Licensing -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Application Licensing</h4>
+
+        <div class="form-group">
+          <label class="form-label">Mendix License</label>
+          <select class="form-select">
+            <option>Basic (5 apps)</option>
+            <option selected>Standard (25 apps)</option>
+            <option>Premium (Unlimited)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Database License</label>
+          <select class="form-select">
+            <option>PostgreSQL (Open Source)</option>
+            <option>SQL Server Standard</option>
+            <option selected>SQL Server Enterprise</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Operational Costs -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Operational Costs</h4>
+
+        <div class="form-group">
+          <label class="form-label">Power Cost ($/kWh)</label>
+          <input type="number" class="form-input" value="0.12" step="0.01">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Datacenter Space ($/rack/month)</label>
+          <input type="number" class="form-input" value="1500">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Admin FTE Cost ($/year)</label>
+          <input type="number" class="form-input" value="120000">
+          <div class="form-hint">For calculating TCO</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Cost Summary -->
+      <div class="section">
+        <h4 style="margin-bottom: 16px;">Cost Summary</h4>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div class="card" style="padding: 16px; text-align: center;">
+            <div class="text-sm text-secondary">Initial CapEx</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-accent);">$95,000</div>
+            <div class="text-sm text-secondary">hardware + setup</div>
+          </div>
+          <div class="card" style="padding: 16px; text-align: center;">
+            <div class="text-sm text-secondary">Annual OpEx</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--color-accent);">$48,000</div>
+            <div class="text-sm text-secondary">licensing + ops</div>
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 16px;">
+          <strong>5-Year TCO: $335,000</strong><br>
+          <ul style="margin: 8px 0 0 20px;">
+            <li>Hardware (amortized): $95,000</li>
+            <li>Licensing (5 years): $150,000</li>
+            <li>Operations (5 years): $75,000</li>
+            <li>Power/Space (5 years): $15,000</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="window.location.href='01-dashboard-k8s.html'">Cancel</button>
+      <button class="btn btn-primary" onclick="window.location.href='01-dashboard-k8s.html'">Apply</button>
+    </div>
+  </div>
+
+  <footer style="position: fixed; bottom: 0; left: 0; right: var(--panel-width); padding: 8px 16px; text-align: center; font-size: 11px; color: var(--color-text-secondary); background: rgba(255,255,255,0.9);">
+    <a href="index.html" style="color: var(--color-accent);">Back to Index</a>
+  </footer>
+</body>
+</html>

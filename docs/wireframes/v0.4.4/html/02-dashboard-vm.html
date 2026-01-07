@@ -196,7 +196,10 @@
         <!-- Panel Body: Hypervisor Config -->
         <div class="side-panel-body">
           <div class="form-group">
-            <label class="form-label">Platform</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+              <label class="form-label" style="margin-bottom: 0;">Platform</label>
+              <a href="#" style="font-size: 10px; color: var(--color-accent); text-decoration: none;">View all 7 →</a>
+            </div>
             <div class="selection-grid">
               <div class="selection-card selected">
                 <div class="selection-card-icon" style="color: var(--color-vm);">
@@ -234,33 +237,61 @@
                 <div class="selection-card-label">Nutanix</div>
                 <div class="selection-card-desc">HCI</div>
               </div>
+              <div class="selection-card">
+                <div class="selection-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  </svg>
+                </div>
+                <div class="selection-card-label">KVM</div>
+                <div class="selection-card-desc">Linux</div>
+              </div>
+              <div class="selection-card">
+                <div class="selection-card-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="8"/>
+                  </svg>
+                </div>
+                <div class="selection-card-label">oVirt</div>
+                <div class="selection-card-desc">Red Hat</div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 6px;">
+              <span style="font-size: 10px; color: var(--color-text-secondary);">Showing 6 of 7 platforms</span>
             </div>
           </div>
 
           <div class="divider"></div>
 
           <div class="form-group">
-            <label class="form-label">Environment</label>
-            <div class="radio-group">
-              <div class="radio-item selected">
-                <div class="radio-circle"></div>
+            <label class="form-label">Environments (select multiple)</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
                 <div>
-                  <div class="radio-label">Production</div>
-                  <div class="radio-desc">No memory overcommit</div>
+                  <div class="checkbox-label">Production</div>
+                  <div class="checkbox-desc">No memory overcommit</div>
                 </div>
               </div>
-              <div class="radio-item">
-                <div class="radio-circle"></div>
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
                 <div>
-                  <div class="radio-label">Staging</div>
-                  <div class="radio-desc">Light overcommit (1.25:1)</div>
+                  <div class="checkbox-label">Staging</div>
+                  <div class="checkbox-desc">Light overcommit (1.25:1)</div>
                 </div>
               </div>
-              <div class="radio-item">
-                <div class="radio-circle"></div>
+              <div class="checkbox-item">
+                <div class="checkbox-box"></div>
                 <div>
-                  <div class="radio-label">Development</div>
-                  <div class="radio-desc">Heavy overcommit (2:1)</div>
+                  <div class="checkbox-label">Test</div>
+                  <div class="checkbox-desc">Medium overcommit (1.5:1)</div>
+                </div>
+              </div>
+              <div class="checkbox-item">
+                <div class="checkbox-box"></div>
+                <div>
+                  <div class="checkbox-label">Development</div>
+                  <div class="checkbox-desc">Heavy overcommit (2:1)</div>
                 </div>
               </div>
             </div>

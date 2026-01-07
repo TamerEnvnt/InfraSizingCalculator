@@ -19,7 +19,8 @@
 
   /* Layout - Fixed Heights */
   --header-height: 48px;
-  --panel-width: 340px;
+  --panel-width: 30%;
+  --panel-min-width: 360px;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -113,10 +114,11 @@ body {
   background: var(--color-bg);
 }
 
-/* Side Panel - Persistent During Config */
+/* Side Panel - Persistent During Config (30% width) */
 .side-panel {
   width: var(--panel-width);
-  min-width: var(--panel-width);
+  min-width: var(--panel-min-width);
+  max-width: 450px;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
   display: flex;
@@ -462,6 +464,66 @@ body {
 }
 
 .radio-desc {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+/* Checkbox Items - Multi-select */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.checkbox-item:hover {
+  border-color: var(--color-accent);
+}
+
+.checkbox-item.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.checkbox-box {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-item.selected .checkbox-box {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.checkbox-item.selected .checkbox-box::after {
+  content: "✓";
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.checkbox-label {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.checkbox-desc {
   font-size: 10px;
   color: var(--color-text-secondary);
 }

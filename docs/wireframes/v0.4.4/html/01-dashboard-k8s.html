@@ -165,166 +165,115 @@
           </button>
         </div>
 
-        <!-- Mode Selection -->
-        <div style="padding: 12px; border-bottom: 1px solid var(--color-border);">
-          <div class="mode-toggle" style="width: 100%;">
+        <!-- Global Settings -->
+        <div style="padding: 10px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Global</span>
+          </div>
+          <div class="mode-toggle" style="width: 100%; margin-bottom: 8px;">
             <button class="mode-btn k8s active" style="flex: 1;">Kubernetes</button>
             <button class="mode-btn vm" style="flex: 1;" onclick="window.location.href='02-dashboard-vm.html'">Virtual Machines</button>
           </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Distribution:</span>
+            <span style="font-size: 11px; font-weight: 600;">OpenShift 4.14</span>
+            <a href="#" style="font-size: 10px; color: var(--color-accent); text-decoration: none; margin-left: auto;">Change</a>
+          </div>
         </div>
 
-        <!-- Config Tabs -->
+        <!-- Environment Selector -->
+        <div style="padding: 8px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Environment</span>
+            <button class="btn btn-ghost btn-sm" style="font-size: 10px; padding: 2px 6px;">+ Add</button>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="flex: 1; padding: 6px 8px; border: 2px solid var(--color-accent); background: var(--color-accent-light); border-radius: 4px; font-size: 11px; font-weight: 600; color: var(--color-accent); cursor: pointer;">Production</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Staging</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Dev</button>
+          </div>
+        </div>
+
+        <!-- Per-Environment Config Tabs -->
         <div class="side-panel-tabs">
-          <button class="side-panel-tab active">Platform</button>
+          <button class="side-panel-tab active">Cluster</button>
           <button class="side-panel-tab" onclick="window.location.href='01b-dashboard-k8s-apps.html'">Apps</button>
-          <button class="side-panel-tab" onclick="window.location.href='01c-dashboard-k8s-nodespecs.html'">Specs</button>
+          <button class="side-panel-tab" onclick="window.location.href='01c-dashboard-k8s-nodespecs.html'">Nodes</button>
           <button class="side-panel-tab" onclick="window.location.href='01d-dashboard-k8s-pricing.html'">Pricing</button>
           <button class="side-panel-tab" onclick="window.location.href='01e-dashboard-k8s-growth.html'">Growth</button>
         </div>
 
-        <!-- Panel Body: Platform Config -->
+        <!-- Panel Body: Production Cluster Config -->
         <div class="side-panel-body">
+          <!-- Environment Header -->
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border);">
+            <span class="badge badge-success">Production</span>
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Cluster Configuration</span>
+          </div>
+
           <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
-              <label class="form-label" style="margin-bottom: 0;">Distribution</label>
-              <a href="#" style="font-size: 10px; color: var(--color-accent); text-decoration: none;">View all 46 →</a>
+            <label class="form-label">HA Configuration</label>
+            <select class="form-select">
+              <option selected>Full HA (3 Control Plane)</option>
+              <option>Minimal HA (1 CP + backup)</option>
+              <option>No HA (Single node)</option>
+            </select>
+            <div class="form-hint">Recommended for production workloads</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Control Plane Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="5" value="3">
+              <span class="slider-value">3</span>
             </div>
-            <div class="selection-grid">
-              <div class="selection-card selected">
-                <div class="selection-card-icon" style="color: var(--color-k8s);">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">OpenShift</div>
-                <div class="selection-card-desc">Enterprise</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">EKS</div>
-                <div class="selection-card-desc">AWS Managed</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">AKS</div>
-                <div class="selection-card-desc">Azure</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">GKE</div>
-                <div class="selection-card-desc">Google</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">RKE2</div>
-                <div class="selection-card-desc">Rancher</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="8"/>
-                  </svg>
-                </div>
-                <div class="selection-card-label">K3s</div>
-                <div class="selection-card-desc">Lightweight</div>
-              </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Infrastructure Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="0" max="6" value="3">
+              <span class="slider-value">3</span>
             </div>
-            <div style="text-align: center; margin-top: 6px;">
-              <span style="font-size: 10px; color: var(--color-text-secondary);">Showing 6 of 46 distributions</span>
+            <div class="form-hint">For ingress, monitoring, logging</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Worker Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="50" value="6">
+              <span class="slider-value">6</span>
             </div>
           </div>
 
           <div class="divider"></div>
 
-          <!-- Environments - Accordion Style -->
           <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label class="form-label" style="margin-bottom: 0;">Environments</label>
-              <button class="btn btn-ghost btn-sm" style="font-size: 10px;">+ Add</button>
-            </div>
-
-            <!-- Production Environment - Expanded -->
-            <div style="border: 1px solid var(--color-accent); border-radius: 6px; margin-bottom: 6px; background: var(--color-accent-light);">
-              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                  <span style="font-weight: 600; font-size: 12px;">Production</span>
-                  <span class="badge badge-success">Primary</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
+            <label class="form-label">Cluster Features</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Monitoring Stack</div>
               </div>
-              <div style="padding: 0 10px 10px 10px; border-top: 1px solid var(--color-border); background: white;">
-                <div style="padding-top: 8px;">
-                  <div class="form-group" style="margin-bottom: 6px;">
-                    <label class="form-label">HA Configuration</label>
-                    <select class="form-select">
-                      <option selected>Full HA (3 Control Plane)</option>
-                      <option>Minimal HA (1 CP + backup)</option>
-                      <option>No HA (Single node)</option>
-                    </select>
-                  </div>
-                  <div class="form-group" style="margin-bottom: 6px;">
-                    <label class="form-label">Infrastructure Nodes</label>
-                    <div class="slider-row">
-                      <input type="range" class="slider" min="0" max="6" value="3">
-                      <span class="slider-value">3</span>
-                    </div>
-                  </div>
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label">Worker Nodes</label>
-                    <div class="slider-row">
-                      <input type="range" class="slider" min="1" max="20" value="6">
-                      <span class="slider-value">6</span>
-                    </div>
-                  </div>
-                </div>
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Logging (EFK/Loki)</div>
+              </div>
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Service Mesh</div>
+              </div>
+              <div class="checkbox-item">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">GitOps (ArgoCD)</div>
               </div>
             </div>
+          </div>
 
-            <!-- Staging Environment - Collapsed -->
-            <div style="border: 1px solid var(--color-border); border-radius: 6px; margin-bottom: 6px;">
-              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                  <span style="font-weight: 500; font-size: 12px;">Staging</span>
-                  <span style="font-size: 10px; color: var(--color-text-secondary);">3 CP, 3 Workers</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
-              </div>
-            </div>
-
-            <!-- Development Environment - Collapsed -->
-            <div style="border: 1px solid var(--color-border); border-radius: 6px;">
-              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                  <span style="font-weight: 500; font-size: 12px;">Development</span>
-                  <span style="font-size: 10px; color: var(--color-text-secondary);">1 CP, 2 Workers</span>
-                </div>
-                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
-              </div>
+          <div class="info-box">
+            <strong>Production Summary</strong>
+            <div style="font-size: 10px; margin-top: 4px;">
+              12 nodes total: 3 CP + 3 Infra + 6 Workers
             </div>
           </div>
         </div>

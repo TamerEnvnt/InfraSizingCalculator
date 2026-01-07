@@ -263,60 +263,85 @@
 
           <div class="divider"></div>
 
+          <!-- Environments - Accordion Style -->
           <div class="form-group">
-            <label class="form-label">Environments (select multiple)</label>
-            <div class="checkbox-group">
-              <div class="checkbox-item selected">
-                <div class="checkbox-box"></div>
-                <div>
-                  <div class="checkbox-label">Production</div>
-                  <div class="checkbox-desc">No memory overcommit</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Environments</label>
+              <button class="btn btn-ghost btn-sm" style="font-size: 10px;">+ Add</button>
+            </div>
+
+            <!-- Production Environment - Expanded -->
+            <div style="border: 1px solid var(--color-accent); border-radius: 6px; margin-bottom: 6px; background: var(--color-accent-light);">
+              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                  <span style="font-weight: 600; font-size: 12px;">Production</span>
+                  <span class="badge badge-success">Primary</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
+              </div>
+              <div style="padding: 0 10px 10px 10px; border-top: 1px solid var(--color-border); background: white;">
+                <div style="padding-top: 8px;">
+                  <div class="form-group" style="margin-bottom: 6px;">
+                    <label class="form-label">Memory Overcommit</label>
+                    <select class="form-select">
+                      <option selected>None (1:1) - Production</option>
+                      <option>Light (1.25:1)</option>
+                      <option>Medium (1.5:1)</option>
+                      <option>Heavy (2:1)</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 6px;">
+                    <label class="form-label">CPU Overcommit</label>
+                    <div class="slider-row">
+                      <input type="range" class="slider" min="1" max="4" step="0.5" value="2">
+                      <span class="slider-value">2:1</span>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">HA Reserve</label>
+                    <select class="form-select">
+                      <option selected>N+1 (25% reserve)</option>
+                      <option>N+2 (33% reserve)</option>
+                      <option>None</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div class="checkbox-item selected">
-                <div class="checkbox-box"></div>
-                <div>
-                  <div class="checkbox-label">Staging</div>
-                  <div class="checkbox-desc">Light overcommit (1.25:1)</div>
+            </div>
+
+            <!-- Staging Environment - Collapsed -->
+            <div style="border: 1px solid var(--color-border); border-radius: 6px; margin-bottom: 6px;">
+              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                  <span style="font-weight: 500; font-size: 12px;">Staging</span>
+                  <span style="font-size: 10px; color: var(--color-text-secondary);">1.25:1 mem, N+1 HA</span>
                 </div>
+                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
               </div>
-              <div class="checkbox-item">
-                <div class="checkbox-box"></div>
-                <div>
-                  <div class="checkbox-label">Test</div>
-                  <div class="checkbox-desc">Medium overcommit (1.5:1)</div>
+            </div>
+
+            <!-- Development Environment - Collapsed -->
+            <div style="border: 1px solid var(--color-border); border-radius: 6px;">
+              <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                  <span style="font-weight: 500; font-size: 12px;">Development</span>
+                  <span style="font-size: 10px; color: var(--color-text-secondary);">2:1 mem, No HA</span>
                 </div>
-              </div>
-              <div class="checkbox-item">
-                <div class="checkbox-box"></div>
-                <div>
-                  <div class="checkbox-label">Development</div>
-                  <div class="checkbox-desc">Heavy overcommit (2:1)</div>
-                </div>
+                <button class="btn btn-ghost btn-sm" style="padding: 2px;">×</button>
               </div>
             </div>
           </div>
 
           <div class="divider"></div>
-
-          <div class="form-group">
-            <label class="form-label">HA Configuration</label>
-            <select class="form-select">
-              <option selected>N+1 Redundancy (25% reserve)</option>
-              <option>N+2 Redundancy (33% reserve)</option>
-              <option>No HA Reserve</option>
-            </select>
-            <div class="form-hint">Capacity reserved for host failure</div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">CPU Overcommit Ratio</label>
-            <div class="slider-row">
-              <input type="range" class="slider" min="1" max="4" step="0.5" value="2">
-              <span class="slider-value">2:1</span>
-            </div>
-            <div class="form-hint">Production max: 2:1</div>
-          </div>
 
           <div class="form-group">
             <label class="form-label">DRS Automation</label>
@@ -326,6 +351,7 @@
               <option>Manual</option>
               <option>Disabled</option>
             </select>
+            <div class="form-hint">vSphere cluster-level setting</div>
           </div>
         </div>
 

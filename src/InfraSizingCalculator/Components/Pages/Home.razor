@@ -23,6 +23,7 @@
 @using InfraSizingCalculator.Services.Interfaces
 @using InfraSizingCalculator.Models.Pricing
 @using InfraSizingCalculator.Models.Growth
+@using InfraSizingCalculator.Helpers
 @rendermode InteractiveServer
 
 <PageTitle>Infrastructure Sizing Calculator</PageTitle>
@@ -1577,131 +1578,19 @@
                 }
                 else if (selectedTechnology == Technology.OutSystems && vmResults != null)
                 {
-                    <!-- OutSystems VM Pricing with Accordions -->
-                    // Pre-calculate all pricing values using V2 model (Platform-based)
-                    var osBaseCost = outsystemsPlatform == OutSystemsPlatform.ODC
-                        ? outsystemsPricingSettings.OdcPlatformBasePrice
-                        : outsystemsPricingSettings.O11EnterpriseBasePrice;
-                    var osAoIncluded = 150; // 1 AO pack (150 AOs) included in both platforms
-                    var osUsersIncluded = 100; // 100 internal users included in both platforms
-                    var osAdditionalAOs = Math.Max(0, outsystemsApplicationObjects - osAoIncluded);
-                    var osAoPacksCount = osAdditionalAOs > 0 ? (int)Math.Ceiling(osAdditionalAOs / (double)outsystemsPricingSettings.AOPackSize) : 0;
-                    var osAoPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
-                        ? outsystemsPricingSettings.OdcAOPackPrice
-                        : outsystemsPricingSettings.O11AOPackPrice;
-                    var osAoCost = osAoPacksCount * osAoPackPrice;
-                    var osAdditionalUsers = Math.Max(0, outsystemsInternalUsers - osUsersIncluded);
-                    var osUserPacksCount = osAdditionalUsers > 0 ? (int)Math.Ceiling(osAdditionalUsers / (double)outsystemsPricingSettings.InternalUserPackSize) : 0;
-                    var osInternalUserPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
-                        ? outsystemsPricingSettings.OdcInternalUserPackPrice
-                        : 12100m; // O11 first tier price for internal users
-                    var osInternalUserCost = osUserPacksCount * osInternalUserPackPrice;
-                    var osExternalPacksCount = outsystemsExternalSessions > 0
-                        ? (int)Math.Ceiling(outsystemsExternalSessions / (double)outsystemsPricingSettings.ExternalUserPackSize) : 0;
-                    var osExternalUserPackPrice = outsystemsPlatform == OutSystemsPlatform.ODC
-                        ? outsystemsPricingSettings.OdcExternalUserPackPrice
-                        : 4840m; // O11 first tier price for external users
-                    var osExternalUserCost = osExternalPacksCount * osExternalUserPackPrice;
-                    var osTotalAnnual = osBaseCost + osAoCost + osInternalUserCost + osExternalUserCost;
-
+                    <!-- OutSystems V2 Pricing Panel - Full add-ons, services, and discounts -->
                     <div class="step-header">
                         <h3>OutSystems License Pricing</h3>
                         <p class="step-description">
-                            Configure OutSystems subscription licensing for your self-managed deployment.
+                            Configure OutSystems subscription with add-ons, services, and infrastructure options.
                         </p>
                     </div>
 
-                    <div class="outsystems-vm-pricing-panel accordion-layout">
-                        <!-- Platform Selection Accordion -->
-                        <div class="pricing-accordion @(outsystemsActiveAccordion == "edition" ? "open" : "")">
-                            <button type="button" class="accordion-header" @onclick='() => outsystemsActiveAccordion = outsystemsActiveAccordion == "edition" ? "" : "edition"'>
-                                <span class="accordion-chevron">@(outsystemsActiveAccordion == "edition" ? "▼" : "▶")</span>
-                                <span class="accordion-icon">📦</span>
-                                <span class="accordion-title">Platform Selection</span>
-                                <span class="accordion-summary">@outsystemsPlatform - @FormatCurrency(osBaseCost)/yr</span>
-                            </button>
-                            @if (outsystemsActiveAccordion == "edition")
-                            {
-                                <div class="accordion-content">
-                                    <div class="pricing-option-cards compact">
-                                        <div class="pricing-option-card @(outsystemsPlatform == OutSystemsPlatform.ODC ? "selected" : "")"
-                                             @onclick="() => outsystemsPlatform = OutSystemsPlatform.ODC" @onclick:stopPropagation="true">
-                                            <div class="option-header">
-                                                <span class="option-title">ODC (Developer Cloud)</span>
-                                            </div>
-                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.OdcPlatformBasePrice)/year</div>
-                                            <div class="option-desc">150 AOs, 100 users, Cloud-managed</div>
-                                        </div>
-
-                                        <div class="pricing-option-card @(outsystemsPlatform == OutSystemsPlatform.O11 ? "selected" : "")"
-                                             @onclick="() => outsystemsPlatform = OutSystemsPlatform.O11" @onclick:stopPropagation="true">
-                                            <div class="option-header">
-                                                <span class="option-title">O11 Enterprise</span>
-                                            </div>
-                                            <div class="option-price">@FormatCurrency(outsystemsPricingSettings.O11EnterpriseBasePrice)/year</div>
-                                            <div class="option-desc">150 AOs, 100 users, 3 environments</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Licensing Configuration Accordion -->
-                        <div class="pricing-accordion @(outsystemsActiveAccordion == "licensing" ? "open" : "")">
-                            <button type="button" class="accordion-header" @onclick='() => outsystemsActiveAccordion = outsystemsActiveAccordion == "licensing" ? "" : "licensing"'>
-                                <span class="accordion-chevron">@(outsystemsActiveAccordion == "licensing" ? "▼" : "▶")</span>
-                                <span class="accordion-icon">⚙️</span>
-                                <span class="accordion-title">Licensing Configuration</span>
-                                <span class="accordion-summary">@outsystemsApplicationObjects AOs, @outsystemsInternalUsers users - @FormatCurrency(osAoCost + osInternalUserCost + osExternalUserCost)/yr</span>
-                            </button>
-                            @if (outsystemsActiveAccordion == "licensing")
-                            {
-                                <div class="accordion-content compact-form">
-                                    <div class="config-row-inline">
-                                        <label>AOs</label>
-                                        <input type="number" min="1" max="5000" @bind="outsystemsApplicationObjects" class="config-input-sm" @onclick:stopPropagation="true" />
-                                        <span class="config-info-inline">@osAoIncluded incl @if (osAdditionalAOs > 0) { <span class="extra">+@osAoPacksCount pk</span> }</span>
-                                    </div>
-                                    <div class="config-row-inline">
-                                        <label>Users</label>
-                                        <input type="number" min="0" max="10000" @bind="outsystemsInternalUsers" class="config-input-sm" @onclick:stopPropagation="true" />
-                                        <span class="config-info-inline">@osUsersIncluded incl @if (osAdditionalUsers > 0) { <span class="extra">+@osUserPacksCount pk</span> }</span>
-                                    </div>
-                                    <div class="config-row-inline">
-                                        <label>External</label>
-                                        <input type="number" min="0" max="1000000" step="1000" @bind="outsystemsExternalSessions" class="config-input-sm" @onclick:stopPropagation="true" />
-                                        <span class="config-info-inline">
-                                            @if (outsystemsExternalSessions > 0) {
-                                                var extPacks = (int)Math.Ceiling(outsystemsExternalSessions / (double)outsystemsPricingSettings.ExternalUserPackSize);
-                                                <span class="extra">@extPacks pk</span>
-                                            } else { <span>sessions/mo</span> }
-                                        </span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Cost Summary - Always visible, compact -->
-                        <div class="pricing-summary-compact">
-                            <div class="summary-items">
-                                <div class="summary-item">
-                                    <span class="item-label">Monthly</span>
-                                    <span class="item-value">@FormatCurrency(osTotalAnnual / 12)</span>
-                                </div>
-                                <div class="summary-item highlight">
-                                    <span class="item-label">Annual</span>
-                                    <span class="item-value">@FormatCurrency(osTotalAnnual)</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="item-label">3-Year</span>
-                                    <span class="item-value">@FormatCurrency(osTotalAnnual * 3)</span>
-                                </div>
-                            </div>
-                            <div class="summary-note">
-                                <span class="icon icon-bulb"></span> License cost only. Infrastructure costs shown on results page.
-                            </div>
-                        </div>
-                    </div>
+                    <InfraSizingCalculator.Components.Pricing.OutSystemsPricingPanel
+                        Settings="@outsystemsPricingSettings"
+                        Config="@outsystemsConfig"
+                        ConfigChanged="@HandleOutSystemsConfigChanged"
+                        OnCostCalculated="@HandleOutSystemsCostCalculated" />
                 }
                 else
                 {
@@ -2861,13 +2750,10 @@
     // Mendix pricing settings (from official pricebook)
     private MendixPricingSettings mendixPricingSettings = new();
 
-    // OutSystems pricing configuration (V2 model)
-    private OutSystemsPlatform outsystemsPlatform = OutSystemsPlatform.O11;  // O11 or ODC
-    private int outsystemsApplicationObjects = 150;  // Default to 1 AO pack (typical medium app)
-    private int outsystemsInternalUsers = 100;       // Included in base
-    private int outsystemsExternalSessions = 0;      // External users count
+    // OutSystems pricing configuration (V2 model with full add-ons, services, etc.)
+    private OutSystemsDeploymentConfig outsystemsConfig = new();
     private OutSystemsPricingSettings outsystemsPricingSettings = new();
-    private string outsystemsActiveAccordion = "edition"; // "edition" or "licensing" - only one open at a time
+    private OutSystemsPricingResult? outsystemsPricingResult;
 
     // Results
     private K8sSizingResult? results;
@@ -2913,6 +2799,7 @@
     private GrowthSettings vmGrowthSettings = new();
     private GrowthProjection? k8sGrowthProjection;
     private GrowthProjection? vmGrowthProjection;
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -3057,71 +2944,12 @@
         await CalculateVM();
     }
 
-    // Step management
-    private int GetTotalSteps()
-    {
-        // K8s: 1-Platform, 2-Deployment, 3-Technology, 4-Distribution, 5-Configure, 6-Pricing, 7-Results
-        // VMs (Mendix): 1-Platform, 2-Deployment, 3-Technology, 4-DeploymentType, 5-Configure, 6-Pricing, 7-Results
-        // VMs (Other): 1-Platform, 2-Deployment, 3-Technology, 4-Configure, 5-Pricing, 6-Results
-        if (selectedDeployment == DeploymentModel.Kubernetes)
-        {
-            return 7;
-        }
-        // VMs with Mendix have deployment type selection step
-        if (selectedDeployment == DeploymentModel.VMs && selectedTechnology == Technology.Mendix)
-        {
-            return 7;
-        }
-        return 6; // Non-Mendix VMs: skip deployment type step but include pricing
-    }
-
-    private int GetConfigStep()
-    {
-        if (selectedDeployment == DeploymentModel.Kubernetes)
-            return 5;
-        // Mendix VMs: config at step 5 (after deployment type at step 4)
-        if (selectedTechnology == Technology.Mendix)
-            return 5;
-        // Non-Mendix VMs: config at step 4 (no deployment type step)
-        return 4;
-    }
-
-    private int GetPricingStep()
-    {
-        if (selectedDeployment == DeploymentModel.Kubernetes)
-            return 6;
-        // Mendix VMs: pricing at step 6 (after config at step 5)
-        if (selectedTechnology == Technology.Mendix)
-            return 6;
-        // Non-Mendix VMs: pricing at step 5 (after config at step 4)
-        return 5;
-    }
-
-    private int GetResultsStep()
-    {
-        if (selectedDeployment == DeploymentModel.Kubernetes)
-            return 7;
-        // Mendix VMs: results at step 7 (after pricing at step 6)
-        if (selectedTechnology == Technology.Mendix)
-            return 7;
-        // Non-Mendix VMs: results at step 6 (after pricing at step 5)
-        return 6;
-    }
-
-    private string GetStepLabel(int step)
-    {
-        if (selectedDeployment == DeploymentModel.Kubernetes)
-        {
-            return step switch { 1 => "Platform", 2 => "Deployment", 3 => "Technology", 4 => "Distribution", 5 => "Configure", 6 => "Pricing", 7 => "Results", _ => "" };
-        }
-        // VMs with Mendix
-        if (selectedTechnology == Technology.Mendix)
-        {
-            return step switch { 1 => "Platform", 2 => "Deployment", 3 => "Technology", 4 => "Deployment Type", 5 => "Configure", 6 => "Pricing", 7 => "Results", _ => "" };
-        }
-        // Non-Mendix VMs
-        return step switch { 1 => "Platform", 2 => "Deployment", 3 => "Technology", 4 => "Configure", 5 => "Pricing", 6 => "Results", _ => "" };
-    }
+    // Step management - delegates to HomePageHelpers for testability
+    private int GetTotalSteps() => HomePageHelpers.GetTotalSteps(selectedDeployment, selectedTechnology);
+    private int GetConfigStep() => HomePageHelpers.GetConfigStep(selectedDeployment, selectedTechnology);
+    private int GetPricingStep() => HomePageHelpers.GetPricingStep(selectedDeployment, selectedTechnology);
+    private int GetResultsStep() => HomePageHelpers.GetResultsStep(selectedDeployment, selectedTechnology);
+    private string GetStepLabel(int step) => HomePageHelpers.GetStepLabel(step, selectedDeployment, selectedTechnology);
 
     private string? GetStepSelection(int step)
     {
@@ -3199,55 +3027,19 @@
         return selectedDistribution?.ToString();
     }
 
-    private string? GetMendixVMDeploymentDisplayName()
-    {
-        return mendixOtherDeployment switch
-        {
-            MendixOtherDeployment.Server => "Server (VMs)",
-            MendixOtherDeployment.StackIT => "StackIT",
-            MendixOtherDeployment.SapBtp => "SAP BTP",
-            _ => "Not selected"
-        };
-    }
+    // Mendix deployment helper - delegates to HomePageHelpers for testability
+    private string? GetMendixVMDeploymentDisplayName() =>
+        HomePageHelpers.GetMendixVMDeploymentDisplayName(mendixOtherDeployment);
 
-    // Cluster mode helpers
-    private string GetClusterModeIcon()
-    {
-        if (selectedClusterMode == ClusterMode.MultiCluster)
-        {
-            return "MC";
-        }
+    // Cluster mode helpers - delegate to HomePageHelpers for testability
+    private string GetClusterModeIcon() =>
+        HomePageHelpers.GetClusterModeIcon(selectedClusterMode, singleClusterScope);
 
-        // Single Cluster mode - check scope
-        return singleClusterScope == "Shared" ? "SC" : "SE";
-    }
+    private string GetClusterModeDescription() =>
+        HomePageHelpers.GetClusterModeDescription(selectedClusterMode, singleClusterScope, results?.Environments.Count ?? 0);
 
-    private string GetClusterModeDescription()
-    {
-        if (selectedClusterMode == ClusterMode.MultiCluster)
-        {
-            return $"Multi-Cluster: {results?.Environments.Count ?? 0} separate clusters (one per environment)";
-        }
-
-        // Single Cluster mode - check scope
-        if (singleClusterScope == "Shared")
-        {
-            return "Shared Cluster: All environments in a single cluster with namespace isolation";
-        }
-
-        return $"Single Environment: Sizing for {singleClusterScope} only";
-    }
-
-    private string GetClusterModeBannerClass()
-    {
-        if (selectedClusterMode == ClusterMode.MultiCluster)
-        {
-            return "multi";
-        }
-
-        // Single Cluster mode - check scope
-        return singleClusterScope == "Shared" ? "shared" : "single";
-    }
+    private string GetClusterModeBannerClass() =>
+        HomePageHelpers.GetClusterModeBannerClass(selectedClusterMode, singleClusterScope);
 
     private int GetClusterCount() => selectedClusterMode switch
     {
@@ -3257,8 +3049,8 @@
         _ => 0
     };
 
-    // Single Cluster mode helpers
-    private bool IsSingleClusterMode() => selectedClusterMode == ClusterMode.SharedCluster || selectedClusterMode == ClusterMode.PerEnvironment;
+    // Single Cluster mode helpers - delegate to HomePageHelpers
+    private bool IsSingleClusterMode() => HomePageHelpers.IsSingleClusterMode(selectedClusterMode);
 
     private bool IsManagedControlPlane()
     {
@@ -3669,6 +3461,18 @@
 
         // Navigate to results step to see the updated sizing
         currentStep = 7;
+        StateHasChanged();
+    }
+
+    private void HandleOutSystemsConfigChanged(OutSystemsDeploymentConfig config)
+    {
+        outsystemsConfig = config;
+        StateHasChanged();
+    }
+
+    private void HandleOutSystemsCostCalculated(OutSystemsPricingResult result)
+    {
+        outsystemsPricingResult = result;
         StateHasChanged();
     }
 

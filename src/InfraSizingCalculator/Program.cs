@@ -158,6 +158,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<CalculatorSettings>();
 builder.Services.AddSingleton<IDistributionService, DistributionService>();
 builder.Services.AddSingleton<ITechnologyService, TechnologyService>();
+builder.Services.AddSingleton<ITechnologyTemplateService, TechnologyTemplateService>();
 builder.Services.AddScoped<IK8sSizingService, K8sSizingService>();
 builder.Services.AddScoped<IVMSizingService, VMSizingService>();
 builder.Services.AddScoped<IExportService, ExportService>();

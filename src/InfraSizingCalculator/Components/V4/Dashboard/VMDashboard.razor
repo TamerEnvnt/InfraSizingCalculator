@@ -1,0 +1,622 @@
+@page "/dashboard/vm"
+@rendermode InteractiveServer
+
+@*
+    VMDashboard.razor - v0.4.4 Virtual Machines Dashboard
+
+    Matches wireframe: 02-dashboard-vm.html
+    - Summary row: 3 metric cards (VMs, Hosts, Cost)
+    - Results grid: 4 result cards (Infra, Hosts, Overcommit, Cost)
+    - Side panel: VM config tabs
+*@
+
+@using InfraSizingCalculator.Components.V4.Headers
+@using InfraSizingCalculator.Components.Layout
+@using InfraSizingCalculator.Services.Auth
+@using InfraSizingCalculator.Services.Interfaces
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWizardStateService WizardState
+@inject IVMSizingService VMSizingService
+@inject ICostEstimationService CostEstimationService
+@inject ITechnologyService TechnologyService
+@inject IScenarioService ScenarioService
+@implements IDisposable
+
+<PageTitle>VM Dashboard | InfraSizing Calculator</PageTitle>
+
+<DashboardLayout IsPanelOpen="true">
+    <Header>
+        @if (_isAuthenticated)
+        {
+            <AuthHeader UserName="@_userName"
+                        UserEmail="@_userEmail"
+                        OnExport="HandleExport"
+                        OnCalculate="HandleCalculate"
+                        OnLogout="HandleLogout" />
+        }
+        else
+        {
+            <GuestHeader />
+        }
+    </Header>
+
+    <Body>
+        <div class="dashboard" data-testid="vm-dashboard">
+            @* Guest Mode Banner - shows when not authenticated *@
+            @if (!_isAuthenticated)
+            {
+                <div class="guest-banner">
+                    <strong>Guest Mode</strong> - <a href="/login">Sign in</a> to save scenarios and access full features.
+                </div>
+            }
+
+            <!-- Summary Row -->
+            <div class="summary-row">
+                <div class="summary-card highlight" data-testid="summary-vms">
+                    <div class="summary-icon vm">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="14" rx="2"/><path d="M6 20h12"/><path d="M12 18v2"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">Total VMs</div>
+                        <div class="summary-value">@_totalVMs</div>
+                        <div class="summary-sub">@_vmBreakdown</div>
+                    </div>
+                </div>
+                <div class="summary-card" data-testid="summary-hosts">
+                    <div class="summary-icon warning">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">Physical Hosts</div>
+                        <div class="summary-value">@_physicalHosts</div>
+                        <div class="summary-sub">@_haReserve HA reserve</div>
+                    </div>
+                </div>
+                <div class="summary-card" data-testid="summary-cost">
+                    <div class="summary-icon accent">$</div>
+                    <div class="summary-content">
+                        <div class="summary-label">Monthly Cost</div>
+                        <div class="summary-value">@_monthlyCost</div>
+                        <div class="summary-sub">Hardware + licenses</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="results-area">
+                <!-- Infrastructure Overview -->
+                <div class="result-card" data-testid="result-infra">
+                    <div class="result-header">
+                        Infrastructure Overview
+                        <span class="badge badge-vm">@_hypervisor</span>
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <thead>
+                                <tr><th>Role</th><th>Qty</th><th>vCPU</th><th>RAM</th><th>Disk</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var vm in _vmsByRole)
+                                {
+                                    <tr>
+                                        <td><span class="badge badge-@vm.BadgeClass">@vm.Role</span></td>
+                                        <td>@vm.Qty</td>
+                                        <td>@vm.Vcpu</td>
+                                        <td>@vm.Ram</td>
+                                        <td>@vm.Disk</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot><tr><td>Total</td><td>@_totalVMs</td><td>@_totalVcpu</td><td>@_totalRam</td><td>@_totalDisk</td></tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Host Requirements -->
+                <div class="result-card" data-testid="result-hosts">
+                    <div class="result-header">
+                        Physical Host Requirements
+                        <span class="badge badge-success">HA Enabled</span>
+                    </div>
+                    <div class="result-body">
+                        <div class="host-metrics">
+                            <div class="host-metric">
+                                <div class="metric-label">Hosts</div>
+                                <div class="metric-value vm">@_physicalHosts</div>
+                            </div>
+                            <div class="host-metric">
+                                <div class="metric-label">Per Host</div>
+                                <div class="metric-value-sm">@_perHostSpec</div>
+                                <div class="metric-label">vCPU/GB</div>
+                            </div>
+                            <div class="host-metric">
+                                <div class="metric-label">VMs/Host</div>
+                                <div class="metric-value">@_vmsPerHost</div>
+                            </div>
+                        </div>
+                        <div class="info-box">
+                            Hypervisor: @_hypervisorReserve | HA Reserve: @_haReserve
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overcommit Analysis -->
+                <div class="result-card" data-testid="result-overcommit">
+                    <div class="result-header">
+                        Overcommit Analysis
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <thead>
+                                <tr><th>Resource</th><th>Allocated</th><th>Physical</th><th>Ratio</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _overcommitAnalysis)
+                                {
+                                    <tr>
+                                        <td>@item.Resource</td>
+                                        <td>@item.Allocated</td>
+                                        <td>@item.Physical</td>
+                                        <td>@item.Ratio</td>
+                                        <td><span class="badge badge-@item.StatusClass">@item.Status</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div class="warning-box">
+                            <strong>Production:</strong> CPU max 2:1, Memory 1:1 (no overcommit)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Breakdown -->
+                <div class="result-card" data-testid="result-cost">
+                    <div class="result-header">
+                        Cost Breakdown
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <tbody>
+                                @foreach (var item in _costBreakdown)
+                                {
+                                    <tr><td>@item.Label</td><td class="text-right">@item.Amount</td></tr>
+                                }
+                            </tbody>
+                            <tfoot><tr><td>Total</td><td class="text-right">@_monthlyCost/mo</td></tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Body>
+
+    <Panel>
+        <VMConfigPanel
+            SelectedEnvironment="@_selectedEnvironment"
+            ActiveTab="@_activeConfigTab"
+            OnEnvironmentChange="HandleEnvironmentChange"
+            OnTabChange="HandleTabChange"
+            OnModeChange="HandleModeChange"
+            OnApply="HandleApplyChanges"
+            OnReset="HandleReset" />
+    </Panel>
+</DashboardLayout>
+
+@code {
+    // Auth state
+    private bool _isAuthenticated = false;
+    private string _userName = "";
+    private string _userEmail = "";
+
+    // Configuration state
+    private string _selectedEnvironment = "production";
+    private string _activeConfigTab = "hypervisor";
+
+    // Calculated results
+    private VMSizingResult? _vmResult;
+    private CostEstimate? _costEstimate;
+    private string _technologyName = "";
+
+    // Computed properties from WizardState and services
+    private int _totalVMs => _vmResult?.GrandTotal?.TotalVMs ?? WizardState.VmEnvConfig.TotalInstances;
+    private string _vmBreakdown => BuildVMBreakdown();
+    private int _physicalHosts => WizardState.VmHostConfig.TotalHosts;
+    private string _haReserve => WizardState.VmHostConfig.N1Redundancy ? "N+1" : "None";
+    private string _monthlyCost => _costEstimate?.MonthlyTotal.ToString("C0") ?? "$0";
+
+    // Infrastructure Overview computed values
+    private int _totalVcpu => _vmResult?.GrandTotal?.TotalCpu ?? WizardState.VmRequirements.TotalVCpu;
+    private string _totalRam => $"{(_vmResult?.GrandTotal?.TotalRam ?? WizardState.VmRequirements.TotalMemoryGB)}GB";
+    private string _totalDisk => FormatStorage(_vmResult?.GrandTotal?.TotalDisk ?? WizardState.VmRequirements.TotalStorageGB);
+    private string _hypervisor => LoadTechnologyName();
+
+    // Host Requirements
+    private string _perHostSpec => $"{WizardState.VmHostConfig.HostCores}/{WizardState.VmHostConfig.HostMemoryGB}";
+    private string _vmsPerHost => CalculateVMsPerHost();
+    private string _hypervisorReserve => "8GB";
+
+    // Table data
+    private List<VMRoleInfo> _vmsByRole = new();
+    private List<OvercommitItem> _overcommitAnalysis = new();
+    private List<CostItem> _costBreakdown = new();
+
+    // Scenario state
+    private Guid? _currentScenarioId;
+    private string _scenarioName = "";
+    private bool _isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check authentication
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _isAuthenticated = true;
+            _userName = user.Identity.Name ?? "User";
+            _userEmail = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+        }
+
+        // Subscribe to state changes
+        WizardState.OnStateChanged += HandleStateChanged;
+
+        // Load technology name
+        LoadTechnologyName();
+
+        // Initialize with calculated data
+        await CalculateSizing();
+    }
+
+    private void HandleStateChanged()
+    {
+        InvokeAsync(async () =>
+        {
+            await CalculateSizing();
+            StateHasChanged();
+        });
+    }
+
+    private async Task CalculateSizing()
+    {
+        try
+        {
+            // Build input from WizardState
+            var input = BuildSizingInput();
+
+            // Calculate sizing
+            _vmResult = VMSizingService.Calculate(input);
+
+            // Estimate costs (use cloud provider for cost estimation)
+            if (_vmResult != null)
+            {
+                _costEstimate = await CostEstimationService.EstimateVMCostAsync(
+                    _vmResult,
+                    CloudProvider.AWS,
+                    "us-east-1");
+            }
+
+            // Update display tables
+            UpdateRoleTable();
+            UpdateOvercommitTable();
+            UpdateCostBreakdown();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"VM sizing calculation error: {ex.Message}");
+            // Keep defaults on error
+        }
+    }
+
+    private VMSizingInput BuildSizingInput()
+    {
+        var input = new VMSizingInput
+        {
+            Technology = WizardState.SelectedTechnology ?? Technology.DotNet,
+            EnabledEnvironments = WizardState.EnabledEnvironments,
+            SystemOverheadPercent = 15
+        };
+
+        // Add per-environment configurations
+        foreach (var env in WizardState.EnabledEnvironments)
+        {
+            var instances = GetInstancesForEnvironment(env);
+            input.EnvironmentConfigs[env] = new VMEnvironmentConfig
+            {
+                Environment = env,
+                Enabled = true,
+                HAPattern = env == EnvironmentType.Prod ? HAPattern.ActiveActive : HAPattern.None,
+                Roles = new List<VMRoleConfig>
+                {
+                    new VMRoleConfig
+                    {
+                        Role = ServerRole.App,
+                        InstanceCount = instances,
+                        CustomCpu = WizardState.VmAppConfig.VCpu,
+                        CustomRam = WizardState.VmAppConfig.MemoryGB,
+                        DiskGB = WizardState.VmAppConfig.StorageGB
+                    }
+                }
+            };
+        }
+
+        return input;
+    }
+
+    private int GetInstancesForEnvironment(EnvironmentType env)
+    {
+        return env switch
+        {
+            EnvironmentType.Dev => WizardState.VmEnvConfig.DevInstances,
+            EnvironmentType.Test => WizardState.VmEnvConfig.TestInstances,
+            EnvironmentType.Stage => WizardState.VmEnvConfig.StagingInstances,
+            EnvironmentType.Prod => WizardState.VmEnvConfig.ProductionInstances,
+            _ => 1
+        };
+    }
+
+    private string LoadTechnologyName()
+    {
+        if (WizardState.SelectedTechnology.HasValue)
+        {
+            var tech = TechnologyService.GetConfig(WizardState.SelectedTechnology.Value);
+            _technologyName = tech?.Name ?? "vSphere";
+            return _technologyName;
+        }
+        return "vSphere";
+    }
+
+    private string BuildVMBreakdown()
+    {
+        if (_vmResult?.Environments == null || !_vmResult.Environments.Any())
+        {
+            var env = WizardState.VmEnvConfig;
+            return $"{env.DevInstances} Dev + {env.TestInstances} Test + {env.StagingInstances} Stg + {env.ProductionInstances} Prod";
+        }
+
+        var parts = _vmResult.Environments
+            .Where(e => e.TotalVMs > 0)
+            .Select(e => $"{e.TotalVMs} {e.EnvironmentName}");
+        return string.Join(" + ", parts);
+    }
+
+    private string FormatStorage(int gb)
+    {
+        if (gb >= 1024)
+            return $"{(gb / 1024.0):F2}TB";
+        return $"{gb}GB";
+    }
+
+    private string CalculateVMsPerHost()
+    {
+        var hosts = WizardState.VmHostConfig.TotalHosts;
+        if (hosts == 0) return "N/A";
+        var vmsPerHost = _totalVMs / (double)hosts;
+        var low = (int)Math.Floor(vmsPerHost);
+        var high = (int)Math.Ceiling(vmsPerHost);
+        return low == high ? low.ToString() : $"{low}-{high}";
+    }
+
+    private void UpdateRoleTable()
+    {
+        _vmsByRole.Clear();
+
+        if (_vmResult?.Environments != null)
+        {
+            // Aggregate roles across all environments
+            var roleGroups = _vmResult.Environments
+                .SelectMany(e => e.Roles)
+                .GroupBy(r => r.RoleName);
+
+            foreach (var group in roleGroups)
+            {
+                var total = group.Sum(r => r.TotalInstances);
+                var first = group.First();
+                _vmsByRole.Add(new VMRoleInfo(
+                    group.Key,
+                    GetBadgeClass(first.Role),
+                    total,
+                    first.CpuPerInstance,
+                    $"{first.RamPerInstance}GB",
+                    $"{first.DiskPerInstance}GB"
+                ));
+            }
+        }
+
+        // Fallback if no results
+        if (!_vmsByRole.Any())
+        {
+            _vmsByRole.Add(new VMRoleInfo(
+                "Application",
+                "vm",
+                WizardState.VmEnvConfig.TotalInstances,
+                WizardState.VmAppConfig.VCpu,
+                $"{WizardState.VmAppConfig.MemoryGB}GB",
+                $"{WizardState.VmAppConfig.StorageGB}GB"
+            ));
+        }
+    }
+
+    private string GetBadgeClass(ServerRole role)
+    {
+        return role switch
+        {
+            ServerRole.App => "vm",
+            ServerRole.Database => "warning",
+            ServerRole.Web => "success",
+            _ => "default"
+        };
+    }
+
+    private void UpdateOvercommitTable()
+    {
+        var hostConfig = WizardState.VmHostConfig;
+        var totalHostCpu = hostConfig.TotalHosts * hostConfig.HostCores;
+        var totalHostMem = hostConfig.TotalHosts * hostConfig.HostMemoryGB;
+        var totalHostStorage = hostConfig.TotalHosts * hostConfig.HostStorageGB;
+
+        var allocatedCpu = _totalVcpu;
+        var allocatedMem = _vmResult?.GrandTotal?.TotalRam ?? WizardState.VmRequirements.TotalMemoryGB;
+        var allocatedStorage = _vmResult?.GrandTotal?.TotalDisk ?? WizardState.VmRequirements.TotalStorageGB;
+
+        _overcommitAnalysis = new List<OvercommitItem>
+        {
+            new("CPU",
+                $"{allocatedCpu} vCPU",
+                $"{totalHostCpu} cores",
+                totalHostCpu > 0 ? $"{(allocatedCpu / (double)totalHostCpu):F2}:1" : "N/A",
+                GetOvercommitStatus(allocatedCpu, totalHostCpu, hostConfig.ProdCpuRatio),
+                GetOvercommitStatusClass(allocatedCpu, totalHostCpu, hostConfig.ProdCpuRatio)),
+            new("Memory",
+                $"{allocatedMem} GB",
+                $"{totalHostMem} GB",
+                totalHostMem > 0 ? $"{(allocatedMem / (double)totalHostMem):F2}:1" : "N/A",
+                GetOvercommitStatus(allocatedMem, totalHostMem, hostConfig.ProdMemRatio),
+                GetOvercommitStatusClass(allocatedMem, totalHostMem, hostConfig.ProdMemRatio)),
+            new("Storage",
+                FormatStorage(allocatedStorage),
+                FormatStorage(totalHostStorage),
+                totalHostStorage > 0 ? $"{(allocatedStorage / (double)totalHostStorage):F2}:1" : "N/A",
+                allocatedStorage <= totalHostStorage ? "OK" : "Over",
+                allocatedStorage <= totalHostStorage ? "success" : "warning")
+        };
+    }
+
+    private string GetOvercommitStatus(double allocated, double physical, double maxRatio)
+    {
+        if (physical == 0) return "N/A";
+        var ratio = allocated / physical;
+        return ratio <= maxRatio ? "OK" : "Over";
+    }
+
+    private string GetOvercommitStatusClass(double allocated, double physical, double maxRatio)
+    {
+        if (physical == 0) return "default";
+        var ratio = allocated / physical;
+        return ratio <= maxRatio ? "success" : "warning";
+    }
+
+    private void UpdateCostBreakdown()
+    {
+        _costBreakdown.Clear();
+
+        if (_costEstimate != null)
+        {
+            if (_costEstimate.ComputeCost > 0)
+                _costBreakdown.Add(new CostItem("Compute", _costEstimate.ComputeCost.ToString("C0") + "/mo"));
+            if (_costEstimate.StorageCost > 0)
+                _costBreakdown.Add(new CostItem("Storage", _costEstimate.StorageCost.ToString("C0") + "/mo"));
+            if (_costEstimate.NetworkCost > 0)
+                _costBreakdown.Add(new CostItem("Network", _costEstimate.NetworkCost.ToString("C0") + "/mo"));
+            if (_costEstimate.LicenseCost > 0)
+                _costBreakdown.Add(new CostItem("Licenses", _costEstimate.LicenseCost.ToString("C0") + "/mo"));
+            if (_costEstimate.SupportCost > 0)
+                _costBreakdown.Add(new CostItem("Support", _costEstimate.SupportCost.ToString("C0") + "/mo"));
+        }
+
+        // Fallback if no cost breakdown
+        if (!_costBreakdown.Any())
+        {
+            _costBreakdown.Add(new CostItem("Compute", "$0/mo"));
+        }
+    }
+
+    // Event handlers
+    private void HandleExport()
+    {
+        // TODO: Show export modal
+    }
+
+    private async void HandleCalculate()
+    {
+        await CalculateSizing();
+        StateHasChanged();
+    }
+
+    private void HandleLogout()
+    {
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private void HandleEnvironmentChange(string environment)
+    {
+        _selectedEnvironment = environment;
+        StateHasChanged();
+    }
+
+    private void HandleTabChange(string tab)
+    {
+        _activeConfigTab = tab;
+        StateHasChanged();
+    }
+
+    private void HandleModeChange(string mode)
+    {
+        if (mode == "k8s")
+        {
+            NavigationManager.NavigateTo("/dashboard/k8s");
+        }
+    }
+
+    private async void HandleApplyChanges()
+    {
+        await CalculateSizing();
+        StateHasChanged();
+    }
+
+    private void HandleReset()
+    {
+        WizardState.Reset();
+        StateHasChanged();
+    }
+
+    private async Task HandleSaveScenario()
+    {
+        if (!_isAuthenticated || _vmResult == null) return;
+
+        _isSaving = true;
+        try
+        {
+            var input = BuildSizingInput();
+            var scenarioName = string.IsNullOrEmpty(_scenarioName)
+                ? $"VM Scenario - {DateTime.Now:MMM dd HH:mm}"
+                : _scenarioName;
+
+            var scenario = await ScenarioService.SaveVMScenarioAsync(
+                scenarioName,
+                input,
+                _vmResult,
+                _costEstimate,
+                $"{_technologyName} deployment with {_totalVMs} VMs",
+                new List<string> { "vm", _technologyName.ToLower().Replace(" ", "-") });
+
+            _currentScenarioId = scenario.Id;
+            _scenarioName = scenario.Name;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        WizardState.OnStateChanged -= HandleStateChanged;
+    }
+
+    // Data records
+    public record VMRoleInfo(string Role, string BadgeClass, int Qty, int Vcpu, string Ram, string Disk);
+    public record OvercommitItem(string Resource, string Allocated, string Physical, string Ratio, string Status, string StatusClass);
+    public record CostItem(string Label, string Amount);
+}

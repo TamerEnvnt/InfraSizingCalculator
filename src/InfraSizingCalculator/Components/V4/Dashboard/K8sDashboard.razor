@@ -1,0 +1,524 @@
+@page "/dashboard/k8s"
+@rendermode InteractiveServer
+
+@*
+    K8sDashboard.razor - v0.4.4 Kubernetes Dashboard
+
+    Matches wireframe: 01-dashboard-k8s.html
+    - Summary row: 3 metric cards
+    - Results grid: 4 result cards
+    - Side panel: Config tabs
+*@
+
+@using InfraSizingCalculator.Components.V4.Headers
+@using InfraSizingCalculator.Components.Layout
+@using InfraSizingCalculator.Services.Auth
+@using InfraSizingCalculator.Services.Interfaces
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Models.Pricing
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IWizardStateService WizardState
+@inject IK8sSizingService K8sSizingService
+@inject ICostEstimationService CostEstimationService
+@inject IDistributionService DistributionService
+@inject IScenarioService ScenarioService
+@implements IDisposable
+
+<PageTitle>K8s Dashboard | InfraSizing Calculator</PageTitle>
+
+<DashboardLayout IsPanelOpen="true">
+    <Header>
+        @if (_isAuthenticated)
+        {
+            <AuthHeader UserName="@_userName"
+                        UserEmail="@_userEmail"
+                        OnExport="HandleExport"
+                        OnCalculate="HandleCalculate"
+                        OnLogout="HandleLogout" />
+        }
+        else
+        {
+            <GuestHeader />
+        }
+    </Header>
+
+    <Body>
+        <div class="dashboard" data-testid="k8s-dashboard">
+            @* Guest Mode Banner - shows when not authenticated *@
+            @if (!_isAuthenticated)
+            {
+                <div class="guest-banner">
+                    <strong>Guest Mode</strong> - <a href="/login">Sign in</a> to save scenarios and access full features.
+                </div>
+            }
+
+            <!-- Summary Row -->
+            <div class="summary-row">
+                <div class="summary-card highlight" data-testid="summary-nodes">
+                    <div class="summary-icon k8s">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">Total Nodes</div>
+                        <div class="summary-value">@_totalNodes</div>
+                        <div class="summary-sub">@_nodeBreakdown</div>
+                    </div>
+                </div>
+                <div class="summary-card" data-testid="summary-cost">
+                    <div class="summary-icon accent">$</div>
+                    <div class="summary-content">
+                        <div class="summary-label">Monthly Cost</div>
+                        <div class="summary-value">@_monthlyCost</div>
+                        <div class="summary-sub">~@_yearlyCost/year</div>
+                    </div>
+                </div>
+                <div class="summary-card" data-testid="summary-growth">
+                    <div class="summary-icon success">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        </svg>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">Year-End</div>
+                        <div class="summary-value">@_yearEndNodes</div>
+                        <div class="summary-sub">@_growthPercent growth</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="results-area">
+                <!-- Cluster Overview -->
+                <div class="result-card" data-testid="result-cluster">
+                    <div class="result-header">
+                        Cluster Overview
+                        <span class="badge badge-k8s">@_distribution</span>
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <thead>
+                                <tr><th>Type</th><th>Qty</th><th>vCPU</th><th>RAM</th><th>Disk</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="badge badge-warning">CP</span></td><td>@_cpNodes</td><td>@_cpVcpu</td><td>@_cpRam</td><td>@_cpDisk</td></tr>
+                                <tr><td><span class="badge badge-success">Infra</span></td><td>@_infraNodes</td><td>@_infraVcpu</td><td>@_infraRam</td><td>@_infraDisk</td></tr>
+                                <tr><td><span class="badge badge-k8s">Worker</span></td><td>@_workerNodes</td><td>@_workerVcpu</td><td>@_workerRam</td><td>@_workerDisk</td></tr>
+                            </tbody>
+                            <tfoot><tr><td>Total</td><td>@_totalNodes</td><td>@_totalVcpu</td><td>@_totalRam</td><td>@_totalDisk</td></tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pod Distribution -->
+                <div class="result-card" data-testid="result-pods">
+                    <div class="result-header">
+                        Pod Distribution
+                        <span class="badge badge-success">@_podCount/@_maxPods pods</span>
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <thead>
+                                <tr><th>App Type</th><th>Replicas</th><th>CPU</th><th>RAM</th><th>Pods</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var app in _podDistribution)
+                                {
+                                    <tr>
+                                        <td>@app.Name</td>
+                                        <td>@app.Replicas</td>
+                                        <td>@app.Cpu</td>
+                                        <td>@app.Ram</td>
+                                        <td>@app.Pods</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- etcd Requirements -->
+                <div class="result-card" data-testid="result-etcd">
+                    <div class="result-header">
+                        etcd Requirements
+                        <span class="badge badge-warning">Critical</span>
+                    </div>
+                    <div class="result-body">
+                        <div class="info-box">
+                            <strong>@_etcdClusterSize</strong>
+                            <ul class="etcd-requirements">
+                                @foreach (var req in _etcdRequirements)
+                                {
+                                    <li>@req</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Breakdown -->
+                <div class="result-card" data-testid="result-cost">
+                    <div class="result-header">
+                        Cost Breakdown
+                    </div>
+                    <div class="result-body">
+                        <table class="table">
+                            <tbody>
+                                @foreach (var item in _costBreakdown)
+                                {
+                                    <tr><td>@item.Label</td><td class="text-right">@item.Amount</td></tr>
+                                }
+                            </tbody>
+                            <tfoot><tr><td>Total</td><td class="text-right">@_monthlyCost/mo</td></tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Body>
+
+    <Panel>
+        <K8sConfigPanel
+            SelectedEnvironment="@_selectedEnvironment"
+            ActiveTab="@_activeConfigTab"
+            OnEnvironmentChange="HandleEnvironmentChange"
+            OnTabChange="HandleTabChange"
+            OnModeChange="HandleModeChange"
+            OnApply="HandleApplyChanges"
+            OnReset="HandleReset" />
+    </Panel>
+</DashboardLayout>
+
+@code {
+    // Auth state
+    private bool _isAuthenticated = false;
+    private string _userName = "";
+    private string _userEmail = "";
+
+    // Configuration state
+    private string _selectedEnvironment = "production";
+    private string _activeConfigTab = "cluster";
+    private string _distribution = "OpenShift 4.14";
+
+    // Computed summary values (from WizardState.Results)
+    private int _totalNodes => WizardState.Results?.GrandTotal?.TotalNodes ?? 12;
+    private string _nodeBreakdown => GetNodeBreakdown();
+    private string _monthlyCost => _costEstimate?.MonthlyTotal.ToString("C0") ?? "$4,250";
+    private string _yearlyCost => _costEstimate != null ? $"~${(_costEstimate.MonthlyTotal * 12 / 1000):F0}K" : "~$51K";
+    private int _yearEndNodes => (int)(_totalNodes * 1.25); // 25% growth default
+    private string _growthPercent => "+25%";
+
+    // Cluster Overview values (from WizardState.Results)
+    private int _cpNodes => WizardState.Results?.GrandTotal?.TotalMasters ?? 3;
+    private int _infraNodes => WizardState.Results?.GrandTotal?.TotalInfra ?? 3;
+    private int _workerNodes => WizardState.Results?.GrandTotal?.TotalWorkers ?? 6;
+    private int _cpVcpu => WizardState.NodeSpecs?.ProdMasterCpu ?? 8;
+    private int _infraVcpu => WizardState.NodeSpecs?.ProdInfraCpu ?? 4;
+    private int _workerVcpu => WizardState.NodeSpecs?.ProdWorkerCpu ?? 8;
+    private string _cpRam => $"{WizardState.NodeSpecs?.ProdMasterRam ?? 32}GB";
+    private string _infraRam => $"{WizardState.NodeSpecs?.ProdInfraRam ?? 16}GB";
+    private string _workerRam => $"{WizardState.NodeSpecs?.ProdWorkerRam ?? 32}GB";
+    private string _cpDisk => $"{WizardState.NodeSpecs?.ProdMasterDisk ?? 200}GB";
+    private string _infraDisk => $"{WizardState.NodeSpecs?.ProdInfraDisk ?? 100}GB";
+    private string _workerDisk => $"{WizardState.NodeSpecs?.ProdWorkerDisk ?? 200}GB";
+    private int _totalVcpu => WizardState.Results?.GrandTotal?.TotalCpu ?? 80;
+    private string _totalRam => $"{WizardState.Results?.GrandTotal?.TotalRam ?? 240}GB";
+    private string _totalDisk => FormatStorage(WizardState.Results?.GrandTotal?.TotalDisk ?? 1800);
+
+    // Pod Distribution
+    private int _podCount => WizardState.K8sRequirements?.TotalReplicas ?? 52;
+    private int _maxPods => _workerNodes * 110;
+    private List<PodInfo> _podDistribution = new();
+
+    // etcd Requirements
+    private string _etcdClusterSize => GetEtcdClusterSize();
+    private List<string> _etcdRequirements = new();
+
+    // Cost Breakdown
+    private CostEstimate? _costEstimate;
+    private List<CostItem> _costBreakdown = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check authentication
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _isAuthenticated = true;
+            _userName = user.Identity.Name ?? "User";
+            _userEmail = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+        }
+
+        // Subscribe to state changes
+        WizardState.OnStateChanged += OnWizardStateChanged;
+
+        // Load distribution name
+        LoadDistributionName();
+
+        // Initialize with default calculation
+        await CalculateSizing();
+
+        // Initialize static data
+        InitializeStaticData();
+    }
+
+    private void LoadDistributionName()
+    {
+        if (WizardState.SelectedDistribution.HasValue)
+        {
+            var distConfig = DistributionService.GetConfig(WizardState.SelectedDistribution.Value);
+            _distribution = distConfig?.Name ?? "OpenShift 4.14";
+        }
+    }
+
+    private async Task CalculateSizing()
+    {
+        try
+        {
+            // Build K8sSizingInput from WizardState
+            var input = BuildSizingInput();
+
+            // Calculate sizing
+            WizardState.Results = K8sSizingService.Calculate(input);
+
+            // Calculate cost estimate (default to AWS us-east-1)
+            _costEstimate = await CostEstimationService.EstimateK8sCostAsync(
+                WizardState.Results,
+                CloudProvider.AWS,
+                "us-east-1");
+
+            // Update cost breakdown display
+            UpdateCostBreakdown();
+
+            // Update pod distribution from requirements
+            UpdatePodDistribution();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Sizing calculation error: {ex.Message}");
+        }
+    }
+
+    private K8sSizingInput BuildSizingInput()
+    {
+        return new K8sSizingInput
+        {
+            Distribution = WizardState.SelectedDistribution ?? Distribution.OpenShift,
+            Technology = WizardState.SelectedTechnology ?? Technology.DotNet,
+            ClusterMode = WizardState.SelectedClusterMode ?? ClusterMode.MultiCluster,
+            ProdApps = WizardState.EnvApps.GetValueOrDefault(EnvironmentType.Prod, new AppConfig { Medium = 70 }),
+            NonProdApps = WizardState.EnvApps.GetValueOrDefault(EnvironmentType.Dev, new AppConfig { Medium = 70 }),
+            EnabledEnvironments = WizardState.EnabledEnvironments,
+            Replicas = new ReplicaSettings
+            {
+                NonProd = WizardState.Replicas.GetValueOrDefault(EnvironmentType.Dev, 1),
+                Stage = WizardState.Replicas.GetValueOrDefault(EnvironmentType.Stage, 2),
+                Prod = WizardState.Replicas.GetValueOrDefault(EnvironmentType.Prod, 3)
+            },
+            Headroom = new HeadroomSettings
+            {
+                Dev = WizardState.Headroom.GetValueOrDefault(EnvironmentType.Dev, 20),
+                Test = WizardState.Headroom.GetValueOrDefault(EnvironmentType.Test, 20),
+                Stage = WizardState.Headroom.GetValueOrDefault(EnvironmentType.Stage, 25),
+                Prod = WizardState.Headroom.GetValueOrDefault(EnvironmentType.Prod, 30)
+            },
+            ProdOvercommit = new OvercommitSettings
+            {
+                Cpu = WizardState.ProdCpuOvercommit,
+                Memory = WizardState.ProdMemoryOvercommit
+            },
+            NonProdOvercommit = new OvercommitSettings
+            {
+                Cpu = WizardState.NonProdCpuOvercommit,
+                Memory = WizardState.NonProdMemoryOvercommit
+            }
+        };
+    }
+
+    private void InitializeStaticData()
+    {
+        _etcdRequirements = new List<string>
+        {
+            "CPU: 4-8 cores dedicated",
+            "Memory: 16-32 GB RAM",
+            "Storage: SSD with 500+ IOPS",
+            "Network: <10ms latency"
+        };
+    }
+
+    private void UpdatePodDistribution()
+    {
+        var reqs = WizardState.K8sRequirements;
+        var totalReplicas = reqs?.TotalReplicas ?? 52;
+
+        // Estimate pod distribution based on total replicas
+        var appPods = (int)(totalReplicas * 0.4);
+        var dbPods = (int)(totalReplicas * 0.3);
+        var nativePods = (int)(totalReplicas * 0.2);
+        var platformPods = totalReplicas - appPods - dbPods - nativePods;
+
+        _podDistribution = new List<PodInfo>
+        {
+            new("Mendix Runtime", 2, "500m", "1GB", Math.Max(appPods, 1)),
+            new("DB Proxy", 2, "250m", "512MB", Math.Max(dbPods, 1)),
+            new("Native Containers", 3, "500m", "1GB", Math.Max(nativePods, 1)),
+            new("Platform Services", 2, "250m", "512MB", Math.Max(platformPods, 1))
+        };
+    }
+
+    private void UpdateCostBreakdown()
+    {
+        if (_costEstimate == null)
+        {
+            _costBreakdown = new List<CostItem>
+            {
+                new("OpenShift License", "$1,800/mo"),
+                new("Compute (12 nodes)", "$1,950/mo"),
+                new("Storage (1.8TB)", "$350/mo"),
+                new("Support/Mgmt", "$150/mo")
+            };
+            return;
+        }
+
+        _costBreakdown = new List<CostItem>
+        {
+            new("License", $"${_costEstimate.LicenseCost:N0}/mo"),
+            new($"Compute ({_totalNodes} nodes)", $"${_costEstimate.ComputeCost:N0}/mo"),
+            new($"Storage ({_totalDisk})", $"${_costEstimate.StorageCost:N0}/mo"),
+            new("Support/Mgmt", $"${_costEstimate.SupportCost:N0}/mo")
+        };
+    }
+
+    private string GetNodeBreakdown()
+    {
+        var results = WizardState.Results?.GrandTotal;
+        if (results == null) return "3 CP + 3 Infra + 6 Workers";
+        return $"{results.TotalMasters} CP + {results.TotalInfra} Infra + {results.TotalWorkers} Workers";
+    }
+
+    private string GetEtcdClusterSize()
+    {
+        var workers = WizardState.Results?.GrandTotal?.TotalWorkers ?? 6;
+        if (workers <= 3) return "Small Cluster (≤3 workers)";
+        if (workers <= 10) return $"Medium Cluster ({workers} workers)";
+        return $"Large Cluster ({workers} workers)";
+    }
+
+    private string FormatStorage(int gb)
+    {
+        return gb >= 1000 ? $"{gb / 1000.0:F1}TB" : $"{gb}GB";
+    }
+
+    private void OnWizardStateChanged()
+    {
+        InvokeAsync(async () =>
+        {
+            await CalculateSizing();
+            StateHasChanged();
+        });
+    }
+
+    // Scenario state
+    private Guid? _currentScenarioId;
+    private string _scenarioName = "";
+    private bool _isSaving = false;
+
+    // Event handlers
+    private void HandleExport()
+    {
+        // TODO: Show export modal
+    }
+
+    private async Task HandleSaveScenario()
+    {
+        if (!_isAuthenticated || WizardState.Results == null)
+            return;
+
+        _isSaving = true;
+        try
+        {
+            var input = BuildSizingInput();
+            var scenarioName = string.IsNullOrEmpty(_scenarioName)
+                ? $"K8s Scenario - {DateTime.Now:MMM dd HH:mm}"
+                : _scenarioName;
+
+            var scenario = await ScenarioService.SaveK8sScenarioAsync(
+                scenarioName,
+                input,
+                WizardState.Results,
+                _costEstimate,
+                $"{_distribution} cluster with {_totalNodes} nodes",
+                new List<string> { "k8s", _distribution.Split(' ')[0].ToLower() });
+
+            _currentScenarioId = scenario.Id;
+            _scenarioName = scenario.Name;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Save scenario error: {ex.Message}");
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleCalculate()
+    {
+        await CalculateSizing();
+        StateHasChanged();
+    }
+
+    private void HandleLogout()
+    {
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private void HandleEnvironmentChange(string environment)
+    {
+        _selectedEnvironment = environment;
+        StateHasChanged();
+    }
+
+    private void HandleTabChange(string tab)
+    {
+        _activeConfigTab = tab;
+        StateHasChanged();
+    }
+
+    private void HandleModeChange(string mode)
+    {
+        if (mode == "vm")
+        {
+            NavigationManager.NavigateTo("/dashboard/vm");
+        }
+    }
+
+    private async Task HandleApplyChanges()
+    {
+        await HandleCalculate();
+    }
+
+    private void HandleReset()
+    {
+        WizardState.Reset();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        WizardState.OnStateChanged -= OnWizardStateChanged;
+    }
+
+    // Data records
+    public record PodInfo(string Name, int Replicas, string Cpu, string Ram, int Pods);
+    public record CostItem(string Label, string Amount);
+}

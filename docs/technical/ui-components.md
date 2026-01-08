@@ -110,7 +110,7 @@ Page layout wrapper with header and navigation.
 Main wizard component containing all calculator functionality.
 
 **File:** `Components/Pages/Home.razor`
-**Lines:** ~3700+
+**Lines:** ~7500+
 
 **State Variables:**
 ```csharp

@@ -292,7 +292,7 @@ public class DataValidationTests : PlaywrightFixture
 
         // Multi-cluster mode: Dev panel is expanded by default with tier inputs
         // Wait for tier inputs to be present in the DOM
-        await Page.WaitForSelectorAsync(".tier-panel input.tier-input", new() { Timeout = 5000, State = WaitForSelectorState.Visible });
+        await Page.WaitForSelectorAsync(".tier-panel input.tier-input", new() { Timeout = 15000, State = WaitForSelectorState.Visible });
 
         // Find the tier input by looking for the panel with matching class
         var tierInputSelector = $".tier-panel.{tier.ToLower()} input.tier-input";

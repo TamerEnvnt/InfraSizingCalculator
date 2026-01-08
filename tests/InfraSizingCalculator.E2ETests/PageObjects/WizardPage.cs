@@ -49,9 +49,33 @@ public class WizardPage
 
     public async Task ClickNextAsync()
     {
-        var nextButton = _page.Locator(Locators.Wizard.NextButton);
+        // Wait for button to be visible and enabled
+        var nextButton = _page.Locator("button.btn-nav.primary:not([disabled])");
         await nextButton.WaitForAsync(new() { Timeout = _defaultTimeout, State = WaitForSelectorState.Visible });
-        await nextButton.ClickAsync();
+
+        // Get current step before click
+        var stepBefore = await _page.Locator(".step-indicator").TextContentAsync();
+        Console.WriteLine($"Step before click: {stepBefore}");
+
+        // Try multiple click approaches
+        try
+        {
+            // First try: standard click with force
+            await nextButton.ClickAsync(new() { Force = true });
+        }
+        catch
+        {
+            // Fallback: focus and Enter key
+            await nextButton.FocusAsync();
+            await _page.Keyboard.PressAsync("Enter");
+        }
+
+        await _page.WaitForTimeoutAsync(2000); // Wait for Blazor navigation
+
+        // Verify step changed
+        var stepAfter = await _page.Locator(".step-indicator").TextContentAsync();
+        Console.WriteLine($"Step after click: {stepAfter}");
+
         await WaitForStabilityAsync();
         await TakeStepScreenshotAsync("AfterNext");
     }

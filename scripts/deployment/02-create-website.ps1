@@ -21,8 +21,30 @@
 .PARAMETER Environment
     ASP.NET Core environment (default: Production)
 
+# =============================================================================
+# DEPLOYMENT CONFIGURATION - DO NOT CHANGE WITHOUT UPDATING ALL REFERENCES
+# =============================================================================
+#
+# Server: 192.168.10.155
+# SMB Share: smb://192.168.10.155/Deploy
+# Share Maps To: C:\inetpub\Deployment\
+#
+# IIS Websites:
+#   - InfraSizing (v1): C:\inetpub\InfraSizing, Port 8080
+#   - InfraSizing-v2:   C:\inetpub\InfraSizing-v2, Port 8080
+#
+# Deployment Scripts Location: C:\inetpub\Deployment\
+# Deployment User: deploy-infrasizing
+#
+# =============================================================================
+
 .EXAMPLE
+    # Create v1 site (default)
     .\02-create-website.ps1 -SitePort 8080
+
+.EXAMPLE
+    # Create v2 site
+    .\02-create-website.ps1 -SiteName "InfraSizing-v2" -SitePath "C:\inetpub\InfraSizing-v2" -SitePort 8080
 
 .EXAMPLE
     .\02-create-website.ps1 -SiteName "InfraSizing-Dev" -SitePort 8081 -Environment "Development"

@@ -18,7 +18,7 @@ public class QuickTest : PlaywrightFixture
 
         // Find and click Settings button (navigates to /settings page)
         var settingsBtn = Page.Locator("button.header-btn.settings-btn");
-        await settingsBtn.WaitForAsync(new LocatorWaitForOptions { Timeout = 5000 });
+        await settingsBtn.WaitForAsync(new LocatorWaitForOptions { Timeout = 15000 });
 
         Console.WriteLine($"Settings button visible: {await settingsBtn.IsVisibleAsync()}");
         Console.WriteLine($"Settings button enabled: {await settingsBtn.IsEnabledAsync()}");

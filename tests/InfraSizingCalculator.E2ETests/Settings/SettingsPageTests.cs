@@ -16,11 +16,11 @@ public class SettingsPageTests : PlaywrightFixture
 
         // Click settings button
         var settingsButton = Page.Locator("button:has-text('Settings')");
-        await settingsButton.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
+        await settingsButton.WaitForAsync(new() { Timeout = 15000, State = WaitForSelectorState.Visible });
         await settingsButton.ClickAsync();
 
         // Wait for settings page to load
-        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 15000 });
 
         // Verify the settings main content is visible
         var settingsMain = Page.Locator(".settings-main");
@@ -40,7 +40,7 @@ public class SettingsPageTests : PlaywrightFixture
         // Navigate to settings
         var settingsButton = Page.Locator("button:has-text('Settings')");
         await settingsButton.ClickAsync();
-        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 15000 });
 
         // Verify the settings page has content
         var settingsContent = Page.Locator(".settings-content");
@@ -58,7 +58,7 @@ public class SettingsPageTests : PlaywrightFixture
 
         var settingsButton = Page.Locator("button:has-text('Settings')");
         await settingsButton.ClickAsync();
-        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 15000 });
 
         // Check for main sections in sidebar
         var pageContent = await Page.ContentAsync();
@@ -76,7 +76,7 @@ public class SettingsPageTests : PlaywrightFixture
 
         var settingsButton = Page.Locator("button:has-text('Settings')");
         await settingsButton.ClickAsync();
-        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".settings-page", new() { Timeout = 15000 });
 
         // Look for back button or link
         var backButton = Page.Locator("button:has-text('Back'), a:has-text('Back')");

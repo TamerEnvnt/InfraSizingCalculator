@@ -3784,6 +3784,13 @@
 
     private async Task NextStep()
     {
+        Console.WriteLine($"[DEBUG] NextStep called. currentStep={currentStep}, CanProceed={CanProceed()}");
+        Console.WriteLine($"[DEBUG] HasVMRolesConfigured={HasVMRolesConfigured()}, enabledEnvs={string.Join(",", enabledEnvironments)}");
+        Console.WriteLine($"[DEBUG] vmConfigs count={vmEnvironmentConfigs.Count}, keys={string.Join(",", vmEnvironmentConfigs.Keys)}");
+        foreach (var kvp in vmEnvironmentConfigs)
+        {
+            Console.WriteLine($"[DEBUG]   {kvp.Key}: {kvp.Value.Roles.Count} roles");
+        }
         if (!CanProceed()) return;
 
         if (IsLastStep())
@@ -3803,10 +3810,26 @@
             else if (selectedDeployment == DeploymentModel.VMs && currentStep == GetConfigStep())
             {
                 // VMs: Calculate when leaving config step (step 4 for non-Mendix, step 5 for Mendix)
-                await CalculateVM();
+                Console.WriteLine("[DEBUG] About to call CalculateVM...");
+                try
+                {
+                    await CalculateVM();
+                    Console.WriteLine("[DEBUG] CalculateVM completed successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DEBUG] CalculateVM FAILED: {ex.Message}");
+                    throw;
+                }
             }
             currentStep++;
+            Console.WriteLine($"[DEBUG] currentStep incremented to {currentStep}");
         }
+        Console.WriteLine($"[DEBUG] About to call StateHasChanged, currentStep={currentStep}");
+        Console.Out.Flush();
+        StateHasChanged();
+        Console.WriteLine($"[DEBUG] StateHasChanged completed, currentStep={currentStep}");
+        Console.Out.Flush();
     }
 
     private bool CanProceed()
@@ -5683,7 +5706,12 @@
 
     private async Task CalculateVM()
     {
-        if (selectedTechnology == null) return;
+        Console.WriteLine("[DEBUG] CalculateVM started");
+        if (selectedTechnology == null)
+        {
+            Console.WriteLine("[DEBUG] CalculateVM: selectedTechnology is null, returning");
+            return;
+        }
 
         // Build the input from VM configs
         var input = new VMSizingInput
@@ -5694,7 +5722,9 @@
             SystemOverheadPercent = vmSystemOverhead
         };
 
+        Console.WriteLine($"[DEBUG] CalculateVM: calling VMSizingService.Calculate with {enabledEnvironments.Count} environments");
         vmResults = VMSizingService.Calculate(input);
+        Console.WriteLine($"[DEBUG] CalculateVM: vmResults set, TotalVMs={vmResults?.GrandTotal?.TotalVMs ?? 0}");
 
         // Generate validation warnings and recommendations
         vmValidationWarnings = ValidationService.Analyze(vmResults, input);

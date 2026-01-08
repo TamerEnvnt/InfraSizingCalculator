@@ -111,9 +111,9 @@ src/InfraSizingCalculator/
 │   ├── VM/              # VM-specific components
 │   ├── Pricing/         # Pricing components
 │   └── Wizard/          # Wizard framework
-├── Services/            # Business logic (16 services)
+├── Services/            # Business logic (23 services)
 ├── Models/              # Data models and enums
-│   └── Enums/           # 11 enumeration types
+│   └── Enums/           # 15 enumeration types
 └── Controllers/Api/     # REST API endpoints
 ```
 
@@ -279,6 +279,52 @@ docs/
 ├── technical/            # Models, services, API, components
 ├── srs/                  # Software Requirements Specification
 └── testing/              # Test documentation
+```
+
+---
+
+## Context Efficiency (IMPORTANT)
+
+**Goal**: Minimize context consumption to prevent frequent compaction.
+
+### Response Guidelines
+
+1. **Summarize code changes** - Don't show full code blocks for edits
+   - Instead of showing 50 lines of changed code, describe: "Updated lines 45-60 to add error handling"
+   - Reference line numbers and file paths, not full content
+
+2. **Avoid repeating code** - Never echo back code that was just read or written
+   - After reading a file, don't quote it back
+   - After writing/editing, don't show the result unless specifically asked
+
+3. **Use concise descriptions** for file operations:
+   - "Added `HandleConfigChanged` method (10 lines)"
+   - "Replaced inline pricing section with component reference"
+   - "Updated state variables for OutSystems config"
+
+4. **Skip obvious explanations** - Trust the user understands the codebase
+   - Don't explain what standard patterns do
+   - Don't describe what imports are for
+
+5. **Batch status updates** - One summary instead of step-by-step narration
+
+### When Showing Code IS Appropriate
+
+- User explicitly asks to see the code
+- Explaining a complex algorithm or pattern
+- Teaching/explaining a concept
+- Reviewing code for issues
+- Small snippets (< 10 lines) that clarify the change
+
+### Format for Efficient Responses
+
+```
+Updated `src/Components/Pages/Home.razor`:
+- Lines 2864-2867: Added OutSystems config state variables
+- Lines 1588-1592: Replaced inline section with OutSystemsPricingPanel component
+- Lines 3560-3570: Added event handlers for config changes
+
+Build: Passed
 ```
 
 ---

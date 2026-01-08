@@ -1,4 +1,6 @@
 @* Horizontal Accordion Component - Expands panels left/right for widescreen *@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <CascadingValue Value="this">
     <div class="h-accordion @(SingleExpand ? "single-expand" : "") @AdditionalClass">
@@ -7,6 +9,10 @@
 </CascadingValue>
 
 @code {
+    private System.Threading.Timer? _pollTimer;
+    private bool _isDisposed;
+    private HashSet<string> _knownPanelKeys = new();
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
@@ -26,6 +32,68 @@
 
     [Parameter] public EventCallback<string?> ExpandedPanelChanged { get; set; }
 
+    /// <summary>
+    /// Panel keys to poll for (set by parent component)
+    /// </summary>
+    [Parameter] public string[]? PanelKeys { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        Console.WriteLine($"[HorizontalAccordion] OnAfterRender firstRender={firstRender}, isDisposed={_isDisposed}");
+        if (firstRender)
+        {
+            Console.WriteLine($"[HorizontalAccordion] Starting polling timer");
+            // Start polling for pending accordion clicks from JS (workaround for Playwright)
+            StartPollingForPendingClicks();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Track known panel keys for polling
+        if (PanelKeys != null)
+        {
+            _knownPanelKeys = new HashSet<string>(PanelKeys);
+        }
+    }
+
+    private void StartPollingForPendingClicks()
+    {
+        // Poll every 50ms for pending clicks from Playwright (faster than child polling)
+        _pollTimer = new System.Threading.Timer(async _ =>
+        {
+            if (_isDisposed) return;
+
+            try
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (_isDisposed) return;
+
+                    // Check for any pending accordion click
+                    var pendingKey = await JS.InvokeAsync<string?>("window.getPendingAccordionClick");
+                    if (!string.IsNullOrEmpty(pendingKey))
+                    {
+                        Console.WriteLine($"[HorizontalAccordion] Found pending click for key={pendingKey}");
+                        // Consume the click
+                        await JS.InvokeVoidAsync("window.consumePendingAccordionClick", pendingKey);
+                        // Toggle the panel
+                        await TogglePanel(pendingKey);
+                        Console.WriteLine($"[HorizontalAccordion] Toggled panel {pendingKey}, now expanded: {ExpandedPanel}");
+                    }
+                });
+            }
+            catch (ObjectDisposedException)
+            {
+                // Component was disposed, ignore
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HorizontalAccordion] Polling error: {ex.Message}");
+            }
+        }, null, TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(50));
+    }
+
     public bool IsPanelExpanded(string panelKey)
     {
         return ExpandedPanel == panelKey;
@@ -33,12 +101,27 @@
 
     public async Task TogglePanel(string panelKey)
     {
+        Console.WriteLine($"[HorizontalAccordion] TogglePanel called for {panelKey}, current={ExpandedPanel}");
         if (SingleExpand)
         {
             var newValue = ExpandedPanel == panelKey ? null : panelKey;
             ExpandedPanel = newValue;
             await ExpandedPanelChanged.InvokeAsync(newValue);
             StateHasChanged();
+            Console.WriteLine($"[HorizontalAccordion] Panel toggled, new expanded: {newValue}");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine($"[HorizontalAccordion] DisposeAsync called");
+        _isDisposed = true;
+
+        if (_pollTimer != null)
+        {
+            Console.WriteLine($"[HorizontalAccordion] Disposing timer");
+            await _pollTimer.DisposeAsync();
+            _pollTimer = null;
         }
     }
 }

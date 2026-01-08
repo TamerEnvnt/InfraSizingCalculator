@@ -1,3 +1,4 @@
+using FluentAssertions;
 using InfraSizingCalculator.Data;
 using InfraSizingCalculator.Services.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -127,5 +128,124 @@ public class DatabaseHealthCheckTests : IDisposable
         // Assert
         Assert.NotNull(result.Description);
         Assert.NotEmpty(result.Description);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_UnhealthyResult_ContainsErrorData()
+    {
+        // Arrange - Create a context that will throw on connection
+        var options = new DbContextOptionsBuilder<InfraSizingDbContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+        var context = new InfraSizingDbContext(options);
+        context.Database.OpenConnection();
+        context.Database.EnsureCreated();
+        var healthCheck = new DatabaseHealthCheck(context);
+
+        // Dispose to cause exception
+        context.Dispose();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Unhealthy);
+        result.Data.Should().NotBeNull();
+        result.Data.Should().ContainKey("error");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_WithValidCancellationToken_Completes()
+    {
+        // Arrange - Use a non-cancelled token
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        // Act - Should complete without throwing
+        var result = await _healthCheck.CheckHealthAsync(new HealthCheckContext(), cts.Token);
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_ReturnsDataWithConnectionStringInfo()
+    {
+        // Act
+        var result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data.Should().NotBeNull();
+        // Verify data dictionary is populated
+        result.Data.Count.Should().BeGreaterOrEqualTo(2);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_TableCounts_WhenTablesExist_IncludesSettingsCount()
+    {
+        // Arrange - Tables are already created in constructor
+
+        // Act
+        var result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data.Should().ContainKey("application_settings_count");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_TableCounts_WhenTablesExist_IncludesPricingCount()
+    {
+        // Arrange - Tables are already created in constructor
+
+        // Act
+        var result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Healthy);
+        result.Data.Should().ContainKey("on_prem_pricing_count");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_UnhealthyDescription_ContainsFailMessage()
+    {
+        // Arrange - Create and dispose context to trigger unhealthy
+        var options = new DbContextOptionsBuilder<InfraSizingDbContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+        var context = new InfraSizingDbContext(options);
+        context.Database.OpenConnection();
+        context.Database.EnsureCreated();
+        var healthCheck = new DatabaseHealthCheck(context);
+        context.Dispose();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Unhealthy);
+        result.Description.Should().NotBeNullOrEmpty();
+        result.Description.Should().Contain("failed");
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_UnhealthyResult_HasException()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<InfraSizingDbContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+        var context = new InfraSizingDbContext(options);
+        context.Database.OpenConnection();
+        context.Database.EnsureCreated();
+        var healthCheck = new DatabaseHealthCheck(context);
+        context.Dispose();
+
+        // Act
+        var result = await healthCheck.CheckHealthAsync(new HealthCheckContext());
+
+        // Assert
+        result.Status.Should().Be(HealthStatus.Unhealthy);
+        result.Exception.Should().NotBeNull();
     }
 }

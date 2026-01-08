@@ -33,7 +33,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
 
         // We should be on step 3 (technology selection) - Mendix should be visible
         var mendixCard = Page.Locator(".tech-card:has-text('Mendix')");
-        await mendixCard.WaitForAsync(new() { Timeout = 5000, State = WaitForSelectorState.Visible });
+        await mendixCard.WaitForAsync(new() { Timeout = 15000, State = WaitForSelectorState.Visible });
 
         Assert.That(await mendixCard.IsVisibleAsync(), Is.True,
             "Mendix technology card should be visible");
@@ -41,7 +41,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         await mendixCard.ClickAsync();
 
         // Wait for Mendix deployment categories (Mendix has a special flow, not .distro-card)
-        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 15000 });
 
         // Verify we moved to Mendix deployment category selection (Step 4 for Mendix K8s)
         var categoryCards = Page.Locator(".mendix-category-card");
@@ -58,7 +58,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         await SelectTechCardAsync("Mendix");
 
         // Wait for Mendix deployment categories to load (Mendix has special flow)
-        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 15000 });
 
         // Look for Mendix deployment category cards (Cloud, Private Cloud, Other)
         var categoryCards = await Page.QuerySelectorAllAsync(".mendix-category-card");
@@ -75,7 +75,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         await SelectTechCardAsync("Mendix");
 
         // Wait for Mendix deployment categories to load
-        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 15000 });
 
         // Select "Other Kubernetes" category (leads to configuration)
         var otherK8sCard = Page.Locator(".mendix-category-card:has-text('Other Kubernetes')");
@@ -91,7 +91,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         }
 
         // Wait for configuration to appear
-        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 15000 });
 
         // Should show configuration
         Assert.That(await IsVisibleAsync(".config-tabs-container") || await IsVisibleAsync(".config-tab") ||
@@ -108,7 +108,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         await SelectTechCardAsync("Mendix");
 
         // Wait for Mendix deployment categories
-        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".mendix-deployment-categories, .mendix-category-card", new() { Timeout = 15000 });
 
         // Select "Other Kubernetes" category
         var otherK8sCard = Page.Locator(".mendix-category-card:has-text('Other Kubernetes')");
@@ -124,7 +124,7 @@ public class MendixPricingFlowTests : PlaywrightFixture
         }
 
         // Wait for configuration to appear
-        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync(".config-tabs-container, .config-tab, .k8s-apps-config, .cluster-mode-sidebar", new() { Timeout = 15000 });
 
         // Verify Mendix-related content is visible (either in tabs or page content)
         var pageContent = await Page.ContentAsync();

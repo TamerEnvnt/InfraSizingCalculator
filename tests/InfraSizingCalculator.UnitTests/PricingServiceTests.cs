@@ -560,6 +560,135 @@ public class PricingServiceTests
 
     #endregion
 
+    #region LocalStorage Cache Tests
+
+    [Fact]
+    public async Task GetPricingAsync_ReturnsStoredPricing_WhenCacheExistsAndNotStale()
+    {
+        // Arrange - Create a valid PricingModel JSON that's not stale
+        var storedPricing = new PricingModel
+        {
+            Provider = CloudProvider.AWS,
+            Region = "us-east-1",
+            PricingType = PricingType.OnDemand,
+            LastUpdated = DateTime.UtcNow.AddHours(-1), // 1 hour ago, still fresh
+            Compute = new ComputePricing { CpuPerHour = 0.10m, RamGBPerHour = 0.02m },
+            Storage = new StoragePricing { SsdPerGBMonth = 0.15m },
+            Network = new NetworkPricing(),
+            Licenses = new LicensePricing(),
+            Support = new SupportPricing()
+        };
+        var json = System.Text.Json.JsonSerializer.Serialize(storedPricing,
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>(json));
+
+        // Act
+        var pricing = await _service.GetPricingAsync(CloudProvider.AWS, "us-east-1");
+
+        // Assert - Should return stored pricing (not default)
+        pricing.Should().NotBeNull();
+        pricing.Compute.CpuPerHour.Should().Be(0.10m);
+    }
+
+    [Fact]
+    public async Task GetPricingAsync_ReturnsDefaultPricing_WhenStoredCacheIsStale()
+    {
+        // Arrange - Create a stale stored pricing (25 hours old)
+        var stalePricing = new PricingModel
+        {
+            Provider = CloudProvider.AWS,
+            Region = "us-east-1",
+            LastUpdated = DateTime.UtcNow.AddHours(-25), // Stale (>24h)
+            Compute = new ComputePricing { CpuPerHour = 0.99m },
+            Storage = new StoragePricing(),
+            Network = new NetworkPricing(),
+            Licenses = new LicensePricing(),
+            Support = new SupportPricing()
+        };
+        var json = System.Text.Json.JsonSerializer.Serialize(stalePricing,
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>(json));
+
+        // Act
+        var pricing = await _service.GetPricingAsync(CloudProvider.AWS, "us-east-1");
+
+        // Assert - Should return default pricing (different from stale)
+        pricing.Should().NotBeNull();
+        pricing.Compute.CpuPerHour.Should().NotBe(0.99m);
+    }
+
+    [Fact]
+    public async Task GetPricingAsync_ReturnsDefaultPricing_WhenStoredJsonIsInvalid()
+    {
+        // Arrange - Return invalid JSON
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>("{invalid json}"));
+
+        // Act
+        var pricing = await _service.GetPricingAsync(CloudProvider.AWS, "us-east-1");
+
+        // Assert - Should gracefully fall back to default
+        pricing.Should().NotBeNull();
+        pricing.Provider.Should().Be(CloudProvider.AWS);
+    }
+
+    [Fact]
+    public async Task GetPricingAsync_ReturnsDefaultPricing_WhenStoredJsonIsEmpty()
+    {
+        // Arrange - Return empty string
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>(""));
+
+        // Act
+        var pricing = await _service.GetPricingAsync(CloudProvider.AWS, "us-east-1");
+
+        // Assert - Should fall back to default
+        pricing.Should().NotBeNull();
+        pricing.Provider.Should().Be(CloudProvider.AWS);
+    }
+
+    [Fact]
+    public async Task GetPricingAsync_CachesStoredPricingInMemory_WhenValidCacheLoaded()
+    {
+        // Arrange - Create valid stored pricing
+        var storedPricing = new PricingModel
+        {
+            Provider = CloudProvider.GCP,
+            Region = "us-central1",
+            PricingType = PricingType.OnDemand,
+            LastUpdated = DateTime.UtcNow.AddMinutes(-30),
+            Compute = new ComputePricing { CpuPerHour = 0.077m },
+            Storage = new StoragePricing(),
+            Network = new NetworkPricing(),
+            Licenses = new LicensePricing(),
+            Support = new SupportPricing()
+        };
+        var json = System.Text.Json.JsonSerializer.Serialize(storedPricing,
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>(json));
+
+        // Act - First call loads from storage
+        var pricing1 = await _service.GetPricingAsync(CloudProvider.GCP, "us-central1");
+
+        // Reset mock to return null - second call should use memory cache
+        _mockJsRuntime.InvokeAsync<string?>("localStorage.getItem", Arg.Any<object[]>())
+            .Returns(new ValueTask<string?>((string?)null));
+
+        var pricing2 = await _service.GetPricingAsync(CloudProvider.GCP, "us-central1");
+
+        // Assert - Both should be the same object from memory cache
+        pricing2.Should().BeSameAs(pricing1);
+        pricing1.Compute.CpuPerHour.Should().Be(0.077m);
+    }
+
+    #endregion
+
     #region Edge Cases
 
     [Fact]

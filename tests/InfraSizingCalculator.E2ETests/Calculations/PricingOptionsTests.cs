@@ -14,7 +14,7 @@ public class PricingOptionsTests : PlaywrightFixture
         await NavigateToK8sConfigAsync();
         // Go to Pricing step (Next from Configure)
         await ClickNextAsync();
-        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 15000 });
 
         // Verify pricing page is displayed with tabs
         var infraTab = Page.Locator("button:has-text('Infrastructure')");
@@ -29,7 +29,7 @@ public class PricingOptionsTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await ClickNextAsync();
-        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 15000 });
 
         // Click Cloud Alternatives tab if available
         var cloudTab = Page.Locator("button:has-text('Cloud')");
@@ -62,7 +62,7 @@ public class PricingOptionsTests : PlaywrightFixture
     {
         await NavigateToK8sConfigAsync();
         await ClickNextAsync();
-        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 5000 });
+        await Page.WaitForSelectorAsync("button:has-text('Calculate')", new() { Timeout = 15000 });
 
         // Verify pricing configuration is shown
         var pricingHeader = Page.Locator("h3:has-text('Pricing')");

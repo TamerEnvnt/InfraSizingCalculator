@@ -220,6 +220,98 @@ public class NodeSpecsPanelTests : TestContext
         inputs[8].GetAttribute("value").Should().Be("300");
     }
 
+    [Fact]
+    public void NodeSpecsPanel_DisplaysNonProdInfraSpecs_WhenShown()
+    {
+        // Arrange
+        var specs = new NodeSpecsConfig
+        {
+            NonProdInfraCpu = 6,
+            NonProdInfraRam = 24,
+            NonProdInfraDisk = 150
+        };
+
+        // Act
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true));
+
+        // Assert - NonProd Infra inputs at indices 9-11
+        var inputs = cut.FindAll("input[type='number']");
+        inputs[9].GetAttribute("value").Should().Be("6");
+        inputs[10].GetAttribute("value").Should().Be("24");
+        inputs[11].GetAttribute("value").Should().Be("150");
+    }
+
+    [Fact]
+    public void NodeSpecsPanel_DisplaysNonProdWorkerSpecs_WithoutInfra()
+    {
+        // Arrange
+        var specs = new NodeSpecsConfig
+        {
+            NonProdWorkerCpu = 8,
+            NonProdWorkerRam = 32,
+            NonProdWorkerDisk = 250
+        };
+
+        // Act
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, false));
+
+        // Assert - NonProd Worker inputs at indices 9-11 (without infra section)
+        var inputs = cut.FindAll("input[type='number']");
+        inputs[9].GetAttribute("value").Should().Be("8");
+        inputs[10].GetAttribute("value").Should().Be("32");
+        inputs[11].GetAttribute("value").Should().Be("250");
+    }
+
+    [Fact]
+    public void NodeSpecsPanel_DisplaysNonProdWorkerSpecs_WithInfra()
+    {
+        // Arrange
+        var specs = new NodeSpecsConfig
+        {
+            NonProdWorkerCpu = 8,
+            NonProdWorkerRam = 32,
+            NonProdWorkerDisk = 250
+        };
+
+        // Act
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true));
+
+        // Assert - NonProd Worker inputs at indices 15-17 (with infra section)
+        var inputs = cut.FindAll("input[type='number']");
+        inputs[15].GetAttribute("value").Should().Be("8");
+        inputs[16].GetAttribute("value").Should().Be("32");
+        inputs[17].GetAttribute("value").Should().Be("250");
+    }
+
+    [Fact]
+    public void NodeSpecsPanel_DisplaysProdWorkerSpecs_WithInfra()
+    {
+        // Arrange
+        var specs = new NodeSpecsConfig
+        {
+            ProdWorkerCpu = 16,
+            ProdWorkerRam = 64,
+            ProdWorkerDisk = 500
+        };
+
+        // Act
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true));
+
+        // Assert - Prod Worker inputs at indices 12-14 (with infra section)
+        var inputs = cut.FindAll("input[type='number']");
+        inputs[12].GetAttribute("value").Should().Be("16");
+        inputs[13].GetAttribute("value").Should().Be("64");
+        inputs[14].GetAttribute("value").Should().Be("500");
+    }
+
     #endregion
 
     #region Callback Tests
@@ -297,6 +389,132 @@ public class NodeSpecsPanelTests : TestContext
         // Assert
         changedSpec.Should().NotBeNull();
         changedSpec!.Value.value.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingProdInfraSpec_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change Prod Infra CPU (index 6)
+        var cpuInput = cut.FindAll("input[type='number']")[6];
+        await cut.InvokeAsync(() => cpuInput.Change(12));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("ProdInfraCpu");
+        changedSpec!.Value.value.Should().Be(12);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingNonProdInfraSpec_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change NonProd Infra RAM (index 10)
+        var ramInput = cut.FindAll("input[type='number']")[10];
+        await cut.InvokeAsync(() => ramInput.Change(24));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("NonProdInfraRam");
+        changedSpec!.Value.value.Should().Be(24);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingProdWorkerSpec_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, false)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change Prod Worker Disk (index 8 without infra)
+        var diskInput = cut.FindAll("input[type='number']")[8];
+        await cut.InvokeAsync(() => diskInput.Change(500));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("ProdWorkerDisk");
+        changedSpec!.Value.value.Should().Be(500);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingNonProdWorkerSpec_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, false)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change NonProd Worker CPU (index 9 without infra)
+        var cpuInput = cut.FindAll("input[type='number']")[9];
+        await cut.InvokeAsync(() => cpuInput.Change(8));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("NonProdWorkerCpu");
+        changedSpec!.Value.value.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingProdWorkerSpec_WithInfra_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change Prod Worker CPU (index 12 with infra)
+        var cpuInput = cut.FindAll("input[type='number']")[12];
+        await cut.InvokeAsync(() => cpuInput.Change(16));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("ProdWorkerCpu");
+        changedSpec!.Value.value.Should().Be(16);
+    }
+
+    [Fact]
+    public async Task NodeSpecsPanel_ChangingNonProdWorkerSpec_WithInfra_PassesCorrectProperty()
+    {
+        // Arrange
+        (string property, int value)? changedSpec = null;
+        var specs = new NodeSpecsConfig();
+        var cut = RenderComponent<NodeSpecsPanel>(parameters => parameters
+            .Add(p => p.NodeSpecs, specs)
+            .Add(p => p.ShowInfraSpecs, true)
+            .Add(p => p.OnSpecChanged, EventCallback.Factory.Create<(string, int)>(this, s => changedSpec = s)));
+
+        // Act - Change NonProd Worker RAM (index 16 with infra)
+        var ramInput = cut.FindAll("input[type='number']")[16];
+        await cut.InvokeAsync(() => ramInput.Change(32));
+
+        // Assert
+        changedSpec.Should().NotBeNull();
+        changedSpec!.Value.property.Should().Be("NonProdWorkerRam");
+        changedSpec!.Value.value.Should().Be(32);
     }
 
     #endregion

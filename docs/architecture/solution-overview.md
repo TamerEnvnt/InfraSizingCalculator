@@ -18,7 +18,7 @@ The Infrastructure Sizing Calculator helps organizations estimate infrastructure
 ├─────────────────────────────────────────────────────────────┤
 │                      Business Logic Layer                    │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │                     Services (22 total)               │   │
+│  │                     Services (23 total)               │   │
 │  │  K8sSizingService    │  VMSizingService              │   │
 │  │  TechnologyService   │  DistributionService          │   │
 │  │  ExportService       │  WizardStateService           │   │
@@ -33,7 +33,7 @@ The Infrastructure Sizing Calculator helps organizations estimate infrastructure
 │  │                      Models                           │   │
 │  │  K8sSizingInput/Result  │  VMSizingInput/Result      │   │
 │  │  TechnologyConfig       │  DistributionConfig        │   │
-│  │  Enums (11 types)       │  Supporting models         │   │
+│  │  Enums (15 types)       │  Supporting models         │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -45,7 +45,7 @@ InfraSizingCalculator/
 ├── src/InfraSizingCalculator/          # Main application
 │   ├── Program.cs                      # Entry point, DI setup
 │   ├── Components/                     # Blazor UI
-│   │   ├── Pages/Home.razor           # Main wizard (3700+ lines)
+│   │   ├── Pages/Home.razor           # Main wizard (7500+ lines)
 │   │   ├── Layout/                    # MainLayout, NavMenu
 │   │   ├── Shared/                    # Reusable components
 │   │   ├── Wizard/                    # Wizard framework
@@ -55,7 +55,7 @@ InfraSizingCalculator/
 │   ├── Controllers/Api/               # REST endpoints
 │   ├── Services/                      # Business logic
 │   ├── Models/                        # Data models
-│   │   └── Enums/                     # 11 enumeration types
+│   │   └── Enums/                     # 15 enumeration types
 │   └── wwwroot/                       # Static assets
 │       ├── app.css                    # Main stylesheet
 │       └── js/site.js                 # JavaScript interop

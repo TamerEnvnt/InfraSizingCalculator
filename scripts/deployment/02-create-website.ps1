@@ -21,8 +21,30 @@
 .PARAMETER Environment
     ASP.NET Core environment (default: Production)
 
+# =============================================================================
+# DEPLOYMENT CONFIGURATION - DO NOT CHANGE WITHOUT UPDATING ALL REFERENCES
+# =============================================================================
+#
+# Server: 192.168.10.155
+# SMB Share: smb://192.168.10.155/Deploy
+# Share Maps To: C:\inetpub\Deployment\
+#
+# IIS Websites:
+#   - InfraSizing (v1): C:\inetpub\InfraSizing, Port 8080
+#   - InfraSizing-v2:   C:\inetpub\InfraSizing-v2, Port 8080
+#
+# Deployment Scripts Location: C:\inetpub\Deployment\
+# Deployment User: deploy-infrasizing
+#
+# =============================================================================
+
 .EXAMPLE
+    # Create v1 site (default)
     .\02-create-website.ps1 -SitePort 8080
+
+.EXAMPLE
+    # Create v2 site
+    .\02-create-website.ps1 -SiteName "InfraSizing-v2" -SitePath "C:\inetpub\InfraSizing-v2" -SitePort 8080
 
 .EXAMPLE
     .\02-create-website.ps1 -SiteName "InfraSizing-Dev" -SitePort 8081 -Environment "Development"
@@ -37,7 +59,19 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-Import-Module WebAdministration -ErrorAction SilentlyContinue
+
+# Import WebAdministration module (compatible with Windows PowerShell and PowerShell Core)
+try {
+    Import-Module WebAdministration -SkipEditionCheck -ErrorAction Stop
+} catch {
+    try {
+        Import-Module WebAdministration -ErrorAction Stop
+    } catch {
+        Write-Host "ERROR: WebAdministration module not available." -ForegroundColor Red
+        Write-Host "Ensure IIS Management Tools are installed." -ForegroundColor Red
+        exit 1
+    }
+}
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "InfraSizing Calculator - Create Website" -ForegroundColor Cyan
@@ -65,37 +99,38 @@ Write-Host "  Permissions configured" -ForegroundColor Green
 Write-Host ""
 Write-Host "[2/5] Creating application pool: $SiteName..." -ForegroundColor Yellow
 $poolName = $SiteName
-$existingPool = Get-IISAppPool -Name $poolName -ErrorAction SilentlyContinue
+$appcmd = "$env:SystemRoot\System32\inetsrv\appcmd.exe"
 
-if ($existingPool) {
+# Check if app pool exists
+$poolCheck = & $appcmd list apppool /name:$poolName 2>$null
+if ($poolCheck) {
     Write-Host "  Application pool already exists, updating settings..." -ForegroundColor Yellow
 } else {
-    New-WebAppPool -Name $poolName | Out-Null
+    & $appcmd add apppool /name:$poolName | Out-Null
     Write-Host "  Created application pool" -ForegroundColor Green
 }
 
 # Configure app pool for ASP.NET Core (No Managed Code)
-Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name "managedRuntimeVersion" -Value ""
-Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name "startMode" -Value "AlwaysRunning"
-Set-ItemProperty -Path "IIS:\AppPools\$poolName" -Name "processModel.idleTimeout" -Value "00:00:00"
+& $appcmd set apppool /apppool.name:$poolName /managedRuntimeVersion:"" | Out-Null
+& $appcmd set apppool /apppool.name:$poolName /startMode:AlwaysRunning | Out-Null
+& $appcmd set apppool /apppool.name:$poolName /processModel.idleTimeout:00:00:00 | Out-Null
 Write-Host "  Application pool configured for ASP.NET Core" -ForegroundColor Green
 
 # Step 3: Remove existing site if it exists (with same name)
 Write-Host ""
 Write-Host "[3/5] Configuring IIS site: $SiteName..." -ForegroundColor Yellow
-$existingSite = Get-Website -Name $SiteName -ErrorAction SilentlyContinue
+$existingSite = & $appcmd list site /name:$SiteName 2>$null
 
 if ($existingSite) {
     Write-Host "  Removing existing site configuration..." -ForegroundColor Yellow
-    Remove-Website -Name $SiteName
+    & $appcmd delete site /site.name:$SiteName | Out-Null
 }
 
 # Check if port is in use by another site
-$portInUse = Get-Website | Where-Object {
-    $_.Bindings.Collection | Where-Object { $_.bindingInformation -like "*:${SitePort}:*" }
-}
-if ($portInUse -and $portInUse.Name -ne $SiteName) {
-    Write-Host "  WARNING: Port $SitePort is already used by site '$($portInUse.Name)'" -ForegroundColor Red
+$allSites = & $appcmd list site 2>$null
+$portInUse = $allSites | Where-Object { $_ -match ":${SitePort}:" -and $_ -notmatch "^SITE `"$SiteName`"" }
+if ($portInUse) {
+    Write-Host "  WARNING: Port $SitePort is already used by another site" -ForegroundColor Red
     Write-Host "  Please choose a different port or remove the existing site" -ForegroundColor Red
     exit 1
 }
@@ -103,11 +138,8 @@ if ($portInUse -and $portInUse.Name -ne $SiteName) {
 # Step 4: Create the website
 Write-Host ""
 Write-Host "[4/5] Creating website on port $SitePort..." -ForegroundColor Yellow
-New-Website -Name $SiteName `
-    -PhysicalPath $SitePath `
-    -ApplicationPool $poolName `
-    -Port $SitePort `
-    -Force | Out-Null
+& $appcmd add site /name:$SiteName /physicalPath:$SitePath /bindings:"http/*:${SitePort}:" | Out-Null
+& $appcmd set site /site.name:$SiteName /[path='/'].applicationPool:$poolName | Out-Null
 
 Write-Host "  Website created successfully" -ForegroundColor Green
 
@@ -141,7 +173,7 @@ $webConfig | Out-File -FilePath "$SitePath\web.config" -Encoding UTF8 -Force
 Write-Host "  web.config created with ASPNETCORE_ENVIRONMENT=$Environment" -ForegroundColor Green
 
 # Start the site
-Start-Website -Name $SiteName -ErrorAction SilentlyContinue
+& $appcmd start site /site.name:$SiteName 2>$null | Out-Null
 
 # Summary
 Write-Host ""

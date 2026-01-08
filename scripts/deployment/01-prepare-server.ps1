@@ -19,23 +19,6 @@
 .PARAMETER SitePort
     Port for the IIS site (default: 8080)
 
-# =============================================================================
-# DEPLOYMENT CONFIGURATION - DO NOT CHANGE WITHOUT UPDATING ALL REFERENCES
-# =============================================================================
-#
-# Server: 192.168.10.155
-# SMB Share: smb://192.168.10.155/Deploy
-# Share Maps To: C:\inetpub\Deployment\
-#
-# IIS Websites:
-#   - InfraSizing (v1): C:\inetpub\InfraSizing, Port 8080
-#   - InfraSizing-v2:   C:\inetpub\InfraSizing-v2, Port 8080
-#
-# Deployment Scripts Location: C:\inetpub\Deployment\
-# Deployment User: deploy-infrasizing
-#
-# =============================================================================
-
 .EXAMPLE
     .\01-prepare-server.ps1 -DeployPassword "YourSecurePassword123!"
 #>

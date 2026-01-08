@@ -26,32 +26,11 @@
 .PARAMETER PreserveDatabase
     Preserve existing database files (default: true)
 
-# =============================================================================
-# DEPLOYMENT CONFIGURATION - DO NOT CHANGE WITHOUT UPDATING ALL REFERENCES
-# =============================================================================
-#
-# Server: 192.168.10.155
-# SMB Share: smb://192.168.10.155/Deploy
-# Share Maps To: C:\inetpub\Deployment\
-#
-# IIS Websites:
-#   - InfraSizing (v1): C:\inetpub\InfraSizing, Port 8080
-#   - InfraSizing-v2:   C:\inetpub\InfraSizing-v2, Port 8080
-#
-# Deployment Scripts Location: C:\inetpub\Deployment\
-# Deployment Package Location: C:\inetpub\Deployment\InfraSizing-latest.zip
-#
-# Deployment User: deploy-infrasizing
-#
-# =============================================================================
+.EXAMPLE
+    .\03-deploy.ps1 -SourcePath "C:\deploy\InfraSizing.zip"
 
 .EXAMPLE
-    # Deploy to v1 (default)
-    .\03-deploy.ps1 -SourcePath "C:\inetpub\Deployment\InfraSizing-latest.zip"
-
-.EXAMPLE
-    # Deploy to v2
-    .\03-deploy.ps1 -SourcePath "C:\inetpub\Deployment\InfraSizing-latest.zip" -SiteName "InfraSizing-v2" -SitePath "C:\inetpub\InfraSizing-v2"
+    .\03-deploy.ps1 -SourcePath "\\server\share\InfraSizing.zip" -SitePath "C:\inetpub\InfraSizing"
 
 .EXAMPLE
     .\03-deploy.ps1 -SourcePath "C:\publish\" -BackupExisting $false
@@ -67,19 +46,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-
-# Import WebAdministration module (compatible with Windows PowerShell and PowerShell Core)
-try {
-    Import-Module WebAdministration -SkipEditionCheck -ErrorAction Stop
-} catch {
-    try {
-        Import-Module WebAdministration -ErrorAction Stop
-    } catch {
-        Write-Host "ERROR: WebAdministration module not available." -ForegroundColor Red
-        Write-Host "Ensure IIS Management Tools are installed." -ForegroundColor Red
-        exit 1
-    }
-}
+Import-Module WebAdministration -ErrorAction SilentlyContinue
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "InfraSizing Calculator - Deployment" -ForegroundColor Cyan
@@ -99,12 +66,10 @@ Write-Host ""
 
 # Step 1: Stop application pool
 Write-Host "[1/6] Stopping application pool: $SiteName..." -ForegroundColor Yellow
-$appcmd = "$env:SystemRoot\System32\inetsrv\appcmd.exe"
-$poolCheck = & $appcmd list apppool /name:$SiteName 2>$null
-if ($poolCheck) {
-    $poolState = & $appcmd list apppool /apppool.name:$SiteName /text:state 2>$null
-    if ($poolState -eq "Started") {
-        & $appcmd stop apppool /apppool.name:$SiteName | Out-Null
+$pool = Get-IISAppPool -Name $SiteName -ErrorAction SilentlyContinue
+if ($pool) {
+    if ($pool.State -eq "Started") {
+        Stop-WebAppPool -Name $SiteName
         Start-Sleep -Seconds 2
         Write-Host "  Application pool stopped" -ForegroundColor Green
     } else {
@@ -205,13 +170,13 @@ Write-Host "  Permissions set" -ForegroundColor Green
 # Step 6: Start application pool
 Write-Host ""
 Write-Host "[6/6] Starting application pool..." -ForegroundColor Yellow
-if ($poolCheck) {
-    & $appcmd start apppool /apppool.name:$SiteName | Out-Null
+if ($pool) {
+    Start-WebAppPool -Name $SiteName
     Start-Sleep -Seconds 2
 
     # Verify it started
-    $poolState = & $appcmd list apppool /apppool.name:$SiteName /text:state 2>$null
-    if ($poolState -eq "Started") {
+    $pool = Get-IISAppPool -Name $SiteName
+    if ($pool.State -eq "Started") {
         Write-Host "  Application pool started" -ForegroundColor Green
     } else {
         Write-Host "  WARNING: Application pool may not have started correctly" -ForegroundColor Yellow
@@ -234,13 +199,11 @@ if ($preservedFiles.Count -gt 0) {
 Write-Host ""
 
 # Get site URL
-$siteInfo = & $appcmd list site /name:$SiteName 2>$null
-if ($siteInfo) {
-    # Extract port from binding info (format: SITE "name" (bindings:http/*:port:,state:Started))
-    if ($siteInfo -match ":(\d+):") {
-        $port = $matches[1]
-        Write-Host "Access the application at: http://localhost:$port" -ForegroundColor Green
-    }
+$site = Get-Website -Name $SiteName -ErrorAction SilentlyContinue
+if ($site) {
+    $binding = $site.Bindings.Collection | Select-Object -First 1
+    $port = ($binding.bindingInformation -split ":")[1]
+    Write-Host "Access the application at: http://localhost:$port" -ForegroundColor Green
 }
 
 Write-Host ""

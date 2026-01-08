@@ -1,0 +1,864 @@
+/* NodeSpecsConfigPanel.razor.css - Component-scoped styles */
+/* Platform-specific node configuration for K8s and VM */
+
+/* ============================================================
+   PANEL CONTAINER
+   ============================================================ */
+.node-specs-panel {
+    padding: 16px;
+    color: var(--text-primary);
+}
+
+/* ============================================================
+   SECTION STRUCTURE
+   ============================================================ */
+.config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.platform-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.platform-badge.k8s {
+    background: #326CE5;
+    color: white;
+}
+
+.platform-badge.vm {
+    background: #059669;
+    color: white;
+}
+
+/* ============================================================
+   SUBSECTION
+   ============================================================ */
+.subsection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.subsection-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   PRESET GRID (Node Size Templates)
+   ============================================================ */
+.preset-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.preset-grid.four-col {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.preset-card {
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.preset-card:hover {
+    background: #2d3748;
+    border-color: var(--border-color);
+}
+
+.preset-card.selected {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.config-section.vm-mode .preset-card.selected {
+    border-color: #059669;
+    background: rgba(5, 150, 105, 0.15);
+}
+
+.preset-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.preset-specs {
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.preset-card.with-allocatable .preset-allocatable {
+    font-size: 9px;
+    color: #10b981;
+    margin-top: 2px;
+}
+
+/* ============================================================
+   K8S: ALLOCATABLE RESOURCES BOX
+   ============================================================ */
+.allocatable-box {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.allocatable-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.allocatable-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.allocatable-percent {
+    font-size: 14px;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.allocatable-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.breakdown-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.breakdown-item.spacer {
+    visibility: hidden;
+}
+
+.breakdown-item.total {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 8px;
+    margin-top: 2px;
+}
+
+.breakdown-label {
+    color: var(--text-secondary);
+}
+
+.breakdown-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.breakdown-value.deducted {
+    color: #f87171;
+}
+
+.breakdown-value.available {
+    color: #10b981;
+    font-weight: 700;
+}
+
+/* ============================================================
+   NODE COUNT BOX
+   ============================================================ */
+.node-count-box {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.count-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.count-row:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.count-row.total-row {
+    background: var(--bg-tertiary);
+    margin: 8px -12px -12px;
+    padding: 12px;
+    border-radius: 0 0 10px 10px;
+}
+
+.count-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.count-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.count-sublabel {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.count-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auto-badge {
+    background: var(--bg-tertiary);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #10b981;
+    letter-spacing: 0.5px;
+}
+
+.count-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.count-btn:hover:not(:disabled) {
+    background: #3b82f6;
+}
+
+.count-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.count-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 30px;
+    text-align: center;
+}
+
+.count-value.highlight {
+    color: #10b981;
+    font-size: 20px;
+}
+
+/* ============================================================
+   TOGGLE SWITCH
+   ============================================================ */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.toggle.active {
+    background: #10b981;
+}
+
+.toggle.active::after {
+    left: 23px;
+    background: white;
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   SYSTEM OVERHEAD GRID
+   ============================================================ */
+.overhead-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.overhead-item {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.overhead-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 6px;
+}
+
+.overhead-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #f59e0b;
+}
+
+/* ============================================================
+   CONTROL PLANE BOX
+   ============================================================ */
+.control-plane-box {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.cp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.cp-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.cp-badge {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.cp-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.cp-option {
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text-primary);
+}
+
+.cp-option:hover {
+    background: #2d3748;
+}
+
+.cp-option.selected {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.cp-count {
+    font-size: 24px;
+    font-weight: 700;
+    color: #a78bfa;
+}
+
+.cp-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cp-specs {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.cp-info {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-color);
+}
+
+/* ============================================================
+   SUMMARY BOX
+   ============================================================ */
+.summary-box {
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.summary-box.k8s {
+    background: linear-gradient(135deg, #1e3a5f, #1e293b);
+}
+
+.summary-box.vm {
+    background: linear-gradient(135deg, #065f46, #1e293b);
+}
+
+.summary-box.cluster {
+    background: linear-gradient(135deg, #1e3a5f, #1e293b);
+}
+
+.summary-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.summary-box.k8s .summary-title {
+    color: #60a5fa;
+}
+
+.summary-box.vm .summary-title {
+    color: #6ee7b7;
+}
+
+.summary-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.summary-grid.four-col {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.summary-item {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.summary-value.savings {
+    color: #22c55e;
+}
+
+.summary-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.summary-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 12px 0;
+}
+
+.summary-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.row-label {
+    color: var(--text-secondary);
+}
+
+.row-value {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.row-value.highlight {
+    color: #3b82f6;
+}
+
+.row-value.warning {
+    color: #f59e0b;
+}
+
+/* ============================================================
+   VM MODE: RESOURCE INPUTS
+   ============================================================ */
+.vm-resource-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.vm-resource-input {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.resource-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.resource-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.resource-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.resource-btn:hover:not(:disabled) {
+    background: #059669;
+}
+
+.resource-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.resource-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #10b981;
+    min-width: 40px;
+}
+
+.resource-unit {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* ============================================================
+   VM MODE: OVERCOMMIT CONTAINER
+   ============================================================ */
+.overcommit-container {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.overcommit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.overcommit-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.overcommit-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.overcommit-env {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+
+.env-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.ratio-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.ratio-label {
+    color: var(--text-secondary);
+}
+
+.ratio-value {
+    font-weight: 600;
+}
+
+.ratio-value.safe {
+    color: #22c55e;
+}
+
+.ratio-value.moderate {
+    color: #f59e0b;
+}
+
+.ratio-value.aggressive {
+    color: #ef4444;
+}
+
+.ratio-legend {
+    display: flex;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.ratio-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.ratio-legend .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.ratio-legend .legend-dot.safe {
+    background: #22c55e;
+}
+
+.ratio-legend .legend-dot.moderate {
+    background: #f59e0b;
+}
+
+.ratio-legend .legend-dot.aggressive {
+    background: #ef4444;
+}
+
+/* ============================================================
+   VM MODE: COMPARISON SUMMARY
+   ============================================================ */
+.summary-box.comparison {
+    padding: 0;
+    overflow: hidden;
+}
+
+.summary-box.comparison .summary-title {
+    padding: 16px 16px 12px;
+    margin-bottom: 0;
+}
+
+.summary-comparison {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.summary-column {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.summary-column:first-child {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.summary-column.highlight {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.column-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.summary-column .summary-item {
+    text-align: left;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.summary-column .summary-value {
+    font-size: 14px;
+}
+
+.savings-box {
+    background: rgba(34, 197, 94, 0.15);
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.savings-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: #22c55e;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.savings-detail {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   WARNING BOX
+   ============================================================ */
+.warning-box {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.warning-icon {
+    font-size: 18px;
+}
+
+.warning-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.warning-text strong {
+    color: #f59e0b;
+}
+
+/* ============================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================ */
+@media (max-width: 600px) {
+    .preset-grid.four-col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .allocatable-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overhead-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cp-options {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-grid.four-col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .vm-resource-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overcommit-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-comparison {
+        grid-template-columns: 1fr;
+    }
+}

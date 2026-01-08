@@ -1,135 +1,356 @@
-.register-container {
+/*
+ * Register.razor.css - v0.4.4 wireframe design
+ * Matches wireframe: 15-register.html
+ * Split layout: Benefits panel left, Form right
+ * Light theme (#f8fafc background)
+ */
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.auth-layout {
+    height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    background: var(--color-bg, #f8fafc);
+}
+
+/* Auth Header */
+.auth-header {
+    height: 48px;
+    display: flex;
     align-items: center;
-    min-height: 100vh;
-    background: var(--bg-secondary, #f5f5f5);
-    padding: 1rem;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: var(--color-surface, #ffffff);
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    flex-shrink: 0;
+}
+
+.auth-header-logo {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-accent, #3b82f6);
+    text-decoration: none;
+}
+
+/* Register Content - Split Layout */
+.register-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Benefits Section - Left Panel */
+.register-benefits {
+    width: 320px;
+    background: linear-gradient(135deg, var(--color-accent, #3b82f6) 0%, #1e40af 100%);
+    color: white;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.register-benefits h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.benefit-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.benefit-text h4 {
+    margin: 0 0 2px 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.benefit-text p {
+    margin: 0;
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+.benefits-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* Form Section - Right Panel */
+.register-form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow: auto;
 }
 
 .register-card {
-    background: var(--bg-primary, #fff);
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 10px;
+    padding: 20px;
     width: 100%;
-    max-width: 400px;
+    max-width: 360px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.register-card h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.75rem;
+.register-header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.register-header h1 {
+    font-size: 16px;
     font-weight: 600;
-    color: var(--text-primary, #1a1a1a);
-    text-align: center;
+    margin: 0 0 4px 0;
+    color: var(--color-text, #1e293b);
 }
 
-.register-card .subtitle {
-    margin: 0 0 2rem 0;
-    color: var(--text-secondary, #666);
-    text-align: center;
-    font-size: 0.9rem;
+.register-header p {
+    color: var(--color-text-secondary, #64748b);
+    font-size: 11px;
+    margin: 0;
+}
+
+/* Form */
+.form-row-2col,
+::deep .form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
 .form-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 12px;
 }
 
-.form-group label {
+.form-label {
     display: block;
-    margin-bottom: 0.5rem;
+    font-size: 11px;
     font-weight: 500;
-    color: var(--text-primary, #1a1a1a);
-    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: var(--color-text-secondary, #64748b);
 }
 
-.form-control {
+.form-input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 8px 12px;
+    background: var(--color-bg, #f8fafc);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 4px;
+    color: var(--color-text, #1e293b);
+    font-size: 12px;
+    transition: border-color 0.2s;
     box-sizing: border-box;
 }
 
-.form-control:focus {
+.form-input:focus {
     outline: none;
-    border-color: var(--primary-color, #0066cc);
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    border-color: var(--color-accent, #3b82f6);
 }
 
-.form-hint {
-    display: block;
-    margin-top: 0.25rem;
-    font-size: 0.8rem;
-    color: var(--text-secondary, #666);
+.form-input::placeholder {
+    color: var(--color-text-tertiary, #94a3b8);
 }
 
+/* Password Strength */
+.password-strength {
+    margin-top: 6px;
+}
+
+.password-strength-bar {
+    height: 3px;
+    background: var(--color-border, #e2e8f0);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s, background-color 0.3s;
+    background: var(--color-success, #22c55e);
+}
+
+/* Password Requirements - Inline List */
+.password-requirements {
+    font-size: 10px;
+    color: var(--color-text-secondary, #64748b);
+    margin: 6px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    list-style: none;
+}
+
+.password-requirements li {
+    list-style: none;
+}
+
+.password-requirements li.met {
+    color: var(--color-success, #22c55e);
+}
+
+/* Terms Checkbox */
+.terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.terms-checkbox {
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+    accent-color: var(--color-accent, #3b82f6);
+}
+
+.terms-text {
+    font-size: 10px;
+    color: var(--color-text-secondary, #64748b);
+    line-height: 1.4;
+}
+
+.terms-text a {
+    color: var(--color-accent, #3b82f6);
+    text-decoration: none;
+}
+
+.terms-text a:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
 .btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    border: none;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
 }
 
 .btn-primary {
-    background: var(--primary-color, #0066cc);
+    background: var(--color-accent, #3b82f6);
     color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--primary-hover, #0052a3);
-}
-
-.btn-primary:active:not(:disabled) {
-    transform: scale(0.98);
+    background: #2563eb;
 }
 
 .btn-primary:disabled {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-.btn-block {
+.btn-secondary {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e2e8f0);
+    color: var(--color-text, #1e293b);
+}
+
+.btn-secondary:hover {
+    background: var(--color-bg, #f8fafc);
+}
+
+.btn-full {
     width: 100%;
+}
+
+/* Register Footer */
+.register-footer {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--color-text, #1e293b);
+}
+
+.register-footer a {
+    color: var(--color-accent, #3b82f6);
+    text-decoration: none;
+}
+
+.register-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Error & Success Messages */
+.error-message {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: #ef4444;
 }
 
-.alert {
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
+.success-message {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid #22c55e;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: #22c55e;
 }
 
-.alert-error {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
+.validation-error,
+::deep .validation-message {
+    color: #ef4444;
+    font-size: 10px;
+    margin-top: 4px;
 }
 
-.alert-success {
-    background: #dcfce7;
-    color: #16a34a;
-    border: 1px solid #bbf7d0;
-}
-
-.alert-icon {
-    font-size: 1.25rem;
-}
-
+/* Spinner */
 .spinner {
-    width: 1rem;
-    height: 1rem;
+    width: 12px;
+    height: 12px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: white;
     border-radius: 50%;
@@ -137,30 +358,57 @@
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-content {
+        flex-direction: column;
+    }
+
+    .register-benefits {
+        width: 100%;
+        padding: 16px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: space-between;
+    }
+
+    .register-benefits h2 {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .benefit-item {
+        width: calc(50% - 6px);
+        margin-bottom: 0;
+    }
+
+    .benefits-footer {
+        width: 100%;
+        margin-top: 8px;
+        padding-top: 8px;
     }
 }
 
-.register-footer {
-    margin-top: 1.5rem;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-secondary, #666);
-}
+@media (max-width: 480px) {
+    .form-row-2col,
+    ::deep .form-row-2col {
+        grid-template-columns: 1fr;
+    }
 
-.register-footer a {
-    color: var(--primary-color, #0066cc);
-    text-decoration: none;
-    font-weight: 500;
-}
+    .register-benefits {
+        flex-direction: column;
+    }
 
-.register-footer a:hover {
-    text-decoration: underline;
-}
+    .benefit-item {
+        width: 100%;
+        margin-bottom: 8px;
+    }
 
-::deep .validation-message {
-    color: #dc2626;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
+    .register-card {
+        padding: 16px;
+    }
 }

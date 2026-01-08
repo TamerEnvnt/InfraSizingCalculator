@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Notifications | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .settings-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .settings-nav {
+      width: 180px;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      padding: 12px 0;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .settings-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: 11px;
+      transition: all 0.15s ease;
+    }
+
+    .settings-nav-item:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    .settings-nav-item.active {
+      background: var(--color-accent-light);
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+
+    .settings-main {
+      flex: 1;
+      padding: 16px 24px;
+      overflow-y: auto;
+    }
+
+    .settings-section {
+      margin-bottom: 24px;
+    }
+
+    .settings-section h2 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .settings-section p {
+      color: var(--color-text-secondary);
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-info {
+      flex: 1;
+    }
+
+    .setting-label {
+      font-weight: 500;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .setting-desc {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--color-border);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .toggle.active {
+      background: var(--color-accent);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .toggle.active::after {
+      transform: translateX(16px);
+    }
+
+    .card-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">InfraSizing</div>
+      <div class="header-center">
+        <span style="font-size: 12px; font-weight: 500;">Settings</span>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='13-landing-auth.html'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+        <div style="width: 28px; height: 28px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 10px;">T</div>
+      </div>
+    </header>
+
+    <!-- Settings Content -->
+    <div class="settings-content">
+      <!-- Navigation -->
+      <nav class="settings-nav">
+        <a href="16-settings.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Profile
+        </a>
+        <a href="16b-settings-security.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Security
+        </a>
+        <a href="16c-settings-notifications.html" class="settings-nav-item active">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          Notifications
+        </a>
+        <a href="16d-settings-preferences.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+          </svg>
+          Preferences
+        </a>
+        <a href="16e-settings-pricing.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Pricing
+        </a>
+        <a href="16f-settings-auth.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Auth Providers
+        </a>
+        <a href="16g-settings-defaults.html" class="settings-nav-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          Defaults
+        </a>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="settings-main">
+        <!-- Email Notifications -->
+        <div class="settings-section">
+          <h2>Email Notifications</h2>
+          <p>Manage email notification preferences</p>
+
+          <div class="card-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Scenario Saved</div>
+                <div class="setting-desc">Receive confirmation when scenarios are saved</div>
+              </div>
+              <div class="toggle active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Export Complete</div>
+                <div class="setting-desc">Notify when export files are ready</div>
+              </div>
+              <div class="toggle active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Pricing Updates</div>
+                <div class="setting-desc">Alert when pricing data is updated</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Weekly Summary</div>
+                <div class="setting-desc">Weekly digest of your scenarios and calculations</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In-App Notifications -->
+        <div class="settings-section">
+          <h2>In-App Notifications</h2>
+          <p>Control notifications within the application</p>
+
+          <div class="card-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Calculation Complete</div>
+                <div class="setting-desc">Show notification when sizing calculation finishes</div>
+              </div>
+              <div class="toggle active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Auto-Save Indicator</div>
+                <div class="setting-desc">Display when scenarios are auto-saved</div>
+              </div>
+              <div class="toggle active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Distribution Warnings</div>
+                <div class="setting-desc">Alert for incompatible configuration choices</div>
+              </div>
+              <div class="toggle active"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Cost Threshold Alerts</div>
+                <div class="setting-desc">Warn when estimated costs exceed threshold</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alert Thresholds -->
+        <div class="settings-section">
+          <h2>Alert Thresholds</h2>
+          <p>Set thresholds for cost and resource alerts</p>
+
+          <div class="card-section">
+            <div class="form-group">
+              <label class="form-label">Monthly Cost Alert</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 11px;">$</span>
+                <input type="number" class="form-input" value="10000" style="width: 120px;">
+                <span style="font-size: 10px; color: var(--color-text-secondary);">per month</span>
+              </div>
+              <div class="form-hint">Alert when monthly cost exceeds this amount</div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label">Node Count Alert</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="number" class="form-input" value="50" style="width: 120px;">
+                <span style="font-size: 10px; color: var(--color-text-secondary);">nodes</span>
+              </div>
+              <div class="form-hint">Alert when node count exceeds this limit</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Schedule -->
+        <div class="settings-section">
+          <h2>Notification Schedule</h2>
+          <p>Control when you receive notifications</p>
+
+          <div class="card-section">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Quiet Hours</div>
+                <div class="setting-desc">Pause notifications during specified hours</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label">Quiet Period</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <select class="form-select" style="width: 100px;">
+                  <option>10:00 PM</option>
+                  <option>11:00 PM</option>
+                  <option selected>12:00 AM</option>
+                </select>
+                <span style="font-size: 11px;">to</span>
+                <select class="form-select" style="width: 100px;">
+                  <option selected>7:00 AM</option>
+                  <option>8:00 AM</option>
+                  <option>9:00 AM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer Link -->
+  <div style="position: fixed; bottom: 8px; left: 8px; font-size: 10px;">
+    <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+  </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-@page "/"
+@page "/legacy"
 @using InfraSizingCalculator.Models
 @using InfraSizingCalculator.Services
 @using InfraSizingCalculator.Components.Modals
@@ -6,6 +6,8 @@
 @using InfraSizingCalculator.Components.Shared
 @using InfraSizingCalculator.Components.K8s
 @using InfraSizingCalculator.Components.VM
+@using InfraSizingCalculator.Components.Pages
+@using InfraSizingCalculator.Components.Guest
 @using InfraSizingCalculator.Services.Interfaces
 @using InfraSizingCalculator.Models.Pricing
 @using InfraSizingCalculator.Models.Growth
@@ -13,8 +15,33 @@
 
 <PageTitle>Infrastructure Sizing Calculator</PageTitle>
 
-<!-- Three-Panel SPA Layout -->
-<HeaderBar OnAction="HandleHeaderAction" />
+@* ================================================================
+   CONDITIONAL ROUTING:
+   - Guest + No Scenario Started → LandingGuest
+   - Auth + Viewing Landing → LandingAuth
+   - Guest + Started Scenario → Dashboard (with save banner - Phase 4)
+   - Auth + Working on Scenario → Dashboard (full features)
+   ================================================================ *@
+
+@if (ShouldShowLanding())
+{
+    @if (!_isAuthenticated)
+    {
+        <!-- Guest Landing Page -->
+        <LandingGuest OnStartScenario="HandleGuestStartScenario" />
+    }
+    else
+    {
+        <!-- Authenticated Landing Page -->
+        <LandingAuth OnCreateScenario="HandleAuthCreateScenario"
+                     OnLoadScenario="HandleAuthLoadScenario" />
+    }
+}
+else
+{
+    <!-- Dashboard / Results View -->
+    <!-- Three-Panel SPA Layout -->
+    <HeaderBar OnAction="HandleHeaderAction" />
 
 <LeftSidebar CurrentStep="@currentStep"
              TotalSteps="@GetTotalSteps()"
@@ -28,6 +55,12 @@
              CriticalCount="@GetCriticalCount()" />
 
 <div class="main-content">
+    @if (!_isAuthenticated)
+    {
+        <!-- Guest Save Banner - prompts to sign in to save scenarios -->
+        <SaveBanner />
+    }
+
     <!-- Wizard Content - Only show current step -->
     <div class="wizard-content">
         <!-- Step 1: Platform Type -->
@@ -2731,6 +2764,19 @@
                        OnSaved="HandleScenarioSaved" />
 }
 
+<!-- Limited Export Modal (Guest Users) -->
+@if (showLimitedExportModal)
+{
+    <LimitedExportModal @bind-IsVisible="showLimitedExportModal"
+                        TotalNodes="@GetTotalNodeCount()"
+                        TotalCPU="@GetTotalCpuCount()"
+                        TotalRAM="@GetTotalRamCount()"
+                        MonthlyEstimate="@GetMonthlyEstimateDisplay()"
+                        Platform="@GetPlatformDisplay()"
+                        Technology="@GetTechnologyDisplay()"
+                        OnDownload="HandleGuestSummaryExport" />
+}
+
 <!-- Toast Notification -->
 @if (showShareCopied)
 {
@@ -2739,4 +2785,6 @@
         <span class="toast-message">Link copied to clipboard!</span>
     </div>
 }
+
+} @* End of else block (Dashboard view) *@
 

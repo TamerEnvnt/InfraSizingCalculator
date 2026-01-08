@@ -155,8 +155,51 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/access-denied";
 });
 
-// Register authentication service
+// Register authentication services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthenticationSettingsService, AuthenticationSettingsService>();
+builder.Services.AddScoped<ILdapAuthenticationService, LdapAuthenticationService>();
+builder.Services.AddScoped<IExternalAuthenticationService, ExternalAuthenticationService>();
+
+// Configure external authentication providers (Google, Microsoft)
+// Note: These are configured with settings from appsettings.json
+// Dynamic settings from database are validated by IAuthenticationSettingsService
+var googleSection = builder.Configuration.GetSection("Authentication:Google");
+var microsoftSection = builder.Configuration.GetSection("Authentication:Microsoft");
+
+// OAuth providers use placeholder values until configured in Settings.
+// The actual authentication flow checks if the provider is enabled in database settings
+// before redirecting to OAuth - this prevents the "unconfigured provider" error.
+var googleClientId = googleSection["ClientId"];
+var googleClientSecret = googleSection["ClientSecret"];
+var msClientId = microsoftSection["ClientId"];
+var msClientSecret = microsoftSection["ClientSecret"];
+
+builder.Services.AddAuthentication()
+    .AddGoogle("Google", options =>
+    {
+        // Use placeholder values if not configured - actual validation happens at runtime
+        options.ClientId = string.IsNullOrEmpty(googleClientId) ? "not-configured" : googleClientId;
+        options.ClientSecret = string.IsNullOrEmpty(googleClientSecret) ? "not-configured" : googleClientSecret;
+        options.SaveTokens = true;
+        // Additional security: require HTTPS in production
+        if (!builder.Environment.IsDevelopment())
+        {
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+        }
+    })
+    .AddMicrosoftAccount("Microsoft", options =>
+    {
+        // Use placeholder values if not configured - actual validation happens at runtime
+        options.ClientId = string.IsNullOrEmpty(msClientId) ? "not-configured" : msClientId;
+        options.ClientSecret = string.IsNullOrEmpty(msClientSecret) ? "not-configured" : msClientSecret;
+        options.SaveTokens = true;
+        // Additional security: require HTTPS in production
+        if (!builder.Environment.IsDevelopment())
+        {
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+        }
+    });
 
 // Register application services
 builder.Services.AddSingleton<CalculatorSettings>();
@@ -267,6 +310,29 @@ if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
     using var scope = app.Services.CreateScope();
     var identityDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await identityDbContext.Database.EnsureCreatedAsync();
+
+    // Seed default admin if no admin exists
+    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+    if (!await authService.AdminExistsAsync())
+    {
+        var adminEmail = app.Configuration["DefaultAdmin:Email"] ?? "admin@localhost";
+        var adminPassword = app.Configuration["DefaultAdmin:Password"] ?? "Admin123!";
+        var adminName = app.Configuration["DefaultAdmin:DisplayName"] ?? "Administrator";
+
+        var result = await authService.CreateInitialAdminAsync(adminEmail, adminPassword, adminName);
+        if (result.Succeeded)
+        {
+            Log.Information("Default admin account created: {Email}", adminEmail);
+        }
+        else
+        {
+            Log.Warning("Failed to create default admin: {Error}", result.ErrorMessage);
+        }
+    }
+
+    // Initialize authentication settings with defaults
+    var authSettingsService = scope.ServiceProvider.GetRequiredService<IAuthenticationSettingsService>();
+    await authSettingsService.EnsureDefaultSettingsAsync();
 
     Log.Information("Databases initialized and seeded successfully");
 }

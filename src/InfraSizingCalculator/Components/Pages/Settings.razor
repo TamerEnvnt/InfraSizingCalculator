@@ -1,666 +1,624 @@
 @page "/settings"
-@using InfraSizingCalculator.Models.Pricing
-@using InfraSizingCalculator.Services.Interfaces
-@inject IPricingSettingsService PricingSettingsService
-@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<div class="settings-page">
-    <div class="settings-header">
-        <div class="header-left">
-            <button class="back-btn" @onclick="GoBack">← Back</button>
-            <h1>Pricing Configuration</h1>
-        </div>
-        <div class="header-actions">
-            <button class="btn-secondary" @onclick="ResetPricingDefaults">Reset Defaults</button>
-            <button class="btn-primary" @onclick="SaveSettings">Save</button>
-        </div>
-    </div>
+@*
+    Settings.razor - v0.4.4 Settings Page
+    Matches wireframe: 16-settings.html
 
-    <div class="settings-main">
-        <nav class="settings-sidebar">
-            <div class="nav-group">
-                <span class="nav-group-title">Infrastructure</span>
-                <button class="nav-btn @(activeSection == "hardware" ? "active" : "")" @onclick='() => activeSection = "hardware"'>Hardware</button>
-                <button class="nav-btn @(activeSection == "datacenter" ? "active" : "")" @onclick='() => activeSection = "datacenter"'>Data Center</button>
-                <button class="nav-btn @(activeSection == "labor" ? "active" : "")" @onclick='() => activeSection = "labor"'>Labor</button>
-            </div>
-            <div class="nav-group">
-                <span class="nav-group-title">K8s Distributions</span>
-                <button class="nav-btn @(activeSection == "k8s-license" ? "active" : "")" @onclick='() => activeSection = "k8s-license"'>Distribution Licensing</button>
-            </div>
-            <div class="nav-group">
-                <span class="nav-group-title">Cloud Providers</span>
-                <button class="nav-btn @(activeSection == "aws" ? "active" : "")" @onclick='() => activeSection = "aws"'>AWS (EKS/ROSA)</button>
-                <button class="nav-btn @(activeSection == "azure" ? "active" : "")" @onclick='() => activeSection = "azure"'>Azure (AKS/ARO)</button>
-                <button class="nav-btn @(activeSection == "gcp" ? "active" : "")" @onclick='() => activeSection = "gcp"'>GCP (GKE/OSD)</button>
-            </div>
-            <div class="nav-group">
-                <span class="nav-group-title">Mendix Licensing</span>
-                <button class="nav-btn @(activeSection == "mx-platform" ? "active" : "")" @onclick='() => activeSection = "mx-platform"'>Platform & Users</button>
-                <button class="nav-btn @(activeSection == "mx-cloud" ? "active" : "")" @onclick='() => activeSection = "mx-cloud"'>Mendix Cloud</button>
-                <button class="nav-btn @(activeSection == "mx-k8s" ? "active" : "")" @onclick='() => activeSection = "mx-k8s"'>Mendix on K8s</button>
-                <button class="nav-btn @(activeSection == "mx-other" ? "active" : "")" @onclick='() => activeSection = "mx-other"'>Server & Other</button>
-            </div>
+    - Header with Settings title, Back button, user avatar
+    - Left sidebar navigation (180px)
+    - Main content: Profile, Preferences, Features, Connected Accounts, Danger Zone
+*@
+
+@using InfraSizingCalculator.Services.Auth
+@using InfraSizingCalculator.Data.Identity
+@using InfraSizingCalculator.Data.Entities
+@using InfraSizingCalculator.Models.Pricing
+@using InfraSizingCalculator.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@inject IAuthService AuthService
+@inject IAuthenticationSettingsService AuthSettingsService
+@inject IPricingSettingsService PricingSettingsService
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Settings - Infrastructure Sizing Calculator</PageTitle>
+
+<div class="settings-page" data-testid="settings-page">
+    <!-- Header -->
+    <header class="settings-header">
+        <div class="header-logo">InfraSizing</div>
+        <div class="header-center">
+            <span class="header-title">Settings</span>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-secondary btn-sm" @onclick="NavigateBack">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </button>
+            <div class="user-avatar">@GetUserInitials()</div>
+        </div>
+    </header>
+
+    <!-- Settings Content -->
+    <div class="settings-content">
+        <!-- Navigation -->
+        <nav class="settings-nav">
+            <button class="settings-nav-item @(_activeSection == "profile" ? "active" : "")" @onclick='() => SetSection("profile")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Profile
+            </button>
+            <button class="settings-nav-item @(_activeSection == "security" ? "active" : "")" @onclick='() => SetSection("security")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Security
+            </button>
+            <button class="settings-nav-item @(_activeSection == "notifications" ? "active" : "")" @onclick='() => SetSection("notifications")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                Notifications
+            </button>
+            <button class="settings-nav-item @(_activeSection == "preferences" ? "active" : "")" @onclick='() => SetSection("preferences")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+                </svg>
+                Preferences
+            </button>
+            <button class="settings-nav-item @(_activeSection == "pricing" ? "active" : "")" @onclick='() => SetSection("pricing")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Pricing
+            </button>
+            <button class="settings-nav-item @(_activeSection == "auth" ? "active" : "")" @onclick='() => SetSection("auth")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Auth Providers
+            </button>
+            <button class="settings-nav-item @(_activeSection == "defaults" ? "active" : "")" @onclick='() => SetSection("defaults")'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Defaults
+            </button>
         </nav>
 
-        <div class="settings-content">
-            @* ==================== HARDWARE ==================== *@
-            @if (activeSection == "hardware")
+        <!-- Main Content -->
+        <main class="settings-main">
+            @if (_activeSection == "profile")
             {
-                <div class="content-section">
-                    <h2>Hardware Costs</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Server Costs</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Base Server Cost</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.ServerCost" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>VMs per Server</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.Hardware.VMsPerServer" /></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Resource Costs</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per CPU Core</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.PerCpuCore" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>Per GB RAM</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.PerGBRam" /></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Storage Costs</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per TB SSD</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.PerTBSsd" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>Per TB HDD</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.PerTBHdd" /></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Network Equipment</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Network Switch</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.NetworkSwitchCost" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>Load Balancer</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Hardware.LoadBalancerCost" /></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Lifecycle</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Refresh Cycle</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.HardwareRefreshYears" /><span class="suffix">years</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Annual Maintenance</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.HardwareMaintenancePercent" /><span class="suffix">%</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+                <!-- Profile Section -->
+                <div class="settings-section">
+                    <h2>Profile Settings</h2>
+                    <p>Manage your account information</p>
 
-            @* ==================== DATA CENTER ==================== *@
-            @if (activeSection == "datacenter")
-            {
-                <div class="content-section">
-                    <h2>Data Center Costs</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Colocation</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Rack Unit Cost</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.DataCenter.RackUnitPerMonth" /><span class="suffix">/mo</span></div>
-                                </div>
+                    <div class="card-section">
+                        <div class="profile-row">
+                            <div class="profile-avatar-large">@GetUserInitials()</div>
+                            <div>
+                                <button class="btn btn-secondary btn-sm">Upload Photo</button>
+                                <div class="upload-hint">JPG, PNG. Max 2MB.</div>
                             </div>
                         </div>
-                        <div class="config-card">
-                            <h3>Power</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Power Cost</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.01" @bind="onPremPricing.DataCenter.PowerPerKWh" /><span class="suffix">/kWh</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Watts per Server</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.DataCenter.WattsPerServer" /><span class="suffix">W</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Efficiency</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>PUE (1.0-2.5)</label>
-                                    <div class="input-group"><input type="number" step="0.1" @bind="onPremPricing.DataCenter.PUE" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>Cooling Overhead</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.DataCenter.CoolingPercent" /><span class="suffix">%</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
 
-            @* ==================== LABOR ==================== *@
-            @if (activeSection == "labor")
-            {
-                <div class="content-section">
-                    <h2>Labor Costs</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Monthly Salaries</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>DevOps Engineer</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Labor.DevOpsEngineerMonthly" /><span class="suffix">/mo</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>SysAdmin</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Labor.SysAdminMonthly" /><span class="suffix">/mo</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>DBA</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Labor.DBAMonthly" /><span class="suffix">/mo</span></div>
-                                </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-input" @bind="_firstName" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-input" @bind="_lastName" />
                             </div>
                         </div>
-                        <div class="config-card">
-                            <h3>Scaling</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Nodes per Engineer</label>
-                                    <div class="input-group"><input type="number" @bind="onPremPricing.Labor.NodesPerEngineer" /></div>
-                                </div>
-                                <div class="field">
-                                    <label>Include DBA</label>
-                                    <div class="input-group"><input type="checkbox" @bind="onPremPricing.Labor.IncludeDBA" /></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
 
-            @* ==================== K8S DISTRIBUTION LICENSING ==================== *@
-            @if (activeSection == "k8s-license")
-            {
-                <div class="content-section">
-                    <h2>K8s Distribution Licensing (Annual)</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Enterprise Distributions</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>OpenShift (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.OpenShiftPerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Tanzu (per core)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.TanzuPerCoreYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" @bind="_email" disabled />
                         </div>
-                        <div class="config-card">
-                            <h3>Supported Distributions</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Rancher Enterprise (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.RancherEnterprisePerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Charmed K8s (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.CharmedK8sPerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Open Source (Support Optional)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>RKE2 (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.RKE2PerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>K3s (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.K3sPerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>MicroK8s (per node)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="onPremPricing.Licensing.MicroK8sPerNodeYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
 
-            @* ==================== AWS CLOUD ==================== *@
-            @if (activeSection == "aws")
-            {
-                <div class="content-section">
-                    <h2>AWS Pricing</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>EKS</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Control Plane</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.01" @bind="cloudPricing.Aws.EksControlPlanePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Company</label>
+                                <input type="text" class="form-input" @bind="_company" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Job Title</label>
+                                <input type="text" class="form-input" @bind="_jobTitle" />
                             </div>
                         </div>
-                        <div class="config-card">
-                            <h3>EC2 Instances (Hourly)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>m5.xlarge (4vCPU/16GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Aws.M5XlargePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>m5.2xlarge (8vCPU/32GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Aws.M52XlargePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>m5.4xlarge (16vCPU/64GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Aws.M54XlargePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>EBS Storage</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>gp3 (per GB/mo)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Aws.EbsGp3PerGBMonth" /><span class="suffix">/GB</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>ROSA (OpenShift Service Fee)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Worker Hour</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Aws.RosaPerWorkerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
 
-            @* ==================== AZURE CLOUD ==================== *@
-            @if (activeSection == "azure")
-            {
-                <div class="content-section">
-                    <h2>Azure Pricing</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>AKS</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Control Plane</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.01" @bind="cloudPricing.Azure.AksControlPlanePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Azure VMs (Hourly)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>D4s_v3 (4vCPU/16GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Azure.D4sV3PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>D8s_v3 (8vCPU/32GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Azure.D8sV3PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>D16s_v3 (16vCPU/64GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Azure.D16sV3PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Managed Disks</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Premium SSD (per GB/mo)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Azure.ManagedDiskPremiumPerGBMonth" /><span class="suffix">/GB</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>ARO (OpenShift Service Fee)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Worker Hour</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Azure.AroPerWorkerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="btn btn-primary btn-sm" @onclick="SaveProfile">Save Changes</button>
+                        @if (_profileSaved)
+                        {
+                            <span class="save-message">Changes saved!</span>
+                        }
                     </div>
                 </div>
-            }
 
-            @* ==================== GCP CLOUD ==================== *@
-            @if (activeSection == "gcp")
-            {
-                <div class="content-section">
-                    <h2>GCP Pricing</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>GKE</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Control Plane</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.01" @bind="cloudPricing.Gcp.GkeControlPlanePerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>GCE Instances (Hourly)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>e2-standard-4 (4vCPU/16GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Gcp.E2Standard4PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>e2-standard-8 (8vCPU/32GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Gcp.E2Standard8PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>e2-standard-16 (16vCPU/64GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Gcp.E2Standard16PerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Persistent Disk</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>SSD PD (per GB/mo)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Gcp.PdSsdPerGBMonth" /><span class="suffix">/GB</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>OSD (OpenShift Service Fee)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Worker Hour</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.001" @bind="cloudPricing.Gcp.OsdPerWorkerHour" /><span class="suffix">/hr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+                <!-- Features -->
+                <div class="settings-section">
+                    <h2>Features</h2>
+                    <p>Enable or disable features</p>
 
-            @* ==================== MENDIX PLATFORM ==================== *@
-            @if (activeSection == "mx-platform")
-            {
-                <div class="content-section">
-                    <h2>Mendix Platform & User Licensing</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Platform License</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Premium Unlimited</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.PlatformPremiumUnlimitedPerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Cloud Token Price</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" step="0.01" @bind="mendixPricing.CloudTokenPrice" /></div>
-                                </div>
+                    <div class="card-section">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Growth Planning</div>
+                                <div class="setting-desc">Multi-year projections</div>
                             </div>
+                            <div class="toggle @(_growthPlanningEnabled ? "active" : "")" @onclick="() => _growthPlanningEnabled = !_growthPlanningEnabled"></div>
                         </div>
-                        <div class="config-card">
-                            <h3>User Licensing</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Internal (per 100 users)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.InternalUsersPer100PerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>External (per 250K users)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.ExternalUsersPer250KPerYear" /><span class="suffix">/yr</span></div>
-                                </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Cost Estimation</div>
+                                <div class="setting-desc">TCO and cost breakdown</div>
                             </div>
+                            <div class="toggle @(_costEstimationEnabled ? "active" : "")" @onclick="() => _costEstimationEnabled = !_costEstimationEnabled"></div>
                         </div>
-                        <div class="config-card">
-                            <h3>Services</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Volume Discount</label>
-                                    <div class="input-group"><input type="number" @bind="mendixPricing.VolumeDiscountPercent" /><span class="suffix">%</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Customer Enablement</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.CustomerEnablementPrice" /></div>
-                                </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Advanced Formulas</div>
+                                <div class="setting-desc">Show calculation formulas</div>
                             </div>
+                            <div class="toggle @(_advancedFormulasEnabled ? "active" : "")" @onclick="() => _advancedFormulasEnabled = !_advancedFormulasEnabled"></div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Excel Export</div>
+                                <div class="setting-desc">Export to spreadsheet</div>
+                            </div>
+                            <div class="toggle @(_excelExportEnabled ? "active" : "")" @onclick="() => _excelExportEnabled = !_excelExportEnabled"></div>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* ==================== MENDIX CLOUD ==================== *@
-            @if (activeSection == "mx-cloud")
-            {
-                <div class="content-section">
-                    <h2>Mendix Cloud (SaaS)</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Dedicated Cloud</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Single-tenant AWS VPC</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.CloudDedicatedPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Additional Storage</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>File Storage (per 100GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.AdditionalFileStoragePer100GB" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>DB Storage (per 100GB)</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.AdditionalDatabaseStoragePer100GB" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card full">
-                            <h3>Resource Packs (99.5% SLA)</h3>
-                            <div class="data-table">
-                                <table>
-                                    <thead><tr><th>Size</th><th>RAM</th><th>vCPU</th><th>DB</th><th>Storage</th><th>Price/Year</th></tr></thead>
-                                    <tbody>
-                                        @foreach (var p in mendixPricing.StandardResourcePacks)
-                                        {
-                                            <tr>
-                                                <td>@p.DisplayName</td>
-                                                <td>@p.MxMemoryGB GB</td>
-                                                <td>@p.MxVCpu</td>
-                                                <td>@p.DbStorageGB GB</td>
-                                                <td>@p.FileStorageGB GB</td>
-                                                <td><input type="number" @bind="p.PricePerYear" class="tbl-input" /></td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+                <!-- Connected Accounts -->
+                <div class="settings-section">
+                    <h2>Connected Accounts</h2>
+                    <p>OAuth and SSO connections</p>
 
-            @* ==================== MENDIX K8S ==================== *@
-            @if (activeSection == "mx-k8s")
-            {
-                <div class="content-section">
-                    <h2>Mendix on Kubernetes</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Base Package</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Annual Base Fee</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.K8sBasePricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Environments Included</label>
-                                    <div class="input-group"><input type="number" @bind="mendixPricing.K8sBaseEnvironmentsIncluded" /></div>
-                                </div>
+                    <div class="card-section">
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">Google</div>
+                                <div class="setting-desc">@(_googleConnected ? _googleEmail : "Not connected")</div>
                             </div>
+                            @if (_googleConnected)
+                            {
+                                <button class="btn btn-secondary btn-sm">Disconnect</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary btn-sm">Connect</button>
+                            }
                         </div>
-                        <div class="config-card">
-                            <h3>Azure Managed</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Azure Base Fee</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.AzureBasePricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Azure Add'l Env</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.AzureAdditionalEnvironmentPrice" /><span class="suffix">/yr</span></div>
-                                </div>
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24">
+                                <path fill="#00A4EF" d="M11.4 24H0V12.6h11.4V24z"/>
+                                <path fill="#FFB900" d="M24 24H12.6V12.6H24V24z"/>
+                                <path fill="#F25022" d="M11.4 11.4H0V0h11.4v11.4z"/>
+                                <path fill="#7FBA00" d="M24 11.4H12.6V0H24v11.4z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">Microsoft</div>
+                                <div class="setting-desc">Not connected</div>
                             </div>
+                            <button class="btn btn-primary btn-sm">Connect</button>
                         </div>
-                        <div class="config-card full">
-                            <h3>K8s Environment Tier Pricing</h3>
-                            <div class="data-table">
-                                <table>
-                                    <thead><tr><th>Range</th><th>Description</th><th>Per Env/Year</th></tr></thead>
-                                    <tbody>
-                                        @foreach (var t in mendixPricing.K8sEnvironmentTiers)
-                                        {
-                                            <tr>
-                                                <td>@t.MinEnvironments - @(t.MaxEnvironments == -1 ? "∞" : t.MaxEnvironments.ToString())</td>
-                                                <td>@t.Description</td>
-                                                <td><input type="number" @bind="t.PricePerEnvironment" class="tbl-input" /></td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">LDAP/AD</div>
+                                <div class="setting-desc">Enterprise SSO</div>
                             </div>
+                            <button class="btn btn-secondary btn-sm">Configure</button>
                         </div>
                     </div>
                 </div>
-            }
 
-            @* ==================== MENDIX OTHER ==================== *@
-            @if (activeSection == "mx-other")
-            {
-                <div class="content-section">
-                    <h2>Mendix Server & Other</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>Mendix on Server (VMs/Docker)</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Application</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.ServerPerAppPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Unlimited Apps</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.ServerUnlimitedAppsPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
+                <!-- Danger Zone -->
+                <div class="settings-section">
+                    <h2 class="danger-title">Danger Zone</h2>
+                    <p>Irreversible actions</p>
+
+                    <div class="card-section danger-card">
+                        <div class="danger-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Delete Account</div>
+                                <div class="setting-desc">Permanently delete account and all data</div>
                             </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Mendix on StackIT</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Application</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.StackITPerAppPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Unlimited Apps</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.StackITUnlimitedAppsPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="config-card">
-                            <h3>Mendix on SAP BTP</h3>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Per Application</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.SapBtpPerAppPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                                <div class="field">
-                                    <label>Unlimited Apps</label>
-                                    <div class="input-group"><span class="prefix">$</span><input type="number" @bind="mendixPricing.SapBtpUnlimitedAppsPricePerYear" /><span class="suffix">/yr</span></div>
-                                </div>
-                            </div>
+                            <button class="btn btn-danger btn-sm">Delete</button>
                         </div>
                     </div>
                 </div>
             }
-        </div>
+            else if (_activeSection == "security")
+            {
+                <div class="settings-section">
+                    <h2>Security Settings</h2>
+                    <p>Manage your password and authentication</p>
+
+                    <div class="card-section">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-input" placeholder="Enter current password" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-input" placeholder="Enter new password" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-input" placeholder="Confirm new password" />
+                        </div>
+                        <button class="btn btn-primary btn-sm">Update Password</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Two-Factor Authentication</h2>
+                    <p>Add an extra layer of security</p>
+
+                    <div class="card-section">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Enable 2FA</div>
+                                <div class="setting-desc">Use authenticator app for login</div>
+                            </div>
+                            <div class="toggle"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_activeSection == "notifications")
+            {
+                <div class="settings-section">
+                    <h2>Email Notifications</h2>
+                    <p>Configure what emails you receive</p>
+
+                    <div class="card-section">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Weekly Summary</div>
+                                <div class="setting-desc">Get weekly usage summary</div>
+                            </div>
+                            <div class="toggle active"></div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Scenario Shared</div>
+                                <div class="setting-desc">When someone shares a scenario</div>
+                            </div>
+                            <div class="toggle active"></div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Product Updates</div>
+                                <div class="setting-desc">New features and improvements</div>
+                            </div>
+                            <div class="toggle"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_activeSection == "preferences")
+            {
+                <div class="settings-section">
+                    <h2>Default Preferences</h2>
+                    <p>Set defaults for new scenarios</p>
+
+                    <div class="card-section">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Default Mode</label>
+                                <select class="form-select" @bind="_defaultMode">
+                                    <option value="k8s">Kubernetes (K8s)</option>
+                                    <option value="vm">Virtual Machines (VM)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Currency</label>
+                                <select class="form-select" @bind="_defaultCurrency">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Default K8s Distribution</label>
+                                <select class="form-select" @bind="_defaultDistribution">
+                                    <option value="openshift">OpenShift 4.14</option>
+                                    <option value="eks">Amazon EKS</option>
+                                    <option value="aks">Azure AKS</option>
+                                    <option value="gke">Google GKE</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Default Hypervisor</label>
+                                <select class="form-select" @bind="_defaultHypervisor">
+                                    <option value="vsphere">VMware vSphere 8</option>
+                                    <option value="hyperv">Microsoft Hyper-V</option>
+                                    <option value="proxmox">Proxmox VE</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm">Save Preferences</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Theme</h2>
+                    <p>Customize the appearance</p>
+
+                    <div class="card-section">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Light Mode</div>
+                                <div class="setting-desc">Use light color scheme</div>
+                            </div>
+                            <div class="toggle active"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_activeSection == "pricing")
+            {
+                <div class="settings-section">
+                    <h2>Pricing Configuration</h2>
+                    <p>Configure cost estimation settings</p>
+
+                    <div class="card-section">
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Default Currency</label>
+                                <select class="form-select">
+                                    <option selected>USD ($)</option>
+                                    <option>EUR</option>
+                                    <option>GBP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pricing Source</label>
+                                <select class="form-select">
+                                    <option selected>AWS Public Pricing</option>
+                                    <option>Azure Pricing</option>
+                                    <option>Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Cost Multipliers</h2>
+                    <p>Adjust cost calculations</p>
+
+                    <div class="card-section">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Support Cost (%)</div>
+                                <div class="setting-desc">Add support costs to estimates</div>
+                            </div>
+                            <input type="number" class="form-input-sm" value="15" min="0" max="100" />
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Licensing Overhead (%)</div>
+                                <div class="setting-desc">Software licensing costs</div>
+                            </div>
+                            <input type="number" class="form-input-sm" value="10" min="0" max="100" />
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_activeSection == "auth")
+            {
+                <div class="settings-section">
+                    <h2>Authentication Providers</h2>
+                    <p>Configure OAuth and SSO settings (Admin only)</p>
+
+                    <div class="card-section">
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">Google OAuth</div>
+                                <div class="setting-desc">Configured</div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Configure</button>
+                        </div>
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24">
+                                <path fill="#00A4EF" d="M11.4 24H0V12.6h11.4V24z"/>
+                                <path fill="#FFB900" d="M24 24H12.6V12.6H24V24z"/>
+                                <path fill="#F25022" d="M11.4 11.4H0V0h11.4v11.4z"/>
+                                <path fill="#7FBA00" d="M24 11.4H12.6V0H24v11.4z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">Microsoft Entra ID</div>
+                                <div class="setting-desc">Not configured</div>
+                            </div>
+                            <button class="btn btn-primary btn-sm">Setup</button>
+                        </div>
+                        <div class="auth-provider">
+                            <svg class="auth-provider-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <div class="setting-info">
+                                <div class="setting-label">LDAP / Active Directory</div>
+                                <div class="setting-desc">Not configured</div>
+                            </div>
+                            <button class="btn btn-primary btn-sm">Setup</button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_activeSection == "defaults")
+            {
+                <div class="settings-section">
+                    <h2>Scenario Defaults</h2>
+                    <p>Default values for new scenarios</p>
+
+                    <div class="card-section">
+                        <h3 class="section-subtitle">Kubernetes Defaults</h3>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Control Plane Nodes</label>
+                                <input type="number" class="form-input" value="3" min="1" max="7" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Worker Nodes</label>
+                                <input type="number" class="form-input" value="3" min="1" max="100" />
+                            </div>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Node CPU (cores)</label>
+                                <input type="number" class="form-input" value="8" min="2" max="128" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Node Memory (GB)</label>
+                                <input type="number" class="form-input" value="32" min="4" max="512" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="card-section">
+                        <h3 class="section-subtitle">VM Defaults</h3>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Default VM Count</label>
+                                <input type="number" class="form-input" value="5" min="1" max="100" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Host Count</label>
+                                <input type="number" class="form-input" value="2" min="1" max="20" />
+                            </div>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">VM CPU (cores)</label>
+                                <input type="number" class="form-input" value="4" min="1" max="64" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">VM Memory (GB)</label>
+                                <input type="number" class="form-input" value="16" min="1" max="256" />
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm">Save Defaults</button>
+                    </div>
+                </div>
+            }
+        </main>
     </div>
 </div>
 
 @code {
-    private string activeSection = "hardware";
-    private OnPremPricing onPremPricing = new();
-    private MendixPricingSettings mendixPricing = new();
-    private CloudPricingSettings cloudPricing = new();
+    private ApplicationUser? _currentUser;
+    private string _displayName = "User";
+    private string _activeSection = "profile";
+
+    // Profile fields
+    private string _firstName = "";
+    private string _lastName = "";
+    private string _email = "";
+    private string _company = "";
+    private string _jobTitle = "";
+    private bool _profileSaved = false;
+
+    // Feature toggles
+    private bool _growthPlanningEnabled = true;
+    private bool _costEstimationEnabled = true;
+    private bool _advancedFormulasEnabled = false;
+    private bool _excelExportEnabled = true;
+
+    // Connected accounts
+    private bool _googleConnected = false;
+    private string _googleEmail = "";
+
+    // Preferences
+    private string _defaultMode = "k8s";
+    private string _defaultCurrency = "USD";
+    private string _defaultDistribution = "openshift";
+    private string _defaultHypervisor = "vsphere";
 
     protected override async Task OnInitializedAsync()
     {
-        var settings = await PricingSettingsService.GetSettingsAsync();
-        onPremPricing = settings.OnPremDefaults;
-        mendixPricing = settings.MendixPricing;
-        cloudPricing = settings.CloudPricing;
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        if (_currentUser != null)
+        {
+            _displayName = _currentUser.DisplayName ?? "User";
+            _email = _currentUser.Email ?? "";
+
+            // Parse display name into first/last
+            var nameParts = _displayName.Split(' ', 2);
+            _firstName = nameParts.Length > 0 ? nameParts[0] : "";
+            _lastName = nameParts.Length > 1 ? nameParts[1] : "";
+        }
     }
 
-    private void GoBack() => Navigation.NavigateTo("/");
-
-    private async Task SaveSettings()
+    private string GetUserInitials()
     {
-        var settings = await PricingSettingsService.GetSettingsAsync();
-        settings.OnPremDefaults = onPremPricing;
-        settings.MendixPricing = mendixPricing;
-        settings.CloudPricing = cloudPricing;
-        settings.LastModified = DateTime.UtcNow;
-        await PricingSettingsService.SaveSettingsAsync(settings);
-        Navigation.NavigateTo("/");
+        if (string.IsNullOrEmpty(_displayName) || _displayName == "User")
+            return "U";
+
+        var parts = _displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 1)
+            return parts[0][0].ToString().ToUpper();
+        return "U";
     }
 
-    private async Task ResetPricingDefaults()
+    private void NavigateBack()
     {
-        await PricingSettingsService.ResetToDefaultsAsync();
-        var settings = await PricingSettingsService.GetSettingsAsync();
-        onPremPricing = settings.OnPremDefaults;
-        mendixPricing = settings.MendixPricing;
-        cloudPricing = settings.CloudPricing;
+        NavigationManager.NavigateTo("/landing");
+    }
+
+    private void SetSection(string section)
+    {
+        _activeSection = section;
+        _profileSaved = false;
+    }
+
+    private async Task SaveProfile()
+    {
+        // TODO: Save profile to database
+        _profileSaved = true;
+        await Task.Delay(2000);
+        _profileSaved = false;
+        StateHasChanged();
     }
 }

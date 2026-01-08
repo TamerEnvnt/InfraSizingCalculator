@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Apps Panel - Wireframe</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+        .panel-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .vm-badge {
+            background: #059669;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* OS Selection */
+        .os-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .os-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .os-btn:hover {
+            background: #3b4f6b;
+        }
+        .os-btn.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.15);
+        }
+        .os-icon {
+            font-size: 24px;
+        }
+        .os-details {
+            flex: 1;
+        }
+        .os-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .os-overhead {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .os-overhead-highlight {
+            color: #f59e0b;
+        }
+
+        /* App Size Presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .preset-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background: #3b4f6b;
+        }
+        .preset-btn.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.2);
+        }
+        .preset-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .preset-specs {
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Resource Inputs */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .resource-input {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .resource-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        .resource-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .resource-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .resource-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .resource-btn:hover { background: #475569; }
+        .resource-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            min-width: 40px;
+        }
+        .resource-unit {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Instance Grid */
+        .instance-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .instance-card {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .instance-env {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .instance-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .instance-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 4px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .instance-btn:hover { background: #475569; }
+        .instance-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+            min-width: 24px;
+        }
+        .ha-indicator {
+            font-size: 10px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .ha-warning { color: #f59e0b; }
+        .ha-ok { color: #22c55e; }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(5, 150, 105, 0.1);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+        .info-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #34d399;
+            margin-bottom: 6px;
+        }
+        .info-text {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* Summary */
+        .summary {
+            background: linear-gradient(135deg, #065f46, #1e293b);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .summary-title {
+            font-size: 12px;
+            color: #6ee7b7;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .summary-item {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #10b981;
+        }
+        .summary-label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .summary-divider {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 12px 0;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 0;
+        }
+        .summary-row-label { color: #94a3b8; }
+        .summary-row-value { color: #10b981; font-weight: 600; }
+        .summary-row-value.warning { color: #f59e0b; }
+
+        /* Comparison to K8s */
+        .comparison-note {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .comparison-icon {
+            font-size: 18px;
+            color: #64748b;
+        }
+        .comparison-text {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .comparison-text strong {
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Application Configuration</h2>
+            <span class="vm-badge">Virtual Machines</span>
+        </div>
+
+        <!-- OS Selection -->
+        <div class="section">
+            <div class="section-title">Operating System</div>
+            <div class="os-selector">
+                <div class="os-btn selected">
+                    <span class="os-icon">🐧</span>
+                    <div class="os-details">
+                        <div class="os-name">Linux</div>
+                        <div class="os-overhead">Overhead: <span class="os-overhead-highlight">~1GB RAM</span></div>
+                    </div>
+                </div>
+                <div class="os-btn">
+                    <span class="os-icon">🪟</span>
+                    <div class="os-details">
+                        <div class="os-name">Windows</div>
+                        <div class="os-overhead">Overhead: <span class="os-overhead-highlight">~4GB RAM</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Size Presets -->
+        <div class="section">
+            <div class="section-title">Application Size Template</div>
+            <div class="preset-grid">
+                <div class="preset-btn">
+                    <div class="preset-name">Small</div>
+                    <div class="preset-specs">1 vCPU<br>2GB RAM<br>50GB disk</div>
+                </div>
+                <div class="preset-btn selected">
+                    <div class="preset-name">Medium</div>
+                    <div class="preset-specs">2 vCPU<br>4GB RAM<br>100GB disk</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">Large</div>
+                    <div class="preset-specs">4 vCPU<br>8GB RAM<br>200GB disk</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">XLarge</div>
+                    <div class="preset-specs">8 vCPU<br>16GB RAM<br>500GB disk</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Inputs -->
+        <div class="section">
+            <div class="section-title">Application Resources (per VM)</div>
+            <div class="resource-grid">
+                <div class="resource-input">
+                    <div class="resource-label">vCPU</div>
+                    <div class="resource-controls">
+                        <button class="resource-btn">-</button>
+                        <span class="resource-value">2</span>
+                        <button class="resource-btn">+</button>
+                    </div>
+                    <div class="resource-unit">virtual cores</div>
+                </div>
+                <div class="resource-input">
+                    <div class="resource-label">RAM</div>
+                    <div class="resource-controls">
+                        <button class="resource-btn">-</button>
+                        <span class="resource-value">4</span>
+                        <button class="resource-btn">+</button>
+                    </div>
+                    <div class="resource-unit">GB</div>
+                </div>
+                <div class="resource-input">
+                    <div class="resource-label">Storage</div>
+                    <div class="resource-controls">
+                        <button class="resource-btn">-</button>
+                        <span class="resource-value">100</span>
+                        <button class="resource-btn">+</button>
+                    </div>
+                    <div class="resource-unit">GB</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instances per Environment -->
+        <div class="section">
+            <div class="section-title">Instances per Environment</div>
+            <div class="instance-grid">
+                <div class="instance-card">
+                    <div class="instance-env">Dev</div>
+                    <div class="instance-controls">
+                        <button class="instance-btn">-</button>
+                        <span class="instance-value">1</span>
+                        <button class="instance-btn">+</button>
+                    </div>
+                    <div class="ha-indicator ha-warning">Single instance</div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-env">Test</div>
+                    <div class="instance-controls">
+                        <button class="instance-btn">-</button>
+                        <span class="instance-value">1</span>
+                        <button class="instance-btn">+</button>
+                    </div>
+                    <div class="ha-indicator ha-warning">Single instance</div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-env">Staging</div>
+                    <div class="instance-controls">
+                        <button class="instance-btn">-</button>
+                        <span class="instance-value">1</span>
+                        <button class="instance-btn">+</button>
+                    </div>
+                    <div class="ha-indicator ha-warning">Single instance</div>
+                </div>
+                <div class="instance-card">
+                    <div class="instance-env">Production</div>
+                    <div class="instance-controls">
+                        <button class="instance-btn">-</button>
+                        <span class="instance-value">2</span>
+                        <button class="instance-btn">+</button>
+                    </div>
+                    <div class="ha-indicator ha-ok">✓ Behind LB</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-title">VM Resource Allocation</div>
+            <div class="info-text">
+                <strong>Fixed Allocation:</strong> Each VM gets exactly the resources specified.
+                Unlike containers, VMs don't share resources dynamically.<br><br>
+                <strong>Storage is Coupled:</strong> Each VM has its own disk.
+                Storage scales linearly with instance count.<br><br>
+                <strong>OS Overhead:</strong> Added automatically to each VM (Linux: ~1GB, Windows: ~4GB).
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-title">Total Resource Requirements (All Environments)</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">10</div>
+                    <div class="summary-label">Total vCPU</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">25 GB</div>
+                    <div class="summary-label">Total RAM</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">500 GB</div>
+                    <div class="summary-label">Total Storage</div>
+                </div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row">
+                <span class="summary-row-label">Total VMs</span>
+                <span class="summary-row-value">5 instances</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-row-label">App Resources</span>
+                <span class="summary-row-value">10 vCPU / 20 GB RAM</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-row-label">OS Overhead (Linux × 5)</span>
+                <span class="summary-row-value warning">+ 5 GB RAM</span>
+            </div>
+        </div>
+
+        <!-- Comparison Note -->
+        <div class="comparison-note">
+            <span class="comparison-icon">ℹ️</span>
+            <div class="comparison-text">
+                <strong>VM vs K8s:</strong> VMs use fixed vCPU allocation (whole cores),
+                while K8s uses millicores for fine-grained CPU sharing.
+                VM storage is local to each instance; K8s uses shared persistent volumes.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

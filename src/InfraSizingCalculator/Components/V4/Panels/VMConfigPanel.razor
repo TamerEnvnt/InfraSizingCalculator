@@ -1,0 +1,213 @@
+@*
+    VMConfigPanel.razor - v0.4.4 VM Configuration Side Panel
+
+    Matches wireframe: 02-dashboard-vm.html (side panel section)
+    - Global settings: K8s/VM mode toggle, Hypervisor
+    - Environment selector: Production/Staging/Dev
+    - Config tabs: Hypervisor, Servers, Templates, Pricing, Growth
+    - Per-environment configuration
+*@
+
+@using InfraSizingCalculator.Components.V4.Panels.Sections
+
+<div class="config-panel" data-testid="vm-config-panel">
+    <!-- Panel Header -->
+    <div class="panel-header">
+        <div class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+            </svg>
+            Configuration
+        </div>
+        <button class="btn btn-ghost btn-sm" @onclick="HandleCollapse" data-testid="btn-collapse">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Global Settings -->
+    <div class="global-section">
+        <div class="section-label">Global</div>
+        <div class="mode-toggle">
+            <button class="mode-btn k8s" @onclick="@(() => OnModeChange.InvokeAsync("k8s"))" data-testid="mode-k8s">Kubernetes</button>
+            <button class="mode-btn vm active" data-testid="mode-vm">Virtual Machines</button>
+        </div>
+        <div class="hypervisor-row">
+            <span class="hyp-label">Hypervisor:</span>
+            <span class="hyp-value">@Hypervisor</span>
+            <button class="link-btn" @onclick="HandleChangeHypervisor">Change</button>
+        </div>
+    </div>
+
+    <!-- Environment Selector -->
+    <div class="environment-section">
+        <div class="section-header">
+            <span class="section-label">Environment</span>
+            <button class="btn btn-ghost btn-sm" @onclick="HandleAddEnvironment">+ Add</button>
+        </div>
+        <div class="environment-buttons">
+            @foreach (var env in _environments)
+            {
+                <button class="env-btn @(env.Id == SelectedEnvironment ? "active" : "")"
+                        @onclick="() => HandleSelectEnvironment(env.Id)"
+                        data-testid="env-@env.Id">
+                    @env.Name
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Config Tabs -->
+    <div class="config-tabs">
+        @foreach (var tab in _configTabs)
+        {
+            <button class="config-tab @(tab.Id == ActiveTab ? "active" : "")"
+                    @onclick="() => HandleSelectTab(tab.Id)"
+                    data-testid="tab-@tab.Id">
+                @tab.Name
+            </button>
+        }
+    </div>
+
+    <!-- Panel Body - Tab Content -->
+    <div class="panel-body">
+        <!-- Environment Header -->
+        <div class="env-header">
+            <span class="badge badge-@GetEnvironmentBadgeClass(SelectedEnvironment)">@GetEnvironmentName(SelectedEnvironment)</span>
+            <span class="env-context">@GetTabDisplayName(ActiveTab)</span>
+        </div>
+
+        @switch (ActiveTab)
+        {
+            case "hypervisor":
+                <HypervisorConfigSection OnConfigChange="HandleConfigChange" />
+                break;
+            case "servers":
+                <ServersConfigSection OnConfigChange="HandleConfigChange" />
+                break;
+            case "templates":
+                <TemplatesConfigSection OnConfigChange="HandleConfigChange" />
+                break;
+            case "pricing":
+                <PricingConfigSection OnConfigChange="HandleConfigChange" />
+                break;
+            case "growth":
+                <GrowthConfigSection OnConfigChange="HandleConfigChange" />
+                break;
+        }
+    </div>
+
+    <!-- Panel Footer -->
+    <div class="panel-footer">
+        <button class="btn btn-ghost btn-sm" @onclick="() => OnReset.InvokeAsync()" data-testid="btn-reset">Reset</button>
+        <button class="btn btn-primary btn-sm" @onclick="() => OnApply.InvokeAsync()" data-testid="btn-apply">Apply Changes</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string SelectedEnvironment { get; set; } = "production";
+
+    [Parameter]
+    public string ActiveTab { get; set; } = "hypervisor";
+
+    [Parameter]
+    public string Hypervisor { get; set; } = "vSphere 8";
+
+    [Parameter]
+    public EventCallback<string> OnEnvironmentChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnTabChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnModeChange { get; set; }
+
+    [Parameter]
+    public EventCallback OnApply { get; set; }
+
+    [Parameter]
+    public EventCallback OnReset { get; set; }
+
+    private List<EnvironmentInfo> _environments = new()
+    {
+        new("production", "Production"),
+        new("staging", "Staging"),
+        new("dev", "Dev")
+    };
+
+    private List<TabInfo> _configTabs = new()
+    {
+        new("hypervisor", "Hypervisor"),
+        new("servers", "Servers"),
+        new("templates", "Templates"),
+        new("pricing", "Pricing"),
+        new("growth", "Growth")
+    };
+
+    private void HandleCollapse()
+    {
+        // TODO: Collapse panel
+    }
+
+    private void HandleChangeHypervisor()
+    {
+        // TODO: Open hypervisor selector
+    }
+
+    private void HandleAddEnvironment()
+    {
+        // TODO: Add new environment
+    }
+
+    private async Task HandleSelectEnvironment(string envId)
+    {
+        await OnEnvironmentChange.InvokeAsync(envId);
+    }
+
+    private async Task HandleSelectTab(string tabId)
+    {
+        await OnTabChange.InvokeAsync(tabId);
+    }
+
+    private void HandleConfigChange()
+    {
+        // TODO: Mark as changed
+        StateHasChanged();
+    }
+
+    private string GetEnvironmentName(string envId)
+    {
+        return _environments.FirstOrDefault(e => e.Id == envId)?.Name ?? envId;
+    }
+
+    private string GetEnvironmentBadgeClass(string envId)
+    {
+        return envId switch
+        {
+            "production" => "success",
+            "staging" => "warning",
+            "dev" => "default",
+            _ => "default"
+        };
+    }
+
+    private string GetTabDisplayName(string tabId)
+    {
+        return tabId switch
+        {
+            "hypervisor" => "Hypervisor Configuration",
+            "servers" => "Server Configuration",
+            "templates" => "VM Templates",
+            "pricing" => "Pricing Configuration",
+            "growth" => "Growth Planning",
+            _ => "Configuration"
+        };
+    }
+
+    // Records
+    public record EnvironmentInfo(string Id, string Name);
+    public record TabInfo(string Id, string Name);
+}

@@ -1,95 +1,214 @@
 @page "/register"
+@rendermode InteractiveServer
+@layout InfraSizingCalculator.Components.Layout.AuthLayout
 @using InfraSizingCalculator.Services.Auth
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject ILogger<Register> Logger
 
-<PageTitle>Register - Infrastructure Sizing Calculator</PageTitle>
+<PageTitle>Create Account - Infrastructure Sizing Calculator</PageTitle>
 
-<div class="register-container">
-    <div class="register-card">
-        <h1>Create Account</h1>
-        <p class="subtitle">Infrastructure Sizing Calculator</p>
+@*
+    Register.razor - v0.4.4 wireframe design
+    Matches wireframe: 15-register.html
+    Split layout: Benefits panel left, Form right
+    Light theme (#f8fafc background)
+*@
 
-        @if (!string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="alert alert-error" role="alert">
-                <span class="alert-icon">⚠</span>
-                @_errorMessage
+<div class="auth-layout">
+    <!-- Header -->
+    <header class="auth-header">
+        <a href="/" class="auth-header-logo">InfraSizing Calculator</a>
+        <a href="/login" class="btn btn-sm btn-secondary">Sign In</a>
+    </header>
+
+    <!-- Content -->
+    <div class="register-content">
+        <!-- Benefits Section -->
+        <div class="register-benefits">
+            <h2>Start sizing your infrastructure today</h2>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                    </svg>
+                </div>
+                <div class="benefit-text">
+                    <h4>Save Scenarios</h4>
+                    <p>Unlimited scenarios, access anywhere</p>
+                </div>
             </div>
-        }
 
-        @if (_registrationComplete)
-        {
-            <div class="alert alert-success" role="alert">
-                <span class="alert-icon">✓</span>
-                Account created successfully! Redirecting to login...
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18"/><path d="M9 21V9"/>
+                    </svg>
+                </div>
+                <div class="benefit-text">
+                    <h4>Compare Options</h4>
+                    <p>K8s vs VM side-by-side</p>
+                </div>
             </div>
-        }
-        else
-        {
-            <EditForm Model="_registerModel" OnValidSubmit="HandleRegister" FormName="register">
-                <DataAnnotationsValidator />
 
-                <div class="form-group">
-                    <label for="displayName">Display Name</label>
-                    <InputText id="displayName"
-                               @bind-Value="_registerModel.DisplayName"
-                               class="form-control"
-                               placeholder="Your name"
-                               autocomplete="name" />
-                    <ValidationMessage For="@(() => _registerModel.DisplayName)" />
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                </div>
+                <div class="benefit-text">
+                    <h4>Export Reports</h4>
+                    <p>PDF and Excel for stakeholders</p>
+                </div>
+            </div>
+
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    </svg>
+                </div>
+                <div class="benefit-text">
+                    <h4>Team Collaboration</h4>
+                    <p>Share with your team</p>
+                </div>
+            </div>
+
+            <div class="benefits-footer">
+                46 K8s distributions &bull; 7 hypervisors
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="register-form-section">
+            <div class="register-card">
+                <div class="register-header">
+                    <h1>Create your account</h1>
+                    <p>Free to start, no credit card required</p>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <InputText id="email"
-                               @bind-Value="_registerModel.Email"
-                               class="form-control"
-                               placeholder="your@email.com"
-                               autocomplete="email" />
-                    <ValidationMessage For="@(() => _registerModel.Email)" />
-                </div>
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="error-message">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        @_errorMessage
+                    </div>
+                }
 
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <InputText id="password"
-                               @bind-Value="_registerModel.Password"
-                               type="password"
-                               class="form-control"
-                               placeholder="At least 8 characters"
-                               autocomplete="new-password" />
-                    <ValidationMessage For="@(() => _registerModel.Password)" />
-                    <small class="form-hint">Must contain uppercase, lowercase, and a number</small>
-                </div>
+                @if (_registrationComplete)
+                {
+                    <div class="success-message">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="16 10 11 15 8 12"/>
+                        </svg>
+                        Account created successfully! Redirecting to login...
+                    </div>
+                }
+                else
+                {
+                    <EditForm Model="_registerModel" OnValidSubmit="HandleRegister">
+                        <DataAnnotationsValidator />
 
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <InputText id="confirmPassword"
-                               @bind-Value="_registerModel.ConfirmPassword"
-                               type="password"
-                               class="form-control"
-                               placeholder="Confirm your password"
-                               autocomplete="new-password" />
-                    <ValidationMessage For="@(() => _registerModel.ConfirmPassword)" />
-                </div>
+                        <div class="form-row-2col">
+                            <div class="form-group">
+                                <label class="form-label" for="firstName">First Name</label>
+                                <InputText id="firstName"
+                                           @bind-Value="_registerModel.FirstName"
+                                           class="form-input"
+                                           placeholder="John"
+                                           autocomplete="given-name" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="lastName">Last Name</label>
+                                <InputText id="lastName"
+                                           @bind-Value="_registerModel.LastName"
+                                           class="form-input"
+                                           placeholder="Doe"
+                                           autocomplete="family-name" />
+                            </div>
+                        </div>
 
-                <button type="submit" class="btn btn-primary btn-block" disabled="@_isLoading">
-                    @if (_isLoading)
-                    {
-                        <span class="spinner"></span>
-                        <span>Creating account...</span>
-                    }
-                    else
-                    {
-                        <span>Create Account</span>
-                    }
-                </button>
-            </EditForm>
-        }
+                        <div class="form-group">
+                            <label class="form-label" for="email">Work Email</label>
+                            <InputText id="email"
+                                       @bind-Value="_registerModel.Email"
+                                       class="form-input"
+                                       placeholder="john@company.com"
+                                       autocomplete="email" />
+                        </div>
 
-        <div class="register-footer">
-            <p>Already have an account? <a href="/login">Sign in</a></p>
+                        <div class="form-group">
+                            <label class="form-label" for="company">Company (Optional)</label>
+                            <InputText id="company"
+                                       @bind-Value="_registerModel.Organization"
+                                       class="form-input"
+                                       placeholder="Acme Corp"
+                                       autocomplete="organization" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <InputText id="password"
+                                       @bind-Value="_registerModel.Password"
+                                       type="password"
+                                       class="form-input"
+                                       placeholder="Create a strong password"
+                                       autocomplete="new-password" />
+                            <div class="password-strength">
+                                <div class="password-strength-bar">
+                                    <div class="strength-fill" style="width: @GetPasswordStrengthPercent()%"></div>
+                                </div>
+                            </div>
+                            <ul class="password-requirements">
+                                <li class="@(HasMinLength() ? "met" : "")">8+ chars</li>
+                                <li class="@(HasUppercase() ? "met" : "")">Uppercase</li>
+                                <li class="@(HasLowercase() ? "met" : "")">Lowercase</li>
+                                <li class="@(HasNumber() ? "met" : "")">Number</li>
+                                <li class="@(HasSpecial() ? "met" : "")">Special</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="terms-label">
+                                <InputCheckbox @bind-Value="_registerModel.AgreeToTerms" class="terms-checkbox" />
+                                <span class="terms-text">
+                                    I agree to the <a href="#">Terms</a> and
+                                    <a href="#">Privacy Policy</a>
+                                </span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full" disabled="@(_isLoading || !_registerModel.AgreeToTerms)">
+                            @if (_isLoading)
+                            {
+                                <span class="spinner"></span>
+                                <span>Creating account...</span>
+                            }
+                            else
+                            {
+                                <span>Create Account</span>
+                            }
+                        </button>
+                    </EditForm>
+
+                    <div class="register-footer">
+                        Already have an account? <a href="/login">Sign in</a>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -107,23 +226,17 @@
 
         try
         {
-            if (_registerModel.Password != _registerModel.ConfirmPassword)
-            {
-                _errorMessage = "Passwords do not match.";
-                return;
-            }
-
+            var displayName = $"{_registerModel.FirstName} {_registerModel.LastName}".Trim();
             var result = await AuthService.RegisterAsync(
                 _registerModel.Email,
                 _registerModel.Password,
-                _registerModel.DisplayName);
+                displayName);
 
             if (result.Succeeded)
             {
                 Logger.LogInformation("New user registered: {Email}", _registerModel.Email);
                 _registrationComplete = true;
 
-                // Redirect to login after short delay
                 await Task.Delay(1500);
                 Navigation.NavigateTo("/login");
             }
@@ -143,22 +256,44 @@
         }
     }
 
+    private int GetPasswordStrengthPercent()
+    {
+        var password = _registerModel.Password ?? "";
+        int score = 0;
+        if (HasMinLength()) score += 20;
+        if (HasUppercase()) score += 20;
+        if (HasLowercase()) score += 20;
+        if (HasNumber()) score += 20;
+        if (HasSpecial()) score += 20;
+        return score;
+    }
+
+    private bool HasMinLength() => (_registerModel.Password?.Length ?? 0) >= 8;
+    private bool HasUppercase() => (_registerModel.Password ?? "").Any(char.IsUpper);
+    private bool HasLowercase() => (_registerModel.Password ?? "").Any(char.IsLower);
+    private bool HasNumber() => (_registerModel.Password ?? "").Any(char.IsDigit);
+    private bool HasSpecial() => (_registerModel.Password ?? "").Any(c => !char.IsLetterOrDigit(c));
+
     private class RegisterModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Display name is required")]
-        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Display name cannot exceed 100 characters")]
-        public string DisplayName { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "First name is required")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "First name cannot exceed 50 characters")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Last name is required")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+        public string LastName { get; set; } = string.Empty;
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required")]
         [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = string.Empty;
 
+        public string Organization { get; set; } = string.Empty;
+
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Password is required")]
         [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Please confirm your password")]
-        [System.ComponentModel.DataAnnotations.Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        public bool AgreeToTerms { get; set; }
     }
 }

@@ -1,0 +1,337 @@
+/*
+ * GrowthConfigPanel.razor.css - Growth planning panel styles
+ */
+
+.growth-config-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+    margin: 0;
+}
+
+.section-desc {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+.config-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #c9d1d9);
+}
+
+/* Horizon Selector */
+.horizon-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.horizon-options {
+    display: flex;
+    gap: 8px;
+}
+
+.horizon-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 8px;
+    color: var(--text-secondary, #8b949e);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.horizon-btn:hover {
+    border-color: var(--text-tertiary, #6e7681);
+    color: var(--text-primary, #c9d1d9);
+}
+
+.horizon-btn.selected {
+    background: rgba(88, 166, 255, 0.15);
+    border-color: var(--accent-blue, #58a6ff);
+    color: var(--accent-blue, #58a6ff);
+}
+
+/* Growth Rate Config */
+.growth-rate-config {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rate-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent-blue, #58a6ff);
+}
+
+.growth-slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+        var(--accent-green, #3fb950) 0%,
+        var(--accent-yellow, #d29922) 50%,
+        var(--accent-red, #f85149) 100%);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.growth-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent-blue, #58a6ff);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.rate-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-tertiary, #6e7681);
+}
+
+/* Growth Preview */
+.growth-preview {
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.preview-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #8b949e);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 16px;
+}
+
+.preview-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 24px;
+}
+
+.preview-timeline::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border-primary, #30363d);
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 0;
+    position: relative;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -24px;
+    top: 14px;
+    width: 14px;
+    height: 14px;
+    background: var(--bg-tertiary, #21262d);
+    border: 2px solid var(--border-primary, #30363d);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.timeline-item.final .timeline-dot {
+    background: var(--accent-blue, #58a6ff);
+    border-color: var(--accent-blue, #58a6ff);
+}
+
+.timeline-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.timeline-year {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+    min-width: 50px;
+}
+
+.timeline-apps {
+    font-size: 14px;
+    color: var(--text-primary, #c9d1d9);
+    padding: 4px 10px;
+    background: var(--bg-primary, #0d1117);
+    border-radius: 4px;
+}
+
+.timeline-item.final .timeline-apps {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--accent-blue, #58a6ff);
+    font-weight: 600;
+}
+
+.timeline-growth {
+    font-size: 12px;
+    color: var(--accent-green, #3fb950);
+}
+
+/* Capacity Recommendations */
+.capacity-recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommendations-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #8b949e);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.recommendation-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendation-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 8px;
+}
+
+.rec-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.rec-icon.nodes {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--accent-blue, #58a6ff);
+}
+
+.rec-icon.cpu {
+    background: rgba(163, 113, 247, 0.15);
+    color: var(--accent-purple, #a371f7);
+}
+
+.rec-icon.cost {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--accent-green, #3fb950);
+}
+
+.rec-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.rec-label {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+    min-width: 80px;
+}
+
+.rec-current {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.rec-arrow {
+    color: var(--text-tertiary, #6e7681);
+}
+
+.rec-projected {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-blue, #58a6ff);
+}
+
+/* Growth Alert */
+.growth-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(210, 153, 34, 0.15);
+    border: 1px solid rgba(210, 153, 34, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--accent-yellow, #d29922);
+    line-height: 1.4;
+}
+
+.growth-alert svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .horizon-options {
+        flex-wrap: wrap;
+    }
+
+    .horizon-btn {
+        flex: 0 0 calc(33.33% - 6px);
+    }
+
+    .rec-content {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .rec-label {
+        width: 100%;
+    }
+}

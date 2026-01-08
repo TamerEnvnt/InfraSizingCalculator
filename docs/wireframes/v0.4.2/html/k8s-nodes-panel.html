@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8s Nodes Panel - Wireframe</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+        .panel-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .k8s-badge {
+            background: #2563eb;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Node Size Presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .preset-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background: #3b4f6b;
+        }
+        .preset-btn.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+        }
+        .preset-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .preset-specs {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .preset-allocatable {
+            font-size: 10px;
+            color: #22c55e;
+            margin-top: 4px;
+        }
+
+        /* Allocatable Info Box */
+        .allocatable-box {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .allocatable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .allocatable-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        .allocatable-percent {
+            font-size: 14px;
+            font-weight: 700;
+            color: #22c55e;
+        }
+        .allocatable-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .breakdown-label { color: #94a3b8; }
+        .breakdown-value { color: #e2e8f0; font-weight: 500; }
+        .breakdown-value.deducted { color: #ef4444; }
+        .breakdown-value.available { color: #22c55e; font-weight: 700; }
+
+        /* Worker Node Count */
+        .node-count-container {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .count-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .count-row:last-child {
+            border-bottom: none;
+        }
+        .count-label {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .count-sublabel {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .count-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .count-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .count-btn:hover { background: #475569; }
+        .count-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+            min-width: 40px;
+            text-align: center;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: #475569;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+        .toggle.active {
+            background: #3b82f6;
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle.active::after {
+            left: 23px;
+        }
+        .auto-badge {
+            background: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* Control Plane Section */
+        .control-plane-box {
+            background: linear-gradient(135deg, #1e3a5f, #1e293b);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #334155;
+        }
+        .cp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .cp-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .cp-badge {
+            background: #7c3aed;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .cp-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .cp-option {
+            background: #0f172a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cp-option:hover {
+            border-color: #475569;
+        }
+        .cp-option.selected {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.15);
+        }
+        .cp-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .cp-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .cp-specs {
+            font-size: 10px;
+            color: #a78bfa;
+            margin-top: 6px;
+        }
+        .cp-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(124, 58, 237, 0.1);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #c4b5fd;
+        }
+
+        /* System Overhead */
+        .overhead-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .overhead-item {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .overhead-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+        .overhead-name {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .overhead-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #f59e0b;
+        }
+
+        /* Cluster Summary */
+        .summary {
+            background: linear-gradient(135deg, #064e3b, #0f172a);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #065f46;
+        }
+        .summary-title {
+            font-size: 12px;
+            color: #6ee7b7;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .summary-item {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+        }
+        .summary-label {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .summary-divider {
+            border-top: 1px solid #065f46;
+            margin: 12px 0;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 0;
+        }
+        .summary-row-label { color: #94a3b8; }
+        .summary-row-value { color: #10b981; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Cluster Node Configuration</h2>
+            <span class="k8s-badge">Kubernetes</span>
+        </div>
+
+        <!-- Worker Node Size -->
+        <div class="section">
+            <div class="section-title">Worker Node Size</div>
+            <div class="preset-grid">
+                <div class="preset-btn">
+                    <div class="preset-name">Small</div>
+                    <div class="preset-specs">4 vCPU / 8GB</div>
+                    <div class="preset-allocatable">~75% allocatable</div>
+                </div>
+                <div class="preset-btn selected">
+                    <div class="preset-name">Medium</div>
+                    <div class="preset-specs">8 vCPU / 16GB</div>
+                    <div class="preset-allocatable">~85% allocatable</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">Large</div>
+                    <div class="preset-specs">16 vCPU / 32GB</div>
+                    <div class="preset-allocatable">~90% allocatable</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">XLarge</div>
+                    <div class="preset-specs">32 vCPU / 64GB</div>
+                    <div class="preset-allocatable">~93% allocatable</div>
+                </div>
+            </div>
+
+            <!-- Allocatable Breakdown -->
+            <div class="allocatable-box">
+                <div class="allocatable-header">
+                    <span class="allocatable-title">Node Allocatable Resources</span>
+                    <span class="allocatable-percent">85% Allocatable</span>
+                </div>
+                <div class="allocatable-breakdown">
+                    <div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Total Capacity</span>
+                            <span class="breakdown-value">16 GB</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">OS Reserved</span>
+                            <span class="breakdown-value deducted">-500 MB</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Kubelet Reserved</span>
+                            <span class="breakdown-value deducted">-200 MB</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Eviction Threshold</span>
+                            <span class="breakdown-value deducted">-100 MB</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">System Pods</span>
+                            <span class="breakdown-value deducted">-512 MB</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Allocatable</span>
+                            <span class="breakdown-value available">13.6 GB</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Total Capacity</span>
+                            <span class="breakdown-value">8 vCPU</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">OS Reserved</span>
+                            <span class="breakdown-value deducted">-100m</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Kubelet Reserved</span>
+                            <span class="breakdown-value deducted">-100m</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">System Pods</span>
+                            <span class="breakdown-value deducted">-300m</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">&nbsp;</span>
+                            <span class="breakdown-value">&nbsp;</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Allocatable</span>
+                            <span class="breakdown-value available">7500m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Worker Node Count -->
+        <div class="section">
+            <div class="section-title">Worker Nodes</div>
+            <div class="node-count-container">
+                <div class="count-row">
+                    <div>
+                        <div class="count-label">Worker Node Count</div>
+                        <div class="count-sublabel">Based on total pod requests</div>
+                    </div>
+                    <div class="count-controls">
+                        <span class="auto-badge">AUTO</span>
+                        <button class="count-btn">-</button>
+                        <span class="count-value">4</span>
+                        <button class="count-btn">+</button>
+                    </div>
+                </div>
+                <div class="count-row">
+                    <div>
+                        <div class="count-label">N+1 Redundancy</div>
+                        <div class="count-sublabel">Add extra node for failover</div>
+                    </div>
+                    <div class="toggle-container">
+                        <div class="toggle active"></div>
+                    </div>
+                </div>
+                <div class="count-row">
+                    <div>
+                        <div class="count-label">Total Worker Nodes</div>
+                        <div class="count-sublabel">Including redundancy</div>
+                    </div>
+                    <span class="count-value" style="color: #22c55e;">5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Overhead -->
+        <div class="section">
+            <div class="section-title">System Pod Overhead (per node)</div>
+            <div class="overhead-grid">
+                <div class="overhead-item">
+                    <div class="overhead-name">kube-proxy</div>
+                    <div class="overhead-value">100m / 128Mi</div>
+                </div>
+                <div class="overhead-item">
+                    <div class="overhead-name">CNI (Calico)</div>
+                    <div class="overhead-value">100m / 128Mi</div>
+                </div>
+                <div class="overhead-item">
+                    <div class="overhead-name">Monitoring</div>
+                    <div class="overhead-value">100m / 256Mi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Plane -->
+        <div class="section">
+            <div class="section-title">Control Plane</div>
+            <div class="control-plane-box">
+                <div class="cp-header">
+                    <span class="cp-title">Control Plane Nodes</span>
+                    <span class="cp-badge">Separate from Workers</span>
+                </div>
+                <div class="cp-options">
+                    <div class="cp-option">
+                        <div class="cp-count">1</div>
+                        <div class="cp-label">Development</div>
+                        <div class="cp-specs">4 vCPU, 16GB</div>
+                    </div>
+                    <div class="cp-option selected">
+                        <div class="cp-count">3</div>
+                        <div class="cp-label">Production</div>
+                        <div class="cp-specs">8 vCPU, 32GB</div>
+                    </div>
+                    <div class="cp-option">
+                        <div class="cp-count">5</div>
+                        <div class="cp-label">Large Scale</div>
+                        <div class="cp-specs">16 vCPU, 64GB</div>
+                    </div>
+                </div>
+                <div class="cp-info">
+                    Control plane runs etcd, API server, controller-manager, and scheduler.
+                    Use 3+ nodes for HA. Odd numbers for etcd quorum.
+                </div>
+            </div>
+        </div>
+
+        <!-- Cluster Summary -->
+        <div class="summary">
+            <div class="summary-title">Cluster Summary</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">8</div>
+                    <div class="summary-label">Total Nodes</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">5</div>
+                    <div class="summary-label">Worker Nodes</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">3</div>
+                    <div class="summary-label">Control Plane</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">85%</div>
+                    <div class="summary-label">Allocatable</div>
+                </div>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row">
+                <span class="summary-row-label">Total Cluster Capacity</span>
+                <span class="summary-row-value">40 vCPU / 80 GB</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-row-label">Allocatable for Workloads</span>
+                <span class="summary-row-value">37.5 vCPU / 68 GB</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-row-label">System Overhead</span>
+                <span class="summary-row-value">2.5 vCPU / 12 GB</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

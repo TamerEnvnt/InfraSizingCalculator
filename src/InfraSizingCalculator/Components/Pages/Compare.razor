@@ -1,0 +1,403 @@
+@page "/compare"
+@using InfraSizingCalculator.Models
+@using InfraSizingCalculator.Services.Interfaces
+@inject IScenarioService ScenarioService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Scenario Comparison | InfraSizing Calculator</PageTitle>
+
+<div class="compare-page">
+    <!-- Header -->
+    <div class="compare-header">
+        <div class="compare-header-left">
+            <button class="btn btn-secondary btn-sm" @onclick="GoBack">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </button>
+            <h1>Scenario Comparison</h1>
+        </div>
+        <div class="compare-header-right">
+            @if (comparison != null && comparison.Scenarios.Length > 0)
+            {
+                <button class="btn btn-primary btn-sm" @onclick="ExportComparison">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <span>Loading scenarios...</span>
+        </div>
+    }
+    else if (comparison == null || comparison.Scenarios.Length < 2)
+    {
+        <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <h2>Select Scenarios to Compare</h2>
+            <p>Go to <a href="/scenarios">My Scenarios</a> and select at least 2 scenarios to compare.</p>
+            <button class="btn btn-primary" @onclick="GoToScenarios">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                Go to Scenarios
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="compare-content">
+            <!-- Main comparison area -->
+            <div class="compare-main">
+                <!-- Scenario Headers -->
+                <div class="scenario-headers">
+                    <div class="metric-label-header">Metric</div>
+                    @foreach (var scenario in comparison.Scenarios)
+                    {
+                        <div class="scenario-header">
+                            <span class="badge @(scenario.Type == "k8s" ? "badge-k8s" : "badge-vm")">
+                                @(scenario.Type == "k8s" ? "K8s" : "VM")
+                            </span>
+                            <div class="scenario-name">@scenario.Name</div>
+                            <div class="scenario-platform">@scenario.DistributionOrTechnology</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="comparison-table">
+                    <!-- Infrastructure Section -->
+                    <div class="table-section">
+                        <div class="section-header">Infrastructure</div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Platform</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                <div class="metric-value">@scenario.DistributionOrTechnology</div>
+                            }
+                        </div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Compute Units</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Total Nodes/VMs", scenario.Id);
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @scenario.TotalNodes @(scenario.Type == "k8s" ? "nodes" : "VMs")
+                                </div>
+                            }
+                        </div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Total vCPU</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Total vCPU", scenario.Id);
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @scenario.TotalCpu cores
+                                </div>
+                            }
+                        </div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Total Memory</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Total RAM", scenario.Id);
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @scenario.TotalRam.ToString("F0") GB
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Cost Section -->
+                    <div class="table-section">
+                        <div class="section-header">Cost Analysis</div>
+
+                        <div class="table-row highlight">
+                            <div class="metric-label">Monthly Cost</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Monthly Cost", scenario.Id);
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @scenario.MonthlyEstimate.ToString("C0")
+                                </div>
+                            }
+                        </div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Yearly Cost</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Yearly Cost", scenario.Id);
+                                var yearly = scenario.CostEstimate?.YearlyTotal ?? 0;
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @yearly.ToString("C0")
+                                </div>
+                            }
+                        </div>
+
+                        <div class="table-row highlight">
+                            <div class="metric-label">3-Year TCO</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("3-Year TCO", scenario.Id);
+                                var tco = scenario.CostEstimate?.ThreeYearTCO ?? 0;
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @tco.ToString("C0")
+                                </div>
+                            }
+                        </div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Cost per Node</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                var isBest = IsLowestValue("Cost/Node", scenario.Id);
+                                var costPerNode = scenario.TotalNodes > 0
+                                    ? scenario.MonthlyEstimate / scenario.TotalNodes
+                                    : 0;
+                                <div class="metric-value @(isBest ? "best" : "")">
+                                    @costPerNode.ToString("C0")/node
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Applications Section -->
+                    <div class="table-section">
+                        <div class="section-header">Applications</div>
+
+                        <div class="table-row">
+                            <div class="metric-label">Total Apps</div>
+                            @foreach (var scenario in comparison.Scenarios)
+                            {
+                                <div class="metric-value">
+                                    @(scenario.TotalApps > 0 ? scenario.TotalApps.ToString() : "N/A")
+                                </div>
+                            }
+                        </div>
+
+                        @if (comparison.Scenarios.Any(s => s.TotalApps > 0))
+                        {
+                            <div class="table-row">
+                                <div class="metric-label">Cost per App</div>
+                                @foreach (var scenario in comparison.Scenarios)
+                                {
+                                    var costPerApp = scenario.TotalApps > 0
+                                        ? scenario.MonthlyEstimate / scenario.TotalApps
+                                        : 0;
+                                    <div class="metric-value">
+                                        @(scenario.TotalApps > 0 ? costPerApp.ToString("C0") + "/app" : "N/A")
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Analysis Cards -->
+                <div class="analysis-section">
+                    @foreach (var scenario in comparison.Scenarios)
+                    {
+                        <div class="analysis-card @(scenario.Type)">
+                            <h4>@scenario.Name</h4>
+                            <p>
+                                <strong>Platform:</strong> @scenario.DistributionOrTechnology<br/>
+                                <strong>Resources:</strong> @scenario.TotalNodes @(scenario.Type == "k8s" ? "nodes" : "VMs"), @scenario.TotalCpu vCPU, @scenario.TotalRam.ToString("F0") GB RAM
+                            </p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Insights -->
+                @if (comparison.Insights.Any())
+                {
+                    <div class="insights-section">
+                        <h3>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 16v-4"/>
+                                <path d="M12 8h.01"/>
+                            </svg>
+                            Key Insights
+                        </h3>
+                        <ul>
+                            @foreach (var insight in comparison.Insights)
+                            {
+                                <li>@insight</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- Recommendation -->
+                @if (!string.IsNullOrEmpty(comparison.RecommendationReason))
+                {
+                    <div class="recommendation-box @(comparison.RecommendedScenarioId.HasValue ? "has-recommendation" : "")">
+                        <strong>Recommendation:</strong> @comparison.RecommendationReason
+                    </div>
+                }
+            </div>
+
+            <!-- Side Panel - Options -->
+            <div class="compare-sidebar">
+                <div class="sidebar-header">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    <span>Options</span>
+                </div>
+
+                <div class="sidebar-content">
+                    <div class="option-group">
+                        <label class="option-label">Highlight Best</label>
+                        <div class="radio-group">
+                            <label class="radio-item @(highlightMode == "cost" ? "selected" : "")" @onclick="@(() => SetHighlightMode("cost"))">
+                                <span class="radio-circle"></span>
+                                <span>Lowest Cost</span>
+                            </label>
+                            <label class="radio-item @(highlightMode == "resources" ? "selected" : "")" @onclick="@(() => SetHighlightMode("resources"))">
+                                <span class="radio-circle"></span>
+                                <span>Fewest Resources</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="option-group">
+                        <label class="option-label">Show Sections</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" checked="@showInfrastructure" @onchange="@(e => showInfrastructure = (bool)(e.Value ?? true))" />
+                                <span>Infrastructure</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" checked="@showCosts" @onchange="@(e => showCosts = (bool)(e.Value ?? true))" />
+                                <span>Cost Analysis</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" checked="@showApps" @onchange="@(e => showApps = (bool)(e.Value ?? true))" />
+                                <span>Applications</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="option-group">
+                        <label class="option-label">Currency</label>
+                        <select class="form-select" @bind="currency">
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button class="btn btn-ghost btn-sm" @onclick="ResetOptions">Reset</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Ids { get; set; }
+
+    private ScenarioComparison? comparison;
+    private bool isLoading = true;
+    private string highlightMode = "cost";
+    private bool showInfrastructure = true;
+    private bool showCosts = true;
+    private bool showApps = true;
+    private string currency = "USD";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadComparison();
+    }
+
+    private async Task LoadComparison()
+    {
+        isLoading = true;
+
+        if (string.IsNullOrEmpty(Ids))
+        {
+            isLoading = false;
+            return;
+        }
+
+        var idList = Ids.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(id => Guid.TryParse(id.Trim(), out var guid) ? guid : (Guid?)null)
+            .Where(g => g.HasValue)
+            .Select(g => g!.Value)
+            .ToArray();
+
+        if (idList.Length >= 2)
+        {
+            comparison = await ScenarioService.CompareByIdsAsync(idList);
+        }
+
+        isLoading = false;
+    }
+
+    private bool IsLowestValue(string metricName, Guid scenarioId)
+    {
+        if (comparison == null) return false;
+
+        var metric = comparison.Metrics.FirstOrDefault(m => m.Name == metricName);
+        return metric?.WinnerId == scenarioId;
+    }
+
+    private void SetHighlightMode(string mode)
+    {
+        highlightMode = mode;
+    }
+
+    private void ResetOptions()
+    {
+        highlightMode = "cost";
+        showInfrastructure = true;
+        showCosts = true;
+        showApps = true;
+        currency = "USD";
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/scenarios");
+    }
+
+    private void GoToScenarios()
+    {
+        NavigationManager.NavigateTo("/scenarios");
+    }
+
+    private async Task ExportComparison()
+    {
+        // TODO: Implement export functionality
+        await Task.CompletedTask;
+    }
+}

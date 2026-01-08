@@ -6,7 +6,9 @@ using InfraSizingCalculator.Models.Enums;
 using InfraSizingCalculator.Models.Growth;
 using InfraSizingCalculator.Models.Pricing;
 using InfraSizingCalculator.Services;
+using InfraSizingCalculator.Services.Auth;
 using InfraSizingCalculator.Services.Interfaces;
+using InfraSizingCalculator.Components.Guest;
 
 namespace InfraSizingCalculator.Components.Pages;
 
@@ -37,6 +39,16 @@ public partial class Home : ComponentBase
     [Inject] private IHomePageUIHelperService UIHelperService { get; set; } = default!;
     [Inject] private IHomePageCloudAlternativeService CloudAlternativeService { get; set; } = default!;
     [Inject] private IHomePageVMService VMService { get; set; } = default!;
+    [Inject] private IAuthService AuthService { get; set; } = default!;
+    [Inject] private IAppStateService AppState { get; set; } = default!;
+
+    #endregion
+
+    #region Landing Page State
+
+    // Track which view to show: landing or dashboard
+    private bool _isAuthenticated;
+    private bool _isInitialized;
 
     #endregion
 
@@ -59,6 +71,7 @@ public partial class Home : ComponentBase
     private bool showSettings = false;
     private bool showInfoModal = false;
     private bool showSaveScenarioModal = false;
+    private bool showLimitedExportModal = false;
     private string settingsTab = "infra";
     private string infoModalTitle = "";
     private string infoModalContent = "";
@@ -186,6 +199,28 @@ public partial class Home : ComponentBase
     private GrowthProjection? k8sGrowthProjection;
     private GrowthProjection? vmGrowthProjection;
 
+    #region Lifecycle Methods
+
+    /// <summary>
+    /// Initialize auth state to determine which view to show:
+    /// - Guest landing (not auth, no scenario)
+    /// - Guest results (not auth, started scenario)
+    /// - Auth landing (auth, viewing landing)
+    /// - Auth dashboard (auth, not viewing landing)
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        var currentUser = await AuthService.GetCurrentUserAsync();
+        _isAuthenticated = currentUser != null;
+
+        // For new sessions, start on landing page
+        if (!_isInitialized)
+        {
+            AppState.IsViewingLanding = true;
+            _isInitialized = true;
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -195,6 +230,69 @@ public partial class Home : ComponentBase
             StateHasChanged();
         }
     }
+
+    #endregion
+
+    #region Landing Page Handlers
+
+    /// <summary>
+    /// Called when guest user clicks "Create New Scenario" on LandingGuest.
+    /// Sets HasStartedScenario=true to show the dashboard/results view.
+    /// </summary>
+    private void HandleGuestStartScenario()
+    {
+        AppState.HasStartedScenario = true;
+        AppState.IsViewingLanding = false;
+        AppState.NotifyStateChanged();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Called when authenticated user clicks "Create New Scenario" on LandingAuth.
+    /// Sets IsViewingLanding=false to show the dashboard with empty scenario.
+    /// </summary>
+    private void HandleAuthCreateScenario()
+    {
+        AppState.CurrentScenarioId = null; // New scenario
+        AppState.IsViewingLanding = false;
+        AppState.NotifyStateChanged();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Called when authenticated user clicks on a recent scenario from LandingAuth.
+    /// Loads the scenario and shows the dashboard.
+    /// </summary>
+    private async Task HandleAuthLoadScenario(Guid scenarioId)
+    {
+        AppState.CurrentScenarioId = scenarioId;
+        AppState.IsViewingLanding = false;
+        AppState.NotifyStateChanged();
+
+        // TODO: Actually load the scenario data from database
+        await Task.CompletedTask;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Helper to determine if we should show the landing page.
+    /// Returns true when user hasn't started working on a scenario yet.
+    /// </summary>
+    private bool ShouldShowLanding()
+    {
+        if (!_isAuthenticated)
+        {
+            // Guest: Show landing if they haven't started a scenario
+            return !AppState.HasStartedScenario;
+        }
+        else
+        {
+            // Auth: Show landing if explicitly viewing landing (no scenario selected)
+            return AppState.IsViewingLanding;
+        }
+    }
+
+    #endregion
 
     private async Task LoadFromSharedUrlAsync()
     {
@@ -2076,6 +2174,19 @@ public partial class Home : ComponentBase
 
     private async Task HandleExport(RightStatsSidebar.ExportFormat format)
     {
+        // For guest users, show the limited export modal instead
+        if (!_isAuthenticated)
+        {
+            showLimitedExportModal = true;
+            StateHasChanged();
+            return;
+        }
+
+        await PerformExport(format);
+    }
+
+    private async Task PerformExport(RightStatsSidebar.ExportFormat format)
+    {
         try
         {
             if (results != null)
@@ -2129,6 +2240,74 @@ public partial class Home : ComponentBase
             Console.WriteLine($"Export error: {ex.Message}");
         }
     }
+
+    private async Task HandleGuestSummaryExport()
+    {
+        // Export a limited summary PDF for guest users
+        try
+        {
+            if (results != null)
+            {
+                var pdf = ExportService.ExportToPdf(results);
+                await JSRuntime.InvokeVoidAsync("downloadFileBytes", "k8s-sizing-summary.pdf", pdf, "application/pdf");
+            }
+            else if (vmResults != null)
+            {
+                var pdf = ExportService.ExportToPdf(vmResults);
+                await JSRuntime.InvokeVoidAsync("downloadFileBytes", "vm-sizing-summary.pdf", pdf, "application/pdf");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Guest export error: {ex.Message}");
+        }
+    }
+
+    #region LimitedExportModal Helpers
+
+    private int GetTotalNodeCount() => GetTotalNodes();
+
+    private double GetTotalCpuCount() => GetTotalCPU();
+
+    private double GetTotalRamCount() => GetTotalRAM();
+
+    private string GetMonthlyEstimateDisplay()
+    {
+        var estimate = GetMonthlyEstimate();
+        return estimate > 0 ? $"${estimate:N0}" : "N/A";
+    }
+
+    private string GetPlatformDisplay()
+    {
+        if (selectedDeployment == DeploymentModel.Kubernetes)
+        {
+            var dist = selectedDistribution;
+            if (dist != null)
+            {
+                var distInfo = DistributionService.GetAll()
+                    .FirstOrDefault(d => d.Distribution == dist);
+                if (distInfo != null)
+                {
+                    return $"Kubernetes ({distInfo.Name})";
+                }
+            }
+            return "Kubernetes";
+        }
+        return "Virtual Machines";
+    }
+
+    private string GetTechnologyDisplay()
+    {
+        if (selectedTechnology != null)
+        {
+            var techInfo = TechnologyService.GetAll()
+                .FirstOrDefault(t => t.Technology == selectedTechnology);
+            return techInfo?.Name ?? selectedTechnology.ToString() ?? "Native";
+        }
+        return "Native";
+    }
+
+    #endregion
 
     private async Task HandleShare()
     {

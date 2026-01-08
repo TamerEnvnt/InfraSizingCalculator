@@ -1,0 +1,170 @@
+@*
+    GrowthConfigPanel.razor - Growth planning configuration panel
+
+    Features:
+    - Annual growth rate projection
+    - Planning horizon (1-5 years)
+    - Growth preview chart
+*@
+
+<div class="growth-config-panel" data-testid="growth-config-panel">
+    <div class="config-section">
+        <h4 class="section-title">Growth Planning</h4>
+        <p class="section-desc">Project future infrastructure needs based on expected growth</p>
+
+        @* Planning Horizon *@
+        <div class="horizon-selector">
+            <label class="config-label">Planning Horizon</label>
+            <div class="horizon-options">
+                @foreach (var year in _horizonOptions)
+                {
+                    <button class="horizon-btn @(PlanningHorizon == year ? "selected" : "")"
+                            @onclick="() => PlanningHorizon = year"
+                            data-testid="horizon-@year">
+                        @year @(year == 1 ? "year" : "years")
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* Growth Rate Slider *@
+        <div class="growth-rate-config">
+            <div class="rate-header">
+                <label class="config-label">Annual Growth Rate</label>
+                <span class="rate-value">@GrowthRate%</span>
+            </div>
+            <input type="range" class="growth-slider" min="0" max="100" step="5"
+                   value="@GrowthRate"
+                   @oninput='e => GrowthRate = int.Parse(e.Value?.ToString() ?? "20")' />
+            <div class="rate-labels">
+                <span class="rate-label">0%</span>
+                <span class="rate-label">Conservative (10-20%)</span>
+                <span class="rate-label">Aggressive (50%+)</span>
+                <span class="rate-label">100%</span>
+            </div>
+        </div>
+
+        @* Growth Preview *@
+        <div class="growth-preview">
+            <h5 class="preview-title">Projected Growth</h5>
+            <div class="preview-timeline">
+                @for (int year = 0; year <= PlanningHorizon; year++)
+                {
+                    var factor = Math.Pow(1 + (GrowthRate / 100.0), year);
+                    var projectedApps = (int)(CurrentApps * factor);
+                    var isLast = year == PlanningHorizon;
+
+                    <div class="timeline-item @(isLast ? "final" : "")" data-testid="year-@year">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">Year @year</span>
+                            <span class="timeline-apps">@projectedApps apps</span>
+                            @if (year > 0)
+                            {
+                                <span class="timeline-growth">+@(((factor - 1) * 100).ToString("F0"))%</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Capacity Recommendations *@
+        <div class="capacity-recommendations">
+            <h5 class="recommendations-title">Capacity Recommendations</h5>
+            <div class="recommendation-cards">
+                <div class="recommendation-card">
+                    <div class="rec-icon nodes">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <div class="rec-content">
+                        <span class="rec-label">Nodes</span>
+                        <span class="rec-current">@CurrentNodes</span>
+                        <svg class="rec-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                        <span class="rec-projected">@CalculateProjectedNodes()</span>
+                    </div>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="rec-icon cpu">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <rect x="9" y="9" width="6" height="6"/>
+                        </svg>
+                    </div>
+                    <div class="rec-content">
+                        <span class="rec-label">Total vCPUs</span>
+                        <span class="rec-current">@(CurrentNodes * 8)</span>
+                        <svg class="rec-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                        <span class="rec-projected">@(CalculateProjectedNodes() * 8)</span>
+                    </div>
+                </div>
+
+                <div class="recommendation-card">
+                    <div class="rec-icon cost">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <div class="rec-content">
+                        <span class="rec-label">Monthly Cost</span>
+                        <span class="rec-current">$@(CurrentMonthlyCost.ToString("N0"))</span>
+                        <svg class="rec-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                        <span class="rec-projected">$@(CalculateProjectedCost().ToString("N0"))</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Alert for significant growth *@
+        @if (GrowthRate >= 50)
+        {
+            <div class="growth-alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L1 21h22L12 2zm0 3.83L19.53 19H4.47L12 5.83zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+                </svg>
+                <span>High growth rate selected. Consider phased infrastructure expansion.</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CurrentApps { get; set; } = 12;
+    [Parameter] public int CurrentNodes { get; set; } = 3;
+    [Parameter] public decimal CurrentMonthlyCost { get; set; } = 2450m;
+
+    private int PlanningHorizon = 3;
+    private int GrowthRate = 20;
+
+    private int[] _horizonOptions = { 1, 2, 3, 4, 5 };
+
+    private int CalculateProjectedNodes()
+    {
+        var factor = Math.Pow(1 + (GrowthRate / 100.0), PlanningHorizon);
+        var projectedApps = CurrentApps * factor;
+        // Roughly 4 apps per node
+        return Math.Max(CurrentNodes, (int)Math.Ceiling(projectedApps / 4.0));
+    }
+
+    private decimal CalculateProjectedCost()
+    {
+        var projectedNodes = CalculateProjectedNodes();
+        // Simple linear scaling based on node count
+        return CurrentMonthlyCost * projectedNodes / CurrentNodes;
+    }
+}

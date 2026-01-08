@@ -34,6 +34,21 @@ public interface IWizardStateService
     // Node specs
     NodeSpecsConfig NodeSpecs { get; set; }
 
+    // Platform-specific configuration (V4 panels)
+    // K8s Configuration
+    K8sPodConfig K8sPodConfig { get; }
+    K8sEnvironmentConfig K8sEnvConfig { get; }
+    K8sNodeConfig K8sNodeConfig { get; }
+
+    // VM Configuration
+    VmAppConfig VmAppConfig { get; }
+    VmEnvironmentConfig VmEnvConfig { get; }
+    VmHostConfig VmHostConfig { get; }
+
+    // Calculated resource requirements (derived from above configs)
+    K8sResourceRequirements K8sRequirements { get; }
+    VmResourceRequirements VmRequirements { get; }
+
     // Results
     K8sSizingResult? Results { get; set; }
 

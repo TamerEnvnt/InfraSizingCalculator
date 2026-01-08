@@ -1,0 +1,25 @@
+@*
+    SaveBanner.razor - v0.4.2 wireframe design
+    Shows for guest users at top of results page
+    Prompts to sign in to save scenarios
+*@
+
+<div class="save-banner">
+    <div class="save-banner-content">
+        <div class="save-banner-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+        </div>
+        <div class="save-banner-text">
+            <h3>Save your scenario</h3>
+            <p>Sign in to save, compare scenarios, and access your calculations later.</p>
+        </div>
+    </div>
+    <div class="save-banner-actions">
+        <a href="/login" class="btn-save-signin">Sign In to Save</a>
+        <a href="/register" class="btn-save-signup">Create Account</a>
+    </div>
+</div>

@@ -12,6 +12,28 @@ namespace InfraSizingCalculator.Services.Interfaces;
 /// </summary>
 public interface IAppStateService
 {
+    #region Landing Page State
+
+    /// <summary>
+    /// Whether the user has started a scenario (clicked "Create New").
+    /// For guest users: false = show landing page, true = show results/dashboard
+    /// </summary>
+    bool HasStartedScenario { get; set; }
+
+    /// <summary>
+    /// Currently loaded scenario ID (null = new scenario or none).
+    /// Used for auth users to track which scenario is loaded.
+    /// </summary>
+    Guid? CurrentScenarioId { get; set; }
+
+    /// <summary>
+    /// Whether user is viewing the landing page (no scenario active).
+    /// For auth users: true = show LandingAuth, false = show dashboard
+    /// </summary>
+    bool IsViewingLanding { get; set; }
+
+    #endregion
+
     #region Navigation State
 
     /// <summary>

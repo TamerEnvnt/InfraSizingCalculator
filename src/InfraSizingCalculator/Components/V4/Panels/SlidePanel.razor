@@ -1,0 +1,191 @@
+@*
+    SlidePanel.razor - Reusable slide-out panel container
+
+    Features:
+    - 480px width slide-out from right
+    - Header with title and close button
+    - Tab navigation area
+    - Scrollable content area
+    - Footer with Apply button
+*@
+
+<div class="slide-panel-container" data-testid="slide-panel-container">
+    @* Panel Header *@
+    <div class="panel-header">
+        <h2 class="panel-title">@Title</h2>
+        <button class="btn-close" @onclick="HandleClose" data-testid="panel-close" aria-label="Close panel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    @* Tab Navigation (optional) *@
+    @if (Tabs != null)
+    {
+        <div class="panel-tabs" data-testid="panel-tabs">
+            @Tabs
+        </div>
+    }
+
+    @* Scrollable Content *@
+    <div class="panel-content" data-testid="panel-content">
+        @ChildContent
+    </div>
+
+    @* Footer with navigation and action buttons *@
+    <div class="panel-footer">
+        @if (FooterContent != null)
+        {
+            @FooterContent
+        }
+        else
+        {
+            <div class="footer-left">
+                <button class="btn-reset" @onclick="HandleReset" data-testid="panel-reset">
+                    Reset
+                </button>
+            </div>
+            <div class="footer-right">
+                @if (ShowPrevious)
+                {
+                    <button class="btn-nav btn-prev" @onclick="HandlePrevious" data-testid="panel-previous">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                        Previous
+                    </button>
+                }
+                @if (ShowNext)
+                {
+                    <button class="btn-nav btn-next" @onclick="HandleNext" data-testid="panel-next">
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                }
+                else
+                {
+                    <button class="btn-apply" @onclick="HandleApply" data-testid="panel-apply" disabled="@IsApplying">
+                        @if (IsApplying)
+                        {
+                            <span class="spinner"></span>
+                            <span>Applying...</span>
+                        }
+                        else
+                        {
+                            <span>@ApplyButtonText</span>
+                        }
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Panel title displayed in header
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Configuration";
+
+    /// <summary>
+    /// Tab navigation content
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Tabs { get; set; }
+
+    /// <summary>
+    /// Main panel content
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Custom footer content (replaces default Apply button)
+    /// </summary>
+    [Parameter]
+    public RenderFragment? FooterContent { get; set; }
+
+    /// <summary>
+    /// Text for the apply button
+    /// </summary>
+    [Parameter]
+    public string ApplyButtonText { get; set; } = "Apply Changes";
+
+    /// <summary>
+    /// Whether apply is in progress
+    /// </summary>
+    [Parameter]
+    public bool IsApplying { get; set; }
+
+    /// <summary>
+    /// Callback when close is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>
+    /// Callback when apply is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnApply { get; set; }
+
+    /// <summary>
+    /// Callback when reset is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnReset { get; set; }
+
+    /// <summary>
+    /// Whether to show the Previous button
+    /// </summary>
+    [Parameter]
+    public bool ShowPrevious { get; set; }
+
+    /// <summary>
+    /// Whether to show the Next button (hides Apply if true)
+    /// </summary>
+    [Parameter]
+    public bool ShowNext { get; set; }
+
+    /// <summary>
+    /// Callback when Previous is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnPrevious { get; set; }
+
+    /// <summary>
+    /// Callback when Next is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnNext { get; set; }
+
+    private async Task HandleClose()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleApply()
+    {
+        await OnApply.InvokeAsync();
+    }
+
+    private async Task HandleReset()
+    {
+        await OnReset.InvokeAsync();
+    }
+
+    private async Task HandlePrevious()
+    {
+        await OnPrevious.InvokeAsync();
+    }
+
+    private async Task HandleNext()
+    {
+        await OnNext.InvokeAsync();
+    }
+}

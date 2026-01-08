@@ -1,0 +1,391 @@
+@*
+    CloudAlternativesModal.razor - v0.4.4 Cloud Alternatives Comparison
+    Matches wireframe: 18-cloud-alternatives.html
+
+    - Cloud provider cards (recommended and standard options)
+    - Provider icons (AWS, Azure, GCP)
+    - Feature lists per provider
+    - Cost comparison table panel
+*@
+
+@using InfraSizingCalculator.Services.Interfaces
+
+<div class="modal-overlay @(IsVisible ? "visible" : "")" @onclick="HandleOverlayClick" data-testid="cloud-alternatives-modal">
+    <div class="modal modal-wide" @onclick:stopPropagation="true">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                </svg>
+                Cloud Alternatives
+            </div>
+            <button class="close-btn" @onclick="Close">×</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Intro -->
+            <div class="cloud-intro">
+                <strong>Cloud Alternatives:</strong> Compare your on-premises @PlatformName deployment with managed cloud alternatives.
+                Cloud providers handle infrastructure, updates, and often provide better SLAs.
+            </div>
+
+            @if (PlatformType == "openshift")
+            {
+                <!-- Recommended Section (for OpenShift) -->
+                <div class="section-title recommended">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    Recommended for OpenShift
+                </div>
+                <div class="section-desc">These managed services are designed specifically for OpenShift workloads.</div>
+
+                <div class="alternatives-grid">
+                    @foreach (var alt in _recommendedAlternatives)
+                    {
+                        <div class="alt-card @(alt.IsRecommended ? "recommended-card" : "") @(_selectedProvider == alt.Code ? "selected" : "")"
+                             @onclick="() => SelectProvider(alt.Code)">
+                            @if (alt.IsRecommended)
+                            {
+                                <div class="recommended-tag">Recommended</div>
+                            }
+                            <div class="alt-header">
+                                <div class="provider-icon @alt.ProviderClass">@alt.Icon</div>
+                                <div class="alt-titles">
+                                    <span class="alt-name">@alt.Name</span>
+                                    <span class="alt-service">@alt.Service</span>
+                                </div>
+                            </div>
+                            <p class="alt-desc">@alt.Description</p>
+                            <ul class="alt-features">
+                                @foreach (var feature in alt.Features)
+                                {
+                                    <li>@feature</li>
+                                }
+                            </ul>
+                            <div class="alt-actions">
+                                <button class="btn btn-primary btn-sm" style="flex: 1;" @onclick="() => CompareWithProvider(alt)" @onclick:stopPropagation="true">
+                                    Compare Costs
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick:stopPropagation="true">Docs ↗</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Generic Cloud Options -->
+            <div class="section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+                </svg>
+                @(PlatformType == "openshift" ? "Other Cloud Options" : "Cloud Alternatives")
+            </div>
+            <div class="section-desc">Standard managed Kubernetes services on major cloud providers.</div>
+
+            <div class="alternatives-grid">
+                @foreach (var alt in _standardAlternatives)
+                {
+                    <div class="alt-card @(_selectedProvider == alt.Code ? "selected" : "")"
+                         @onclick="() => SelectProvider(alt.Code)">
+                        <div class="alt-header">
+                            <div class="provider-icon @alt.ProviderClass">@alt.Icon</div>
+                            <div class="alt-titles">
+                                <span class="alt-name">@alt.Name</span>
+                                <span class="alt-service">@alt.Service</span>
+                            </div>
+                        </div>
+                        <p class="alt-desc">@alt.Description</p>
+                        <ul class="alt-features">
+                            @foreach (var feature in alt.Features)
+                            {
+                                <li>@feature</li>
+                            }
+                        </ul>
+                        <div class="alt-actions">
+                            <button class="btn btn-primary btn-sm" style="flex: 1;" @onclick="() => CompareWithProvider(alt)" @onclick:stopPropagation="true">
+                                Compare Costs
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @onclick:stopPropagation="true">Docs ↗</button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (_showComparison && _comparisonProvider != null)
+            {
+                <!-- Comparison Panel -->
+                <div class="compare-panel">
+                    <div class="compare-header">
+                        <h4>Cost Comparison: @_comparisonProvider.Name vs On-Premises</h4>
+                        <button class="btn btn-ghost btn-sm" @onclick="CloseComparison">×</button>
+                    </div>
+                    <div class="compare-body">
+                        <table class="compare-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px;">Metric</th>
+                                    <th class="on-prem-col">On-Premises @PlatformName</th>
+                                    <th class="cloud-col">@_comparisonProvider.Name</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Control Plane</td>
+                                    <td class="on-prem-col">@ControlPlaneNodes nodes (self-managed)</td>
+                                    <td class="cloud-col">Managed (included)</td>
+                                    <td class="savings">-@ControlPlaneNodes nodes</td>
+                                </tr>
+                                <tr>
+                                    <td>Worker Nodes</td>
+                                    <td class="on-prem-col">@WorkerNodes nodes</td>
+                                    <td class="cloud-col">@WorkerNodes nodes</td>
+                                    <td>Same</td>
+                                </tr>
+                                <tr>
+                                    <td>Monthly Compute</td>
+                                    <td class="on-prem-col">@FormatCurrency(OnPremComputeCost)/mo</td>
+                                    <td class="cloud-col">@FormatCurrency(GetCloudComputeCost())/mo</td>
+                                    <td class="@(GetComputeDiff() < 0 ? "savings" : "")">@FormatDiff(GetComputeDiff())/mo</td>
+                                </tr>
+                                <tr>
+                                    <td>License Cost</td>
+                                    <td class="on-prem-col">@FormatCurrency(OnPremLicenseCost)/mo</td>
+                                    <td class="cloud-col">@(GetCloudLicenseCost() > 0 ? FormatCurrency(GetCloudLicenseCost()) + "/mo" : "Included")</td>
+                                    <td class="@(GetLicenseDiff() < 0 ? "savings" : "")">@FormatDiff(GetLicenseDiff())/mo</td>
+                                </tr>
+                                <tr>
+                                    <td>Operations</td>
+                                    <td class="on-prem-col">@FormatCurrency(OnPremOpsCost)/mo (@OnPremFTE FTE)</td>
+                                    <td class="cloud-col">$0 (managed)</td>
+                                    <td class="savings">-@FormatCurrency(OnPremOpsCost)/mo</td>
+                                </tr>
+                                <tr style="font-weight: 600;">
+                                    <td>Total Monthly</td>
+                                    <td class="on-prem-col">@FormatCurrency(GetOnPremTotal())/mo</td>
+                                    <td class="cloud-col">@FormatCurrency(GetCloudTotal())/mo</td>
+                                    <td class="@(GetTotalSavings() > 0 ? "savings" : "")">@GetSavingsPercent()</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="info-box">
+                            <strong>Recommendation:</strong> @_comparisonProvider.Name @GetRecommendationText()
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="btn btn-secondary" @onclick="Close">Close</button>
+            <button class="btn btn-primary" @onclick="ApplySelection" disabled="@(string.IsNullOrEmpty(_selectedProvider))">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Apply Cloud Configuration
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback<string> OnProviderSelected { get; set; }
+    [Parameter] public string PlatformName { get; set; } = "OpenShift";
+    [Parameter] public string PlatformType { get; set; } = "openshift";
+    [Parameter] public int ControlPlaneNodes { get; set; } = 3;
+    [Parameter] public int WorkerNodes { get; set; } = 9;
+    [Parameter] public decimal OnPremComputeCost { get; set; } = 2850;
+    [Parameter] public decimal OnPremLicenseCost { get; set; } = 1200;
+    [Parameter] public decimal OnPremOpsCost { get; set; } = 800;
+    [Parameter] public decimal OnPremFTE { get; set; } = 0.5m;
+
+    private string _selectedProvider = "";
+    private bool _showComparison = false;
+    private CloudAlternative? _comparisonProvider;
+
+    private List<CloudAlternative> _recommendedAlternatives = new()
+    {
+        new CloudAlternative
+        {
+            Code = "aro",
+            Name = "Azure Red Hat OpenShift",
+            Service = "Microsoft Azure",
+            Icon = "ARO",
+            ProviderClass = "azure",
+            Description = "Fully managed OpenShift service jointly operated by Microsoft and Red Hat.",
+            Features = new[] { "Joint Microsoft & Red Hat SLA", "Azure integration (AD, Storage)", "99.95% uptime guarantee" },
+            IsRecommended = true,
+            CloudComputeMultiplier = 0.84m,
+            LicenseIncluded = true
+        },
+        new CloudAlternative
+        {
+            Code = "rosa",
+            Name = "Red Hat OpenShift on AWS",
+            Service = "Amazon Web Services",
+            Icon = "ROSA",
+            ProviderClass = "aws",
+            Description = "Native AWS service for OpenShift with integrated AWS billing.",
+            Features = new[] { "AWS-native experience", "Integrated billing", "PrivateLink support" },
+            CloudComputeMultiplier = 0.88m,
+            LicenseIncluded = true
+        },
+        new CloudAlternative
+        {
+            Code = "osd",
+            Name = "OpenShift Dedicated",
+            Service = "Red Hat Managed",
+            Icon = "OSD",
+            ProviderClass = "redhat",
+            Description = "Fully managed by Red Hat SRE team on AWS or GCP.",
+            Features = new[] { "Red Hat SRE managed", "AWS or GCP hosting", "Enterprise support" },
+            CloudComputeMultiplier = 0.90m,
+            LicenseIncluded = true
+        }
+    };
+
+    private List<CloudAlternative> _standardAlternatives = new()
+    {
+        new CloudAlternative
+        {
+            Code = "eks",
+            Name = "Amazon EKS",
+            Service = "Elastic Kubernetes Service",
+            Icon = "EKS",
+            ProviderClass = "aws",
+            Description = "Managed Kubernetes with deep AWS integration.",
+            Features = new[] { "AWS native integrations", "Fargate serverless option", "EKS Anywhere for hybrid" },
+            CloudComputeMultiplier = 0.75m,
+            LicenseIncluded = true
+        },
+        new CloudAlternative
+        {
+            Code = "aks",
+            Name = "Azure Kubernetes Service",
+            Service = "Microsoft Azure",
+            Icon = "AKS",
+            ProviderClass = "azure",
+            Description = "Free control plane with Azure integration.",
+            Features = new[] { "Free control plane", "Azure AD integration", "Azure Arc for hybrid" },
+            CloudComputeMultiplier = 0.70m,
+            LicenseIncluded = true
+        },
+        new CloudAlternative
+        {
+            Code = "gke",
+            Name = "Google Kubernetes Engine",
+            Service = "Google Cloud Platform",
+            Icon = "GKE",
+            ProviderClass = "gcp",
+            Description = "Advanced K8s features from Kubernetes creators.",
+            Features = new[] { "Autopilot mode", "Anthos for hybrid/multi", "Advanced networking" },
+            CloudComputeMultiplier = 0.72m,
+            LicenseIncluded = true
+        }
+    };
+
+    private void SelectProvider(string code)
+    {
+        _selectedProvider = code;
+    }
+
+    private void CompareWithProvider(CloudAlternative provider)
+    {
+        _comparisonProvider = provider;
+        _showComparison = true;
+        _selectedProvider = provider.Code;
+    }
+
+    private void CloseComparison()
+    {
+        _showComparison = false;
+    }
+
+    private decimal GetCloudComputeCost()
+    {
+        return _comparisonProvider != null
+            ? OnPremComputeCost * _comparisonProvider.CloudComputeMultiplier
+            : OnPremComputeCost;
+    }
+
+    private decimal GetCloudLicenseCost()
+    {
+        return _comparisonProvider?.LicenseIncluded == true ? 0 : OnPremLicenseCost;
+    }
+
+    private decimal GetComputeDiff() => GetCloudComputeCost() - OnPremComputeCost;
+    private decimal GetLicenseDiff() => GetCloudLicenseCost() - OnPremLicenseCost;
+
+    private decimal GetOnPremTotal() => OnPremComputeCost + OnPremLicenseCost + OnPremOpsCost;
+    private decimal GetCloudTotal() => GetCloudComputeCost() + GetCloudLicenseCost();
+
+    private decimal GetTotalSavings() => GetOnPremTotal() - GetCloudTotal();
+
+    private string GetSavingsPercent()
+    {
+        var savings = GetTotalSavings();
+        var percent = (savings / GetOnPremTotal()) * 100;
+        return percent > 0 ? $"-{percent:F0}% savings" : $"+{Math.Abs(percent):F0}% more";
+    }
+
+    private string FormatCurrency(decimal amount) => $"${amount:N0}";
+
+    private string FormatDiff(decimal diff)
+    {
+        if (diff < 0) return $"-${Math.Abs(diff):N0}";
+        if (diff > 0) return $"+${diff:N0}";
+        return "$0";
+    }
+
+    private string GetRecommendationText()
+    {
+        var savings = GetTotalSavings();
+        var percent = (savings / GetOnPremTotal()) * 100;
+
+        if (percent > 30)
+            return $"reduces TCO by {percent:F0}% while providing enterprise SLA. Consider migration for production workloads.";
+        if (percent > 10)
+            return $"offers {percent:F0}% cost reduction with managed operations. Good option for reducing operational burden.";
+        return "provides managed operations with comparable costs. Consider for simplified operations.";
+    }
+
+    private async Task Close()
+    {
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private void HandleOverlayClick()
+    {
+        _ = Close();
+    }
+
+    private async Task ApplySelection()
+    {
+        if (!string.IsNullOrEmpty(_selectedProvider))
+        {
+            await OnProviderSelected.InvokeAsync(_selectedProvider);
+            await Close();
+        }
+    }
+
+    private class CloudAlternative
+    {
+        public string Code { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Service { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string ProviderClass { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string[] Features { get; set; } = Array.Empty<string>();
+        public bool IsRecommended { get; set; }
+        public decimal CloudComputeMultiplier { get; set; } = 1.0m;
+        public bool LicenseIncluded { get; set; }
+    }
+}

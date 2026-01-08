@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Error | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .error-page {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .error-content {
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .error-code {
+      font-size: 80px;
+      font-weight: 800;
+      color: var(--color-error);
+      line-height: 1;
+      margin-bottom: 8px;
+      opacity: 0.3;
+    }
+
+    .error-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .error-message {
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .error-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .status-box {
+      background: var(--color-bg);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .status-header h4 {
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-warning);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-items {
+      font-size: 11px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-name {
+      color: var(--color-text-secondary);
+    }
+
+    .status-value {
+      font-weight: 500;
+    }
+
+    .status-value.ok { color: var(--color-success); }
+    .status-value.error { color: var(--color-error); }
+    .status-value.checking { color: var(--color-warning); }
+
+    .error-illustration {
+      margin-bottom: 20px;
+    }
+
+    .error-illustration svg {
+      color: var(--color-error);
+      opacity: 0.5;
+    }
+
+    .error-id {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      margin-top: 16px;
+    }
+
+    .error-id code {
+      background: var(--color-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">InfraSizing</div>
+      <div class="header-center"></div>
+      <div class="header-right">
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='13-landing-auth.html'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Home
+        </button>
+      </div>
+    </header>
+
+    <!-- Error Content -->
+    <div class="error-page">
+      <div class="error-content">
+        <div class="error-illustration">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="error-code">500</div>
+        <h1 class="error-title">Something Went Wrong</h1>
+        <p class="error-message">
+          We're experiencing technical difficulties. Our team has been notified
+          and is working to resolve the issue.
+        </p>
+
+        <div class="error-actions">
+          <button class="btn btn-primary" onclick="location.reload()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Try Again
+          </button>
+          <button class="btn btn-secondary" onclick="window.location.href='13-landing-auth.html'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Go Home
+          </button>
+        </div>
+
+        <div class="status-box">
+          <div class="status-header">
+            <div class="status-indicator"></div>
+            <h4>System Status</h4>
+          </div>
+          <div class="status-items">
+            <div class="status-item">
+              <span class="status-name">Web Application</span>
+              <span class="status-value ok">Operational</span>
+            </div>
+            <div class="status-item">
+              <span class="status-name">Database</span>
+              <span class="status-value checking">Checking...</span>
+            </div>
+            <div class="status-item">
+              <span class="status-name">Calculation Engine</span>
+              <span class="status-value error">Degraded</span>
+            </div>
+            <div class="status-item">
+              <span class="status-name">Authentication</span>
+              <span class="status-value ok">Operational</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="error-id">
+          Error ID: <code>ERR-2026-01-07-ABC123</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Link -->
+  <div style="position: fixed; bottom: 8px; left: 8px; font-size: 10px;">
+    <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+  </div>
+</body>
+</html>

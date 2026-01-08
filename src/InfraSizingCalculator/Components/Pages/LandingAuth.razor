@@ -1,0 +1,167 @@
+@page "/landing"
+@rendermode InteractiveServer
+
+@*
+    LandingAuth.razor - v0.4.4 Authenticated Landing Page
+    Matches wireframe: 13-landing-auth.html
+
+    - Greeting "Welcome back, {name}"
+    - TWO mode cards: Kubernetes + Virtual Machines
+    - Divider "or continue where you left off"
+    - Recent Scenarios section
+*@
+
+@using InfraSizingCalculator.Services.Auth
+@using InfraSizingCalculator.Data.Identity
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Infrastructure Sizing Calculator</PageTitle>
+
+<div class="landing-page" data-testid="landing-auth">
+    <!-- Header - Auth -->
+    <header class="landing-header">
+        <div class="header-logo">InfraSizing Calculator</div>
+        <div class="header-right">
+            <a href="/settings" class="btn btn-ghost btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+                </svg>
+            </a>
+            <div class="user-info">
+                <div class="user-avatar">@GetUserInitials()</div>
+                <span class="user-name">@_displayName</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Landing Content -->
+    <div class="landing-content">
+        <div class="landing-main">
+            <div class="landing-greeting">Welcome back, @_displayName</div>
+            <h1 class="landing-title">What would you like to size?</h1>
+            <p class="landing-subtitle">Calculate infrastructure requirements for your deployment</p>
+
+            <!-- Mode Selection -->
+            <div class="mode-selection">
+                <a href="/dashboard/k8s" class="mode-card k8s" data-testid="mode-k8s">
+                    <div class="mode-card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="mode-card-title">Kubernetes</div>
+                    <div class="mode-card-desc">46 distributions supported</div>
+                </a>
+
+                <a href="/dashboard/vm" class="mode-card vm" data-testid="mode-vm">
+                    <div class="mode-card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="14" rx="2"/>
+                            <path d="M6 20h12"/>
+                            <path d="M12 18v2"/>
+                        </svg>
+                    </div>
+                    <div class="mode-card-title">Virtual Machines</div>
+                    <div class="mode-card-desc">vSphere, Hyper-V, Proxmox, Nutanix</div>
+                </a>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider-row">
+                <div class="divider-line"></div>
+                <span class="divider-text">or continue where you left off</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Recent Scenarios -->
+            <div class="recent-section">
+                <div class="recent-header">
+                    <h3>Recent Scenarios</h3>
+                    <a href="/scenarios" class="view-all-link">View All</a>
+                </div>
+
+                <div class="recent-list">
+                    @if (_recentScenarios.Any())
+                    {
+                        @foreach (var scenario in _recentScenarios.Take(3))
+                        {
+                            <div class="recent-item" @onclick="() => LoadScenario(scenario)" data-testid="recent-@scenario.Type.ToLower()">
+                                <div class="recent-item-icon @scenario.Type.ToLower()">
+                                    @if (scenario.Type == "K8s")
+                                    {
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                            <path d="M2 17l10 5 10-5"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="4" width="20" height="14" rx="2"/>
+                                        </svg>
+                                    }
+                                </div>
+                                <div class="recent-item-info">
+                                    <div class="recent-item-name">@scenario.Name</div>
+                                    <div class="recent-item-meta">@scenario.Platform &bull; @scenario.LastModified</div>
+                                </div>
+                                <span class="badge badge-@scenario.Type.ToLower()">@scenario.Type</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="no-recent">
+                            <p>No recent scenarios. Create your first one!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser? _currentUser;
+    private string _displayName = "User";
+    private List<RecentScenario> _recentScenarios = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        _displayName = _currentUser?.DisplayName ?? "User";
+
+        // TODO: Load actual recent scenarios from IScenarioService
+        _recentScenarios = new List<RecentScenario>
+        {
+            new("Production K8s Cluster", "K8s", "OpenShift 4.14", "2 hours ago"),
+            new("VM Infrastructure", "VM", "vSphere 8", "Yesterday"),
+            new("Dev/Test EKS", "K8s", "Amazon EKS", "3 days ago")
+        };
+    }
+
+    private string GetUserInitials()
+    {
+        if (string.IsNullOrEmpty(_displayName) || _displayName == "User")
+            return "U";
+
+        var parts = _displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 1)
+            return parts[0][0].ToString().ToUpper();
+        return "U";
+    }
+
+    private void LoadScenario(RecentScenario scenario)
+    {
+        var route = scenario.Type == "K8s" ? "/dashboard/k8s" : "/dashboard/vm";
+        Navigation.NavigateTo(route);
+    }
+
+    private record RecentScenario(string Name, string Type, string Platform, string LastModified);
+}

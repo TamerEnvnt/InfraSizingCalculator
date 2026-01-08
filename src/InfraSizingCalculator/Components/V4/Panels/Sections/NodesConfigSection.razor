@@ -1,0 +1,110 @@
+@*
+    NodesConfigSection.razor - v0.4.4 Node Specs Configuration
+    Matches wireframe: 01c-dashboard-k8s-nodespecs.html
+*@
+
+<div class="config-section" data-testid="nodes-config">
+    <div class="form-group">
+        <label class="form-label">Control Plane Specs</label>
+        <div class="spec-row">
+            <div class="spec-item">
+                <span class="spec-label">vCPU</span>
+                <select class="form-select-sm" @bind="_cpVcpu" @bind:after="NotifyChange">
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">RAM</span>
+                <select class="form-select-sm" @bind="_cpRam" @bind:after="NotifyChange">
+                    <option value="16">16GB</option>
+                    <option value="32">32GB</option>
+                    <option value="64">64GB</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">Disk</span>
+                <select class="form-select-sm" @bind="_cpDisk" @bind:after="NotifyChange">
+                    <option value="100">100GB</option>
+                    <option value="200">200GB</option>
+                    <option value="500">500GB</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Infrastructure Node Specs</label>
+        <div class="spec-row">
+            <div class="spec-item">
+                <span class="spec-label">vCPU</span>
+                <select class="form-select-sm" @bind="_infraVcpu" @bind:after="NotifyChange">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">RAM</span>
+                <select class="form-select-sm" @bind="_infraRam" @bind:after="NotifyChange">
+                    <option value="8">8GB</option>
+                    <option value="16">16GB</option>
+                    <option value="32">32GB</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">Disk</span>
+                <select class="form-select-sm" @bind="_infraDisk" @bind:after="NotifyChange">
+                    <option value="50">50GB</option>
+                    <option value="100">100GB</option>
+                    <option value="200">200GB</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Worker Node Specs</label>
+        <div class="spec-row">
+            <div class="spec-item">
+                <span class="spec-label">vCPU</span>
+                <select class="form-select-sm" @bind="_workerVcpu" @bind:after="NotifyChange">
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">RAM</span>
+                <select class="form-select-sm" @bind="_workerRam" @bind:after="NotifyChange">
+                    <option value="16">16GB</option>
+                    <option value="32">32GB</option>
+                    <option value="64">64GB</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">Disk</span>
+                <select class="form-select-sm" @bind="_workerDisk" @bind:after="NotifyChange">
+                    <option value="100">100GB</option>
+                    <option value="200">200GB</option>
+                    <option value="500">500GB</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private int _cpVcpu = 8, _cpRam = 32, _cpDisk = 200;
+    private int _infraVcpu = 4, _infraRam = 16, _infraDisk = 100;
+    private int _workerVcpu = 8, _workerRam = 32, _workerDisk = 200;
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+}

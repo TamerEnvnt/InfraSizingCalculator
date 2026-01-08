@@ -1,0 +1,604 @@
+@page "/"
+@page "/dashboard"
+@page "/v4"
+@page "/v4/dashboard"
+@rendermode InteractiveServer
+
+<PageTitle>Infrastructure Sizing Calculator</PageTitle>
+
+@*
+    Dashboard.razor - Main dashboard page (v0.4.2 redesign)
+
+    Three UI States (matching wireframes exactly):
+    1. Guest Landing (00-landing-guest.html) - for unauthenticated users
+    2. Auth Landing (00-landing.html) - for authenticated users at home
+    3. Active Dashboard - when working on a scenario
+*@
+
+@using InfraSizingCalculator.Components.V4.Headers
+@using InfraSizingCalculator.Components.V4.Panels
+@using InfraSizingCalculator.Components.V4.Guest
+@using InfraSizingCalculator.Components.Layout
+@using InfraSizingCalculator.Services.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+
+@* === STATE 1: Guest Landing Page (00-landing-guest.html) === *@
+@if (!_isAuthenticated && !_hasActiveScenario)
+{
+    <div class="guest-landing" data-testid="guest-landing">
+        <header class="landing-header">
+            <span class="logo">InfraSizing Calculator</span>
+            <div class="header-actions">
+                <a href="/login" class="btn-login">Sign In</a>
+                <a href="/register" class="btn-register">Sign Up</a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="landing-container guest">
+                <h1 class="landing-title">Infrastructure Sizing Calculator</h1>
+                <p class="landing-subtitle">
+                    Calculate optimal infrastructure sizing for Kubernetes and VM deployments.<br>
+                    Support for 46 distributions, 7 low-code platforms, and comprehensive cost estimation.
+                </p>
+
+                <button class="action-card" @onclick="HandleNewScenario" data-testid="btn-create-scenario">
+                    <div class="card-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Create New Scenario</h3>
+                    <p class="card-desc">Start fresh with a new infrastructure sizing calculation. No account required to explore.</p>
+                </button>
+
+                <div class="login-prompt">
+                    <div class="login-prompt-title">Want to save your scenarios?</div>
+                    <p class="login-prompt-desc">
+                        Sign in to save, compare, and export your infrastructure sizing calculations.
+                    </p>
+                    <div class="login-prompt-actions">
+                        <a href="/login" class="btn-login">Sign In</a>
+                        <a href="/register" class="btn-register">Create Account</a>
+                    </div>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </span>
+                        46 K8s Distributions
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </span>
+                        7 Low-Code Platforms
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </span>
+                        Cost Estimation
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="landing-footer">
+            <a href="#">Documentation</a>
+            <a href="#">Support</a>
+            <a href="#">Privacy Policy</a>
+        </footer>
+    </div>
+}
+@* === STATE 2: Auth Landing Page (00-landing.html) === *@
+else if (_isAuthenticated && !_hasActiveScenario)
+{
+    <div class="auth-landing" data-testid="auth-landing">
+        <header class="landing-header">
+            <span class="logo">InfraSizing Calculator</span>
+            <div class="header-actions">
+                <div class="user-menu">
+                    <div class="user-avatar">@GetUserInitials()</div>
+                    <span class="user-name">@_userName</span>
+                </div>
+                <a href="/settings" class="settings-btn" title="Settings">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="landing-container auth">
+                <h1 class="landing-title">Infrastructure Sizing Calculator</h1>
+                <p class="landing-subtitle">
+                    Calculate optimal infrastructure sizing for Kubernetes and VM deployments.<br>
+                    Support for 46 distributions, 7 low-code platforms, and comprehensive cost estimation.
+                </p>
+
+                <div class="action-cards">
+                    <button class="action-card" @onclick="HandleLoadScenario" data-testid="btn-load-scenario">
+                        <div class="card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">Load Scenario</h3>
+                        <p class="card-desc">Open a previously saved scenario to view, edit, duplicate, or compare with others.</p>
+                    </button>
+
+                    <button class="action-card primary" @onclick="HandleNewScenario" data-testid="btn-create-scenario">
+                        <div class="card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">Create New Scenario</h3>
+                        <p class="card-desc">Start fresh with a new infrastructure sizing calculation from scratch.</p>
+                    </button>
+                </div>
+
+                @if (_recentScenarios.Any())
+                {
+                    <div class="recent-section">
+                        <div class="recent-header">
+                            <span class="recent-title">Recent Scenarios</span>
+                            <a href="/scenarios" class="view-all-link">View All</a>
+                        </div>
+                        <div class="recent-list">
+                            @foreach (var scenario in _recentScenarios.Take(3))
+                            {
+                                <button class="recent-item" @onclick="() => HandleOpenScenario(scenario.Id)">
+                                    <div class="recent-item-header">
+                                        <span class="recent-item-name">@scenario.Name</span>
+                                        <span class="recent-item-badge @(scenario.Type == "K8s" ? "badge-k8s" : "badge-vm")">@scenario.Type</span>
+                                    </div>
+                                    <div class="recent-item-meta">@scenario.UpdatedAgo</div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </main>
+
+        <footer class="landing-footer">
+            <a href="#">Documentation</a>
+            <a href="#">Support</a>
+            <a href="#">Privacy Policy</a>
+        </footer>
+    </div>
+}
+@* === STATE 3: Active Dashboard (full editor) === *@
+else
+{
+    <DashboardLayout @key="@_isPanelOpen"
+                     IsPanelOpen="@_isPanelOpen"
+                     OnPanelClose="ClosePanel">
+        <Header>
+            @if (_isAuthenticated)
+            {
+                <AuthHeader UserName="@_userName"
+                            UserEmail="@_userEmail"
+                            OnExport="HandleExport"
+                            OnCalculate="HandleCalculate"
+                            OnLogout="HandleLogout" />
+            }
+            else
+            {
+                <GuestHeader />
+            }
+        </Header>
+
+        <Body>
+            @* Summary Cards Row - matches wireframe 02-dashboard-with-panel.html *@
+            <SummaryCardsRow Cards="@_summaryCards" OnCardClick="HandleCardClick" />
+
+            @* Dashboard Grid - Two placeholder cards per wireframe *@
+            <div class="dashboard-grid" data-testid="dashboard-grid">
+                <div class="dashboard-card"></div>
+                <div class="dashboard-card"></div>
+            </div>
+        </Body>
+
+        <Panel>
+            <SlidePanel Title="@_activePanelTitle"
+                        OnClose="ClosePanel"
+                        OnApply="ApplyPanelChanges"
+                        IsApplying="@_isApplyingPanel"
+                        ShowPrevious="@CanGoPrevious"
+                        ShowNext="@CanGoNext"
+                        OnPrevious="HandlePreviousTab"
+                        OnNext="HandleNextTab">
+                <Tabs>
+                    @if (_activePanelTabs?.Any() == true)
+                    {
+                        <PanelTabs Tabs="@_activePanelTabs"
+                                   ActiveTab="@_activePanelTab"
+                                   OnTabChange="HandlePanelTabChange" />
+                    }
+                </Tabs>
+                <ChildContent>
+                    @* Panel content based on active panel *@
+                    @switch (_activePanel)
+                    {
+                        case "platform":
+                            <PlatformConfigPanel ActiveTab="@_activePanelTab" />
+                            break;
+                        case "apps":
+                            <AppsConfigPanel ActiveTab="@_activePanelTab" />
+                            break;
+                        case "nodes":
+                            <NodeSpecsConfigPanel />
+                            break;
+                        case "pricing":
+                            <PricingConfigPanel ActiveTab="@_activePanelTab" />
+                            break;
+                        case "growth":
+                            <GrowthConfigPanel />
+                            break;
+                        default:
+                            <div class="panel-placeholder">
+                                Select a configuration option
+                            </div>
+                            break;
+                    }
+                </ChildContent>
+            </SlidePanel>
+        </Panel>
+    </DashboardLayout>
+}
+
+@* Limited Export Modal for Guests *@
+<LimitedExportModal IsOpen="@_showExportModal"
+                    OnClose="CloseExportModal"
+                    OnPdfExport="HandlePdfExport"
+                    OnSignUp="NavigateToSignUp" />
+
+@code {
+    // Auth state
+    private bool _isAuthenticated = false;
+    private string _userName = "";
+    private string _userEmail = "";
+
+    // Scenario state
+    private bool _hasActiveScenario = false;
+    private string _currentScenarioName = "Untitled Scenario";
+    private List<ScenarioInfo> _savedScenarios = new();
+
+    // Recent scenarios for auth landing
+    private List<RecentScenarioInfo> _recentScenarios = new();
+
+    // UI state
+    private bool _isPanelOpen = false;
+    private string _activePanel = "";
+    private string _activePanelTitle = "Configuration";
+    private string _activePanelTab = "";
+    private List<PanelTabs.TabItem>? _activePanelTabs;
+    private bool _isApplyingPanel = false;
+    private bool _isSaving = false;
+    private bool _hasUnsavedChanges = false;
+    private bool _canCompare = false;
+    private bool _saveBannerDismissed = false;
+    private bool _showExportModal = false;
+
+    // Summary cards
+    private List<SummaryCardsRow.SummaryCard> _summaryCards = new();
+
+    // Config bar items
+    private List<ConfigBar.ConfigItem> _configItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check authentication state
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _isAuthenticated = true;
+            _userName = user.Identity.Name ?? "User";
+            _userEmail = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+
+            // Load recent scenarios for auth landing
+            await LoadRecentScenarios();
+        }
+    }
+
+    private string GetUserInitials()
+    {
+        if (string.IsNullOrEmpty(_userName)) return "U";
+        var parts = _userName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpperInvariant();
+        return _userName.Length >= 2
+            ? _userName[..2].ToUpperInvariant()
+            : _userName.ToUpperInvariant();
+    }
+
+    private async Task LoadRecentScenarios()
+    {
+        // TODO: Load from database
+        // For now, show demo data
+        _recentScenarios = new List<RecentScenarioInfo>
+        {
+            new("1", "Production AKS - Mendix", "K8s", "Updated 2 hours ago"),
+            new("2", "Production EKS - Mendix", "K8s", "Updated yesterday"),
+            new("3", "Development - OutSystems", "VM", "Updated 3 days ago")
+        };
+        await Task.CompletedTask;
+    }
+
+    private void InitializeSummaryCards()
+    {
+        // Values match wireframe 02-dashboard-with-panel.html
+        _summaryCards = new List<SummaryCardsRow.SummaryCard>
+        {
+            new("nodes", "Total Nodes", "12", SummaryCardsRow.CardIcons.Nodes, "blue"),
+            new("cpu", "Total vCPUs", "96", SummaryCardsRow.CardIcons.Cpu, "default"),
+            new("memory", "Total RAM (GB)", "384", SummaryCardsRow.CardIcons.Memory, "default"),
+            new("storage", "Storage (TB)", "2.4", SummaryCardsRow.CardIcons.Storage, "default"),
+            new("cost", "Monthly Cost", "$4,200", SummaryCardsRow.CardIcons.Dollar, "green")
+        };
+    }
+
+    private void InitializeConfigItems()
+    {
+        _configItems = new List<ConfigBar.ConfigItem>
+        {
+            new("platform", "Platform", ConfigBar.ConfigIcons.Platform, "Select..."),
+            new("apps", "Apps", ConfigBar.ConfigIcons.Apps, "Configure"),
+            new("nodes", "Node Specs", ConfigBar.ConfigIcons.Nodes, "Configure"),
+            new("pricing", "Pricing", ConfigBar.ConfigIcons.Pricing, "Select..."),
+            new("growth", "Growth", ConfigBar.ConfigIcons.Growth, "Set period")
+        };
+    }
+
+    // Panel management
+    private void OpenConfigPanel(string panelId)
+    {
+        _activePanel = panelId;
+        _activePanelTitle = GetPanelTitle(panelId);
+        _activePanelTabs = GetPanelTabs();
+        _activePanelTab = panelId;  // Active tab matches the panel
+
+        // Mark the config item as active
+        foreach (var item in _configItems)
+        {
+            item.IsActive = item.Id == panelId;
+        }
+
+        _isPanelOpen = true;
+        StateHasChanged();
+    }
+
+    private void ClosePanel()
+    {
+        _isPanelOpen = false;
+        _activePanel = "";
+
+        // Clear active state
+        foreach (var item in _configItems)
+        {
+            item.IsActive = false;
+        }
+        StateHasChanged();
+    }
+
+    private async Task ApplyPanelChanges()
+    {
+        _isApplyingPanel = true;
+        StateHasChanged();
+
+        // Simulate apply
+        await Task.Delay(500);
+
+        _isApplyingPanel = false;
+        _hasUnsavedChanges = true;
+        ClosePanel();
+    }
+
+    private void HandlePanelTabChange(string tabId)
+    {
+        // Tab clicks switch between panels (per wireframe)
+        _activePanelTab = tabId;
+        _activePanel = tabId;
+
+        // Update config bar active state
+        foreach (var item in _configItems)
+        {
+            item.IsActive = item.Id == tabId;
+        }
+        StateHasChanged();
+    }
+
+    private string GetPanelTitle(string panelId) => "Configuration";
+
+    // Panel tabs - consistent across all panels per wireframe 02-dashboard-with-panel.html
+    // Tabs: Platform, Apps, Nodes, Pricing, Growth
+    private static readonly string[] TabOrder = { "platform", "apps", "nodes", "pricing", "growth" };
+
+    private List<PanelTabs.TabItem> GetPanelTabs() => new List<PanelTabs.TabItem>
+    {
+        new("platform", "Platform"),
+        new("apps", "Apps"),
+        new("nodes", "Nodes"),
+        new("pricing", "Pricing"),
+        new("growth", "Growth")
+    };
+
+    // Navigation properties
+    private bool CanGoPrevious => Array.IndexOf(TabOrder, _activePanelTab) > 0;
+    private bool CanGoNext => Array.IndexOf(TabOrder, _activePanelTab) < TabOrder.Length - 1;
+
+    private void HandlePreviousTab()
+    {
+        var currentIndex = Array.IndexOf(TabOrder, _activePanelTab);
+        if (currentIndex > 0)
+        {
+            var newTab = TabOrder[currentIndex - 1];
+            HandlePanelTabChange(newTab);
+        }
+    }
+
+    private void HandleNextTab()
+    {
+        var currentIndex = Array.IndexOf(TabOrder, _activePanelTab);
+        if (currentIndex < TabOrder.Length - 1)
+        {
+            var newTab = TabOrder[currentIndex + 1];
+            HandlePanelTabChange(newTab);
+        }
+    }
+
+    // Action handlers
+    private void HandleCardClick(string cardId)
+    {
+        // Scroll to related section or open panel
+        OpenConfigPanel(cardId);
+    }
+
+    private void HandleNewScenario()
+    {
+        _hasActiveScenario = true;  // Switch to active dashboard
+        _currentScenarioName = "Untitled Scenario";
+        _hasUnsavedChanges = false;
+        InitializeSummaryCards();
+        InitializeConfigItems();
+
+        // Per wireframe 02-dashboard-with-panel.html:
+        // "Create New Scenario" opens dashboard WITH platform config panel open
+        OpenConfigPanel("platform");
+    }
+
+    private void HandleLoadScenario()
+    {
+        // Navigate to scenarios page
+        NavigationManager.NavigateTo("/scenarios");
+    }
+
+    private void HandleOpenScenario(string scenarioId)
+    {
+        // Load the scenario and switch to active dashboard
+        var scenario = _recentScenarios.FirstOrDefault(s => s.Id == scenarioId);
+        if (scenario != null)
+        {
+            _currentScenarioName = scenario.Name;
+            _hasActiveScenario = true;
+            InitializeSummaryCards();
+            InitializeConfigItems();
+            StateHasChanged();
+        }
+    }
+
+    private void HandleSelectScenario(string scenarioId)
+    {
+        // Load scenario from saved list
+        var scenario = _savedScenarios.FirstOrDefault(s => s.Id == scenarioId);
+        if (scenario != null)
+        {
+            _currentScenarioName = scenario.Name;
+        }
+    }
+
+    private void HandleLogout()
+    {
+        _isAuthenticated = false;
+        _hasActiveScenario = false;
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private async Task HandleSave()
+    {
+        _isSaving = true;
+        StateHasChanged();
+
+        await Task.Delay(1000); // Simulate save
+
+        _isSaving = false;
+        _hasUnsavedChanges = false;
+    }
+
+    private void HandleExport()
+    {
+        if (_isAuthenticated)
+        {
+            // Show full export options
+            // TODO: Full export modal
+        }
+        else
+        {
+            _showExportModal = true;
+        }
+    }
+
+    private void CloseExportModal()
+    {
+        _showExportModal = false;
+    }
+
+    private void HandlePdfExport()
+    {
+        // Trigger PDF download
+        // TODO: Implement PDF export
+    }
+
+    private void HandleCompare()
+    {
+        NavigationManager.NavigateTo("/scenarios?compare=true");
+    }
+
+    private void HandleReset()
+    {
+        _hasActiveScenario = false; // Go back to landing
+        _currentScenarioName = "Untitled Scenario";
+        _hasUnsavedChanges = false;
+        StateHasChanged();
+    }
+
+    private void HandleHelp()
+    {
+        // Open help panel or documentation
+    }
+
+    private void NavigateToSignUp()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    private void DismissSaveBanner()
+    {
+        _saveBannerDismissed = true;
+    }
+
+    private void HandleCalculate()
+    {
+        // Trigger calculation - refresh summary cards
+        // TODO: Wire to K8s/VM sizing services
+        InitializeSummaryCards();
+        StateHasChanged();
+    }
+
+    // Helper classes
+    public record RecentScenarioInfo(string Id, string Name, string Type, string UpdatedAgo);
+    public record ScenarioInfo(string Id, string Name, string Type);
+}

@@ -19,6 +19,14 @@
     background: var(--bg-primary);
 }
 
+/* V4 Dashboard Layout - spans full width when used */
+.app-shell > .dashboard-layout,
+.app-shell > .guest-landing,
+.app-shell > .landing-page {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+
 /* ========================================
    HEADER BAR
    ======================================== */
@@ -87,6 +95,16 @@
 
 .header-right button:hover {
     background: var(--accent-color);
+}
+
+/* ========================================
+   GUEST BANNER CONTAINER
+   ======================================== */
+
+.guest-banner-container {
+    grid-column: 1 / -1;
+    padding: 16px 24px 0;
+    background: var(--bg-primary);
 }
 
 /* ========================================

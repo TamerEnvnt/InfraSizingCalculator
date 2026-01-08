@@ -1,0 +1,95 @@
+@*
+    SaveBanner.razor - Dismissible banner prompting guests to sign up
+
+    Features:
+    - Appears at top of results area for guests
+    - Highlights benefits of signing up
+    - Can be dismissed (stored in session)
+    - Prominent Sign Up CTA
+*@
+
+@if (!_isDismissed)
+{
+    <div class="save-banner" data-testid="save-banner">
+        <div class="banner-content">
+            <div class="banner-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <div class="banner-text">
+                <span class="banner-title">Want to save this scenario?</span>
+                <span class="banner-description">
+                    Sign up free to save unlimited scenarios, export to Excel/JSON, and compare configurations.
+                </span>
+            </div>
+        </div>
+        <div class="banner-actions">
+            <button class="btn-signup" @onclick="HandleSignUp" data-testid="banner-signup">
+                Sign Up Free
+            </button>
+            <button class="btn-dismiss" @onclick="HandleDismiss" data-testid="banner-dismiss" aria-label="Dismiss">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _isDismissed = false;
+
+    /// <summary>
+    /// Callback when sign up is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSignUp { get; set; }
+
+    /// <summary>
+    /// Callback when banner is dismissed
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    /// <summary>
+    /// Whether to start in dismissed state
+    /// </summary>
+    [Parameter]
+    public bool InitiallyDismissed { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _isDismissed = InitiallyDismissed;
+    }
+
+    private async Task HandleSignUp()
+    {
+        await OnSignUp.InvokeAsync();
+    }
+
+    private async Task HandleDismiss()
+    {
+        _isDismissed = true;
+        await OnDismiss.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Programmatically show the banner again
+    /// </summary>
+    public void Show()
+    {
+        _isDismissed = false;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Programmatically hide the banner
+    /// </summary>
+    public void Hide()
+    {
+        _isDismissed = true;
+        StateHasChanged();
+    }
+}

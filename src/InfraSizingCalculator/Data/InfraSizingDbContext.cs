@@ -18,6 +18,7 @@ public class InfraSizingDbContext : DbContext
     }
 
     public DbSet<ApplicationSettingsEntity> ApplicationSettings { get; set; } = null!;
+    public DbSet<AuthenticationSettingsEntity> AuthenticationSettings { get; set; } = null!;
     public DbSet<CloudApiCredentialsEntity> CloudApiCredentials { get; set; } = null!;
     public DbSet<OnPremPricingEntity> OnPremPricing { get; set; } = null!;
     public DbSet<MendixPricingEntity> MendixPricing { get; set; } = null!;
@@ -37,6 +38,26 @@ public class InfraSizingDbContext : DbContext
             entity.ToTable("ApplicationSettings");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.DefaultCurrency).HasMaxLength(10);
+        });
+
+        // AuthenticationSettings - single row table for auth configuration
+        modelBuilder.Entity<AuthenticationSettingsEntity>(entity =>
+        {
+            entity.ToTable("AuthenticationSettings");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.GoogleClientId).HasMaxLength(500);
+            entity.Property(e => e.GoogleClientSecret).HasMaxLength(500);
+            entity.Property(e => e.MicrosoftClientId).HasMaxLength(500);
+            entity.Property(e => e.MicrosoftClientSecret).HasMaxLength(500);
+            entity.Property(e => e.MicrosoftTenantId).HasMaxLength(100);
+            entity.Property(e => e.LdapServer).HasMaxLength(255);
+            entity.Property(e => e.LdapBaseDn).HasMaxLength(500);
+            entity.Property(e => e.LdapBindDn).HasMaxLength(500);
+            entity.Property(e => e.LdapBindPassword).HasMaxLength(500);
+            entity.Property(e => e.LdapUserSearchFilter).HasMaxLength(500);
+            entity.Property(e => e.LdapEmailAttribute).HasMaxLength(100);
+            entity.Property(e => e.LdapDisplayNameAttribute).HasMaxLength(100);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(255);
         });
 
         // CloudApiCredentials - one row per provider

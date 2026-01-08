@@ -66,6 +66,24 @@ public class WizardStateService : IWizardStateService
     // Node specs
     public NodeSpecsConfig NodeSpecs { get; set; } = new();
 
+    // Platform-specific configuration (V4 panels)
+    // K8s Configuration
+    public K8sPodConfig K8sPodConfig { get; private set; } = new();
+    public K8sEnvironmentConfig K8sEnvConfig { get; private set; } = new();
+    public K8sNodeConfig K8sNodeConfig { get; private set; } = new();
+
+    // VM Configuration
+    public VmAppConfig VmAppConfig { get; private set; } = new();
+    public VmEnvironmentConfig VmEnvConfig { get; private set; } = new();
+    public VmHostConfig VmHostConfig { get; private set; } = new();
+
+    // Calculated resource requirements (derived from above configs)
+    public K8sResourceRequirements K8sRequirements =>
+        K8sResourceRequirements.Calculate(K8sPodConfig, K8sEnvConfig);
+
+    public VmResourceRequirements VmRequirements =>
+        VmResourceRequirements.Calculate(VmAppConfig, VmEnvConfig);
+
     // Results
     public K8sSizingResult? Results { get; set; }
 
@@ -116,6 +134,14 @@ public class WizardStateService : IWizardStateService
         NonProdMemoryOvercommit = 1.0;
 
         NodeSpecs = new NodeSpecsConfig();
+
+        // Reset platform-specific configurations
+        K8sPodConfig = new K8sPodConfig();
+        K8sEnvConfig = new K8sEnvironmentConfig();
+        K8sNodeConfig = new K8sNodeConfig();
+        VmAppConfig = new VmAppConfig();
+        VmEnvConfig = new VmEnvironmentConfig();
+        VmHostConfig = new VmHostConfig();
 
         NotifyStateChanged();
     }

@@ -87,8 +87,26 @@ public class Scenario
     public int TotalNodes => K8sResult?.GrandTotal.TotalNodes ?? VMResult?.GrandTotal.TotalVMs ?? 0;
     public int TotalCpu => K8sResult?.GrandTotal.TotalCpu ?? VMResult?.GrandTotal.TotalCpu ?? 0;
     public double TotalRam => K8sResult?.GrandTotal.TotalRam ?? VMResult?.GrandTotal.TotalRam ?? 0;
+    public int TotalApps => ComputeTotalApps();
     public decimal MonthlyEstimate => CostEstimate?.MonthlyTotal ?? 0;
     public string DistributionOrTechnology => K8sInput?.Distribution.ToString() ?? VMInput?.Technology.ToString() ?? "Unknown";
+
+    private int ComputeTotalApps()
+    {
+        // For K8s, sum app counts from all environments or fall back to ProdApps + NonProdApps
+        if (K8sInput != null)
+        {
+            if (K8sInput.EnvironmentApps != null && K8sInput.EnvironmentApps.Count > 0)
+            {
+                return K8sInput.EnvironmentApps.Values.Sum(e => e.TotalApps);
+            }
+            // Fall back to ProdApps + NonProdApps
+            return (K8sInput.ProdApps?.TotalApps ?? 0) + (K8sInput.NonProdApps?.TotalApps ?? 0);
+        }
+        // VM mode doesn't use app counts in the same way - it uses roles/VMs
+        // Return 0 as there's no equivalent "app count" concept
+        return 0;
+    }
 }
 
 /// <summary>
@@ -179,6 +197,8 @@ public class ScenarioSummary
     public string DistributionOrTechnology { get; set; } = string.Empty;
     public int TotalNodes { get; set; }
     public int TotalCpu { get; set; }
+    public double TotalRam { get; set; }
+    public int TotalApps { get; set; }
     public decimal MonthlyEstimate { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsFavorite { get; set; }

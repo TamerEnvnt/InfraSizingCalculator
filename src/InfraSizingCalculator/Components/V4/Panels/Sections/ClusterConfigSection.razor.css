@@ -1,0 +1,271 @@
+/*
+ * ConfigSections.razor.css - Shared styles for config section components
+ * v0.4.4 - Matches wireframe.css form styles
+ */
+
+.config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Form Groups */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+}
+
+.form-hint {
+    font-size: 10px;
+    color: var(--color-text-secondary, #64748b);
+}
+
+/* Form Controls */
+.form-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 4px;
+    font-size: 11px;
+    background: var(--color-surface, #ffffff);
+    color: var(--color-text, #1e293b);
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-accent, #3b82f6);
+}
+
+.form-select-sm {
+    padding: 4px 6px;
+    font-size: 10px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 3px;
+    background: var(--color-surface, #ffffff);
+}
+
+/* Sliders */
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border, #e2e8f0);
+    border-radius: 2px;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--color-accent, #3b82f6);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--color-accent, #3b82f6);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.slider-value {
+    min-width: 28px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text, #1e293b);
+}
+
+/* Toggle Groups */
+.toggle-group {
+    display: flex;
+    background: var(--color-bg, #f8fafc);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary, #64748b);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.toggle-btn:hover {
+    background: var(--color-surface, #ffffff);
+}
+
+.toggle-btn.active {
+    background: var(--color-accent, #3b82f6);
+    color: white;
+}
+
+/* Period Buttons */
+.period-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.period-btn {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-surface, #ffffff);
+    border-radius: 4px;
+    font-size: 10px;
+    color: var(--color-text-secondary, #64748b);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.period-btn:hover {
+    border-color: var(--color-accent, #3b82f6);
+}
+
+.period-btn.active {
+    border-color: var(--color-accent, #3b82f6);
+    background: var(--color-accent-light, #eff6ff);
+    color: var(--color-accent, #3b82f6);
+    font-weight: 600;
+}
+
+/* Checkbox Groups */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.checkbox-item:hover {
+    background: var(--color-bg, #f8fafc);
+}
+
+.checkbox-box {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 3px;
+    background: var(--color-surface, #ffffff);
+    position: relative;
+}
+
+.checkbox-item.selected .checkbox-box {
+    background: var(--color-accent, #3b82f6);
+    border-color: var(--color-accent, #3b82f6);
+}
+
+.checkbox-item.selected .checkbox-box::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label {
+    font-size: 11px;
+    color: var(--color-text, #1e293b);
+}
+
+/* Spec Rows */
+.spec-row {
+    display: flex;
+    gap: 8px;
+}
+
+.spec-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.spec-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--color-text-secondary, #64748b);
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: var(--color-border, #e2e8f0);
+    margin: 4px 0;
+}
+
+/* Info Box */
+.info-box {
+    padding: 10px 12px;
+    background: var(--color-bg, #f8fafc);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 4px;
+}
+
+.info-box strong {
+    display: block;
+    font-size: 11px;
+    color: var(--color-text, #1e293b);
+    margin-bottom: 4px;
+}
+
+.info-text {
+    font-size: 10px;
+    color: var(--color-text-secondary, #64748b);
+}
+
+/* Warning Box */
+.warning-box {
+    padding: 10px 12px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--color-warning, #f59e0b);
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.warning-box strong {
+    display: block;
+    font-size: 11px;
+    color: var(--color-warning, #f59e0b);
+    margin-bottom: 4px;
+}

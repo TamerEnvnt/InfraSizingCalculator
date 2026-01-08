@@ -36,6 +36,13 @@
     <!-- Authentication - Identity -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
 
+    <!-- External Authentication Providers -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.0" />
+
+    <!-- LDAP/Active Directory -->
+    <PackageReference Include="Novell.Directory.Ldap.NETStandard" Version="3.6.0" />
+
     <!-- Existing packages -->
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.101">

@@ -1,0 +1,91 @@
+@*
+    ConfigBar.razor - Horizontal config button bar
+
+    Features:
+    - Quick access buttons to open slide-out panels
+    - Shows current value preview (e.g., "Mendix" for platform)
+    - Responsive: collapses to icons on mobile
+    - Each button opens corresponding config panel
+*@
+
+<div class="config-bar" data-testid="config-bar">
+    <div class="config-bar-inner">
+        @foreach (var item in Items)
+        {
+            <button class="config-btn @(item.IsActive ? "active" : "")"
+                    @onclick="() => HandleClick(item.Id)"
+                    data-testid="config-btn-@item.Id">
+                <span class="config-icon">
+                    @((MarkupString)item.IconSvg)
+                </span>
+                <span class="config-label">@item.Label</span>
+                @if (!string.IsNullOrEmpty(item.Value))
+                {
+                    <span class="config-value">@item.Value</span>
+                }
+                <svg class="config-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Configuration items to display
+    /// </summary>
+    [Parameter]
+    public List<ConfigItem> Items { get; set; } = new();
+
+    /// <summary>
+    /// Callback when a config button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnConfigClick { get; set; }
+
+    private async Task HandleClick(string itemId)
+    {
+        await OnConfigClick.InvokeAsync(itemId);
+    }
+
+    /// <summary>
+    /// Configuration item model
+    /// </summary>
+    public class ConfigItem
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public string? Value { get; set; }
+        public string IconSvg { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+
+        public ConfigItem() { }
+
+        public ConfigItem(string id, string label, string iconSvg, string? value = null)
+        {
+            Id = id;
+            Label = label;
+            IconSvg = iconSvg;
+            Value = value;
+        }
+    }
+
+    /// <summary>
+    /// Common icons for config items
+    /// </summary>
+    public static class ConfigIcons
+    {
+        public const string Platform = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><circle cx=""12"" cy=""12"" r=""10""/><line x1=""2"" y1=""12"" x2=""22"" y2=""12""/><path d=""M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z""/></svg>";
+
+        public const string Apps = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><rect x=""3"" y=""3"" width=""7"" height=""7""/><rect x=""14"" y=""3"" width=""7"" height=""7""/><rect x=""14"" y=""14"" width=""7"" height=""7""/><rect x=""3"" y=""14"" width=""7"" height=""7""/></svg>";
+
+        public const string Nodes = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><rect x=""2"" y=""3"" width=""20"" height=""14"" rx=""2""/><line x1=""8"" y1=""21"" x2=""16"" y2=""21""/><line x1=""12"" y1=""17"" x2=""12"" y2=""21""/></svg>";
+
+        public const string Pricing = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><line x1=""12"" y1=""1"" x2=""12"" y2=""23""/><path d=""M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6""/></svg>";
+
+        public const string Growth = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><polyline points=""23 6 13.5 15.5 8.5 10.5 1 18""/><polyline points=""17 6 23 6 23 12""/></svg>";
+
+        public const string Settings = @"<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor"" stroke-width=""2""><circle cx=""12"" cy=""12"" r=""3""/><path d=""M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z""/></svg>";
+    }
+}

@@ -1,0 +1,673 @@
+@*
+    AppsConfigPanel.razor - Application configuration slide-out panel
+
+    Platform-specific sizing:
+    - K8s: Pod configuration with CPU/Memory Requests/Limits (millicores, Mi/Gi)
+    - VM: Fixed allocation with vCPU/GB/Storage and OS selection
+*@
+
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Services.Interfaces
+@inject IWizardStateService WizardState
+@implements IDisposable
+
+<div class="apps-config-panel" data-testid="apps-config-panel" data-platform-mode="@(IsK8sMode ? "k8s" : "vm")">
+    @if (IsK8sMode)
+    {
+        @* ═══════════════════════════════════════════════════════════════════════
+           K8s MODE: Pod Configuration with Requests/Limits
+           ═══════════════════════════════════════════════════════════════════════ *@
+        <div class="config-section k8s-mode">
+            <div class="section-header">
+                <h4 class="section-title">Pod Configuration</h4>
+                <span class="platform-badge k8s">Kubernetes</span>
+            </div>
+
+            @* Pod Size Template Presets *@
+            <div class="subsection">
+                <label class="subsection-label">Pod Size Template</label>
+                <div class="preset-grid five-col">
+                    @foreach (var preset in _k8sPodPresets)
+                    {
+                        <button class="preset-card @(SelectedK8sPreset == preset.Id ? "selected" : "")"
+                                @onclick="() => ApplyK8sPodPreset(preset)"
+                                data-testid="preset-@preset.Id">
+                            <span class="preset-name">@preset.Name</span>
+                            <span class="preset-specs">@preset.CpuRequest / @preset.MemoryRequest</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* CPU Resources (millicores) *@
+            <div class="subsection resource-section">
+                <label class="subsection-label">CPU Resources (millicores)</label>
+                <div class="resource-box">
+                    <div class="resource-header">
+                        <span class="resource-title">CPU Request / Limit</span>
+                        <div class="resource-values">
+                            <div class="resource-value-item">
+                                <span class="value-label">Request</span>
+                                <span class="value-number request">@FormatMillicores(CpuRequestMillicores)</span>
+                            </div>
+                            <div class="resource-value-item">
+                                <span class="value-label">Limit</span>
+                                <span class="value-number limit">@FormatMillicores(CpuLimitMillicores)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dual-slider-container">
+                        <div class="slider-track"></div>
+                        <div class="slider-fill limit" style="width: @(CpuLimitMillicores * 100.0 / 4000)%;"></div>
+                        <div class="slider-fill request" style="width: @(CpuRequestMillicores * 100.0 / 4000)%;"></div>
+                        <input type="range" class="dual-slider request-slider" min="50" max="4000" step="50"
+                               value="@CpuRequestMillicores"
+                               @oninput="HandleCpuRequestInput" />
+                        <input type="range" class="dual-slider limit-slider" min="100" max="8000" step="100"
+                               value="@CpuLimitMillicores"
+                               @oninput="HandleCpuLimitInput" />
+                    </div>
+                    <div class="slider-labels">
+                        <span>50m</span>
+                        <span>1000m</span>
+                        <span>2000m</span>
+                        <span>4000m</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Memory Resources *@
+            <div class="subsection resource-section">
+                <label class="subsection-label">Memory Resources</label>
+                <div class="resource-box">
+                    <div class="resource-header">
+                        <span class="resource-title">Memory Request / Limit</span>
+                        <div class="resource-values">
+                            <div class="resource-value-item">
+                                <span class="value-label">Request</span>
+                                <span class="value-number request">@FormatMemory(MemoryRequestMi)</span>
+                            </div>
+                            <div class="resource-value-item">
+                                <span class="value-label">Limit</span>
+                                <span class="value-number limit">@FormatMemory(MemoryLimitMi)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dual-slider-container">
+                        <div class="slider-track"></div>
+                        <div class="slider-fill limit" style="width: @(MemoryLimitMi * 100.0 / 16384)%;"></div>
+                        <div class="slider-fill request" style="width: @(MemoryRequestMi * 100.0 / 16384)%;"></div>
+                        <input type="range" class="dual-slider request-slider" min="128" max="16384" step="128"
+                               value="@MemoryRequestMi"
+                               @oninput="HandleMemoryRequestInput" />
+                        <input type="range" class="dual-slider limit-slider" min="256" max="32768" step="256"
+                               value="@MemoryLimitMi"
+                               @oninput="HandleMemoryLimitInput" />
+                    </div>
+                    <div class="slider-labels">
+                        <span>128Mi</span>
+                        <span>2Gi</span>
+                        <span>8Gi</span>
+                        <span>16Gi</span>
+                    </div>
+                </div>
+
+                @* Legend *@
+                <div class="resource-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot request"></div>
+                        <span>Request (Guaranteed)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot limit"></div>
+                        <span>Limit (Max Burst)</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Replicas per Environment *@
+            <div class="subsection">
+                <label class="subsection-label">Replicas per Environment</label>
+                <div class="replicas-grid">
+                    @foreach (var env in _k8sEnvironments)
+                    {
+                        var replicas = GetReplicas(env.Id);
+                        <div class="replica-card">
+                            <div class="replica-env">@env.ShortName</div>
+                            <div class="replica-controls">
+                                <button class="replica-btn" @onclick="() => DecrementReplica(env.Id)" disabled="@(replicas <= 1)">−</button>
+                                <span class="replica-value">@replicas</span>
+                                <button class="replica-btn" @onclick="() => IncrementReplica(env.Id)">+</button>
+                            </div>
+                            <div class="ha-indicator @(replicas >= 3 ? "ha-ok" : "ha-warning")">
+                                @if (replicas >= 3)
+                                {
+                                    <span>✓ HA Ready</span>
+                                }
+                                else
+                                {
+                                    <span>! Below HA</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Info Box *@
+            <div class="info-box k8s">
+                <div class="info-title">How K8s Resource Requests Work</div>
+                <div class="info-text">
+                    <strong>Requests</strong> are guaranteed resources for scheduling. Pods are placed on nodes with enough allocatable capacity.<br /><br />
+                    <strong>Limits</strong> are the maximum burst. CPU is throttled; memory exceeding limits triggers OOM kill.<br /><br />
+                    <strong>Best Practice:</strong> Set memory request = limit for stability.
+                </div>
+            </div>
+
+            @* Summary *@
+            <div class="summary-box k8s">
+                <div class="summary-title">Total Resource Requests (All Environments)</div>
+                <div class="summary-grid two-col">
+                    <div class="summary-item">
+                        <span class="summary-value">@FormatMillicores(TotalCpuRequests)</span>
+                        <span class="summary-label">Total CPU Requests</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@FormatMemory(TotalMemoryRequests)</span>
+                        <span class="summary-label">Total Memory Requests</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* ═══════════════════════════════════════════════════════════════════════
+           VM MODE: Fixed Allocation with OS Selection
+           ═══════════════════════════════════════════════════════════════════════ *@
+        <div class="config-section vm-mode">
+            <div class="section-header">
+                <h4 class="section-title">Application Configuration</h4>
+                <span class="platform-badge vm">Virtual Machines</span>
+            </div>
+
+            @* Operating System Selection *@
+            <div class="subsection">
+                <label class="subsection-label">Operating System</label>
+                <div class="os-selector">
+                    <button class="os-btn @(SelectedOS == "linux" ? "selected" : "")"
+                            @onclick='() => SelectOS("linux")'>
+                        <span class="os-icon">🐧</span>
+                        <div class="os-details">
+                            <span class="os-name">Linux</span>
+                            <span class="os-overhead">Overhead: <span class="highlight">~1GB RAM</span></span>
+                        </div>
+                    </button>
+                    <button class="os-btn @(SelectedOS == "windows" ? "selected" : "")"
+                            @onclick='() => SelectOS("windows")'>
+                        <span class="os-icon">🪟</span>
+                        <div class="os-details">
+                            <span class="os-name">Windows</span>
+                            <span class="os-overhead">Overhead: <span class="highlight">~4GB RAM</span></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            @* Application Size Template *@
+            <div class="subsection">
+                <label class="subsection-label">Application Size Template</label>
+                <div class="preset-grid four-col">
+                    @foreach (var preset in _vmAppPresets)
+                    {
+                        <button class="preset-card @(SelectedVmPreset == preset.Id ? "selected" : "")"
+                                @onclick="() => ApplyVmAppPreset(preset)"
+                                data-testid="preset-@preset.Id">
+                            <span class="preset-name">@preset.Name</span>
+                            <span class="preset-specs">@preset.VCpu vCPU<br />@preset.MemoryGB GB<br />@preset.StorageGB GB</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* Application Resources (per VM) *@
+            <div class="subsection">
+                <label class="subsection-label">Application Resources (per VM)</label>
+                <div class="vm-resource-grid">
+                    <div class="vm-resource-input">
+                        <div class="resource-label">vCPU</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementVmVCpu" disabled="@(VmVCpu <= 1)">−</button>
+                            <span class="resource-value">@VmVCpu</span>
+                            <button class="resource-btn" @onclick="IncrementVmVCpu" disabled="@(VmVCpu >= 32)">+</button>
+                        </div>
+                        <div class="resource-unit">virtual cores</div>
+                    </div>
+                    <div class="vm-resource-input">
+                        <div class="resource-label">RAM</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementVmMemory" disabled="@(VmMemoryGB <= 1)">−</button>
+                            <span class="resource-value">@VmMemoryGB</span>
+                            <button class="resource-btn" @onclick="IncrementVmMemory" disabled="@(VmMemoryGB >= 128)">+</button>
+                        </div>
+                        <div class="resource-unit">GB</div>
+                    </div>
+                    <div class="vm-resource-input">
+                        <div class="resource-label">Storage</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementVmStorage" disabled="@(VmStorageGB <= 20)">−</button>
+                            <span class="resource-value">@VmStorageGB</span>
+                            <button class="resource-btn" @onclick="IncrementVmStorage" disabled="@(VmStorageGB >= 2000)">+</button>
+                        </div>
+                        <div class="resource-unit">GB</div>
+                    </div>
+                </div>
+            </div>
+
+            @* Instances per Environment *@
+            <div class="subsection">
+                <label class="subsection-label">Instances per Environment</label>
+                <div class="replicas-grid">
+                    @foreach (var env in _vmEnvironments)
+                    {
+                        var instances = GetInstances(env.Id);
+                        <div class="replica-card">
+                            <div class="replica-env">@env.ShortName</div>
+                            <div class="replica-controls">
+                                <button class="replica-btn" @onclick="() => DecrementVmInstance(env.Id)" disabled="@(instances <= 1)">−</button>
+                                <span class="replica-value">@instances</span>
+                                <button class="replica-btn" @onclick="() => IncrementVmInstance(env.Id)">+</button>
+                            </div>
+                            <div class="ha-indicator @(instances >= 2 && env.Id == "production" ? "ha-ok" : (env.Id == "production" ? "ha-warning" : ""))">
+                                @if (env.Id == "production")
+                                {
+                                    @if (instances >= 2)
+                                    {
+                                        <span>✓ Behind LB</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Single instance</span>
+                                    }
+                                }
+                                else if (instances == 1)
+                                {
+                                    <span class="ha-warning">Single instance</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Info Box *@
+            <div class="info-box vm">
+                <div class="info-title">VM Resource Allocation</div>
+                <div class="info-text">
+                    <strong>Fixed Allocation:</strong> Each VM gets exactly the resources specified. Unlike containers, VMs don't share resources dynamically.<br /><br />
+                    <strong>Storage is Coupled:</strong> Each VM has its own disk. Storage scales linearly with instance count.<br /><br />
+                    <strong>OS Overhead:</strong> Added automatically to each VM (Linux: ~1GB, Windows: ~4GB).
+                </div>
+            </div>
+
+            @* Summary *@
+            <div class="summary-box vm">
+                <div class="summary-title">Total Resource Requirements (All Environments)</div>
+                <div class="summary-grid three-col">
+                    <div class="summary-item">
+                        <span class="summary-value">@TotalVmVCpu</span>
+                        <span class="summary-label">Total vCPU</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@TotalVmMemory GB</span>
+                        <span class="summary-label">Total RAM</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@TotalVmStorage GB</span>
+                        <span class="summary-label">Total Storage</span>
+                    </div>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span class="row-label">Total VMs</span>
+                        <span class="row-value">@TotalVmInstances instances</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="row-label">App Resources</span>
+                        <span class="row-value">@(VmVCpu * TotalVmInstances) vCPU / @(VmMemoryGB * TotalVmInstances) GB RAM</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="row-label">OS Overhead (@(SelectedOS == "linux" ? "Linux" : "Windows") × @TotalVmInstances)</span>
+                        <span class="row-value warning">+ @OsOverheadTotal GB RAM</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Comparison Note *@
+            <div class="comparison-note">
+                <span class="note-icon">ℹ️</span>
+                <div class="note-text">
+                    <strong>VM vs K8s:</strong> VMs use fixed vCPU allocation (whole cores), while K8s uses millicores for fine-grained CPU sharing. VM storage is local to each instance; K8s uses shared persistent volumes.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string ActiveTab { get; set; } = "apps";
+
+    [Parameter]
+    public EventCallback<Dictionary<string, int>> OnDistributionChange { get; set; }
+
+    // Platform detection
+    private bool IsK8sMode => WizardState.SelectedDeployment == DeploymentModel.Kubernetes;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Shared State Accessors (from WizardStateService)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // K8s Config (read from shared state)
+    private K8sPodConfig PodConfig => WizardState.K8sPodConfig;
+    private K8sEnvironmentConfig K8sEnv => WizardState.K8sEnvConfig;
+    private int CpuRequestMillicores => PodConfig.CpuRequestMillicores;
+    private int CpuLimitMillicores => PodConfig.CpuLimitMillicores;
+    private int MemoryRequestMi => PodConfig.MemoryRequestMi;
+    private int MemoryLimitMi => PodConfig.MemoryLimitMi;
+    private string SelectedK8sPreset => PodConfig.SelectedPreset;
+
+    // K8s Totals (calculated from shared state)
+    private int TotalReplicas => K8sEnv.TotalReplicas;
+    private int TotalCpuRequests => WizardState.K8sRequirements.TotalCpuRequestMillicores;
+    private int TotalMemoryRequests => WizardState.K8sRequirements.TotalMemoryRequestMi;
+
+    // VM Config (read from shared state)
+    private VmAppConfig VmApp => WizardState.VmAppConfig;
+    private VmEnvironmentConfig VmEnv => WizardState.VmEnvConfig;
+    private string SelectedVmPreset => VmApp.SelectedPreset;
+    private string SelectedOS => VmApp.OperatingSystem;
+    private int VmVCpu => VmApp.VCpu;
+    private int VmMemoryGB => VmApp.MemoryGB;
+    private int VmStorageGB => VmApp.StorageGB;
+
+    // VM Totals (calculated from shared state)
+    private int TotalVmInstances => WizardState.VmRequirements.TotalInstances;
+    private int TotalVmVCpu => WizardState.VmRequirements.TotalVCpu;
+    private int OsOverheadPerVm => VmApp.OsOverheadGB;
+    private int OsOverheadTotal => WizardState.VmRequirements.OsOverheadGB;
+    private int TotalVmMemory => WizardState.VmRequirements.TotalMemoryGB;
+    private int TotalVmStorage => WizardState.VmRequirements.TotalStorageGB;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Static Preset Data
+    // ═══════════════════════════════════════════════════════════════════════
+    private static readonly List<PodPresetData> _k8sPodPresets = new()
+    {
+        new("micro", "Micro", "100m", "256Mi", 100, 200, 256, 512),
+        new("small", "Small", "250m", "512Mi", 250, 500, 512, 1024),
+        new("medium", "Medium", "500m", "1Gi", 500, 1000, 1024, 2048),
+        new("large", "Large", "1000m", "2Gi", 1000, 2000, 2048, 4096),
+        new("xlarge", "XLarge", "2000m", "4Gi", 2000, 4000, 4096, 8192)
+    };
+
+    private static readonly List<VmPresetData> _vmAppPresets = new()
+    {
+        new("small", "Small", 1, 2, 50),
+        new("medium", "Medium", 2, 4, 100),
+        new("large", "Large", 4, 8, 200),
+        new("xlarge", "XLarge", 8, 16, 500)
+    };
+
+    private static readonly List<EnvDisplayData> _k8sEnvironments = new()
+    {
+        new("dev", "Dev"),
+        new("test", "Test"),
+        new("staging", "Staging"),
+        new("production", "Prod")
+    };
+
+    private static readonly List<EnvDisplayData> _vmEnvironments = new()
+    {
+        new("dev", "Dev"),
+        new("test", "Test"),
+        new("staging", "Staging"),
+        new("production", "Prod")
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Lifecycle
+    // ═══════════════════════════════════════════════════════════════════════
+    protected override void OnInitialized()
+    {
+        WizardState.OnStateChanged += HandleStateChanged;
+    }
+
+    private void HandleStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        WizardState.OnStateChanged -= HandleStateChanged;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // K8s Methods - Update Shared State
+    // ═══════════════════════════════════════════════════════════════════════
+    private string FormatMillicores(int millicores)
+    {
+        if (millicores >= 1000)
+        {
+            var cores = millicores / 1000.0;
+            return cores == (int)cores ? $"{(int)cores}" : $"{cores:F1}";
+        }
+        return $"{millicores}m";
+    }
+
+    private string FormatMemory(int mi)
+    {
+        if (mi >= 1024)
+        {
+            var gi = mi / 1024.0;
+            return gi == (int)gi ? $"{(int)gi}Gi" : $"{gi:F1}Gi";
+        }
+        return $"{mi}Mi";
+    }
+
+    private void ApplyK8sPodPreset(PodPresetData preset)
+    {
+        PodConfig.SelectedPreset = preset.Id;
+        PodConfig.CpuRequestMillicores = preset.CpuRequestMc;
+        PodConfig.CpuLimitMillicores = preset.CpuLimitMc;
+        PodConfig.MemoryRequestMi = preset.MemoryRequestMi;
+        PodConfig.MemoryLimitMi = preset.MemoryLimitMi;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void UpdateCpuRequest(int value)
+    {
+        PodConfig.CpuRequestMillicores = Math.Min(value, PodConfig.CpuLimitMillicores);
+        PodConfig.SelectedPreset = "";
+        WizardState.NotifyStateChanged();
+    }
+
+    private void UpdateCpuLimit(int value)
+    {
+        PodConfig.CpuLimitMillicores = Math.Max(value, PodConfig.CpuRequestMillicores);
+        PodConfig.SelectedPreset = "";
+        WizardState.NotifyStateChanged();
+    }
+
+    private void UpdateMemoryRequest(int value)
+    {
+        PodConfig.MemoryRequestMi = Math.Min(value, PodConfig.MemoryLimitMi);
+        PodConfig.SelectedPreset = "";
+        WizardState.NotifyStateChanged();
+    }
+
+    private void UpdateMemoryLimit(int value)
+    {
+        PodConfig.MemoryLimitMi = Math.Max(value, PodConfig.MemoryRequestMi);
+        PodConfig.SelectedPreset = "";
+        WizardState.NotifyStateChanged();
+    }
+
+    private void HandleCpuRequestInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            UpdateCpuRequest(value);
+    }
+
+    private void HandleCpuLimitInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            UpdateCpuLimit(value);
+    }
+
+    private void HandleMemoryRequestInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            UpdateMemoryRequest(value);
+    }
+
+    private void HandleMemoryLimitInput(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var value))
+            UpdateMemoryLimit(value);
+    }
+
+    private int GetReplicas(string envId) => K8sEnv.GetReplicas(envId);
+
+    private void IncrementReplica(string envId)
+    {
+        var current = K8sEnv.GetReplicas(envId);
+        if (current < 10)
+        {
+            K8sEnv.SetReplicas(envId, current + 1);
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementReplica(string envId)
+    {
+        var current = K8sEnv.GetReplicas(envId);
+        if (current > 1)
+        {
+            K8sEnv.SetReplicas(envId, current - 1);
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VM Methods - Update Shared State
+    // ═══════════════════════════════════════════════════════════════════════
+    private void SelectOS(string os)
+    {
+        VmApp.OperatingSystem = os;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void ApplyVmAppPreset(VmPresetData preset)
+    {
+        VmApp.SelectedPreset = preset.Id;
+        VmApp.VCpu = preset.VCpu;
+        VmApp.MemoryGB = preset.MemoryGB;
+        VmApp.StorageGB = preset.StorageGB;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void IncrementVmVCpu()
+    {
+        if (VmApp.VCpu < 32)
+        {
+            VmApp.VCpu++;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementVmVCpu()
+    {
+        if (VmApp.VCpu > 1)
+        {
+            VmApp.VCpu--;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void IncrementVmMemory()
+    {
+        if (VmApp.MemoryGB < 128)
+        {
+            VmApp.MemoryGB += VmApp.MemoryGB < 8 ? 1 : 4;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementVmMemory()
+    {
+        if (VmApp.MemoryGB > 1)
+        {
+            VmApp.MemoryGB -= VmApp.MemoryGB <= 8 ? 1 : 4;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void IncrementVmStorage()
+    {
+        if (VmApp.StorageGB < 2000)
+        {
+            VmApp.StorageGB += VmApp.StorageGB < 100 ? 10 : 50;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementVmStorage()
+    {
+        if (VmApp.StorageGB > 20)
+        {
+            VmApp.StorageGB -= VmApp.StorageGB <= 100 ? 10 : 50;
+            VmApp.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private int GetInstances(string envId) => VmEnv.GetInstances(envId);
+
+    private void IncrementVmInstance(string envId)
+    {
+        var current = VmEnv.GetInstances(envId);
+        if (current < 10)
+        {
+            VmEnv.SetInstances(envId, current + 1);
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementVmInstance(string envId)
+    {
+        var current = VmEnv.GetInstances(envId);
+        if (current > 1)
+        {
+            VmEnv.SetInstances(envId, current - 1);
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Display Data Models (static, for UI rendering only)
+    // ═══════════════════════════════════════════════════════════════════════
+    private record PodPresetData(string Id, string Name, string CpuRequest, string MemoryRequest,
+        int CpuRequestMc, int CpuLimitMc, int MemoryRequestMi, int MemoryLimitMi);
+
+    private record VmPresetData(string Id, string Name, int VCpu, int MemoryGB, int StorageGB);
+
+    private record EnvDisplayData(string Id, string ShortName);
+}

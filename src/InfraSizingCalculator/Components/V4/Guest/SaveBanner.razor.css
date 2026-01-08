@@ -1,0 +1,148 @@
+/*
+ * SaveBanner.razor.css - Guest save prompt banner styles
+ */
+
+.save-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(163, 113, 247, 0.1));
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    border-radius: 10px;
+    margin: 20px 24px 0;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(88, 166, 255, 0.2);
+    border-radius: 8px;
+    color: var(--accent-blue, #58a6ff);
+    flex-shrink: 0;
+}
+
+.banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.banner-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.banner-description {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+    line-height: 1.4;
+}
+
+.banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-signup {
+    padding: 10px 20px;
+    background: var(--accent-blue, #58a6ff);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.btn-signup:hover {
+    opacity: 0.9;
+}
+
+.btn-dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-secondary, #8b949e);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-dismiss:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary, #c9d1d9);
+}
+
+/* Responsive - Tablet */
+@media (max-width: 768px) {
+    .save-banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin: 16px 16px 0;
+        padding: 16px;
+    }
+
+    .banner-content {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .banner-actions {
+        justify-content: space-between;
+    }
+
+    .btn-signup {
+        flex: 1;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+    .save-banner {
+        margin: 12px 12px 0;
+        padding: 14px;
+    }
+
+    .banner-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .banner-title {
+        font-size: 13px;
+    }
+
+    .banner-description {
+        font-size: 12px;
+    }
+
+    .btn-signup {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}

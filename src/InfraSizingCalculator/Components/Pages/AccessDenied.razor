@@ -1,16 +1,156 @@
 @page "/access-denied"
+@page "/403"
+@using InfraSizingCalculator.Services.Auth
+@inject IAuthService AuthService
 
 <PageTitle>Access Denied - Infrastructure Sizing Calculator</PageTitle>
 
-<div class="access-denied-container">
-    <div class="access-denied-card">
-        <div class="icon">🔒</div>
-        <h1>Access Denied</h1>
-        <p class="message">You don't have permission to access this resource.</p>
-        <p class="suggestion">If you believe this is an error, please contact your administrator.</p>
-        <div class="actions">
-            <a href="/" class="btn btn-primary">Go to Home</a>
-            <a href="/login" class="btn btn-secondary">Sign In</a>
+@*
+    AccessDenied.razor - v0.4.4 wireframe design
+    Matches wireframe: 23-access-denied.html
+    Access denied page with permissions list
+*@
+
+<div class="error-page-container">
+    <!-- Header -->
+    <header class="error-header">
+        <div class="header-logo">InfraSizing</div>
+        <div class="header-right">
+            <a href="/" class="btn btn-sm btn-secondary">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Home
+            </a>
+            @if (_isAuthenticated)
+            {
+                <div class="user-avatar">@GetUserInitials()</div>
+            }
+        </div>
+    </header>
+
+    <!-- Error Content -->
+    <div class="error-page">
+        <div class="error-content">
+            <div class="error-illustration">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <div class="error-code">403</div>
+            <h1 class="error-title">Access Denied</h1>
+            <p class="error-message">
+                You don't have permission to access this resource.
+                This may require elevated privileges or a different account.
+            </p>
+
+            <div class="permission-box">
+                <h4>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Required Permissions
+                </h4>
+                <div class="permission-list">
+                    <div class="permission-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="denied">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        <span class="permission-name">Admin Settings Access</span>
+                        <span class="permission-status denied">Not Granted</span>
+                    </div>
+                    <div class="permission-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="granted">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        <span class="permission-name">View Scenarios</span>
+                        <span class="permission-status granted">Granted</span>
+                    </div>
+                    <div class="permission-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="granted">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        <span class="permission-name">Create Scenarios</span>
+                        <span class="permission-status granted">Granted</span>
+                    </div>
+                    <div class="permission-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="denied">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        <span class="permission-name">Manage Users</span>
+                        <span class="permission-status denied">Not Granted</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-actions">
+                <a href="/login" class="btn btn-primary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Switch Account
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Go Home
+                </a>
+            </div>
+
+            <div class="contact-info">
+                Need access? Contact your <a href="#">system administrator</a>
+                or <a href="#">request permission</a>.
+            </div>
+
+            @if (_isAuthenticated)
+            {
+                <div class="current-user">
+                    <div class="user-avatar-small">@GetUserInitials()</div>
+                    <span>Logged in as <strong>@_userEmail</strong></span>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@code {
+    private bool _isAuthenticated;
+    private string _displayName = "";
+    private string _userEmail = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        _isAuthenticated = user != null;
+        if (_isAuthenticated && user != null)
+        {
+            _displayName = user.DisplayName ?? "User";
+            _userEmail = user.Email ?? "";
+        }
+    }
+
+    private string GetUserInitials()
+    {
+        if (string.IsNullOrEmpty(_displayName) || _displayName == "User")
+            return "U";
+
+        var parts = _displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 1)
+            return parts[0][0].ToString().ToUpper();
+        return "U";
+    }
+}

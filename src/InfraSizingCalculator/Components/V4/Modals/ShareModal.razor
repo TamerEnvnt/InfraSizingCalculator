@@ -1,0 +1,384 @@
+@*
+    ShareModal.razor - v0.4.4 Share Configuration Modal
+    Matches wireframe: 19-share-config.html
+
+    - Modal overlay with centered dialog
+    - Share method selection: Link, Email, JSON
+    - Shareable link with copy button
+    - Permissions section
+    - Link expiration settings
+*@
+
+@using InfraSizingCalculator.Services
+@inject ConfigurationSharingService SharingService
+@inject IJSRuntime JS
+
+<div class="modal-overlay @(IsVisible ? "visible" : "")" @onclick="HandleOverlayClick" data-testid="share-modal">
+    <div class="modal" @onclick:stopPropagation="true">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Share Configuration
+            </div>
+            <button class="close-btn" @onclick="Close">×</button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Scenario Info -->
+            <div class="scenario-info">
+                <div class="scenario-name">@ScenarioName</div>
+                <div class="scenario-meta">
+                    <span class="badge badge-@ScenarioType">@(ScenarioType == "k8s" ? "K8s" : "VM")</span>
+                    @ScenarioDetails
+                </div>
+            </div>
+
+            <!-- Share Options -->
+            <div class="form-label">Share Method</div>
+
+            <div class="share-option @(_shareMethod == "link" ? "selected" : "")" @onclick='() => SelectMethod("link")'>
+                <div class="share-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="@(_shareMethod == "link" ? "var(--color-accent, #3b82f6)" : "currentColor")" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                </div>
+                <div class="share-info">
+                    <div class="share-label">Shareable Link</div>
+                    <div class="share-desc">Anyone with the link can view this configuration</div>
+                </div>
+                <div class="radio-circle @(_shareMethod == "link" ? "selected" : "")"></div>
+            </div>
+
+            <div class="share-option @(_shareMethod == "email" ? "selected" : "")" @onclick='() => SelectMethod("email")'>
+                <div class="share-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="@(_shareMethod == "email" ? "var(--color-accent, #3b82f6)" : "currentColor")" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                </div>
+                <div class="share-info">
+                    <div class="share-label">Email Invite</div>
+                    <div class="share-desc">Send an email invitation to specific people</div>
+                </div>
+                <div class="radio-circle @(_shareMethod == "email" ? "selected" : "")"></div>
+            </div>
+
+            <div class="share-option @(_shareMethod == "json" ? "selected" : "")" @onclick='() => SelectMethod("json")'>
+                <div class="share-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="@(_shareMethod == "json" ? "var(--color-accent, #3b82f6)" : "currentColor")" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </div>
+                <div class="share-info">
+                    <div class="share-label">Export JSON</div>
+                    <div class="share-desc">Download configuration as JSON file</div>
+                </div>
+                <div class="radio-circle @(_shareMethod == "json" ? "selected" : "")"></div>
+            </div>
+
+            @if (_shareMethod == "link")
+            {
+                <!-- Generated Link -->
+                <div class="link-box">
+                    <input type="text" class="link-input" value="@_shareUrl" readonly />
+                    <button class="btn btn-primary btn-sm" @onclick="CopyLink">
+                        @if (_copied)
+                        {
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>Copied!</span>
+                        }
+                        else
+                        {
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span>Copy</span>
+                        }
+                    </button>
+                </div>
+
+                <!-- Permissions -->
+                <div class="permissions-section">
+                    <div class="form-label">People with Access</div>
+
+                    <div class="permission-row">
+                        <div class="permission-info">
+                            <div class="user-avatar">@GetOwnerInitials()</div>
+                            <div class="user-details">
+                                <span class="user-name">@OwnerName (You)</span>
+                                <span class="user-email">@OwnerEmail</span>
+                            </div>
+                        </div>
+                        <span class="badge badge-success">Owner</span>
+                    </div>
+
+                    @foreach (var person in _sharedWith)
+                    {
+                        <div class="permission-row">
+                            <div class="permission-info">
+                                <div class="user-avatar @(person.IsPending ? "pending" : "")">
+                                    @(person.IsPending ? "?" : GetInitials(person.Name))
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">@(person.IsPending ? person.Email : person.Name)</span>
+                                    <span class="user-email">@(person.IsPending ? "Pending invite" : person.Email)</span>
+                                </div>
+                            </div>
+                            @if (person.IsPending)
+                            {
+                                <button class="btn btn-ghost btn-sm" @onclick="() => ResendInvite(person)">Resend</button>
+                            }
+                            else
+                            {
+                                <select class="form-select permission-select" @bind="person.Permission">
+                                    <option value="view">Can view</option>
+                                    <option value="edit">Can edit</option>
+                                    <option value="remove">Remove</option>
+                                </select>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Expiry -->
+                <div class="expiry-section">
+                    <div class="form-group">
+                        <label class="form-label">Link Expiration</label>
+                        <select class="form-select" @bind="_expiration">
+                            <option value="never">Never expires</option>
+                            <option value="1">1 day</option>
+                            <option value="7">7 days</option>
+                            <option value="30">30 days</option>
+                            <option value="90">90 days</option>
+                        </select>
+                        <div class="form-hint">@GetExpiryHint()</div>
+                    </div>
+                </div>
+            }
+
+            @if (_shareMethod == "email")
+            {
+                <div class="email-section">
+                    <div class="form-group">
+                        <label class="form-label">Email Addresses</label>
+                        <input type="text" class="form-input" placeholder="Enter email addresses, separated by commas" @bind="_emailAddresses" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message (optional)</label>
+                        <textarea class="form-textarea" rows="3" placeholder="Add a personal message..." @bind="_emailMessage"></textarea>
+                    </div>
+                </div>
+            }
+
+            @if (_shareMethod == "json")
+            {
+                <div class="json-section">
+                    <div class="json-preview">
+                        <div class="json-header">
+                            <span class="json-title">Configuration Preview</span>
+                            <span class="json-size">~@GetJsonSize()</span>
+                        </div>
+                        <pre class="json-content">@_jsonPreview</pre>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+            <button class="btn btn-primary" @onclick="Share" disabled="@_isSharing">
+                @if (_isSharing)
+                {
+                    <span class="spinner"></span>
+                    <span>@GetActionLabel()...</span>
+                }
+                else
+                {
+                    @if (_shareMethod == "json")
+                    {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>Download JSON</span>
+                    }
+                    else
+                    {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                        <span>@GetActionLabel()</span>
+                    }
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback OnShare { get; set; }
+    [Parameter] public string ScenarioName { get; set; } = "Untitled Scenario";
+    [Parameter] public string ScenarioType { get; set; } = "k8s";
+    [Parameter] public string ScenarioDetails { get; set; } = "";
+    [Parameter] public string OwnerName { get; set; } = "User";
+    [Parameter] public string OwnerEmail { get; set; } = "user@example.com";
+    [Parameter] public string ConfigJson { get; set; } = "";
+
+    private string _shareMethod = "link";
+    private string _shareUrl = "https://infrasizing.app/share/abc123xyz";
+    private string _expiration = "30";
+    private string _emailAddresses = "";
+    private string _emailMessage = "";
+    private string _jsonPreview = "{ \"type\": \"k8s\", \"config\": {...} }";
+    private bool _isSharing = false;
+    private bool _copied = false;
+
+    private List<SharedPerson> _sharedWith = new()
+    {
+        new SharedPerson { Name = "John Doe", Email = "john@example.com", Permission = "view" }
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(ConfigJson))
+        {
+            _jsonPreview = ConfigJson.Length > 200
+                ? ConfigJson.Substring(0, 200) + "..."
+                : ConfigJson;
+        }
+    }
+
+    private void SelectMethod(string method)
+    {
+        _shareMethod = method;
+    }
+
+    private string GetOwnerInitials()
+    {
+        if (string.IsNullOrEmpty(OwnerName) || OwnerName == "User")
+            return "U";
+
+        var parts = OwnerName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 1)
+            return parts[0][0].ToString().ToUpper();
+        return "U";
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 2)
+            return $"{parts[0][0]}{parts[0][1]}".ToUpper();
+        return parts[0][0].ToString().ToUpper();
+    }
+
+    private string GetExpiryHint()
+    {
+        if (_expiration == "never")
+            return "Link will never expire";
+
+        var days = int.Parse(_expiration);
+        var expiryDate = DateTime.Now.AddDays(days);
+        return $"Link will expire on {expiryDate:MMM d, yyyy}";
+    }
+
+    private string GetJsonSize()
+    {
+        var bytes = string.IsNullOrEmpty(ConfigJson) ? 0 : ConfigJson.Length;
+        if (bytes < 1024) return $"{bytes} B";
+        return $"{bytes / 1024.0:F1} KB";
+    }
+
+    private string GetActionLabel() => _shareMethod switch
+    {
+        "email" => "Send Invite",
+        "json" => "Downloading",
+        _ => "Share"
+    };
+
+    private async Task CopyLink()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", _shareUrl);
+            _copied = true;
+            StateHasChanged();
+
+            await Task.Delay(2000);
+            _copied = false;
+            StateHasChanged();
+        }
+        catch
+        {
+            // Clipboard API may not be available
+        }
+    }
+
+    private Task ResendInvite(SharedPerson person)
+    {
+        // TODO: Implement resend invite
+        return Task.CompletedTask;
+    }
+
+    private async Task Close()
+    {
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private void HandleOverlayClick()
+    {
+        _ = Close();
+    }
+
+    private async Task Share()
+    {
+        _isSharing = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(1000); // Simulate action
+            await OnShare.InvokeAsync();
+            await Close();
+        }
+        finally
+        {
+            _isSharing = false;
+            StateHasChanged();
+        }
+    }
+
+    private class SharedPerson
+    {
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Permission { get; set; } = "view";
+        public bool IsPending { get; set; }
+    }
+}

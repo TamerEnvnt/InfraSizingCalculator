@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8s Apps Panel - Wireframe</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+        .panel-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .k8s-badge {
+            background: #2563eb;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Pod Templates Section */
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .preset-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background: #3b4f6b;
+        }
+        .preset-btn.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+        }
+        .preset-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        .preset-specs {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        /* Resource Sliders */
+        .resource-group {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .resource-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        .resource-values {
+            display: flex;
+            gap: 16px;
+        }
+        .resource-value {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .value-label {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .value-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3b82f6;
+            background: #1e293b;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .slider-container {
+            position: relative;
+            height: 32px;
+        }
+        .slider-track {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+        }
+        .slider-fill {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 6px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 3px;
+        }
+        .slider-fill.request {
+            left: 0;
+            width: 40%;
+        }
+        .slider-fill.limit {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            left: 0;
+            width: 60%;
+            opacity: 0.5;
+        }
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: grab;
+            z-index: 2;
+        }
+        .slider-thumb.limit {
+            background: #f59e0b;
+            z-index: 1;
+        }
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+        .slider-label {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            padding: 8px;
+            background: #1e293b;
+            border-radius: 6px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .legend-dot.request { background: #3b82f6; }
+        .legend-dot.limit { background: #f59e0b; }
+
+        /* Replicas Section */
+        .replicas-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .replica-card {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .replica-env {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .replica-input {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .replica-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 4px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .replica-btn:hover {
+            background: #475569;
+        }
+        .replica-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+            min-width: 24px;
+        }
+        .ha-warning {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #f59e0b;
+            margin-top: 6px;
+        }
+        .ha-ok {
+            color: #22c55e;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+        .info-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 6px;
+        }
+        .info-text {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* Summary */
+        .summary {
+            background: linear-gradient(135deg, #1e3a5f, #1e293b);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        .summary-title {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .summary-item {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        .summary-label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Pod Configuration</h2>
+            <span class="k8s-badge">Kubernetes</span>
+        </div>
+
+        <!-- Pod Template Presets -->
+        <div class="section">
+            <div class="section-title">Pod Size Template</div>
+            <div class="preset-grid">
+                <div class="preset-btn">
+                    <div class="preset-name">Micro</div>
+                    <div class="preset-specs">100m / 256Mi</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">Small</div>
+                    <div class="preset-specs">250m / 512Mi</div>
+                </div>
+                <div class="preset-btn selected">
+                    <div class="preset-name">Medium</div>
+                    <div class="preset-specs">500m / 1Gi</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">Large</div>
+                    <div class="preset-specs">1000m / 2Gi</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">XLarge</div>
+                    <div class="preset-specs">2000m / 4Gi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CPU Resources -->
+        <div class="section">
+            <div class="section-title">CPU Resources (millicores)</div>
+            <div class="resource-group">
+                <div class="resource-header">
+                    <span class="resource-label">CPU Request / Limit</span>
+                    <div class="resource-values">
+                        <div class="resource-value">
+                            <span class="value-label">Request</span>
+                            <span class="value-number">500m</span>
+                        </div>
+                        <div class="resource-value">
+                            <span class="value-label">Limit</span>
+                            <span class="value-number">1000m</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <div class="slider-fill limit" style="width: 25%;"></div>
+                    <div class="slider-fill request" style="width: 12.5%;"></div>
+                    <div class="slider-thumb" style="left: 12.5%;"></div>
+                    <div class="slider-thumb limit" style="left: 25%;"></div>
+                </div>
+                <div class="slider-labels">
+                    <span class="slider-label">50m</span>
+                    <span class="slider-label">1000m</span>
+                    <span class="slider-label">2000m</span>
+                    <span class="slider-label">4000m</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Resources -->
+        <div class="section">
+            <div class="section-title">Memory Resources</div>
+            <div class="resource-group">
+                <div class="resource-header">
+                    <span class="resource-label">Memory Request / Limit</span>
+                    <div class="resource-values">
+                        <div class="resource-value">
+                            <span class="value-label">Request</span>
+                            <span class="value-number">1Gi</span>
+                        </div>
+                        <div class="resource-value">
+                            <span class="value-label">Limit</span>
+                            <span class="value-number">2Gi</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <div class="slider-fill limit" style="width: 25%;"></div>
+                    <div class="slider-fill request" style="width: 12.5%;"></div>
+                    <div class="slider-thumb" style="left: 12.5%;"></div>
+                    <div class="slider-thumb limit" style="left: 25%;"></div>
+                </div>
+                <div class="slider-labels">
+                    <span class="slider-label">128Mi</span>
+                    <span class="slider-label">2Gi</span>
+                    <span class="slider-label">8Gi</span>
+                    <span class="slider-label">16Gi</span>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot request"></div>
+                    <span>Request (Guaranteed)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot limit"></div>
+                    <span>Limit (Max Burst)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Replicas per Environment -->
+        <div class="section">
+            <div class="section-title">Replicas per Environment</div>
+            <div class="replicas-grid">
+                <div class="replica-card">
+                    <div class="replica-env">Dev</div>
+                    <div class="replica-input">
+                        <button class="replica-btn">-</button>
+                        <span class="replica-value">1</span>
+                        <button class="replica-btn">+</button>
+                    </div>
+                </div>
+                <div class="replica-card">
+                    <div class="replica-env">Test</div>
+                    <div class="replica-input">
+                        <button class="replica-btn">-</button>
+                        <span class="replica-value">2</span>
+                        <button class="replica-btn">+</button>
+                    </div>
+                </div>
+                <div class="replica-card">
+                    <div class="replica-env">Staging</div>
+                    <div class="replica-input">
+                        <button class="replica-btn">-</button>
+                        <span class="replica-value">2</span>
+                        <button class="replica-btn">+</button>
+                    </div>
+                    <div class="ha-warning">
+                        <span>!</span> Below HA
+                    </div>
+                </div>
+                <div class="replica-card">
+                    <div class="replica-env">Production</div>
+                    <div class="replica-input">
+                        <button class="replica-btn">-</button>
+                        <span class="replica-value">3</span>
+                        <button class="replica-btn">+</button>
+                    </div>
+                    <div class="ha-warning ha-ok">
+                        <span>&#10003;</span> HA Ready
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-title">How K8s Resource Requests Work</div>
+            <div class="info-text">
+                <strong>Requests</strong> are the guaranteed resources for scheduling. Pods are placed on nodes that have enough allocatable capacity to satisfy requests.<br><br>
+                <strong>Limits</strong> are the maximum resources a pod can burst to. CPU is throttled; memory exceeding limits triggers OOM kill.<br><br>
+                <strong>Best Practice:</strong> Set memory request = limit for stability.
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-title">Total Resource Requests (All Environments)</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value">4000m</div>
+                    <div class="summary-label">Total CPU Requests</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value">8Gi</div>
+                    <div class="summary-label">Total Memory Requests</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

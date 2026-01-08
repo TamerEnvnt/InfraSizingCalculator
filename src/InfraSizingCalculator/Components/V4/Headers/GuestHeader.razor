@@ -1,0 +1,52 @@
+@*
+    GuestHeader.razor - v0.4.4 Header for guest (unauthenticated) users
+
+    Matches wireframe 12-landing-guest.html:
+    - Logo left
+    - Sign In (secondary) + Sign Up (primary) right
+    - No "New Scenario" button (that's in the landing content)
+*@
+
+<div class="header-logo">
+    <a href="/" data-testid="header-logo">InfraSizing Calculator</a>
+</div>
+<div class="header-center"></div>
+<div class="header-right">
+    <a href="/login" class="btn btn-sm btn-secondary" data-testid="btn-sign-in">Sign In</a>
+    <a href="/register" class="btn btn-sm btn-primary" data-testid="btn-sign-up">Sign Up</a>
+
+    @* Mobile menu toggle *@
+    <button class="btn-mobile-menu" @onclick="ToggleMobileMenu" data-testid="btn-mobile-menu" aria-label="Toggle menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            @if (_mobileMenuOpen)
+            {
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            }
+            else
+            {
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            }
+        </svg>
+    </button>
+</div>
+
+@* Mobile dropdown menu *@
+@if (_mobileMenuOpen)
+{
+    <div class="mobile-menu" data-testid="mobile-menu">
+        <a href="/login" class="mobile-menu-item">Sign In</a>
+        <a href="/register" class="mobile-menu-item highlight">Sign Up</a>
+    </div>
+}
+
+@code {
+    private bool _mobileMenuOpen = false;
+
+    private void ToggleMobileMenu()
+    {
+        _mobileMenuOpen = !_mobileMenuOpen;
+    }
+}

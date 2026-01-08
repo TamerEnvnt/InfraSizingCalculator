@@ -1,0 +1,315 @@
+/*
+ * PricingConfigPanel.razor.css - Pricing panel styles
+ */
+
+.pricing-config-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+    margin: 0;
+}
+
+.section-desc {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+/* Input Groups */
+.pricing-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.label-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.label-hint {
+    font-size: 12px;
+    color: var(--text-tertiary, #6e7681);
+}
+
+.input-with-prefix {
+    display: flex;
+    align-items: center;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.input-with-prefix:focus-within {
+    border-color: var(--accent-blue, #58a6ff);
+}
+
+.input-prefix,
+.input-suffix {
+    padding: 10px 12px;
+    background: var(--bg-primary, #0d1117);
+    color: var(--text-secondary, #8b949e);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pricing-input {
+    flex: 1;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary, #c9d1d9);
+    font-size: 14px;
+    outline: none;
+}
+
+.pricing-input::placeholder {
+    color: var(--text-tertiary, #6e7681);
+}
+
+/* Radio Options */
+.radio-options {
+    display: flex;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.radio-option:hover {
+    border-color: var(--text-tertiary, #6e7681);
+}
+
+.radio-option.selected {
+    border-color: var(--accent-blue, #58a6ff);
+    background: rgba(88, 166, 255, 0.1);
+}
+
+.radio-option input {
+    display: none;
+}
+
+.radio-mark {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-primary, #30363d);
+    border-radius: 50%;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.radio-option.selected .radio-mark {
+    border-color: var(--accent-blue, #58a6ff);
+}
+
+.radio-option.selected .radio-mark::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: var(--accent-blue, #58a6ff);
+    border-radius: 50%;
+}
+
+.radio-text {
+    font-size: 13px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+/* Cost Summary */
+.cost-summary {
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-primary, #30363d);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    padding-top: 12px;
+    margin-top: 4px;
+    border-top: 1px solid var(--text-tertiary, #6e7681);
+    border-bottom: none;
+}
+
+.summary-label {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+}
+
+.summary-row.total .summary-label {
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.summary-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.summary-row.total .summary-value {
+    font-size: 18px;
+    color: var(--accent-blue, #58a6ff);
+}
+
+/* Cloud Providers */
+.cloud-providers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cloud-provider-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cloud-provider-card:hover {
+    border-color: var(--text-tertiary, #6e7681);
+}
+
+.cloud-provider-card.selected {
+    border-color: var(--accent-blue, #58a6ff);
+    background: rgba(88, 166, 255, 0.1);
+}
+
+.provider-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.provider-logo {
+    font-size: 20px;
+}
+
+.provider-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.selected-badge {
+    padding: 3px 8px;
+    background: var(--accent-blue, #58a6ff);
+    color: #000;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.provider-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.provider-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.provider-unit {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+}
+
+.provider-details {
+    display: flex;
+    gap: 16px;
+}
+
+.detail-item {
+    font-size: 12px;
+    color: var(--text-secondary, #8b949e);
+    padding: 4px 8px;
+    background: var(--bg-primary, #0d1117);
+    border-radius: 4px;
+}
+
+.comparison-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-secondary, #8b949e);
+    line-height: 1.4;
+}
+
+.comparison-note svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--accent-blue, #58a6ff);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .radio-options {
+        flex-direction: column;
+    }
+}

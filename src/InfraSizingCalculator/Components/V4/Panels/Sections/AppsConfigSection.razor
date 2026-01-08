@@ -1,0 +1,67 @@
+@*
+    AppsConfigSection.razor - v0.4.4 Apps Configuration
+    Matches wireframe: 01b-dashboard-k8s-apps.html
+*@
+
+<div class="config-section" data-testid="apps-config">
+    <div class="form-group">
+        <label class="form-label">Application Type</label>
+        <select class="form-select" @bind="_appType" @bind:after="NotifyChange">
+            <option value="mendix">Mendix</option>
+            <option value="outsystems">OutSystems</option>
+            <option value="generic">Generic Containers</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Mendix Runtimes</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="20" @bind="_runtimeCount" @bind:after="NotifyChange">
+            <span class="slider-value">@_runtimeCount</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">DB Proxies</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="10" @bind="_dbProxyCount" @bind:after="NotifyChange">
+            <span class="slider-value">@_dbProxyCount</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Native Containers</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="50" @bind="_containerCount" @bind:after="NotifyChange">
+            <span class="slider-value">@_containerCount</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="info-box">
+        <strong>Resource Summary</strong>
+        <div class="info-text">
+            Total Pods: @GetTotalPods() | CPU: @GetTotalCpu()m | RAM: @GetTotalRam()GB
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _appType = "mendix";
+    private int _runtimeCount = 8;
+    private int _dbProxyCount = 8;
+    private int _containerCount = 4;
+
+    private int GetTotalPods() => _runtimeCount * 2 + _dbProxyCount * 2 + _containerCount * 3;
+    private int GetTotalCpu() => _runtimeCount * 500 + _dbProxyCount * 250 + _containerCount * 500;
+    private int GetTotalRam() => _runtimeCount + _dbProxyCount / 2 + _containerCount;
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+}

@@ -1,0 +1,158 @@
+@*
+    LimitedExportModal.razor - Export modal for guest users
+
+    Features:
+    - Shows PDF-only export for guests
+    - Grayed out Excel/JSON options with "Sign up" messaging
+    - Promotes upgrade to full features
+*@
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop" @onclick="HandleBackdropClick" data-testid="export-modal-backdrop">
+        <div class="modal-container" @onclick:stopPropagation="true" data-testid="export-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Export Results</h3>
+                <button class="btn-close" @onclick="HandleClose" data-testid="modal-close" aria-label="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p class="modal-description">Choose an export format for your sizing results.</p>
+
+                <div class="export-options">
+                    @* PDF - Available *@
+                    <button class="export-option available" @onclick="HandlePdfExport" data-testid="export-pdf">
+                        <div class="option-icon pdf">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <line x1="10" y1="9" x2="8" y2="9"/>
+                            </svg>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-label">PDF Report</span>
+                            <span class="option-desc">Download a formatted PDF summary</span>
+                        </div>
+                        <div class="option-badge available">Available</div>
+                    </button>
+
+                    @* Excel - Locked *@
+                    <div class="export-option locked" data-testid="export-excel">
+                        <div class="option-icon excel">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <rect x="8" y="12" width="8" height="6"/>
+                            </svg>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-label">Excel Spreadsheet</span>
+                            <span class="option-desc">Export detailed data to .xlsx</span>
+                        </div>
+                        <div class="option-badge locked">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Sign Up
+                        </div>
+                    </div>
+
+                    @* JSON - Locked *@
+                    <div class="export-option locked" data-testid="export-json">
+                        <div class="option-icon json">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <path d="M10 12l-2 2 2 2"/>
+                                <path d="M14 12l2 2-2 2"/>
+                            </svg>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-label">JSON Data</span>
+                            <span class="option-desc">Raw data for API integration</span>
+                        </div>
+                        <div class="option-badge locked">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Sign Up
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upgrade-prompt">
+                    <div class="prompt-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 16 16 12 12 8"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
+                    <div class="prompt-text">
+                        <span class="prompt-title">Want full export options?</span>
+                        <span class="prompt-desc">Sign up free to export Excel, JSON, and save unlimited scenarios.</span>
+                    </div>
+                    <button class="btn-upgrade" @onclick="HandleSignUp" data-testid="modal-signup">
+                        Sign Up Free
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Whether the modal is open
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Callback when modal should close
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>
+    /// Callback when PDF export is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnPdfExport { get; set; }
+
+    /// <summary>
+    /// Callback when sign up is requested
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSignUp { get; set; }
+
+    private async Task HandleClose()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandlePdfExport()
+    {
+        await OnPdfExport.InvokeAsync();
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleSignUp()
+    {
+        await OnSignUp.InvokeAsync();
+    }
+}

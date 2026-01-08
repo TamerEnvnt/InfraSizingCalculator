@@ -1,0 +1,112 @@
+@*
+    GrowthConfigSection.razor - v0.4.4 Growth Planning Configuration
+    Matches wireframe: 01e-dashboard-k8s-growth.html
+*@
+
+<div class="config-section" data-testid="growth-config">
+    <div class="form-group">
+        <label class="form-label">Projection Period</label>
+        <div class="period-buttons">
+            @foreach (var period in _periods)
+            {
+                <button class="period-btn @(period.Id == _selectedPeriod ? "active" : "")"
+                        @onclick="() => SelectPeriod(period.Id)">
+                    @period.Label
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Application Growth Rate</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="100" @bind="_appGrowth" @bind:after="NotifyChange">
+            <span class="slider-value">@_appGrowth%</span>
+        </div>
+        <div class="form-hint">Expected growth in number of applications</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Resource Growth Rate</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="100" @bind="_resourceGrowth" @bind:after="NotifyChange">
+            <span class="slider-value">@_resourceGrowth%</span>
+        </div>
+        <div class="form-hint">Expected growth in CPU/Memory per app</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Headroom Buffer</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="10" max="50" @bind="_headroom" @bind:after="NotifyChange">
+            <span class="slider-value">@_headroom%</span>
+        </div>
+        <div class="form-hint">Reserve capacity for unexpected growth</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="info-box">
+        <strong>Year-End Projection</strong>
+        <div class="info-text">
+            @GetProjectedNodes() nodes (+@GetGrowthPercent()% from current @GetCurrentNodes())
+        </div>
+    </div>
+
+    @if (GetProjectedNodes() > 20)
+    {
+        <div class="warning-box">
+            <strong>⚠️ Cluster Limit Warning</strong>
+            <div class="info-text">
+                Consider multi-cluster architecture for workloads exceeding 20 nodes.
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _selectedPeriod = "1yr";
+    private int _appGrowth = 20;
+    private int _resourceGrowth = 15;
+    private int _headroom = 20;
+
+    private List<PeriodOption> _periods = new()
+    {
+        new("6mo", "6 months"),
+        new("1yr", "1 year"),
+        new("3yr", "3 years"),
+        new("5yr", "5 years")
+    };
+
+    private int GetCurrentNodes() => 12;
+    private int GetProjectedNodes()
+    {
+        double multiplier = _selectedPeriod switch
+        {
+            "6mo" => 1 + (_appGrowth / 200.0),
+            "1yr" => 1 + (_appGrowth / 100.0),
+            "3yr" => Math.Pow(1 + (_appGrowth / 100.0), 3),
+            "5yr" => Math.Pow(1 + (_appGrowth / 100.0), 5),
+            _ => 1
+        };
+        return (int)Math.Ceiling(GetCurrentNodes() * multiplier * (1 + _headroom / 100.0));
+    }
+
+    private int GetGrowthPercent() => (int)(((double)GetProjectedNodes() / GetCurrentNodes() - 1) * 100);
+
+    private async Task SelectPeriod(string period)
+    {
+        _selectedPeriod = period;
+        await NotifyChange();
+    }
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+
+    public record PeriodOption(string Id, string Label);
+}

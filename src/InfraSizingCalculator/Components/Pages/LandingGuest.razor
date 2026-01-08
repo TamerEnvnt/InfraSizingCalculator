@@ -1,0 +1,80 @@
+@page "/landing-guest"
+@rendermode InteractiveServer
+
+@*
+    LandingGuest.razor - v0.4.4 Guest Landing Page
+    Matches wireframe: 12-landing-guest.html
+
+    - Hero section with title/subtitle
+    - Single "Create New Scenario" action card
+    - Login prompt box
+    - Features row (46 K8s, 7 Hypervisors, Cost Estimation)
+*@
+
+@using InfraSizingCalculator.Components.V4.Headers
+
+<PageTitle>Infrastructure Sizing Calculator</PageTitle>
+
+<div class="landing-page" data-testid="landing-guest">
+    <!-- Header - Guest -->
+    <header class="landing-header">
+        <div class="header-logo">InfraSizing Calculator</div>
+        <div class="header-right">
+            <a href="/login" class="btn btn-secondary btn-sm">Sign In</a>
+            <a href="/register" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+    </header>
+
+    <!-- Landing Content -->
+    <div class="landing-content">
+        <!-- Hero -->
+        <div class="landing-hero">
+            <h1>Infrastructure Sizing Made Simple</h1>
+            <p>Calculate optimal K8s cluster or VM infrastructure sizing with cost estimation</p>
+        </div>
+
+        <!-- Action Card -->
+        <a href="/dashboard/k8s" class="action-card" data-testid="create-scenario">
+            <div class="action-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+            </div>
+            <h3>Create New Scenario</h3>
+            <p>Start calculating your infrastructure requirements</p>
+            <span class="btn btn-primary btn-sm btn-full">Get Started</span>
+        </a>
+
+        <!-- Login Prompt -->
+        <div class="login-prompt">
+            <strong>Sign in to save and compare scenarios</strong>
+            <div class="login-prompt-actions">
+                <a href="/login" class="btn btn-secondary btn-sm">Sign In</a>
+            </div>
+        </div>
+
+        <!-- Features Row -->
+        <div class="features-row">
+            <div class="feature-item">
+                <div class="feature-icon k8s">K8s</div>
+                <h4>46 Distributions</h4>
+                <p>EKS, AKS, GKE, OpenShift, RKE2, K3s...</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon vm">VM</div>
+                <h4>7 Hypervisors</h4>
+                <p>vSphere, Hyper-V, Proxmox, Nutanix...</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon cost">$</div>
+                <h4>Cost Estimation</h4>
+                <p>Hardware, licenses, operations TCO</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // No complex logic needed - this is a simple landing page
+}

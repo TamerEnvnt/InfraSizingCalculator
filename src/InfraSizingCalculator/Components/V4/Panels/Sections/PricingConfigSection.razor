@@ -1,0 +1,95 @@
+@*
+    PricingConfigSection.razor - v0.4.4 Pricing Configuration
+    Matches wireframe: 01d-dashboard-k8s-pricing.html
+*@
+
+<div class="config-section" data-testid="pricing-config">
+    <div class="form-group">
+        <label class="form-label">Cost Type</label>
+        <div class="toggle-group">
+            <button class="toggle-btn @(_costType == "onprem" ? "active" : "")"
+                    @onclick="@(() => SetCostType("onprem"))">On-Premises</button>
+            <button class="toggle-btn @(_costType == "cloud" ? "active" : "")"
+                    @onclick="@(() => SetCostType("cloud"))">Cloud</button>
+        </div>
+    </div>
+
+    @if (_costType == "cloud")
+    {
+        <div class="form-group">
+            <label class="form-label">Cloud Provider</label>
+            <select class="form-select" @bind="_cloudProvider" @bind:after="NotifyChange">
+                <option value="aws">AWS (EKS)</option>
+                <option value="azure">Azure (AKS)</option>
+                <option value="gcp">Google Cloud (GKE)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Region</label>
+            <select class="form-select" @bind="_region" @bind:after="NotifyChange">
+                <option value="us-east-1">US East (N. Virginia)</option>
+                <option value="us-west-2">US West (Oregon)</option>
+                <option value="eu-west-1">EU West (Ireland)</option>
+            </select>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <label class="form-label">Hardware Cost Model</label>
+            <select class="form-select" @bind="_hardwareModel" @bind:after="NotifyChange">
+                <option value="capex">CapEx (Purchase)</option>
+                <option value="lease">Lease (3-year)</option>
+                <option value="datacenter">Datacenter Hosted</option>
+            </select>
+        </div>
+    }
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">Include in Cost</label>
+        <div class="checkbox-group">
+            <div class="checkbox-item @(_includeLicense ? "selected" : "")"
+                 @onclick="() => { _includeLicense = !_includeLicense; NotifyChange(); }">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Platform License</div>
+            </div>
+            <div class="checkbox-item @(_includeSupport ? "selected" : "")"
+                 @onclick="() => { _includeSupport = !_includeSupport; NotifyChange(); }">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Support/SLA</div>
+            </div>
+            <div class="checkbox-item @(_includeManagement ? "selected" : "")"
+                 @onclick="() => { _includeManagement = !_includeManagement; NotifyChange(); }">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Management Overhead</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _costType = "onprem";
+    private string _cloudProvider = "aws";
+    private string _region = "us-east-1";
+    private string _hardwareModel = "capex";
+    private bool _includeLicense = true;
+    private bool _includeSupport = true;
+    private bool _includeManagement = false;
+
+    private async Task SetCostType(string type)
+    {
+        _costType = type;
+        await NotifyChange();
+    }
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+}

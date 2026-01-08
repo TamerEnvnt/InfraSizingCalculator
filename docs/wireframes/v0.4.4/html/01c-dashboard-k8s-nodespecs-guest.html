@@ -11,16 +11,7 @@
     <!-- Header - Guest Mode -->
     <header class="header">
       <div class="header-logo">InfraSizing</div>
-      <div class="header-center">
-        <div class="mode-toggle">
-          <button class="mode-btn k8s active">K8s</button>
-          <button class="mode-btn vm" onclick="window.location.href='02-dashboard-vm-guest.html'">VM</button>
-        </div>
-        <span style="font-size: 12px; color: var(--color-text-secondary);">
-          Production Cluster
-          <span class="badge badge-k8s" style="margin-left: 4px;">OpenShift</span>
-        </span>
-      </div>
+      <div class="header-center"></div>
       <div class="header-right">
         <button class="btn btn-sm btn-secondary">Export</button>
         <button class="btn btn-sm btn-primary">Calculate</button>
@@ -157,28 +148,67 @@
         </div>
       </div>
 
-      <!-- Side Panel - Node Specs Configuration -->
+      <!-- Side Panel - Configuration -->
       <div class="side-panel">
         <div class="side-panel-header">
           <div class="side-panel-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83"/>
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
             </svg>
             Configuration
           </div>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Config Tabs -->
+        <!-- Global Settings -->
+        <div style="padding: 10px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Global</span>
+          </div>
+          <div class="mode-toggle" style="width: 100%; margin-bottom: 8px;">
+            <button class="mode-btn k8s active" style="flex: 1;">Kubernetes</button>
+            <button class="mode-btn vm" style="flex: 1;" onclick="window.location.href='02-dashboard-vm-guest.html'">Virtual Machines</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Distribution:</span>
+            <span style="font-size: 11px; font-weight: 600;">OpenShift 4.14</span>
+            <a href="#" style="font-size: 10px; color: var(--color-accent); text-decoration: none; margin-left: auto;">Change</a>
+          </div>
+        </div>
+
+        <!-- Environment Selector -->
+        <div style="padding: 8px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Environment</span>
+            <button class="btn btn-ghost btn-sm" style="font-size: 10px; padding: 2px 6px;">+ Add</button>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="flex: 1; padding: 6px 8px; border: 2px solid var(--color-accent); background: var(--color-accent-light); border-radius: 4px; font-size: 11px; font-weight: 600; color: var(--color-accent); cursor: pointer;">Production</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Staging</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Dev</button>
+          </div>
+        </div>
+
+        <!-- Per-Environment Config Tabs -->
         <div class="side-panel-tabs">
-          <button class="side-panel-tab" onclick="window.location.href='01-dashboard-k8s-guest.html'">Platform</button>
+          <button class="side-panel-tab" onclick="window.location.href='01-dashboard-k8s-guest.html'">Cluster</button>
           <button class="side-panel-tab" onclick="window.location.href='01b-dashboard-k8s-apps-guest.html'">Apps</button>
-          <button class="side-panel-tab active">Specs</button>
+          <button class="side-panel-tab active">Nodes</button>
           <button class="side-panel-tab" onclick="window.location.href='01d-dashboard-k8s-pricing-guest.html'">Pricing</button>
           <button class="side-panel-tab" onclick="window.location.href='01e-dashboard-k8s-growth-guest.html'">Growth</button>
         </div>
 
-        <!-- Panel Body: Node Specs Config -->
+        <!-- Panel Body: Production Node Specs Config -->
         <div class="side-panel-body">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border);">
+            <span class="badge badge-success">Production</span>
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Node Specifications</span>
+          </div>
+
           <div class="form-group">
             <label class="form-label">Worker Node Size</label>
             <div class="selection-grid" style="grid-template-columns: 1fr 1fr;">
@@ -230,22 +260,10 @@
             </div>
           </div>
 
-          <div class="divider"></div>
-
-          <div class="form-group">
-            <label class="form-label">Instance Type (AWS)</label>
-            <select class="form-select">
-              <option>m5.large (2 vCPU, 8GB)</option>
-              <option>m5.xlarge (4 vCPU, 16GB)</option>
-              <option selected>m5.2xlarge (8 vCPU, 32GB)</option>
-              <option>m5.4xlarge (16 vCPU, 64GB)</option>
-            </select>
-          </div>
-
           <div class="info-box">
-            <strong>Node Capacity</strong>
+            <strong>Production Node Summary</strong>
             <div style="font-size: 10px; margin-top: 4px;">
-              6 workers &times; 110 pods = 660 max pods
+              6 workers × 110 pods = 660 max pods
             </div>
           </div>
         </div>

@@ -1,0 +1,133 @@
+/*
+ * ConfigBar.razor.css - Config bar styles
+ */
+
+.config-bar {
+    background: var(--bg-secondary, #161b22);
+    border-bottom: 1px solid var(--border-primary, #30363d);
+    padding: 12px 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.config-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.config-bar-inner {
+    display: flex;
+    gap: 10px;
+    min-width: min-content;
+}
+
+.config-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 8px;
+    color: var(--text-secondary, #8b949e);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.config-btn:hover {
+    border-color: var(--text-tertiary, #6e7681);
+    color: var(--text-primary, #c9d1d9);
+    background: var(--border-primary, #30363d);
+}
+
+.config-btn.active {
+    border-color: var(--accent-blue, #58a6ff);
+    color: var(--accent-blue, #58a6ff);
+    background: rgba(88, 166, 255, 0.1);
+}
+
+.config-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+.config-label {
+    font-weight: 500;
+}
+
+.config-value {
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.config-btn.active .config-value {
+    background: rgba(88, 166, 255, 0.2);
+    color: var(--accent-blue, #58a6ff);
+}
+
+.config-arrow {
+    opacity: 0.5;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.config-btn:hover .config-arrow {
+    opacity: 0.8;
+    transform: translateX(2px);
+}
+
+.config-btn.active .config-arrow {
+    transform: rotate(90deg);
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .config-bar {
+        padding: 10px 20px;
+    }
+
+    .config-btn {
+        padding: 8px 12px;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .config-bar {
+        padding: 10px 16px;
+    }
+
+    .config-bar-inner {
+        gap: 8px;
+    }
+
+    .config-btn {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .config-label {
+        display: none;
+    }
+
+    .config-value {
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+    .config-btn {
+        padding: 8px;
+    }
+
+    .config-arrow {
+        display: none;
+    }
+}

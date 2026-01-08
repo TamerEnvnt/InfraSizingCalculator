@@ -1,0 +1,791 @@
+@*
+    NodeSpecsConfigPanel.razor - Node specifications configuration panel
+
+    Platform-specific sizing:
+    - K8s: Cluster nodes with allocatable resources, control plane, system overhead
+    - VM: Hypervisor hosts with overcommit ratios per environment
+*@
+
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Services.Interfaces
+@inject IWizardStateService WizardState
+@implements IDisposable
+
+<div class="node-specs-panel" data-testid="nodes-config-panel" data-platform-mode="@(IsK8sMode ? "k8s" : "vm")">
+    @if (IsK8sMode)
+    {
+        @* ═══════════════════════════════════════════════════════════════════════
+           K8s MODE: Cluster Node Configuration with Allocatable Resources
+           ═══════════════════════════════════════════════════════════════════════ *@
+        <div class="config-section k8s-mode">
+            <div class="section-header">
+                <h4 class="section-title">Cluster Node Configuration</h4>
+                <span class="platform-badge k8s">Kubernetes</span>
+            </div>
+
+            @* Worker Node Size Presets *@
+            <div class="subsection">
+                <label class="subsection-label">Worker Node Size</label>
+                <div class="preset-grid four-col">
+                    @foreach (var preset in _k8sNodePresets)
+                    {
+                        <button class="preset-card with-allocatable @(SelectedK8sNodePreset == preset.Id ? "selected" : "")"
+                                @onclick="() => ApplyK8sNodePreset(preset)"
+                                data-testid="preset-@preset.Id">
+                            <span class="preset-name">@preset.Name</span>
+                            <span class="preset-specs">@preset.VCpu vCPU / @preset.MemoryGB GB</span>
+                            <span class="preset-allocatable">~@preset.AllocatablePercent% allocatable</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* Allocatable Resources Breakdown *@
+            <div class="subsection">
+                <label class="subsection-label">Node Allocatable Resources</label>
+                <div class="allocatable-box">
+                    <div class="allocatable-header">
+                        <span class="allocatable-title">Resource Breakdown</span>
+                        <span class="allocatable-percent">@AllocatablePercent% Allocatable</span>
+                    </div>
+                    <div class="allocatable-grid">
+                        @* Memory Breakdown *@
+                        <div class="breakdown-column">
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Total Capacity</span>
+                                <span class="breakdown-value">@WorkerMemoryGB GB</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">OS Reserved</span>
+                                <span class="breakdown-value deducted">-500 MB</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Kubelet Reserved</span>
+                                <span class="breakdown-value deducted">-200 MB</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Eviction Threshold</span>
+                                <span class="breakdown-value deducted">-100 MB</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">System Pods</span>
+                                <span class="breakdown-value deducted">-512 MB</span>
+                            </div>
+                            <div class="breakdown-item total">
+                                <span class="breakdown-label">Allocatable</span>
+                                <span class="breakdown-value available">@AllocatableMemoryGB.ToString("F1") GB</span>
+                            </div>
+                        </div>
+                        @* CPU Breakdown *@
+                        <div class="breakdown-column">
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Total Capacity</span>
+                                <span class="breakdown-value">@WorkerVCpu vCPU</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">OS Reserved</span>
+                                <span class="breakdown-value deducted">-100m</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Kubelet Reserved</span>
+                                <span class="breakdown-value deducted">-100m</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">System Pods</span>
+                                <span class="breakdown-value deducted">-300m</span>
+                            </div>
+                            <div class="breakdown-item spacer">
+                                <span>&nbsp;</span>
+                            </div>
+                            <div class="breakdown-item total">
+                                <span class="breakdown-label">Allocatable</span>
+                                <span class="breakdown-value available">@AllocatableCpuMillicores m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Worker Node Count *@
+            <div class="subsection">
+                <label class="subsection-label">Worker Nodes</label>
+                <div class="node-count-box">
+                    <div class="count-row">
+                        <div class="count-info">
+                            <span class="count-label">Worker Node Count</span>
+                            <span class="count-sublabel">Based on total pod requests</span>
+                        </div>
+                        <div class="count-controls">
+                            <span class="auto-badge">AUTO</span>
+                            <button class="count-btn" @onclick="DecrementWorkers" disabled="@(WorkerCount <= 1)">−</button>
+                            <span class="count-value">@WorkerCount</span>
+                            <button class="count-btn" @onclick="IncrementWorkers" disabled="@(WorkerCount >= 20)">+</button>
+                        </div>
+                    </div>
+                    <div class="count-row">
+                        <div class="count-info">
+                            <span class="count-label">N+1 Redundancy</span>
+                            <span class="count-sublabel">Add extra node for failover</span>
+                        </div>
+                        <div class="toggle-container">
+                            <button class="toggle @(N1Redundancy ? "active" : "")" @onclick="ToggleN1Redundancy"></button>
+                        </div>
+                    </div>
+                    <div class="count-row total-row">
+                        <div class="count-info">
+                            <span class="count-label">Total Worker Nodes</span>
+                            <span class="count-sublabel">Including redundancy</span>
+                        </div>
+                        <span class="count-value highlight">@TotalWorkerNodes</span>
+                    </div>
+                </div>
+            </div>
+
+            @* System Pod Overhead *@
+            <div class="subsection">
+                <label class="subsection-label">System Pod Overhead (per node)</label>
+                <div class="overhead-grid">
+                    <div class="overhead-item">
+                        <span class="overhead-name">kube-proxy</span>
+                        <span class="overhead-value">100m / 128Mi</span>
+                    </div>
+                    <div class="overhead-item">
+                        <span class="overhead-name">CNI (Calico)</span>
+                        <span class="overhead-value">100m / 128Mi</span>
+                    </div>
+                    <div class="overhead-item">
+                        <span class="overhead-name">Monitoring</span>
+                        <span class="overhead-value">100m / 256Mi</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Control Plane Section *@
+            <div class="subsection">
+                <label class="subsection-label">Control Plane</label>
+                <div class="control-plane-box">
+                    <div class="cp-header">
+                        <span class="cp-title">Control Plane Nodes</span>
+                        <span class="cp-badge">Separate from Workers</span>
+                    </div>
+                    <div class="cp-options">
+                        @foreach (var option in _controlPlaneOptions)
+                        {
+                            <button class="cp-option @(ControlPlaneCount == option.Count ? "selected" : "")"
+                                    @onclick="() => SelectControlPlane(option.Count)">
+                                <span class="cp-count">@option.Count</span>
+                                <span class="cp-label">@option.Label</span>
+                                <span class="cp-specs">@option.Specs</span>
+                            </button>
+                        }
+                    </div>
+                    <div class="cp-info">
+                        Control plane runs etcd, API server, controller-manager, and scheduler.
+                        Use 3+ nodes for HA. Odd numbers for etcd quorum.
+                    </div>
+                </div>
+            </div>
+
+            @* Cluster Summary *@
+            <div class="summary-box k8s cluster">
+                <div class="summary-title">Cluster Summary</div>
+                <div class="summary-grid four-col">
+                    <div class="summary-item">
+                        <span class="summary-value">@TotalNodes</span>
+                        <span class="summary-label">Total Nodes</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@TotalWorkerNodes</span>
+                        <span class="summary-label">Worker Nodes</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@ControlPlaneCount</span>
+                        <span class="summary-label">Control Plane</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-value">@AllocatablePercent%</span>
+                        <span class="summary-label">Allocatable</span>
+                    </div>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span class="row-label">Total Cluster Capacity</span>
+                        <span class="row-value">@TotalClusterVCpu vCPU / @TotalClusterMemory GB</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="row-label">Allocatable for Workloads</span>
+                        <span class="row-value highlight">@TotalAllocatableCpu.ToString("F1") vCPU / @TotalAllocatableMemory.ToString("F1") GB</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="row-label">System Overhead</span>
+                        <span class="row-value warning">@SystemOverheadCpu.ToString("F1") vCPU / @SystemOverheadMemory.ToString("F1") GB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* ═══════════════════════════════════════════════════════════════════════
+           VM MODE: Hypervisor Host Configuration with Overcommit
+           ═══════════════════════════════════════════════════════════════════════ *@
+        <div class="config-section vm-mode">
+            <div class="section-header">
+                <h4 class="section-title">Hypervisor Host Configuration</h4>
+                <span class="platform-badge vm">Virtual Machines</span>
+            </div>
+
+            @* Host Size Presets *@
+            <div class="subsection">
+                <label class="subsection-label">Physical Host Size</label>
+                <div class="preset-grid four-col">
+                    @foreach (var preset in _vmHostPresets)
+                    {
+                        <button class="preset-card @(SelectedVmHostPreset == preset.Id ? "selected" : "")"
+                                @onclick="() => ApplyVmHostPreset(preset)"
+                                data-testid="preset-@preset.Id">
+                            <span class="preset-name">@preset.Name</span>
+                            <span class="preset-specs">@preset.Cores cores<br />@preset.MemoryGB GB<br />@preset.StorageGB GB</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* Custom Host Config *@
+            <div class="subsection">
+                <label class="subsection-label">Host Specifications</label>
+                <div class="vm-resource-grid">
+                    <div class="vm-resource-input">
+                        <div class="resource-label">Physical Cores</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementHostCores" disabled="@(HostCores <= 4)">−</button>
+                            <span class="resource-value">@HostCores</span>
+                            <button class="resource-btn" @onclick="IncrementHostCores" disabled="@(HostCores >= 128)">+</button>
+                        </div>
+                        <div class="resource-unit">cores per host</div>
+                    </div>
+                    <div class="vm-resource-input">
+                        <div class="resource-label">Physical RAM</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementHostMemory" disabled="@(HostMemoryGB <= 16)">−</button>
+                            <span class="resource-value">@HostMemoryGB</span>
+                            <button class="resource-btn" @onclick="IncrementHostMemory" disabled="@(HostMemoryGB >= 512)">+</button>
+                        </div>
+                        <div class="resource-unit">GB per host</div>
+                    </div>
+                    <div class="vm-resource-input">
+                        <div class="resource-label">Storage</div>
+                        <div class="resource-controls">
+                            <button class="resource-btn" @onclick="DecrementHostStorage" disabled="@(HostStorageGB <= 256)">−</button>
+                            <span class="resource-value">@HostStorageGB</span>
+                            <button class="resource-btn" @onclick="IncrementHostStorage" disabled="@(HostStorageGB >= 8000)">+</button>
+                        </div>
+                        <div class="resource-unit">GB per host</div>
+                    </div>
+                </div>
+            </div>
+
+            @* Overcommit Ratios *@
+            <div class="subsection">
+                <label class="subsection-label">Overcommit Ratios by Environment</label>
+                <div class="overcommit-container">
+                    <div class="overcommit-header">
+                        <span class="overcommit-title">Enable Resource Overcommit</span>
+                        <div class="toggle-container">
+                            <button class="toggle @(OvercommitEnabled ? "active" : "")" @onclick="ToggleOvercommit"></button>
+                            <span class="toggle-label">@(OvercommitEnabled ? "Enabled" : "Disabled")</span>
+                        </div>
+                    </div>
+
+                    @if (OvercommitEnabled)
+                    {
+                        <div class="overcommit-grid">
+                            @foreach (var env in _overcommitEnvs)
+                            {
+                                <div class="overcommit-env">
+                                    <div class="env-name">@env.Name</div>
+                                    <div class="ratio-row">
+                                        <span class="ratio-label">CPU</span>
+                                        <span class="ratio-value @GetRatioClass(env.CpuRatio)">@env.CpuRatio:1</span>
+                                    </div>
+                                    <div class="ratio-row">
+                                        <span class="ratio-label">RAM</span>
+                                        <span class="ratio-value @GetRatioClass(env.MemRatio)">@env.MemRatio:1</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="ratio-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot safe"></div>
+                                <span>1:1 - 2:1 (Safe)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot moderate"></div>
+                                <span>2:1 - 4:1 (Moderate)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot aggressive"></div>
+                                <span>4:1+ (Aggressive)</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Host Count *@
+            <div class="subsection">
+                <label class="subsection-label">Physical Hosts Required</label>
+                <div class="node-count-box">
+                    <div class="count-row">
+                        <div class="count-info">
+                            <span class="count-label">Host Count</span>
+                            <span class="count-sublabel">Based on VM requirements + overcommit</span>
+                        </div>
+                        <div class="count-controls">
+                            <span class="auto-badge">AUTO</span>
+                            <button class="count-btn" @onclick="DecrementHosts" disabled="@(HostCount <= 1)">−</button>
+                            <span class="count-value">@HostCount</span>
+                            <button class="count-btn" @onclick="IncrementHosts" disabled="@(HostCount >= 20)">+</button>
+                        </div>
+                    </div>
+                    <div class="count-row">
+                        <div class="count-info">
+                            <span class="count-label">N+1 Redundancy</span>
+                            <span class="count-sublabel">Extra host for failover</span>
+                        </div>
+                        <div class="toggle-container">
+                            <button class="toggle @(VmN1Redundancy ? "active" : "")" @onclick="ToggleVmN1Redundancy"></button>
+                        </div>
+                    </div>
+                    <div class="count-row total-row">
+                        <div class="count-info">
+                            <span class="count-label">Total Physical Hosts</span>
+                            <span class="count-sublabel">Including redundancy</span>
+                        </div>
+                        <span class="count-value highlight">@TotalHosts</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Physical Resource Summary *@
+            <div class="summary-box vm comparison">
+                <div class="summary-title">Physical Resource Summary</div>
+                <div class="summary-comparison">
+                    <div class="summary-column">
+                        <div class="column-title">Without Overcommit</div>
+                        <div class="summary-item">
+                            <span class="summary-label">CPU Required</span>
+                            <span class="summary-value">@VmRequiredCpuNoOvercommit vCPU</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">RAM Required</span>
+                            <span class="summary-value">@VmRequiredMemNoOvercommit GB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Storage</span>
+                            <span class="summary-value">@VmRequiredStorage GB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Hosts Needed</span>
+                            <span class="summary-value">@HostsWithoutOvercommit hosts</span>
+                        </div>
+                    </div>
+                    <div class="summary-column highlight">
+                        <div class="column-title">With Overcommit</div>
+                        <div class="summary-item">
+                            <span class="summary-label">Physical CPU</span>
+                            <span class="summary-value savings">@VmPhysicalCpuWithOvercommit cores</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Physical RAM</span>
+                            <span class="summary-value savings">@VmPhysicalMemWithOvercommit GB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Storage</span>
+                            <span class="summary-value">@VmRequiredStorage GB</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Hosts Needed</span>
+                            <span class="summary-value savings">@TotalHosts hosts</span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (OvercommitEnabled && SavingsPercent > 0)
+                {
+                    <div class="savings-box">
+                        <span class="savings-text">@SavingsPercent% Infrastructure Savings</span>
+                        <span class="savings-detail">Using environment-appropriate overcommit ratios</span>
+                    </div>
+                }
+            </div>
+
+            @* Warning Box *@
+            @if (OvercommitEnabled)
+            {
+                <div class="warning-box">
+                    <span class="warning-icon">⚠️</span>
+                    <div class="warning-text">
+                        <strong>Overcommit Risks:</strong> High overcommit ratios (4:1+) work for non-production
+                        workloads but can cause performance issues if all VMs consume resources simultaneously.
+                        Always use 1:1 ratio for production workloads.
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    // Legacy parameters for backwards compatibility
+    [Parameter] public int VCpuCores { get; set; } = 8;
+    [Parameter] public int MemoryGB { get; set; } = 32;
+    [Parameter] public int StorageGB { get; set; } = 500;
+    [Parameter] public int NodeCount { get; set; } = 3;
+    [Parameter] public bool IsHAMode { get; set; } = true;
+
+    [Parameter] public EventCallback<NodeSpecsChangedEventArgs> OnSpecsChange { get; set; }
+
+    // Platform detection
+    private bool IsK8sMode => WizardState.SelectedDeployment == DeploymentModel.Kubernetes;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Shared State Accessors (from WizardStateService)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // K8s Config (read from shared state)
+    private K8sNodeConfig K8sNode => WizardState.K8sNodeConfig;
+    private K8sResourceRequirements K8sReqs => WizardState.K8sRequirements;
+    private string SelectedK8sNodePreset => K8sNode.SelectedPreset;
+    private int WorkerVCpu => K8sNode.WorkerVCpu;
+    private int WorkerMemoryGB => K8sNode.WorkerMemoryGB;
+    private int WorkerCount => K8sNode.WorkerCount;
+    private bool N1Redundancy => K8sNode.N1Redundancy;
+    private int ControlPlaneCount => K8sNode.ControlPlaneCount;
+
+    // K8s Calculated Values (from shared state model)
+    private int TotalWorkerNodes => K8sNode.TotalWorkerNodes;
+    private int TotalNodes => K8sNode.TotalNodes;
+    private int AllocatablePercent => K8sNode.AllocatablePercent;
+    private double AllocatableMemoryGB => K8sNode.AllocatableMemoryGB;
+    private int AllocatableCpuMillicores => K8sNode.AllocatableCpuMillicores;
+    private int TotalClusterVCpu => K8sNode.TotalClusterVCpu;
+    private int TotalClusterMemory => K8sNode.TotalClusterMemoryGB;
+    private double TotalAllocatableCpu => K8sNode.TotalAllocatableCpu;
+    private double TotalAllocatableMemory => K8sNode.TotalAllocatableMemoryGB;
+    private double SystemOverheadCpu => TotalClusterVCpu - TotalAllocatableCpu;
+    private double SystemOverheadMemory => TotalClusterMemory - TotalAllocatableMemory;
+
+    // VM Config (read from shared state)
+    private VmHostConfig VmHost => WizardState.VmHostConfig;
+    private VmResourceRequirements VmReqs => WizardState.VmRequirements;
+    private string SelectedVmHostPreset => VmHost.SelectedPreset;
+    private int HostCores => VmHost.HostCores;
+    private int HostMemoryGB => VmHost.HostMemoryGB;
+    private int HostStorageGB => VmHost.HostStorageGB;
+    private int HostCount => VmHost.HostCount;
+    private bool VmN1Redundancy => VmHost.N1Redundancy;
+    private bool OvercommitEnabled => VmHost.OvercommitEnabled;
+
+    // VM Calculated Values - NOW CONNECTED TO APPS PANEL DATA!
+    private int TotalHosts => VmHost.TotalHosts;
+
+    // These values come from the VmResourceRequirements calculated from AppsConfigPanel
+    private int VmRequiredCpuNoOvercommit => VmReqs.TotalVCpu;
+    private int VmRequiredMemNoOvercommit => VmReqs.TotalMemoryGB;
+    private int VmRequiredStorage => VmReqs.TotalStorageGB;
+
+    // Calculate hosts needed without overcommit
+    private int HostsWithoutOvercommit => CalculateHostsNeeded(VmRequiredCpuNoOvercommit, VmRequiredMemNoOvercommit, 1.0, 1.0);
+
+    // Calculate physical resources with weighted average overcommit
+    private int VmPhysicalCpuWithOvercommit => OvercommitEnabled
+        ? CalculatePhysicalCpuWithOvercommit()
+        : VmRequiredCpuNoOvercommit;
+
+    private int VmPhysicalMemWithOvercommit => OvercommitEnabled
+        ? CalculatePhysicalMemWithOvercommit()
+        : VmRequiredMemNoOvercommit;
+
+    private int SavingsPercent => VmRequiredCpuNoOvercommit > 0 && OvercommitEnabled
+        ? (int)(100 - (VmPhysicalCpuWithOvercommit * 100.0 / VmRequiredCpuNoOvercommit))
+        : 0;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Static Preset Data
+    // ═══════════════════════════════════════════════════════════════════════
+    private static readonly List<NodePresetData> _k8sNodePresets = new()
+    {
+        new("small", "Small", 4, 8, 75),
+        new("medium", "Medium", 8, 16, 85),
+        new("large", "Large", 16, 32, 90),
+        new("xlarge", "XLarge", 32, 64, 93)
+    };
+
+    private static readonly List<ControlPlaneData> _controlPlaneOptions = new()
+    {
+        new(1, "Development", "4 vCPU, 16GB"),
+        new(3, "Production", "8 vCPU, 32GB"),
+        new(5, "Large Scale", "16 vCPU, 64GB")
+    };
+
+    private static readonly List<HostPresetData> _vmHostPresets = new()
+    {
+        new("small", "Small", 8, 32, 500),
+        new("medium", "Medium", 16, 64, 1000),
+        new("large", "Large", 32, 128, 2000),
+        new("xlarge", "XLarge", 64, 256, 4000)
+    };
+
+    // Overcommit ratios by environment - displayed from VmHostConfig
+    private List<OvercommitEnvData> _overcommitEnvs => new()
+    {
+        new("Development", VmHost.DevCpuRatio, VmHost.DevMemRatio),
+        new("Test", VmHost.TestCpuRatio, VmHost.TestMemRatio),
+        new("Staging", VmHost.StagingCpuRatio, VmHost.StagingMemRatio),
+        new("Production", VmHost.ProdCpuRatio, VmHost.ProdMemRatio)
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Calculation Helpers
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Calculate physical CPU needed with per-environment overcommit ratios.
+    /// </summary>
+    private int CalculatePhysicalCpuWithOvercommit()
+    {
+        var vmEnv = WizardState.VmEnvConfig;
+        var vmApp = WizardState.VmAppConfig;
+        var vcpuPerVm = vmApp.VCpu;
+
+        // Calculate per-environment with their specific ratios
+        var devPhysical = vmEnv.DevInstances * vcpuPerVm / VmHost.DevCpuRatio;
+        var testPhysical = vmEnv.TestInstances * vcpuPerVm / VmHost.TestCpuRatio;
+        var stagingPhysical = vmEnv.StagingInstances * vcpuPerVm / VmHost.StagingCpuRatio;
+        var prodPhysical = vmEnv.ProductionInstances * vcpuPerVm / VmHost.ProdCpuRatio;
+
+        return (int)Math.Ceiling(devPhysical + testPhysical + stagingPhysical + prodPhysical);
+    }
+
+    /// <summary>
+    /// Calculate physical memory needed with per-environment overcommit ratios.
+    /// </summary>
+    private int CalculatePhysicalMemWithOvercommit()
+    {
+        var vmEnv = WizardState.VmEnvConfig;
+        var vmApp = WizardState.VmAppConfig;
+        var memPerVm = vmApp.MemoryGB + vmApp.OsOverheadGB; // Include OS overhead
+
+        // Calculate per-environment with their specific ratios
+        var devPhysical = vmEnv.DevInstances * memPerVm / VmHost.DevMemRatio;
+        var testPhysical = vmEnv.TestInstances * memPerVm / VmHost.TestMemRatio;
+        var stagingPhysical = vmEnv.StagingInstances * memPerVm / VmHost.StagingMemRatio;
+        var prodPhysical = vmEnv.ProductionInstances * memPerVm / VmHost.ProdMemRatio;
+
+        return (int)Math.Ceiling(devPhysical + testPhysical + stagingPhysical + prodPhysical);
+    }
+
+    /// <summary>
+    /// Calculate number of hosts needed based on resource requirements.
+    /// </summary>
+    private int CalculateHostsNeeded(int cpuNeeded, int memNeeded, double cpuRatio, double memRatio)
+    {
+        if (HostCores == 0 || HostMemoryGB == 0) return 1;
+
+        var physicalCpu = cpuNeeded / cpuRatio;
+        var physicalMem = memNeeded / memRatio;
+
+        var hostsByCpu = (int)Math.Ceiling(physicalCpu / HostCores);
+        var hostsByMem = (int)Math.Ceiling(physicalMem / HostMemoryGB);
+
+        return Math.Max(1, Math.Max(hostsByCpu, hostsByMem));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Lifecycle
+    // ═══════════════════════════════════════════════════════════════════════
+    protected override void OnInitialized()
+    {
+        WizardState.OnStateChanged += HandleStateChanged;
+    }
+
+    private void HandleStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        WizardState.OnStateChanged -= HandleStateChanged;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // K8s Methods - Update Shared State
+    // ═══════════════════════════════════════════════════════════════════════
+    private void ApplyK8sNodePreset(NodePresetData preset)
+    {
+        K8sNode.SelectedPreset = preset.Id;
+        K8sNode.WorkerVCpu = preset.VCpu;
+        K8sNode.WorkerMemoryGB = preset.MemoryGB;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void IncrementWorkers()
+    {
+        if (K8sNode.WorkerCount < 20)
+        {
+            K8sNode.WorkerCount++;
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementWorkers()
+    {
+        if (K8sNode.WorkerCount > 1)
+        {
+            K8sNode.WorkerCount--;
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void ToggleN1Redundancy()
+    {
+        K8sNode.N1Redundancy = !K8sNode.N1Redundancy;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void SelectControlPlane(int count)
+    {
+        K8sNode.ControlPlaneCount = count;
+        WizardState.NotifyStateChanged();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VM Methods - Update Shared State
+    // ═══════════════════════════════════════════════════════════════════════
+    private void ApplyVmHostPreset(HostPresetData preset)
+    {
+        VmHost.SelectedPreset = preset.Id;
+        VmHost.HostCores = preset.Cores;
+        VmHost.HostMemoryGB = preset.MemoryGB;
+        VmHost.HostStorageGB = preset.StorageGB;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void IncrementHostCores()
+    {
+        if (VmHost.HostCores < 128)
+        {
+            VmHost.HostCores += VmHost.HostCores < 16 ? 4 : 8;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementHostCores()
+    {
+        if (VmHost.HostCores > 4)
+        {
+            VmHost.HostCores -= VmHost.HostCores <= 16 ? 4 : 8;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void IncrementHostMemory()
+    {
+        if (VmHost.HostMemoryGB < 512)
+        {
+            VmHost.HostMemoryGB += VmHost.HostMemoryGB < 64 ? 16 : 32;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementHostMemory()
+    {
+        if (VmHost.HostMemoryGB > 16)
+        {
+            VmHost.HostMemoryGB -= VmHost.HostMemoryGB <= 64 ? 16 : 32;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void IncrementHostStorage()
+    {
+        if (VmHost.HostStorageGB < 8000)
+        {
+            VmHost.HostStorageGB += 500;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementHostStorage()
+    {
+        if (VmHost.HostStorageGB > 256)
+        {
+            VmHost.HostStorageGB -= 500;
+            VmHost.SelectedPreset = "";
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void IncrementHosts()
+    {
+        if (VmHost.HostCount < 20)
+        {
+            VmHost.HostCount++;
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void DecrementHosts()
+    {
+        if (VmHost.HostCount > 1)
+        {
+            VmHost.HostCount--;
+            WizardState.NotifyStateChanged();
+        }
+    }
+
+    private void ToggleVmN1Redundancy()
+    {
+        VmHost.N1Redundancy = !VmHost.N1Redundancy;
+        WizardState.NotifyStateChanged();
+    }
+
+    private void ToggleOvercommit()
+    {
+        VmHost.OvercommitEnabled = !VmHost.OvercommitEnabled;
+        WizardState.NotifyStateChanged();
+    }
+
+    private string GetRatioClass(double ratio) => ratio switch
+    {
+        <= 2 => "safe",
+        <= 4 => "moderate",
+        _ => "aggressive"
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Display Data Models (static, for UI rendering only)
+    // ═══════════════════════════════════════════════════════════════════════
+    private record NodePresetData(string Id, string Name, int VCpu, int MemoryGB, int AllocatablePercent);
+    private record ControlPlaneData(int Count, string Label, string Specs);
+    private record HostPresetData(string Id, string Name, int Cores, int MemoryGB, int StorageGB);
+    private record OvercommitEnvData(string Name, double CpuRatio, double MemRatio);
+
+    public class NodeSpecsChangedEventArgs
+    {
+        public int VCpuCores { get; set; }
+        public int MemoryGB { get; set; }
+        public int StorageGB { get; set; }
+        public int NodeCount { get; set; }
+    }
+}

@@ -13,6 +13,19 @@ namespace InfraSizingCalculator.Services;
 /// </summary>
 public class AppStateService : IAppStateService
 {
+    #region Landing Page State
+
+    /// <inheritdoc />
+    public bool HasStartedScenario { get; set; }
+
+    /// <inheritdoc />
+    public Guid? CurrentScenarioId { get; set; }
+
+    /// <inheritdoc />
+    public bool IsViewingLanding { get; set; } = true;
+
+    #endregion
+
     #region Navigation State
 
     private string _activeSection = "config";
@@ -207,6 +220,10 @@ public class AppStateService : IAppStateService
     public void ResetAll()
     {
         ResetResults();
+        // Reset landing page state
+        HasStartedScenario = false;
+        CurrentScenarioId = null;
+        IsViewingLanding = true;
         // Reset navigation to initial state
         ActiveSection = "config";
         ExpandedCard = null;

@@ -148,97 +148,130 @@
         </div>
       </div>
 
-      <!-- Side Panel - Platform Configuration -->
+      <!-- Side Panel - Configuration -->
       <div class="side-panel">
         <div class="side-panel-header">
           <div class="side-panel-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83"/>
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
             </svg>
             Configuration
           </div>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Config Tabs -->
+        <!-- Global Settings -->
+        <div style="padding: 10px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-bg);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Global</span>
+          </div>
+          <div class="mode-toggle" style="width: 100%; margin-bottom: 8px;">
+            <button class="mode-btn k8s active" style="flex: 1;">Kubernetes</button>
+            <button class="mode-btn vm" style="flex: 1;" onclick="window.location.href='02-dashboard-vm-guest.html'">Virtual Machines</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Distribution:</span>
+            <span style="font-size: 11px; font-weight: 600;">OpenShift 4.14</span>
+            <a href="#" style="font-size: 10px; color: var(--color-accent); text-decoration: none; margin-left: auto;">Change</a>
+          </div>
+        </div>
+
+        <!-- Environment Selector -->
+        <div style="padding: 8px 12px; border-bottom: 1px solid var(--color-border); background: var(--color-surface);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--color-text-secondary); font-weight: 600;">Environment</span>
+            <button class="btn btn-ghost btn-sm" style="font-size: 10px; padding: 2px 6px;">+ Add</button>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button style="flex: 1; padding: 6px 8px; border: 2px solid var(--color-accent); background: var(--color-accent-light); border-radius: 4px; font-size: 11px; font-weight: 600; color: var(--color-accent); cursor: pointer;">Production</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Staging</button>
+            <button style="flex: 1; padding: 6px 8px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 4px; font-size: 11px; color: var(--color-text-secondary); cursor: pointer;">Dev</button>
+          </div>
+        </div>
+
+        <!-- Per-Environment Config Tabs -->
         <div class="side-panel-tabs">
-          <button class="side-panel-tab active">Platform</button>
+          <button class="side-panel-tab active">Cluster</button>
           <button class="side-panel-tab" onclick="window.location.href='01b-dashboard-k8s-apps-guest.html'">Apps</button>
-          <button class="side-panel-tab" onclick="window.location.href='01c-dashboard-k8s-nodespecs-guest.html'">Specs</button>
+          <button class="side-panel-tab" onclick="window.location.href='01c-dashboard-k8s-nodespecs-guest.html'">Nodes</button>
           <button class="side-panel-tab" onclick="window.location.href='01d-dashboard-k8s-pricing-guest.html'">Pricing</button>
           <button class="side-panel-tab" onclick="window.location.href='01e-dashboard-k8s-growth-guest.html'">Growth</button>
         </div>
 
-        <!-- Panel Body: Platform Config -->
+        <!-- Panel Body: Production Cluster Config -->
         <div class="side-panel-body">
-          <div class="form-group">
-            <label class="form-label">K8s Distribution</label>
-            <div class="selection-grid">
-              <div class="selection-card selected">
-                <div class="selection-card-label">OpenShift</div>
-                <div class="selection-card-desc">Enterprise K8s</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-label">RKE2</div>
-                <div class="selection-card-desc">Rancher K8s</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-label">K3s</div>
-                <div class="selection-card-desc">Lightweight</div>
-              </div>
-              <div class="selection-card">
-                <div class="selection-card-label">Vanilla</div>
-                <div class="selection-card-desc">kubeadm</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="form-group">
-            <label class="form-label">Environment Type</label>
-            <div class="radio-group">
-              <div class="radio-item">
-                <div class="radio-circle"></div>
-                <div class="radio-label">Development</div>
-              </div>
-              <div class="radio-item">
-                <div class="radio-circle"></div>
-                <div class="radio-label">Test/Staging</div>
-              </div>
-              <div class="radio-item selected">
-                <div class="radio-circle"></div>
-                <div class="radio-label">Production</div>
-              </div>
-            </div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border);">
+            <span class="badge badge-success">Production</span>
+            <span style="font-size: 11px; color: var(--color-text-secondary);">Cluster Configuration</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Cluster Version</label>
+            <label class="form-label">HA Configuration</label>
             <select class="form-select">
-              <option>4.12 (LTS)</option>
-              <option>4.13</option>
-              <option selected>4.14 (Latest)</option>
+              <option selected>Full HA (3 Control Plane)</option>
+              <option>Minimal HA (1 CP + backup)</option>
+              <option>No HA (Single node)</option>
             </select>
+            <div class="form-hint">Recommended for production workloads</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Control Plane Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="5" value="3">
+              <span class="slider-value">3</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Infrastructure Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="0" max="6" value="3">
+              <span class="slider-value">3</span>
+            </div>
+            <div class="form-hint">For ingress, monitoring, logging</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Worker Nodes</label>
+            <div class="slider-row">
+              <input type="range" class="slider" min="1" max="50" value="6">
+              <span class="slider-value">6</span>
+            </div>
           </div>
 
           <div class="divider"></div>
 
           <div class="form-group">
-            <label class="form-label">High Availability</label>
-            <div class="checkbox-item selected">
-              <div class="checkbox-box"></div>
-              <div class="checkbox-label">Multi-master (3 control planes)</div>
-            </div>
-            <div class="checkbox-item selected">
-              <div class="checkbox-box"></div>
-              <div class="checkbox-label">Dedicated infra nodes</div>
+            <label class="form-label">Cluster Features</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Monitoring Stack</div>
+              </div>
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Logging (EFK/Loki)</div>
+              </div>
+              <div class="checkbox-item selected">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">Service Mesh</div>
+              </div>
+              <div class="checkbox-item">
+                <div class="checkbox-box"></div>
+                <div class="checkbox-label">GitOps (ArgoCD)</div>
+              </div>
             </div>
           </div>
 
           <div class="info-box">
-            <strong>Distribution: OpenShift 4.14</strong>
+            <strong>Production Summary</strong>
             <div style="font-size: 10px; margin-top: 4px;">
-              Enterprise features enabled
+              12 nodes total: 3 CP + 3 Infra + 6 Workers
             </div>
           </div>
         </div>

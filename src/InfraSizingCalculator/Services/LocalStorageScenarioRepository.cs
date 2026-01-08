@@ -170,6 +170,8 @@ public class LocalStorageScenarioRepository : IScenarioRepository
             DistributionOrTechnology = scenario.DistributionOrTechnology,
             TotalNodes = scenario.TotalNodes,
             TotalCpu = scenario.TotalCpu,
+            TotalRam = scenario.TotalRam,
+            TotalApps = scenario.TotalApps,
             MonthlyEstimate = scenario.MonthlyEstimate,
             CreatedAt = scenario.CreatedAt,
             IsFavorite = scenario.IsFavorite,

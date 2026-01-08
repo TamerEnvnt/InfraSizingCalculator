@@ -1,0 +1,72 @@
+@*
+    PanelTabs.razor - Tab navigation within slide-out panels
+
+    Features:
+    - Horizontal tab buttons
+    - Active state indicator
+    - Smooth underline animation
+*@
+
+<div class="panel-tabs-nav" role="tablist" data-testid="panel-tabs-nav">
+    @foreach (var tab in Tabs)
+    {
+        <button class="panel-tab @(ActiveTab == tab.Id ? "active" : "")"
+                role="tab"
+                aria-selected="@(ActiveTab == tab.Id)"
+                data-testid="panel-tab-@tab.Id"
+                @onclick="() => SelectTab(tab.Id)">
+            @if (!string.IsNullOrEmpty(tab.Icon))
+            {
+                <span class="tab-icon">@tab.Icon</span>
+            }
+            <span class="tab-label">@tab.Label</span>
+        </button>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// List of available tabs
+    /// </summary>
+    [Parameter]
+    public List<TabItem> Tabs { get; set; } = new();
+
+    /// <summary>
+    /// Currently active tab ID
+    /// </summary>
+    [Parameter]
+    public string ActiveTab { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Callback when tab selection changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnTabChange { get; set; }
+
+    private async Task SelectTab(string tabId)
+    {
+        if (ActiveTab != tabId)
+        {
+            await OnTabChange.InvokeAsync(tabId);
+        }
+    }
+
+    /// <summary>
+    /// Tab item definition
+    /// </summary>
+    public class TabItem
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public string? Icon { get; set; }
+
+        public TabItem() { }
+
+        public TabItem(string id, string label, string? icon = null)
+        {
+            Id = id;
+            Label = label;
+            Icon = icon;
+        }
+    }
+}

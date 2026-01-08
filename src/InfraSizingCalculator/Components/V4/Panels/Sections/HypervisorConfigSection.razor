@@ -1,0 +1,145 @@
+@*
+    HypervisorConfigSection.razor - v0.4.4 Hypervisor Configuration
+    VM-specific configuration for hypervisor platform and host settings
+*@
+
+<div class="config-section" data-testid="hypervisor-config">
+    <div class="form-group">
+        <label class="form-label">Hypervisor Platform</label>
+        <select class="form-select" @bind="_hypervisor" @bind:after="NotifyChange">
+            <option value="vsphere8">VMware vSphere 8</option>
+            <option value="vsphere7">VMware vSphere 7</option>
+            <option value="hyperv">Microsoft Hyper-V</option>
+            <option value="proxmox">Proxmox VE</option>
+            <option value="xenserver">Citrix XenServer</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Physical Hosts</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="20" @bind="_hostCount" @bind:after="NotifyChange">
+            <span class="slider-value">@_hostCount</span>
+        </div>
+        <div class="form-hint">Number of physical hypervisor hosts</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">Host Specifications</label>
+        <div class="spec-row">
+            <div class="spec-item">
+                <span class="spec-label">CPU Cores</span>
+                <select class="form-select-sm" @bind="_cpuCores" @bind:after="NotifyChange">
+                    <option value="16">16 cores</option>
+                    <option value="32">32 cores</option>
+                    <option value="64">64 cores</option>
+                    <option value="128">128 cores</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">RAM</span>
+                <select class="form-select-sm" @bind="_ramGb" @bind:after="NotifyChange">
+                    <option value="128">128 GB</option>
+                    <option value="256">256 GB</option>
+                    <option value="512">512 GB</option>
+                    <option value="1024">1 TB</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">High Availability</label>
+        <div class="toggle-group">
+            <button class="toggle-btn @(_haEnabled ? "active" : "")"
+                    @onclick="@(() => SetHA(true))">Enabled</button>
+            <button class="toggle-btn @(!_haEnabled ? "active" : "")"
+                    @onclick="@(() => SetHA(false))">Disabled</button>
+        </div>
+    </div>
+
+    @if (_haEnabled)
+    {
+        <div class="form-group">
+            <label class="form-label">HA Reserve</label>
+            <div class="slider-row">
+                <input type="range" class="slider" min="0" max="50" step="5" @bind="_haReserve" @bind:after="NotifyChange">
+                <span class="slider-value">@_haReserve%</span>
+            </div>
+            <div class="form-hint">Capacity reserved for failover</div>
+        </div>
+    }
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">Overcommit Ratios</label>
+        <div class="spec-row">
+            <div class="spec-item">
+                <span class="spec-label">CPU</span>
+                <select class="form-select-sm" @bind="_cpuOvercommit" @bind:after="NotifyChange">
+                    <option value="1">1:1 (No overcommit)</option>
+                    <option value="2">2:1</option>
+                    <option value="4">4:1</option>
+                    <option value="8">8:1</option>
+                </select>
+            </div>
+            <div class="spec-item">
+                <span class="spec-label">Memory</span>
+                <select class="form-select-sm" @bind="_memOvercommit" @bind:after="NotifyChange">
+                    <option value="1">1:1 (No overcommit)</option>
+                    <option value="1.25">1.25:1</option>
+                    <option value="1.5">1.5:1</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <strong>Effective Capacity</strong>
+        <div class="info-text">
+            @GetEffectiveCapacity()
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _hypervisor = "vsphere8";
+    private int _hostCount = 4;
+    private int _cpuCores = 32;
+    private int _ramGb = 256;
+    private bool _haEnabled = true;
+    private int _haReserve = 25;
+    private int _cpuOvercommit = 2;
+    private double _memOvercommit = 1;
+
+    private async Task SetHA(bool enabled)
+    {
+        _haEnabled = enabled;
+        await NotifyChange();
+    }
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+
+    private string GetEffectiveCapacity()
+    {
+        var totalCpu = _hostCount * _cpuCores * _cpuOvercommit;
+        var totalRam = _hostCount * _ramGb * _memOvercommit;
+        var haMultiplier = _haEnabled ? (100 - _haReserve) / 100.0 : 1.0;
+
+        var effectiveCpu = (int)(totalCpu * haMultiplier);
+        var effectiveRam = (int)(totalRam * haMultiplier);
+
+        return $"{effectiveCpu} vCPU / {effectiveRam} GB RAM available for VMs";
+    }
+}

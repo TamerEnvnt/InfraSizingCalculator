@@ -1,0 +1,111 @@
+/*
+ * SaveBanner.razor.css - v0.4.2 wireframe design
+ * Guest save prompt banner styling
+ */
+
+.save-banner {
+    background: linear-gradient(135deg, rgba(163, 113, 247, 0.15), rgba(88, 166, 255, 0.15));
+    border: 1px solid var(--accent-purple, #a371f7);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.save-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.save-banner-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(163, 113, 247, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-purple, #a371f7);
+    flex-shrink: 0;
+}
+
+.save-banner-text h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.save-banner-text p {
+    font-size: 14px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+.save-banner-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.btn-save-signin {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: var(--accent-purple, #a371f7);
+    color: #fff;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.btn-save-signin:hover {
+    opacity: 0.9;
+}
+
+.btn-save-signup {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-primary, #30363d);
+    background: transparent;
+    color: var(--text-secondary, #8b949e);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-save-signup:hover {
+    border-color: var(--accent-purple, #a371f7);
+    color: var(--accent-purple, #a371f7);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .save-banner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .save-banner-content {
+        flex-direction: column;
+    }
+
+    .save-banner-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn-save-signin,
+    .btn-save-signup {
+        width: 100%;
+        text-align: center;
+    }
+}

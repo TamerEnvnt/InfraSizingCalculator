@@ -11678,3 +11678,868 @@ html, body {
     margin-top: 4px;
     font-style: italic;
 }
+
+/* ============================================
+   v0.4 Dashboard-First Pattern Styles
+   ============================================ */
+
+/* Summary Cards Row */
+.summary-cards-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-cards-row .summary-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.summary-cards-row .summary-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color);
+}
+
+.summary-cards-row .summary-card.highlight {
+    border-color: var(--success-color);
+    background: linear-gradient(180deg, rgba(63, 185, 80, 0.1) 0%, var(--surface-color) 100%);
+}
+
+.summary-cards-row .card-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.summary-cards-row .card-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.summary-cards-row .card-trend {
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.summary-cards-row .card-trend.up {
+    color: var(--success-color);
+}
+
+.summary-cards-row .card-trend.down {
+    color: var(--error-color);
+}
+
+/* Config Bar */
+.config-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.config-bar .config-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.config-bar .config-item:hover {
+    border-color: var(--accent-color);
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.config-bar .config-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.config-bar .config-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.config-bar .config-edit {
+    font-size: 12px;
+    color: var(--accent-color);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.config-bar .config-item:hover .config-edit {
+    opacity: 1;
+}
+
+/* Action Bar */
+.action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 32px;
+    background: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+}
+
+.action-bar .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    border: 1px solid var(--border-color);
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.action-bar .btn-action:hover {
+    background: var(--surface-color);
+    border-color: var(--text-muted);
+}
+
+.action-bar .btn-action.primary {
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
+}
+
+.action-bar .btn-action.primary:hover {
+    opacity: 0.9;
+}
+
+.action-bar .btn-action .icon {
+    font-size: 16px;
+}
+
+/* v0.4 Header Styles */
+.v4-header {
+    height: 64px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+}
+
+.v4-header .logo {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.v4-header .header-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.v4-header .nav-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+}
+
+.v4-header .nav-btn:hover {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.v4-header .nav-btn.active {
+    background: var(--bg-dark);
+    color: var(--accent-color);
+}
+
+.v4-header .auth-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.v4-header .btn-signin {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.v4-header .btn-signin:hover {
+    color: var(--text-primary);
+}
+
+.v4-header .btn-signup {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+    background: var(--accent-color);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.v4-header .btn-signup:hover {
+    opacity: 0.9;
+}
+
+/* Save Banner (Guest) */
+.save-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(90deg, rgba(88, 166, 255, 0.15) 0%, rgba(88, 166, 255, 0.05) 100%);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.save-banner .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.save-banner .banner-icon {
+    font-size: 24px;
+    color: var(--accent-color);
+}
+
+.save-banner .banner-text h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.save-banner .banner-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.save-banner .banner-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.dashboard-grid .dashboard-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.dashboard-grid .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.dashboard-grid .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .summary-cards-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .config-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .summary-cards-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .summary-cards-row .card-value {
+        font-size: 24px;
+    }
+
+    .action-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 12px 16px;
+    }
+
+    .action-bar .btn-action {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .save-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .save-banner .banner-content {
+        flex-direction: column;
+    }
+
+    .v4-header {
+        padding: 0 16px;
+    }
+}
+
+/* ============================================
+   AUTH PAGES - Login & Register Styles
+   ============================================ */
+
+/* Auth Layout */
+.auth-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: 100vh;
+    width: 100vw;
+    background: var(--bg-primary, #0d1117);
+    color: var(--text-primary, #c9d1d9);
+    overflow: hidden;
+}
+
+/* Auth Header */
+.auth-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 32px;
+    flex-shrink: 0;
+}
+
+.auth-header .logo {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent-blue, #58a6ff);
+    text-decoration: none;
+}
+
+/* Auth Main Content */
+.auth-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Auth Footer */
+.auth-footer {
+    text-align: center;
+    padding: 16px 24px;
+    color: var(--text-tertiary, #6e7681);
+    font-size: 12px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-primary, #30363d);
+}
+
+.auth-footer a {
+    color: var(--text-secondary, #8b949e);
+    text-decoration: none;
+    margin: 0 8px;
+}
+
+.auth-footer a:hover {
+    color: var(--accent-blue, #58a6ff);
+}
+
+/* Login Card */
+.login-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-card {
+    background: var(--bg-secondary, #161b22);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 16px;
+    padding: 40px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+/* Register Card */
+.register-container {
+    width: 100%;
+    max-width: 440px;
+}
+
+.register-card {
+    background: var(--bg-secondary, #161b22);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 16px;
+    padding: 40px;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.register-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.register-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+/* Benefits List */
+.benefits-list {
+    background: var(--bg-tertiary, #21262d);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+}
+
+.benefit-icon {
+    color: var(--accent-green, #3fb950);
+    display: flex;
+    align-items: center;
+}
+
+/* Form Row - 2 columns (for First/Last name) */
+.form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Auth Form Styles - override forms.css display:contents */
+.auth-layout .form-group,
+.login-card .form-group,
+.register-card .form-group {
+    display: block !important;
+    margin-bottom: 20px;
+}
+
+.auth-layout .form-label,
+.login-card .form-label,
+.register-card .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary, #c9d1d9);
+}
+
+.auth-layout .form-input,
+.login-card .form-input,
+.register-card .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #21262d);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 8px;
+    color: var(--text-primary, #c9d1d9);
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.auth-layout .form-input:focus,
+.login-card .form-input:focus,
+.register-card .form-input:focus {
+    outline: none;
+    border-color: var(--accent-blue, #58a6ff);
+}
+
+.auth-layout .form-input::placeholder,
+.login-card .form-input::placeholder,
+.register-card .form-input::placeholder {
+    color: var(--text-tertiary, #6e7681);
+}
+
+/* Form Row */
+.login-card .form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+/* Checkbox Group */
+.login-card .checkbox-group,
+.register-card .checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.login-card .checkbox,
+.register-card .checkbox {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    accent-color: var(--accent-blue, #58a6ff);
+}
+
+.login-card .checkbox-label,
+.register-card .checkbox-label {
+    font-size: 13px;
+    color: var(--text-secondary, #8b949e);
+    line-height: 1.5;
+    font-weight: normal;
+    margin: 0;
+}
+
+.register-card .checkbox-group {
+    margin-bottom: 24px;
+    margin-top: 2px;
+}
+
+.register-card .checkbox-label a {
+    color: var(--accent-blue, #58a6ff);
+    text-decoration: none;
+}
+
+.register-card .checkbox-label a:hover {
+    text-decoration: underline;
+}
+
+/* Forgot Link */
+.forgot-link {
+    font-size: 13px;
+    color: var(--accent-blue, #58a6ff);
+    text-decoration: none;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* Password Strength */
+.password-strength {
+    margin-top: 8px;
+}
+
+.strength-bar {
+    height: 4px;
+    background: var(--bg-tertiary, #21262d);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s, background 0.3s;
+}
+
+.strength-fill.weak {
+    width: 33%;
+    background: var(--accent-red, #f85149);
+}
+
+.strength-fill.medium {
+    width: 66%;
+    background: var(--accent-orange, #f0883e);
+}
+
+.strength-fill.strong {
+    width: 100%;
+    background: var(--accent-green, #3fb950);
+}
+
+.strength-text {
+    font-size: 12px;
+    color: var(--text-tertiary, #6e7681);
+}
+
+/* Primary Button - Auth */
+.login-card .btn-primary,
+.register-card .btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--accent-blue, #58a6ff);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.login-card .btn-primary:hover:not(:disabled),
+.register-card .btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.login-card .btn-primary:disabled,
+.register-card .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.login-card .spinner,
+.register-card .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: auth-spin 0.8s linear infinite;
+}
+
+@keyframes auth-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Divider */
+.login-card .divider,
+.register-card .divider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+}
+
+.login-card .divider-line,
+.register-card .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-primary, #30363d);
+}
+
+.login-card .divider-text,
+.register-card .divider-text {
+    padding: 0 16px;
+    font-size: 12px;
+    color: var(--text-tertiary, #6e7681);
+}
+
+/* Social Buttons */
+.login-card .social-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.register-card .social-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.login-card .btn-social,
+.register-card .btn-social {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #21262d);
+    color: var(--text-primary, #c9d1d9);
+    border: 1px solid var(--border-primary, #30363d);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: border-color 0.2s;
+}
+
+.login-card .btn-social:hover,
+.register-card .btn-social:hover {
+    border-color: var(--text-tertiary, #6e7681);
+}
+
+.login-card .social-icon,
+.register-card .social-icon {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+}
+
+/* Login/Register Footer */
+.login-footer,
+.register-footer {
+    text-align: center;
+    margin-top: 24px;
+}
+
+.login-footer .footer-text,
+.register-footer .footer-text {
+    font-size: 14px;
+    color: var(--text-secondary, #8b949e);
+    margin: 0;
+}
+
+.login-footer .footer-link,
+.register-footer .footer-link {
+    color: var(--accent-blue, #58a6ff);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-footer .footer-link:hover,
+.register-footer .footer-link:hover {
+    text-decoration: underline;
+}
+
+/* Error & Success Messages */
+.login-card .error-message,
+.register-card .error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(248, 81, 73, 0.1);
+    border: 1px solid var(--accent-red, #f85149);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--accent-red, #f85149);
+}
+
+.login-card .error-icon,
+.register-card .error-icon {
+    display: flex;
+    color: var(--accent-red, #f85149);
+}
+
+.register-card .success-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid var(--accent-green, #3fb950);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--accent-green, #3fb950);
+}
+
+.register-card .success-icon {
+    display: flex;
+    color: var(--accent-green, #3fb950);
+}
+
+.login-card .validation-error,
+.register-card .validation-error,
+.login-card .validation-message,
+.register-card .validation-message {
+    color: var(--accent-red, #f85149);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Responsive - Auth Pages */
+@media (max-width: 480px) {
+    .login-card,
+    .register-card {
+        padding: 24px;
+    }
+
+    .auth-main {
+        padding: 16px;
+    }
+
+    .form-row-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .register-card .social-buttons {
+        flex-direction: column;
+    }
+}

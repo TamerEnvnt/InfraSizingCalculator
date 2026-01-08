@@ -41,6 +41,16 @@ public interface IAuthService
     /// Create the initial admin account
     /// </summary>
     Task<AuthResult> CreateInitialAdminAsync(string email, string password, string displayName);
+
+    /// <summary>
+    /// Login or create a user from an external authentication provider (OAuth, LDAP).
+    /// Creates a local user account if one doesn't exist.
+    /// </summary>
+    /// <param name="email">The user's email address</param>
+    /// <param name="displayName">The user's display name</param>
+    /// <param name="providerName">The authentication provider name (e.g., "Google", "Microsoft", "LDAP")</param>
+    /// <param name="providerKey">The unique key from the provider</param>
+    Task<AuthResult> LoginOrCreateFromExternalAsync(string email, string displayName, string providerName, string providerKey);
 }
 
 /// <summary>

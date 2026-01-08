@@ -1,273 +1,177 @@
 @page "/scenarios"
+@rendermode InteractiveServer
+
+@*
+    Scenarios.razor - v0.4.4 Scenarios List Page
+    Matches wireframe: 17-scenarios.html
+
+    - Auth header with user info
+    - My Scenarios title with count
+    - Search + Filter + New Scenario toolbar
+    - 3-column grid of scenario cards
+*@
+
 @using InfraSizingCalculator.Models
 @using InfraSizingCalculator.Models.Pricing
 @using InfraSizingCalculator.Services
 @using InfraSizingCalculator.Services.Interfaces
+@using InfraSizingCalculator.Services.Auth
+@using InfraSizingCalculator.Data.Identity
 @inject IScenarioService ScenarioService
 @inject ConfigurationSharingService SharingService
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
-@rendermode InteractiveServer
+@inject IAuthService AuthService
 
 <PageTitle>Scenarios - Infrastructure Sizing Calculator</PageTitle>
 
-<div class="scenarios-page">
-    <div class="page-header">
-        <div class="header-left">
-            <button class="back-link" @onclick="NavigateBack" type="button">← Back to Calculator</button>
-            <h1>Saved Scenarios</h1>
-            <p class="subtitle">Compare and manage your sizing scenarios</p>
-        </div>
-        <div class="header-actions">
-            @if (selectedScenarios.Count >= 2)
-            {
-                <button class="btn-primary" @onclick="CompareSelected">
-                    Compare (@selectedScenarios.Count)
-                </button>
-            }
-            @if (selectedScenarios.Any())
-            {
-                <button class="btn-secondary btn-danger" @onclick="DeleteSelected">
-                    Delete (@selectedScenarios.Count)
-                </button>
-            }
-        </div>
-    </div>
-
-    @if (isLoading)
-    {
-        <div class="loading-state">Loading scenarios...</div>
-    }
-    else if (!scenarios.Any())
-    {
-        <div class="empty-state">
-            <div class="empty-icon icon icon-chart"></div>
-            <h3>No saved scenarios</h3>
-            <p>Run a sizing calculation and save it as a scenario to compare different configurations.</p>
-            <a href="/" class="btn-primary">Go to Calculator</a>
-        </div>
-    }
-    else
-    {
-        <!-- Scenario Type Tabs -->
-        <div class="scenario-tabs">
-            <button class="scenario-tab @(scenarioTab == "saved" ? "active" : "")"
-                    @onclick='() => { scenarioTab = "saved"; selectedScenarios.Clear(); }'>
-                Saved Scenarios
-                @if (SavedCount > 0)
-                {
-                    <span class="tab-count">@SavedCount</span>
-                }
-            </button>
-            <button class="scenario-tab @(scenarioTab == "drafts" ? "active" : "")"
-                    @onclick='() => { scenarioTab = "drafts"; selectedScenarios.Clear(); }'>
-                Draft Scenarios
-                @if (DraftCount > 0)
-                {
-                    <span class="tab-count">@DraftCount</span>
-                }
-            </button>
-        </div>
-
-        <!-- View Mode Toggle -->
-        <div class="view-controls">
-            <div class="view-toggle">
-                <button class="view-btn @(viewMode == "list" ? "active" : "")" @onclick='() => viewMode = "list"'>
-                    List
-                </button>
-                <button class="view-btn @(viewMode == "compare" ? "active" : "")" @onclick='() => viewMode = "compare"' disabled="@(selectedScenarios.Count < 2)">
-                    Compare
-                </button>
+<div class="scenarios-page" data-testid="scenarios-page">
+    <!-- Header - Auth -->
+    <header class="page-header-bar">
+        <div class="header-logo" @onclick="NavigateToLanding" style="cursor: pointer;">InfraSizing Calculator</div>
+        <div class="header-right">
+            <a href="/settings" class="btn btn-ghost btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/>
+                </svg>
+            </a>
+            <div class="user-info" @onclick="NavigateToLanding" style="cursor: pointer;">
+                <div class="user-avatar">@GetUserInitials()</div>
+                <span class="user-name">@_displayName</span>
             </div>
-            <div class="filter-controls">
-                <select @bind="filterType" class="filter-select">
-                    <option value="">All Types</option>
-                    <option value="k8s">Kubernetes</option>
-                    <option value="vm">Virtual Machines</option>
-                </select>
+        </div>
+    </header>
+
+    <!-- Scenarios Content -->
+    <div class="scenarios-content">
+        <!-- Header -->
+        <div class="scenarios-header">
+            <div>
+                <h1>My Scenarios</h1>
+                <p class="scenarios-count">@scenarios.Count scenarios saved</p>
+            </div>
+            <div class="scenarios-toolbar">
+                <div class="search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" placeholder="Search scenarios..." @bind="searchQuery" @bind:event="oninput" />
+                </div>
+                <button class="filter-btn" @onclick="ToggleFilterDropdown">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    @GetFilterLabel()
+                </button>
+                <a href="/dashboard/k8s" class="btn btn-primary btn-sm">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    New Scenario
+                </a>
             </div>
         </div>
 
-        @if (viewMode == "list")
+        @if (_showFilterDropdown)
         {
-            <!-- Scenarios List -->
-            <div class="scenarios-list">
+            <div class="filter-dropdown">
+                <button class="filter-option @(filterType == "" ? "active" : "")" @onclick='() => SetFilter("")'>All</button>
+                <button class="filter-option @(filterType == "k8s" ? "active" : "")" @onclick='() => SetFilter("k8s")'>Kubernetes</button>
+                <button class="filter-option @(filterType == "vm" ? "active" : "")" @onclick='() => SetFilter("vm")'>VM</button>
+            </div>
+        }
+
+        <!-- Scenarios Grid -->
+        @if (isLoading)
+        {
+            <div class="empty-state">
+                <p>Loading scenarios...</p>
+            </div>
+        }
+        else if (!FilteredScenarios.Any())
+        {
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                <p>No scenarios found. Create your first one!</p>
+            </div>
+        }
+        else
+        {
+            <div class="scenarios-grid">
                 @foreach (var scenario in FilteredScenarios)
                 {
-                    <div class="scenario-card @(selectedScenarios.Contains(scenario.Id) ? "selected" : "")">
-                        <div class="scenario-select">
-                            <input type="checkbox"
-                                   checked="@selectedScenarios.Contains(scenario.Id)"
-                                   @onchange="e => ToggleSelection(scenario.Id)" />
+                    <div class="scenario-card" @onclick="() => OpenScenario(scenario)" data-testid="scenario-@scenario.Type">
+                        <div class="scenario-card-header">
+                            <span class="scenario-card-title">@scenario.Name</span>
+                            <span class="badge badge-@scenario.Type">@(scenario.Type == "k8s" ? "K8s" : "VM")</span>
                         </div>
-                        <div class="scenario-info" @onclick="async () => await ViewScenario(scenario.Id)">
-                            <div class="scenario-header">
-                                <span class="scenario-type-badge @scenario.Type">@(scenario.Type == "k8s" ? "K8s" : "VM")</span>
-                                <h3>@scenario.Name</h3>
-                                @if (scenario.IsFavorite)
+                        <div class="scenario-card-desc">@GetDescription(scenario)</div>
+                        <div class="scenario-card-meta">@scenario.DistributionOrTechnology &bull; Modified @GetRelativeTime(scenario.CreatedAt)</div>
+                        <div class="scenario-card-stats">
+                            <div class="scenario-card-stat">
+                                @if (scenario.Type == "k8s")
                                 {
-                                    <span class="favorite-badge">★</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                    </svg>
                                 }
-                            </div>
-                            <div class="scenario-meta">
-                                <span class="meta-item">@scenario.DistributionOrTechnology</span>
-                                <span class="meta-separator">•</span>
-                                <span class="meta-item">@scenario.TotalNodes @(scenario.Type == "k8s" ? "nodes" : "VMs")</span>
-                                <span class="meta-separator">•</span>
-                                <span class="meta-item">@scenario.TotalCpu vCPU</span>
-                                @if (scenario.MonthlyEstimate > 0)
+                                else
                                 {
-                                    <span class="meta-separator">•</span>
-                                    <span class="meta-item cost">@FormatCurrency(scenario.MonthlyEstimate)/mo</span>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="4" width="20" height="14" rx="2"/>
+                                    </svg>
                                 }
+                                @scenario.TotalNodes @(scenario.Type == "k8s" ? "nodes" : "VMs")
                             </div>
-                            <div class="scenario-footer">
-                                <span class="created-date">@scenario.CreatedAt.ToString("MMM d, yyyy HH:mm", System.Globalization.CultureInfo.InvariantCulture)</span>
-                                @if (scenario.Tags.Any())
-                                {
-                                    <div class="tags">
-                                        @foreach (var tag in scenario.Tags.Take(3))
-                                        {
-                                            <span class="tag">@tag</span>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                        <div class="scenario-actions">
-                            <button class="action-btn" @onclick="async () => await ToggleFavorite(scenario.Id)" title="Toggle favorite">
-                                @(scenario.IsFavorite ? "★" : "☆")
-                            </button>
-                            <button class="action-btn" @onclick="async () => await DuplicateScenario(scenario.Id)" title="Duplicate">
-                                Copy
-                            </button>
-                            <button class="action-btn danger" @onclick="async () => await DeleteScenario(scenario.Id)" title="Delete">
-                                Del
-                            </button>
+                            <div class="scenario-card-stat">@FormatCurrency(scenario.MonthlyEstimate)/mo</div>
                         </div>
                     </div>
                 }
             </div>
         }
-        else if (viewMode == "compare" && comparison != null)
-        {
-            <!-- Comparison View -->
-            <div class="comparison-view">
-                <div class="comparison-header">
-                    <h2>Scenario Comparison</h2>
-                    @if (comparison.RecommendedScenarioId.HasValue)
-                    {
-                        var recommended = comparison.Scenarios.FirstOrDefault(s => s.Id == comparison.RecommendedScenarioId);
-                        @if (recommended != null)
-                        {
-                            <div class="recommendation-banner">
-                                <span class="rec-icon icon icon-bulb"></span>
-                                <span>Recommended: <strong>@recommended.Name</strong> - @comparison.RecommendationReason</span>
-                            </div>
-                        }
-                    }
-                </div>
-
-                <!-- Comparison Table -->
-                <div class="comparison-table-container">
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th class="metric-header">Metric</th>
-                                @foreach (var scenario in comparison.Scenarios)
-                                {
-                                    <th class="scenario-header">
-                                        <span class="scenario-type-badge @scenario.Type">@(scenario.Type == "k8s" ? "K8s" : "VM")</span>
-                                        @scenario.Name
-                                    </th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var metricGroup in comparison.Metrics.GroupBy(m => m.Category))
-                            {
-                                <tr class="category-row">
-                                    <td colspan="@(comparison.Scenarios.Length + 1)">@metricGroup.Key</td>
-                                </tr>
-                                @foreach (var metric in metricGroup)
-                                {
-                                    <tr>
-                                        <td class="metric-name">@metric.Name</td>
-                                        @foreach (var scenario in comparison.Scenarios)
-                                        {
-                                            var value = metric.Values.GetValueOrDefault(scenario.Id);
-                                            var isWinner = metric.WinnerId == scenario.Id;
-                                            <td class="metric-value @(isWinner ? "winner" : "")">
-                                                @if (metric.Unit == "$")
-                                                {
-                                                    @FormatCurrency(value)
-                                                }
-                                                else if (metric.Unit == "$/node")
-                                                {
-                                                    @FormatCurrency(value)
-                                                }
-                                                else
-                                                {
-                                                    @value.ToString("N0") @metric.Unit
-                                                }
-                                                @if (isWinner)
-                                                {
-                                                    <span class="winner-badge">Best</span>
-                                                }
-                                            </td>
-                                        }
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Insights -->
-                @if (comparison.Insights.Any())
-                {
-                    <div class="comparison-insights">
-                        <h3>Insights</h3>
-                        <ul>
-                            @foreach (var insight in comparison.Insights)
-                            {
-                                <li>@insight</li>
-                            }
-                        </ul>
-                    </div>
-                }
-            </div>
-        }
-    }
+    </div>
 </div>
 
 @code {
     private List<ScenarioSummary> scenarios = new();
-    private HashSet<Guid> selectedScenarios = new();
-    private ScenarioComparison? comparison;
     private bool isLoading = true;
-    private string viewMode = "list";
     private string filterType = "";
-    private string scenarioTab = "saved"; // "saved" or "drafts"
+    private string searchQuery = "";
+    private bool _showFilterDropdown = false;
+    private ApplicationUser? _currentUser;
+    private string _displayName = "User";
 
     private IEnumerable<ScenarioSummary> FilteredScenarios
     {
         get
         {
-            var filtered = scenarios.Where(s => s.IsDraft == (scenarioTab == "drafts"));
-            if (!string.IsNullOrEmpty(filterType))
+            var filtered = scenarios.Where(s => !s.IsDraft);
+
+            // Apply type filter
+            if (filterType == "k8s")
+                filtered = filtered.Where(s => s.Type == "k8s");
+            else if (filterType == "vm")
+                filtered = filtered.Where(s => s.Type == "vm");
+
+            // Apply search
+            if (!string.IsNullOrWhiteSpace(searchQuery))
             {
-                filtered = filtered.Where(s => s.Type == filterType);
+                var query = searchQuery.ToLowerInvariant();
+                filtered = filtered.Where(s =>
+                    s.Name.Contains(query, StringComparison.InvariantCultureIgnoreCase) ||
+                    (s.DistributionOrTechnology?.Contains(query, StringComparison.InvariantCultureIgnoreCase) ?? false));
             }
-            return filtered;
+
+            return filtered.OrderByDescending(s => s.CreatedAt);
         }
     }
 
-    private int SavedCount => scenarios.Count(s => !s.IsDraft);
-    private int DraftCount => scenarios.Count(s => s.IsDraft);
-
     protected override async Task OnInitializedAsync()
     {
+        _currentUser = await AuthService.GetCurrentUserAsync();
+        _displayName = _currentUser?.DisplayName ?? "User";
         await LoadScenarios();
     }
 
@@ -279,7 +183,6 @@
         try
         {
             scenarios = await ScenarioService.GetScenarioSummariesAsync();
-            scenarios = scenarios.OrderByDescending(s => s.IsFavorite).ThenByDescending(s => s.CreatedAt).ToList();
         }
         finally
         {
@@ -288,106 +191,114 @@
         }
     }
 
-    private void ToggleSelection(Guid id)
+    private string GetUserInitials()
     {
-        if (selectedScenarios.Contains(id))
-            selectedScenarios.Remove(id);
-        else if (selectedScenarios.Count < 4) // Max 4 for comparison
-            selectedScenarios.Add(id);
+        if (string.IsNullOrEmpty(_displayName) || _displayName == "User")
+            return "U";
+
+        var parts = _displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        if (parts.Length == 1 && parts[0].Length >= 1)
+            return parts[0][0].ToString().ToUpper();
+        return "U";
     }
 
-    private async Task CompareSelected()
+    private void NavigateToLanding()
     {
-        if (selectedScenarios.Count < 2) return;
-
-        comparison = await ScenarioService.CompareByIdsAsync(selectedScenarios.ToArray());
-        viewMode = "compare";
+        NavigationManager.NavigateTo("/landing");
     }
 
-    private async Task DeleteSelected()
+    private void ToggleFilterDropdown()
     {
-        if (!selectedScenarios.Any()) return;
+        _showFilterDropdown = !_showFilterDropdown;
+    }
 
-        foreach (var id in selectedScenarios.ToList())
+    private void SetFilter(string type)
+    {
+        filterType = type;
+        _showFilterDropdown = false;
+    }
+
+    private string GetFilterLabel()
+    {
+        return filterType switch
         {
-            await ScenarioService.DeleteScenarioAsync(id);
-        }
-
-        selectedScenarios.Clear();
-        await LoadScenarios();
+            "k8s" => "K8s",
+            "vm" => "VM",
+            _ => "Filter"
+        };
     }
 
-    private async Task ToggleFavorite(Guid id)
+    private string GetDescription(ScenarioSummary scenario)
     {
-        await ScenarioService.ToggleFavoriteAsync(id);
-        await LoadScenarios();
+        if (scenario.TotalApps > 0)
+            return $"{scenario.TotalApps} applications configured";
+        return scenario.Type == "k8s" ? "Kubernetes cluster configuration" : "VM infrastructure configuration";
     }
 
-    private async Task DuplicateScenario(Guid id)
-    {
-        var original = scenarios.FirstOrDefault(s => s.Id == id);
-        if (original != null)
-        {
-            await ScenarioService.DuplicateScenarioAsync(id, $"{original.Name} (Copy)");
-            await LoadScenarios();
-        }
-    }
-
-    private async Task DeleteScenario(Guid id)
-    {
-        await ScenarioService.DeleteScenarioAsync(id);
-        selectedScenarios.Remove(id);
-        await LoadScenarios();
-    }
-
-    private async Task ViewScenario(Guid id)
+    private async Task OpenScenario(ScenarioSummary scenario)
     {
         try
         {
-            // Load the full scenario and navigate to the calculator
-            var scenario = await ScenarioService.GetScenarioAsync(id);
-            if (scenario == null)
+            var fullScenario = await ScenarioService.GetScenarioAsync(scenario.Id);
+            if (fullScenario == null)
             {
-                NavigationManager.NavigateTo("/");
+                var route = scenario.Type == "k8s" ? "/dashboard/k8s" : "/dashboard/vm";
+                NavigationManager.NavigateTo(route);
                 return;
             }
 
             string configParam;
-            if (scenario.Type == "k8s" && scenario.K8sInput != null)
+            if (fullScenario.Type == "k8s" && fullScenario.K8sInput != null)
             {
-                configParam = await SharingService.GenerateConfigParamAsync(scenario.K8sInput);
+                configParam = await SharingService.GenerateConfigParamAsync(fullScenario.K8sInput);
+                NavigationManager.NavigateTo($"/dashboard/k8s?config={configParam}", forceLoad: true);
             }
-            else if (scenario.Type == "vm" && scenario.VMInput != null)
+            else if (fullScenario.Type == "vm" && fullScenario.VMInput != null)
             {
-                configParam = await SharingService.GenerateConfigParamAsync(scenario.VMInput);
+                configParam = await SharingService.GenerateConfigParamAsync(fullScenario.VMInput);
+                NavigationManager.NavigateTo($"/dashboard/vm?config={configParam}", forceLoad: true);
             }
             else
             {
-                NavigationManager.NavigateTo("/");
-                return;
+                var route = scenario.Type == "k8s" ? "/dashboard/k8s" : "/dashboard/vm";
+                NavigationManager.NavigateTo(route);
             }
-
-            // Navigate to home page with config parameter
-            NavigationManager.NavigateTo($"/?config={configParam}", forceLoad: true);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ViewScenario error: {ex.Message}");
-            NavigationManager.NavigateTo("/");
+            Console.WriteLine($"OpenScenario error: {ex.Message}");
+            var route = scenario.Type == "k8s" ? "/dashboard/k8s" : "/dashboard/vm";
+            NavigationManager.NavigateTo(route);
         }
-    }
-
-    private void NavigateBack()
-    {
-        NavigationManager.NavigateTo("/");
     }
 
     private string FormatCurrency(decimal amount)
     {
+        if (amount <= 0) return "N/A";
         if (amount >= 1_000_000)
-            return $"${amount / 1_000_000:F2}M";
+            return $"${amount / 1_000_000:F1}M";
         if (amount >= 1_000)
-            return $"${amount / 1_000:F1}K";
-        return $"${amount:F2}";
+            return $"${amount:N0}";
+        return $"${amount:F0}";
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var diff = DateTime.UtcNow - dateTime;
+
+        if (diff.TotalMinutes < 60)
+            return $"{(int)diff.TotalMinutes} minutes ago";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours} hours ago";
+        if (diff.TotalDays < 2)
+            return "yesterday";
+        if (diff.TotalDays < 7)
+            return $"{(int)diff.TotalDays} days ago";
+        if (diff.TotalDays < 30)
+            return $"{(int)(diff.TotalDays / 7)} weeks ago";
+
+        return dateTime.ToString("MMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

@@ -1,0 +1,109 @@
+@*
+    ClusterConfigSection.razor - v0.4.4 Cluster Configuration
+    Matches wireframe: 01-dashboard-k8s.html (Cluster tab content)
+*@
+
+<div class="config-section" data-testid="cluster-config">
+    <div class="form-group">
+        <label class="form-label">HA Configuration</label>
+        <select class="form-select" @bind="_haConfig" @bind:after="NotifyChange">
+            <option value="full">Full HA (3 Control Plane)</option>
+            <option value="minimal">Minimal HA (1 CP + backup)</option>
+            <option value="none">No HA (Single node)</option>
+        </select>
+        <div class="form-hint">Recommended for production workloads</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Control Plane Nodes</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="5" @bind="_cpNodes" @bind:after="NotifyChange">
+            <span class="slider-value">@_cpNodes</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Infrastructure Nodes</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="6" @bind="_infraNodes" @bind:after="NotifyChange">
+            <span class="slider-value">@_infraNodes</span>
+        </div>
+        <div class="form-hint">For ingress, monitoring, logging</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Worker Nodes</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="50" @bind="_workerNodes" @bind:after="NotifyChange">
+            <span class="slider-value">@_workerNodes</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">Cluster Features</label>
+        <div class="checkbox-group">
+            @foreach (var feature in _features)
+            {
+                <div class="checkbox-item @(feature.Selected ? "selected" : "")"
+                     @onclick="() => ToggleFeature(feature)">
+                    <div class="checkbox-box"></div>
+                    <div class="checkbox-label">@feature.Label</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="info-box">
+        <strong>Production Summary</strong>
+        <div class="info-text">
+            @GetTotalNodes() nodes total: @_cpNodes CP + @_infraNodes Infra + @_workerNodes Workers
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _haConfig = "full";
+    private int _cpNodes = 3;
+    private int _infraNodes = 3;
+    private int _workerNodes = 6;
+
+    private List<FeatureItem> _features = new()
+    {
+        new("monitoring", "Monitoring Stack", true),
+        new("logging", "Logging (EFK/Loki)", true),
+        new("mesh", "Service Mesh", true),
+        new("gitops", "GitOps (ArgoCD)", false)
+    };
+
+    private int GetTotalNodes() => _cpNodes + _infraNodes + _workerNodes;
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+
+    private async Task ToggleFeature(FeatureItem feature)
+    {
+        feature.Selected = !feature.Selected;
+        await NotifyChange();
+    }
+
+    public class FeatureItem
+    {
+        public string Id { get; set; }
+        public string Label { get; set; }
+        public bool Selected { get; set; }
+
+        public FeatureItem(string id, string label, bool selected)
+        {
+            Id = id;
+            Label = label;
+            Selected = selected;
+        }
+    }
+}

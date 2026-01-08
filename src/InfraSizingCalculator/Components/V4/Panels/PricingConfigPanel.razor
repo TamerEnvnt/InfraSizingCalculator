@@ -1,0 +1,230 @@
+@*
+    PricingConfigPanel.razor - Pricing configuration panel
+
+    Features:
+    - On-premises pricing inputs
+    - Cloud provider comparison
+    - License cost configuration
+*@
+
+<div class="pricing-config-panel" data-testid="pricing-config-panel">
+    @switch (EffectiveTab)
+    {
+        case "onprem":
+            <div class="config-section" data-testid="onprem-section">
+                <h4 class="section-title">On-Premises Pricing</h4>
+                <p class="section-desc">Configure your on-premises infrastructure costs</p>
+
+                <div class="pricing-inputs">
+                    @* Hardware Costs *@
+                    <div class="input-group">
+                        <label class="input-label">
+                            <span class="label-text">Hardware Cost per Node</span>
+                            <span class="label-hint">One-time purchase cost</span>
+                        </label>
+                        <div class="input-with-prefix">
+                            <span class="input-prefix">$</span>
+                            <input type="number" class="pricing-input"
+                                   value="@HardwareCostPerNode"
+                                   @oninput='e => HardwareCostPerNode = decimal.Parse(e.Value?.ToString() ?? "5000")'
+                                   placeholder="5000" />
+                        </div>
+                    </div>
+
+                    @* Monthly Maintenance *@
+                    <div class="input-group">
+                        <label class="input-label">
+                            <span class="label-text">Monthly Maintenance</span>
+                            <span class="label-hint">Per node maintenance cost</span>
+                        </label>
+                        <div class="input-with-prefix">
+                            <span class="input-prefix">$</span>
+                            <input type="number" class="pricing-input"
+                                   value="@MonthlyMaintenancePerNode"
+                                   @oninput='e => MonthlyMaintenancePerNode = decimal.Parse(e.Value?.ToString() ?? "200")'
+                                   placeholder="200" />
+                            <span class="input-suffix">/mo</span>
+                        </div>
+                    </div>
+
+                    @* Power & Cooling *@
+                    <div class="input-group">
+                        <label class="input-label">
+                            <span class="label-text">Power & Cooling</span>
+                            <span class="label-hint">Monthly energy costs per node</span>
+                        </label>
+                        <div class="input-with-prefix">
+                            <span class="input-prefix">$</span>
+                            <input type="number" class="pricing-input"
+                                   value="@PowerCoolingPerNode"
+                                   @oninput='e => PowerCoolingPerNode = decimal.Parse(e.Value?.ToString() ?? "50")'
+                                   placeholder="50" />
+                            <span class="input-suffix">/mo</span>
+                        </div>
+                    </div>
+
+                    @* Amortization Period *@
+                    <div class="input-group">
+                        <label class="input-label">
+                            <span class="label-text">Amortization Period</span>
+                            <span class="label-hint">Hardware depreciation period</span>
+                        </label>
+                        <div class="radio-options">
+                            @foreach (var period in _amortizationPeriods)
+                            {
+                                <label class="radio-option @(AmortizationYears == period.Value ? "selected" : "")">
+                                    <input type="radio" name="amortization"
+                                           value="@period.Value"
+                                           checked="@(AmortizationYears == period.Value)"
+                                           @onchange="() => AmortizationYears = period.Value" />
+                                    <span class="radio-mark"></span>
+                                    <span class="radio-text">@period.Label</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @* Monthly Summary *@
+                <div class="cost-summary">
+                    <div class="summary-row">
+                        <span class="summary-label">Hardware (amortized)</span>
+                        <span class="summary-value">$@(CalculateAmortizedHardware().ToString("N0"))/mo</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Maintenance</span>
+                        <span class="summary-value">$@(MonthlyMaintenancePerNode * NodeCount)/mo</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Power & Cooling</span>
+                        <span class="summary-value">$@(PowerCoolingPerNode * NodeCount)/mo</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span class="summary-label">Total Monthly Cost</span>
+                        <span class="summary-value">$@(CalculateTotalMonthlyCost().ToString("N0"))/mo</span>
+                    </div>
+                </div>
+            </div>
+            break;
+
+        case "cloud":
+            <div class="config-section" data-testid="cloud-section">
+                <h4 class="section-title">Cloud Provider Comparison</h4>
+                <p class="section-desc">Compare costs across major cloud providers</p>
+
+                <div class="cloud-providers">
+                    @foreach (var provider in _cloudProviders)
+                    {
+                        <div class="cloud-provider-card @(provider.IsSelected ? "selected" : "")"
+                             @onclick="() => SelectProvider(provider.Id)"
+                             data-testid="provider-@provider.Id">
+                            <div class="provider-header">
+                                <span class="provider-logo">@provider.Logo</span>
+                                <span class="provider-name">@provider.Name</span>
+                                @if (provider.IsSelected)
+                                {
+                                    <span class="selected-badge">Selected</span>
+                                }
+                            </div>
+                            <div class="provider-pricing">
+                                <span class="provider-price">$@provider.MonthlyCost.ToString("N0")</span>
+                                <span class="provider-unit">/month</span>
+                            </div>
+                            <div class="provider-details">
+                                <span class="detail-item">@provider.InstanceType</span>
+                                <span class="detail-item">@provider.Region</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="comparison-note">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="16" r="1"/>
+                    </svg>
+                    <span>Prices are estimates based on equivalent node specifications. Actual costs may vary.</span>
+                </div>
+            </div>
+            break;
+    }
+</div>
+
+@code {
+    [Parameter] public string ActiveTab { get; set; } = "pricing";
+    [Parameter] public int NodeCount { get; set; } = 3;
+
+    // Normalize ActiveTab - "pricing" means show onprem by default
+    private string EffectiveTab => ActiveTab switch
+    {
+        "pricing" => "onprem",
+        "onprem" => "onprem",
+        "cloud" => "cloud",
+        _ => "onprem"
+    };
+
+    private decimal HardwareCostPerNode = 5000m;
+    private decimal MonthlyMaintenancePerNode = 200m;
+    private decimal PowerCoolingPerNode = 50m;
+    private int AmortizationYears = 3;
+
+    private List<(int Value, string Label)> _amortizationPeriods = new()
+    {
+        (3, "3 years"),
+        (5, "5 years"),
+        (7, "7 years")
+    };
+
+    private List<CloudProvider> _cloudProviders = new()
+    {
+        new("aws", "AWS", "☁️", "m5.2xlarge", "us-east-1", 800m, false),
+        new("azure", "Azure", "🔷", "Standard_D8s_v3", "East US", 750m, false),
+        new("gcp", "GCP", "🔴", "n2-standard-8", "us-central1", 720m, true)
+    };
+
+    private decimal CalculateAmortizedHardware()
+    {
+        var totalHardware = HardwareCostPerNode * NodeCount;
+        var monthlyAmortized = totalHardware / (AmortizationYears * 12);
+        return monthlyAmortized;
+    }
+
+    private decimal CalculateTotalMonthlyCost()
+    {
+        var amortized = CalculateAmortizedHardware();
+        var maintenance = MonthlyMaintenancePerNode * NodeCount;
+        var power = PowerCoolingPerNode * NodeCount;
+        return amortized + maintenance + power;
+    }
+
+    private void SelectProvider(string providerId)
+    {
+        foreach (var provider in _cloudProviders)
+        {
+            provider.IsSelected = provider.Id == providerId;
+        }
+    }
+
+    private class CloudProvider
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Logo { get; set; }
+        public string InstanceType { get; set; }
+        public string Region { get; set; }
+        public decimal MonthlyCost { get; set; }
+        public bool IsSelected { get; set; }
+
+        public CloudProvider(string id, string name, string logo, string instanceType, string region, decimal monthlyCost, bool isSelected)
+        {
+            Id = id;
+            Name = name;
+            Logo = logo;
+            InstanceType = instanceType;
+            Region = region;
+            MonthlyCost = monthlyCost;
+            IsSelected = isSelected;
+        }
+    }
+}

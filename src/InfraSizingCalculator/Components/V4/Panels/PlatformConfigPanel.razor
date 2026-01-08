@@ -1,0 +1,616 @@
+@*
+    PlatformConfigPanel.razor - Platform configuration panel content
+
+    Dynamic flow based on Technology + Platform:
+    - PLATFORM section: VMs/K8s side-by-side toggle
+    - TECHNOLOGY section: Mendix, OutSystems, Custom (drives distribution options)
+    - DEPLOYMENT section: Context-sensitive options based on Technology + Platform
+*@
+
+@using InfraSizingCalculator.Models.Enums
+@using InfraSizingCalculator.Services.Interfaces
+@implements IDisposable
+@inject IWizardStateService WizardState
+
+<div class="platform-config-panel" data-testid="platform-config-panel">
+    @* PLATFORM Section - VMs/K8s Toggle *@
+    <div class="config-section">
+        <h3 class="section-title">Platform</h3>
+        <div class="platform-toggle">
+            <button class="platform-option @(SelectedPlatform == "vm" ? "selected" : "")"
+                    @onclick='() => SelectPlatform("vm")'
+                    data-testid="platform-vm">
+                <div class="platform-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="2" y="4" width="20" height="14" rx="2"/>
+                        <path d="M6 20h12"/>
+                        <path d="M12 18v2"/>
+                    </svg>
+                </div>
+                <div class="platform-label">VMs</div>
+            </button>
+            <button class="platform-option @(SelectedPlatform == "k8s" ? "selected" : "")"
+                    @onclick='() => SelectPlatform("k8s")'
+                    data-testid="platform-k8s">
+                <div class="platform-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="platform-label">K8s</div>
+            </button>
+        </div>
+    </div>
+
+    @* TECHNOLOGY Section - Moved ABOVE Distribution (drives deployment options) *@
+    <div class="config-section">
+        <h3 class="section-title">Technology</h3>
+        <div class="radio-group">
+            @foreach (var tech in _technologies)
+            {
+                <button class="radio-option @(_selectedTechnology == tech.Id ? "selected" : "")"
+                        @onclick="() => SelectTechnology(tech.Id)"
+                        data-testid="tech-@tech.Id">
+                    <div class="radio-circle"></div>
+                    <div class="radio-text">
+                        <div class="radio-label">@tech.Name</div>
+                        <div class="radio-desc">@tech.Description</div>
+                    </div>
+                </button>
+            }
+        </div>
+    </div>
+
+    @* DEPLOYMENT Section - Dynamic based on Technology + Platform *@
+    <div class="config-section">
+        <h3 class="section-title">@GetDeploymentSectionTitle()</h3>
+
+        @* Mendix + K8s: Show Mendix-specific cloud options *@
+        @if (_selectedTechnology == "mendix" && SelectedPlatform == "k8s")
+        {
+            <div class="deployment-categories" data-testid="mendix-k8s-options">
+                @foreach (var category in _mendixK8sCategories)
+                {
+                    <button class="deployment-category-card @(_selectedMendixK8sCategory == category.Id ? "selected" : "")"
+                            @onclick="() => SelectMendixK8sCategory(category.Id)"
+                            data-testid="mendix-k8s-@category.Id">
+                        <div class="category-header">
+                            <span class="category-icon @category.IconClass"></span>
+                            <span class="category-name">@category.Name</span>
+                        </div>
+                        <div class="category-desc">@category.Description</div>
+                        @if (!string.IsNullOrEmpty(category.Badge))
+                        {
+                            <span class="category-badge @category.BadgeClass">@category.Badge</span>
+                        }
+                    </button>
+                }
+            </div>
+
+            @* Sub-options for selected Mendix K8s category *@
+            @if (_selectedMendixK8sCategory == "private-cloud")
+            {
+                <div class="sub-options">
+                    <div class="sub-options-label">Select Provider</div>
+                    <div class="sub-options-grid">
+                        @foreach (var provider in _mendixPrivateCloudProviders)
+                        {
+                            <button class="sub-option-card @(_selectedMendixProvider == provider.Id ? "selected" : "")"
+                                    @onclick="() => SelectMendixProvider(provider.Id)"
+                                    data-testid="mendix-provider-@provider.Id">
+                                <span class="provider-icon @provider.IconClass"></span>
+                                <span class="provider-name">@provider.Name</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            @if (_selectedMendixK8sCategory == "other-k8s")
+            {
+                <div class="sub-options">
+                    <div class="sub-options-label">Select K8s Distribution <span class="manual-badge">Manual Setup</span></div>
+                    <div class="sub-options-grid">
+                        @foreach (var dist in _mendixOtherK8s)
+                        {
+                            <button class="sub-option-card manual @(_selectedMendixProvider == dist.Id ? "selected" : "")"
+                                    @onclick="() => SelectMendixProvider(dist.Id)"
+                                    data-testid="mendix-other-@dist.Id">
+                                <span class="provider-icon @dist.IconClass"></span>
+                                <span class="provider-name">@dist.Name</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        @* Mendix + VMs: Show Mendix VM deployment options *@
+        else if (_selectedTechnology == "mendix" && SelectedPlatform == "vm")
+        {
+            <div class="deployment-categories" data-testid="mendix-vm-options">
+                @foreach (var option in _mendixVmOptions)
+                {
+                    <button class="deployment-category-card @(_selectedMendixVmOption == option.Id ? "selected" : "")"
+                            @onclick="() => SelectMendixVmOption(option.Id)"
+                            data-testid="mendix-vm-@option.Id">
+                        <div class="category-header">
+                            <span class="category-icon @option.IconClass"></span>
+                            <span class="category-name">@option.Name</span>
+                        </div>
+                        <div class="category-desc">@option.Description</div>
+                        @if (!string.IsNullOrEmpty(option.Price))
+                        {
+                            <div class="category-price">@option.Price</div>
+                        }
+                    </button>
+                }
+            </div>
+            <p class="info-note">
+                <span class="info-icon">💡</span>
+                These deployment options do not use Kubernetes.
+            </p>
+        }
+
+        @* OutSystems + K8s: Show OutSystems K8s options *@
+        else if (_selectedTechnology == "outsystems" && SelectedPlatform == "k8s")
+        {
+            <div class="deployment-categories" data-testid="outsystems-k8s-options">
+                @foreach (var option in _outsystemsK8sOptions)
+                {
+                    <button class="deployment-category-card @(_selectedOutSystemsOption == option.Id ? "selected" : "")"
+                            @onclick="() => SelectOutSystemsOption(option.Id)"
+                            data-testid="outsystems-k8s-@option.Id">
+                        <div class="category-header">
+                            <span class="category-icon @option.IconClass"></span>
+                            <span class="category-name">@option.Name</span>
+                        </div>
+                        <div class="category-desc">@option.Description</div>
+                        @if (!string.IsNullOrEmpty(option.Badge))
+                        {
+                            <span class="category-badge @option.BadgeClass">@option.Badge</span>
+                        }
+                    </button>
+                }
+            </div>
+        }
+
+        @* OutSystems + VMs: Show OutSystems VM options *@
+        else if (_selectedTechnology == "outsystems" && SelectedPlatform == "vm")
+        {
+            <div class="deployment-categories" data-testid="outsystems-vm-options">
+                @foreach (var option in _outsystemsVmOptions)
+                {
+                    <button class="deployment-category-card @(_selectedOutSystemsOption == option.Id ? "selected" : "")"
+                            @onclick="() => SelectOutSystemsOption(option.Id)"
+                            data-testid="outsystems-vm-@option.Id">
+                        <div class="category-header">
+                            <span class="category-icon @option.IconClass"></span>
+                            <span class="category-name">@option.Name</span>
+                        </div>
+                        <div class="category-desc">@option.Description</div>
+                        @if (!string.IsNullOrEmpty(option.Badge))
+                        {
+                            <span class="category-badge @option.BadgeClass">@option.Badge</span>
+                        }
+                    </button>
+                }
+            </div>
+        }
+
+        @* Custom/Native + K8s: Show all K8s distributions *@
+        else if (_selectedTechnology == "custom" && SelectedPlatform == "k8s")
+        {
+            @* Search Input *@
+            <div class="search-wrapper">
+                <span class="search-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </span>
+                <input type="text" class="search-input" placeholder="Search distributions..."
+                       @bind="_searchQuery" @bind:event="oninput" />
+            </div>
+
+            @* Tags Filter *@
+            <div class="tags-container">
+                <div class="tags-section">
+                    <div class="tags-label">Filter By</div>
+                    <div class="tags-row">
+                        @foreach (var tag in _k8sFilterTags)
+                        {
+                            <span class="tag @(_activeFilters.Contains(tag) ? "tag-active" : "tag-suggested")"
+                                  @onclick="() => ToggleFilter(tag)">
+                                @tag @if (_activeFilters.Contains(tag)) { <span class="tag-close">×</span> }
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Results Count *@
+            <div class="results-count">Showing @FilteredK8sDistributions.Count() of @_k8sDistributions.Count distributions</div>
+
+            @* Distribution Grid *@
+            <div class="dist-scroll-container">
+                <div class="dist-grid">
+                    @foreach (var dist in FilteredK8sDistributions)
+                    {
+                        <button class="dist-card @(_selectedDistributionId == dist.Id ? "selected" : "")"
+                                @onclick="() => SelectDistribution(dist.Id)"
+                                data-testid="dist-@dist.Id">
+                            <div class="dist-name">@dist.Name</div>
+                            <div class="dist-type">@dist.Type</div>
+                            @if (_selectedDistributionId == dist.Id)
+                            {
+                                <div class="dist-selected">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
+        @* Custom/Native + VMs: Show hypervisors *@
+        else if (_selectedTechnology == "custom" && SelectedPlatform == "vm")
+        {
+            @* Search Input *@
+            <div class="search-wrapper">
+                <span class="search-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </span>
+                <input type="text" class="search-input" placeholder="Search hypervisors..."
+                       @bind="_searchQuery" @bind:event="oninput" />
+            </div>
+
+            @* Tags Filter *@
+            <div class="tags-container">
+                <div class="tags-section">
+                    <div class="tags-label">Filter By</div>
+                    <div class="tags-row">
+                        @foreach (var tag in _vmFilterTags)
+                        {
+                            <span class="tag @(_activeFilters.Contains(tag) ? "tag-active" : "tag-suggested")"
+                                  @onclick="() => ToggleFilter(tag)">
+                                @tag @if (_activeFilters.Contains(tag)) { <span class="tag-close">×</span> }
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Results Count *@
+            <div class="results-count">Showing @FilteredVmHypervisors.Count() of @_vmHypervisors.Count hypervisors</div>
+
+            @* Hypervisor Grid *@
+            <div class="dist-scroll-container">
+                <div class="dist-grid">
+                    @foreach (var hyp in FilteredVmHypervisors)
+                    {
+                        <button class="dist-card @(_selectedDistributionId == hyp.Id ? "selected" : "")"
+                                @onclick="() => SelectDistribution(hyp.Id)"
+                                data-testid="hyp-@hyp.Id">
+                            <div class="dist-name">@hyp.Name</div>
+                            <div class="dist-type">@hyp.Type</div>
+                            @if (_selectedDistributionId == hyp.Id)
+                            {
+                                <div class="dist-selected">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string ActiveTab { get; set; } = "platform";
+
+    // Local UI state
+    private string _searchQuery = "";
+    private List<string> _activeFilters = new();
+
+    // Computed property for selected platform from WizardState
+    private string SelectedPlatform => WizardState.SelectedDeployment == DeploymentModel.VMs ? "vm" : "k8s";
+
+    // Selection state
+    private string _selectedTechnology = "mendix";
+    private string _selectedDistributionId = "";
+
+    // Mendix-specific selections
+    private string _selectedMendixK8sCategory = "private-cloud";
+    private string _selectedMendixProvider = "azure-aks";
+    private string _selectedMendixVmOption = "server";
+
+    // OutSystems-specific selections (default to self-hosted for sizing relevance)
+    private string _selectedOutSystemsOption = "self-hosted";
+
+    // Technology options
+    private List<TechnologyOption> _technologies = new()
+    {
+        new("mendix", "Mendix", "Low-code application platform by Siemens"),
+        new("outsystems", "OutSystems", "Enterprise low-code platform"),
+        new("custom", "Custom Containers", "Docker/OCI containers for native apps")
+    };
+
+    // ========== Mendix K8s Options ==========
+    private List<DeploymentCategory> _mendixK8sCategories = new()
+    {
+        new("mendix-cloud", "Mendix Cloud", "Fully managed SaaS or Dedicated cloud hosting", "cloud", "Recommended", "badge-recommended"),
+        new("private-cloud", "Private Cloud", "Deploy on Azure, EKS, AKS, GKE, or OpenShift", "private", "Officially Supported", "badge-supported"),
+        new("other-k8s", "Other Kubernetes", "Rancher, K3s, or generic K8s - manual setup", "manual", "Manual Setup", "badge-manual")
+    };
+
+    private List<ProviderOption> _mendixPrivateCloudProviders = new()
+    {
+        new("azure-aks", "Azure AKS", "azure"),
+        new("amazon-eks", "Amazon EKS", "aws"),
+        new("google-gke", "Google GKE", "gcp"),
+        new("openshift", "Red Hat OpenShift", "openshift")
+    };
+
+    private List<ProviderOption> _mendixOtherK8s = new()
+    {
+        new("rancher", "Rancher", "rancher"),
+        new("k3s", "K3s", "k3s"),
+        new("generic-k8s", "Generic K8s", "k8s")
+    };
+
+    // ========== Mendix VM Options ==========
+    private List<DeploymentOption> _mendixVmOptions = new()
+    {
+        new("server", "Server (VMs/Docker)", "Traditional VM or Docker container deployment", "vm", "$6,612/app or $33,060 unlimited/year"),
+        new("stackit", "StackIT", "Schwarz IT cloud platform", "stackit", "$6,612/app or $33,060 unlimited/year"),
+        new("sap-btp", "SAP BTP", "SAP Business Technology Platform", "sap", "$6,612/app or $33,060 unlimited/year")
+    };
+
+    // ========== OutSystems Options ==========
+    private List<DeploymentCategory> _outsystemsK8sOptions = new()
+    {
+        new("cloud", "OutSystems Cloud", "Fully managed cloud deployment by OutSystems", "cloud", "Recommended", "badge-recommended"),
+        new("odc", "OutSystems Developer Cloud", "Next-gen cloud-native platform (ODC)", "odc", "Cloud-Native", "badge-supported"),
+        new("private-cloud", "Private Cloud", "Deploy on your own K8s infrastructure", "private", "Self-Managed", "badge-manual")
+    };
+
+    private List<DeploymentCategory> _outsystemsVmOptions = new()
+    {
+        new("cloud", "OutSystems Cloud", "Managed cloud with LifeTime deployment", "cloud", "Recommended", "badge-recommended"),
+        new("self-hosted", "Self-Hosted", "Deploy on your own VM infrastructure", "vm", "Self-Managed", "badge-manual")
+    };
+
+    // ========== Custom/Native K8s Distributions (20 total) ==========
+    private List<DistributionOption> _k8sDistributions = new()
+    {
+        // Managed Cloud (no sizing needed - but included for completeness)
+        new("azure-aks", "Azure AKS", "Managed", new[] { "Cloud", "Managed", "Azure" }),
+        new("amazon-eks", "Amazon EKS", "Managed", new[] { "Cloud", "Managed", "AWS" }),
+        new("google-gke", "Google GKE", "Managed", new[] { "Cloud", "Managed", "GCP" }),
+        new("digitalocean-doks", "DigitalOcean DOKS", "Managed", new[] { "Cloud", "Managed" }),
+        new("linode-lke", "Linode LKE", "Managed", new[] { "Cloud", "Managed" }),
+        new("oracle-oke", "Oracle OKE", "Managed", new[] { "Cloud", "Managed" }),
+        new("civo", "Civo Kubernetes", "Managed", new[] { "Cloud", "Managed" }),
+        new("vultr-k8s", "Vultr Kubernetes", "Managed", new[] { "Cloud", "Managed" }),
+
+        // Enterprise (sizing needed)
+        new("openshift", "Red Hat OpenShift", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+        new("tanzu", "VMware Tanzu", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+        new("d2iq-konvoy", "D2iQ Konvoy", "Enterprise", new[] { "On-Prem", "Enterprise", "Air-Gap", "Needs-Sizing" }),
+        new("charmed-k8s", "Charmed Kubernetes", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+
+        // Self-Hosted (sizing needed)
+        new("rancher-rke2", "Rancher RKE2", "Self-Hosted", new[] { "On-Prem", "Self-Hosted", "Needs-Sizing" }),
+        new("vanilla-k8s", "Vanilla Kubernetes", "Self-Hosted", new[] { "On-Prem", "Self-Hosted", "Needs-Sizing" }),
+
+        // Lightweight (sizing needed)
+        new("k3s", "K3s", "Lightweight", new[] { "On-Prem", "Lightweight", "Needs-Sizing" }),
+        new("k0s", "k0s", "Lightweight", new[] { "On-Prem", "Lightweight", "Needs-Sizing" }),
+        new("microk8s", "MicroK8s", "Lightweight", new[] { "On-Prem", "Lightweight", "Needs-Sizing" }),
+
+        // Hybrid Cloud (sizing needed for on-prem nodes)
+        new("eks-anywhere", "EKS Anywhere", "Hybrid", new[] { "On-Prem", "Hybrid", "AWS", "Needs-Sizing" }),
+        new("azure-arc", "Azure Arc-enabled K8s", "Hybrid", new[] { "Hybrid", "Azure", "Needs-Sizing" }),
+        new("anthos", "Google Anthos", "Hybrid", new[] { "Hybrid", "GCP", "Needs-Sizing" }),
+    };
+
+    private List<string> _k8sFilterTags = new() { "Cloud", "On-Prem", "Managed", "Self-Hosted", "Enterprise", "Lightweight", "Hybrid", "Air-Gap", "Needs-Sizing" };
+
+    // ========== Custom/Native VM Hypervisors (15 total) ==========
+    private List<DistributionOption> _vmHypervisors = new()
+    {
+        // Enterprise On-Prem (sizing needed)
+        new("vmware-vsphere", "VMware vSphere", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+        new("hyperv", "Microsoft Hyper-V", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+        new("nutanix", "Nutanix AHV", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+        new("xenserver", "Citrix XenServer", "Enterprise", new[] { "On-Prem", "Enterprise", "Needs-Sizing" }),
+
+        // Open Source (sizing needed)
+        new("proxmox", "Proxmox VE", "Open Source", new[] { "On-Prem", "Open-Source", "Needs-Sizing" }),
+        new("kvm-libvirt", "KVM/libvirt", "Open Source", new[] { "On-Prem", "Open-Source", "Needs-Sizing" }),
+        new("ovirt", "oVirt/RHV", "Open Source", new[] { "On-Prem", "Open-Source", "Needs-Sizing" }),
+
+        // Hybrid Cloud (sizing needed for on-prem nodes)
+        new("azure-stack-hci", "Azure Stack HCI", "Hybrid", new[] { "On-Prem", "Hybrid", "Azure", "Needs-Sizing" }),
+        new("vmware-cloud", "VMware Cloud", "Hybrid", new[] { "Hybrid", "Needs-Sizing" }),
+
+        // Managed Cloud VMs (no sizing needed - included for completeness)
+        new("azure-vm", "Azure Virtual Machines", "Managed", new[] { "Cloud", "Managed", "Azure" }),
+        new("aws-ec2", "AWS EC2", "Managed", new[] { "Cloud", "Managed", "AWS" }),
+        new("gcp-compute", "Google Compute Engine", "Managed", new[] { "Cloud", "Managed", "GCP" }),
+        new("oracle-oci", "Oracle OCI", "Managed", new[] { "Cloud", "Managed" }),
+        new("digitalocean-droplets", "DigitalOcean Droplets", "Managed", new[] { "Cloud", "Managed" }),
+        new("vultr-compute", "Vultr Compute", "Managed", new[] { "Cloud", "Managed" }),
+    };
+
+    private List<string> _vmFilterTags = new() { "Cloud", "On-Prem", "Managed", "Enterprise", "Open-Source", "Hybrid", "Needs-Sizing" };
+
+    // Filtered distributions
+    private IEnumerable<DistributionOption> FilteredK8sDistributions =>
+        _k8sDistributions.Where(d =>
+            (string.IsNullOrEmpty(_searchQuery) || d.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+            (_activeFilters.Count == 0 || _activeFilters.All(f => d.Tags.Contains(f)))
+        );
+
+    private IEnumerable<DistributionOption> FilteredVmHypervisors =>
+        _vmHypervisors.Where(d =>
+            (string.IsNullOrEmpty(_searchQuery) || d.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+            (_activeFilters.Count == 0 || _activeFilters.All(f => d.Tags.Contains(f)))
+        );
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to state changes
+        WizardState.OnStateChanged += StateHasChanged;
+
+        // Sync technology from WizardState
+        SyncFromWizardState();
+
+        // Set initial selections
+        UpdateDefaultSelections();
+    }
+
+    private void SyncFromWizardState()
+    {
+        _selectedTechnology = WizardState.SelectedTechnology switch
+        {
+            Technology.Mendix => "mendix",
+            Technology.OutSystems => "outsystems",
+            null => "mendix",  // Default to Mendix when not set
+            _ => "custom"
+        };
+    }
+
+    private string GetDeploymentSectionTitle()
+    {
+        return (_selectedTechnology, SelectedPlatform) switch
+        {
+            ("mendix", "k8s") => "Mendix Deployment",
+            ("mendix", "vm") => "Mendix Deployment Type",
+            ("outsystems", "k8s") => "OutSystems Deployment",
+            ("outsystems", "vm") => "OutSystems Deployment",
+            ("custom", "k8s") => "K8s Distribution",
+            ("custom", "vm") => "Hypervisor",
+            _ => "Deployment"
+        };
+    }
+
+    private void UpdateDefaultSelections()
+    {
+        _searchQuery = "";
+        _activeFilters.Clear();
+
+        // Set defaults based on technology and platform
+        if (_selectedTechnology == "mendix")
+        {
+            if (SelectedPlatform == "k8s")
+            {
+                _selectedMendixK8sCategory = "private-cloud";
+                _selectedMendixProvider = "azure-aks";
+            }
+            else
+            {
+                _selectedMendixVmOption = "server";
+            }
+        }
+        else if (_selectedTechnology == "outsystems")
+        {
+            // Default to self-hosted for sizing relevance (managed cloud doesn't need sizing)
+            _selectedOutSystemsOption = SelectedPlatform == "vm" ? "self-hosted" : "private-cloud";
+        }
+        else // custom
+        {
+            // Default to sizing-relevant options (OpenShift for K8s, vSphere for VMs)
+            _selectedDistributionId = SelectedPlatform == "k8s" ? "openshift" : "vmware-vsphere";
+        }
+    }
+
+    private void SelectPlatform(string platform)
+    {
+        WizardState.SelectedDeployment = platform == "vm" ? DeploymentModel.VMs : DeploymentModel.Kubernetes;
+        UpdateDefaultSelections();
+        WizardState.NotifyStateChanged();
+    }
+
+    private void SelectTechnology(string techId)
+    {
+        _selectedTechnology = techId;
+
+        WizardState.SelectedTechnology = techId switch
+        {
+            "mendix" => Technology.Mendix,
+            "outsystems" => Technology.OutSystems,
+            _ => null
+        };
+
+        UpdateDefaultSelections();
+        WizardState.NotifyStateChanged();
+    }
+
+    private void SelectMendixK8sCategory(string categoryId)
+    {
+        _selectedMendixK8sCategory = categoryId;
+
+        // Set default provider for the category
+        _selectedMendixProvider = categoryId switch
+        {
+            "mendix-cloud" => "saas",
+            "private-cloud" => "azure-aks",
+            "other-k8s" => "rancher",
+            _ => ""
+        };
+    }
+
+    private void SelectMendixProvider(string providerId)
+    {
+        _selectedMendixProvider = providerId;
+    }
+
+    private void SelectMendixVmOption(string optionId)
+    {
+        _selectedMendixVmOption = optionId;
+    }
+
+    private void SelectOutSystemsOption(string optionId)
+    {
+        _selectedOutSystemsOption = optionId;
+    }
+
+    private void SelectDistribution(string distId)
+    {
+        _selectedDistributionId = distId;
+    }
+
+    private void ToggleFilter(string tag)
+    {
+        if (_activeFilters.Contains(tag))
+            _activeFilters.Remove(tag);
+        else
+            _activeFilters.Add(tag);
+    }
+
+    public void Dispose()
+    {
+        WizardState.OnStateChanged -= StateHasChanged;
+    }
+
+    // Record types for data
+    private record TechnologyOption(string Id, string Name, string Description);
+    private record DeploymentCategory(string Id, string Name, string Description, string IconClass, string Badge, string BadgeClass);
+    private record DeploymentOption(string Id, string Name, string Description, string IconClass, string Price);
+    private record ProviderOption(string Id, string Name, string IconClass);
+    private record DistributionOption(string Id, string Name, string Type, string[] Tags);
+}

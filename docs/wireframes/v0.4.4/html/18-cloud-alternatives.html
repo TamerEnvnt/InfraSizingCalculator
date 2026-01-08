@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud Alternatives | InfraSizing Calculator v0.4.4</title>
+  <link rel="stylesheet" href="wireframe.css">
+  <style>
+    .cloud-intro {
+      background: var(--color-accent-light);
+      border-left: 3px solid var(--color-accent);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border-radius: 0 6px 6px 0;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .section-title.recommended {
+      color: var(--color-success);
+    }
+
+    .section-desc {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .alternatives-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .alt-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 12px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .alt-card:hover {
+      border-color: var(--color-accent);
+    }
+
+    .alt-card.selected {
+      border-color: var(--color-accent);
+      background: var(--color-accent-light);
+    }
+
+    .alt-card.recommended-card {
+      border-color: var(--color-success);
+    }
+
+    .recommended-tag {
+      position: absolute;
+      top: -6px;
+      right: 10px;
+      background: var(--color-success);
+      color: white;
+      font-size: 8px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    .alt-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .provider-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .provider-icon.aws { background: #ff9900; color: #1a1a1a; }
+    .provider-icon.azure { background: #0078d4; color: white; }
+    .provider-icon.gcp { background: #4285f4; color: white; }
+    .provider-icon.oci { background: #f80000; color: white; }
+
+    .alt-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .alt-name {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .alt-service {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+    }
+
+    .alt-desc {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .alt-features {
+      font-size: 10px;
+      color: var(--color-text-secondary);
+      margin: 0 0 10px 0;
+      padding-left: 12px;
+    }
+
+    .alt-features li {
+      margin-bottom: 2px;
+    }
+
+    .alt-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .compare-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-accent);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .compare-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--color-accent-light);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .compare-header h4 {
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .compare-body {
+      padding: 12px;
+    }
+
+    .compare-table {
+      width: 100%;
+      font-size: 11px;
+    }
+
+    .compare-table th, .compare-table td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .compare-table th {
+      background: var(--color-bg);
+      font-weight: 600;
+    }
+
+    .on-prem-col { background: rgba(59, 130, 246, 0.05); }
+    .cloud-col { background: rgba(16, 185, 129, 0.05); }
+
+    .savings {
+      color: var(--color-success);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">InfraSizing</div>
+      <div class="header-center">
+        <div class="mode-toggle">
+          <button class="mode-btn k8s active">K8s</button>
+          <button class="mode-btn vm">VM</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-sm btn-secondary" onclick="window.location.href='01-k8s-dashboard.html'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back to Dashboard
+        </button>
+        <div style="width: 28px; height: 28px; background: var(--color-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 10px;">T</div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="main" style="overflow-y: auto;">
+        <div style="max-width: 1000px;">
+          <!-- Intro -->
+          <div class="cloud-intro">
+            <strong>Cloud Alternatives:</strong> Compare your on-premises OpenShift deployment with managed cloud alternatives.
+            Cloud providers handle infrastructure, updates, and often provide better SLAs.
+          </div>
+
+          <!-- Recommended Section -->
+          <div class="section-title recommended">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Recommended for OpenShift
+          </div>
+          <div class="section-desc">These managed services are designed specifically for OpenShift workloads.</div>
+
+          <div class="alternatives-grid">
+            <!-- Azure ARO -->
+            <div class="alt-card recommended-card selected">
+              <div class="recommended-tag">Recommended</div>
+              <div class="alt-header">
+                <div class="provider-icon azure">ARO</div>
+                <div class="alt-titles">
+                  <span class="alt-name">Azure Red Hat OpenShift</span>
+                  <span class="alt-service">Microsoft Azure</span>
+                </div>
+              </div>
+              <p class="alt-desc">Fully managed OpenShift service jointly operated by Microsoft and Red Hat.</p>
+              <ul class="alt-features">
+                <li>Joint Microsoft & Red Hat SLA</li>
+                <li>Azure integration (AD, Storage)</li>
+                <li>99.95% uptime guarantee</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+
+            <!-- AWS ROSA -->
+            <div class="alt-card">
+              <div class="alt-header">
+                <div class="provider-icon aws">ROSA</div>
+                <div class="alt-titles">
+                  <span class="alt-name">Red Hat OpenShift on AWS</span>
+                  <span class="alt-service">Amazon Web Services</span>
+                </div>
+              </div>
+              <p class="alt-desc">Native AWS service for OpenShift with integrated AWS billing.</p>
+              <ul class="alt-features">
+                <li>AWS-native experience</li>
+                <li>Integrated billing</li>
+                <li>PrivateLink support</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+
+            <!-- OpenShift Dedicated -->
+            <div class="alt-card">
+              <div class="alt-header">
+                <div class="provider-icon" style="background: #ee0000; color: white;">OSD</div>
+                <div class="alt-titles">
+                  <span class="alt-name">OpenShift Dedicated</span>
+                  <span class="alt-service">Red Hat Managed</span>
+                </div>
+              </div>
+              <p class="alt-desc">Fully managed by Red Hat SRE team on AWS or GCP.</p>
+              <ul class="alt-features">
+                <li>Red Hat SRE managed</li>
+                <li>AWS or GCP hosting</li>
+                <li>Enterprise support</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generic Cloud Options -->
+          <div class="section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+            </svg>
+            Other Cloud Options
+          </div>
+          <div class="section-desc">Standard managed Kubernetes services on major cloud providers.</div>
+
+          <div class="alternatives-grid">
+            <!-- EKS -->
+            <div class="alt-card">
+              <div class="alt-header">
+                <div class="provider-icon aws">EKS</div>
+                <div class="alt-titles">
+                  <span class="alt-name">Amazon EKS</span>
+                  <span class="alt-service">Elastic Kubernetes Service</span>
+                </div>
+              </div>
+              <p class="alt-desc">Managed Kubernetes with deep AWS integration.</p>
+              <ul class="alt-features">
+                <li>AWS native integrations</li>
+                <li>Fargate serverless option</li>
+                <li>EKS Anywhere for hybrid</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+
+            <!-- AKS -->
+            <div class="alt-card">
+              <div class="alt-header">
+                <div class="provider-icon azure">AKS</div>
+                <div class="alt-titles">
+                  <span class="alt-name">Azure Kubernetes Service</span>
+                  <span class="alt-service">Microsoft Azure</span>
+                </div>
+              </div>
+              <p class="alt-desc">Free control plane with Azure integration.</p>
+              <ul class="alt-features">
+                <li>Free control plane</li>
+                <li>Azure AD integration</li>
+                <li>Azure Arc for hybrid</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+
+            <!-- GKE -->
+            <div class="alt-card">
+              <div class="alt-header">
+                <div class="provider-icon gcp">GKE</div>
+                <div class="alt-titles">
+                  <span class="alt-name">Google Kubernetes Engine</span>
+                  <span class="alt-service">Google Cloud Platform</span>
+                </div>
+              </div>
+              <p class="alt-desc">Advanced K8s features from Kubernetes creators.</p>
+              <ul class="alt-features">
+                <li>Autopilot mode</li>
+                <li>Anthos for hybrid/multi</li>
+                <li>Advanced networking</li>
+              </ul>
+              <div class="alt-actions">
+                <button class="btn btn-primary btn-sm" style="flex: 1;">Compare Costs</button>
+                <button class="btn btn-secondary btn-sm">Docs ↗</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparison Panel (appears when Compare Costs clicked) -->
+          <div class="compare-panel">
+            <div class="compare-header">
+              <h4>Cost Comparison: Azure Red Hat OpenShift vs On-Premises</h4>
+              <button class="btn btn-ghost btn-sm">×</button>
+            </div>
+            <div class="compare-body">
+              <table class="compare-table">
+                <thead>
+                  <tr>
+                    <th style="width: 150px;">Metric</th>
+                    <th class="on-prem-col">On-Premises OpenShift</th>
+                    <th class="cloud-col">Azure ARO</th>
+                    <th>Difference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Control Plane</td>
+                    <td class="on-prem-col">3 nodes (self-managed)</td>
+                    <td class="cloud-col">Managed (included)</td>
+                    <td class="savings">-3 nodes</td>
+                  </tr>
+                  <tr>
+                    <td>Worker Nodes</td>
+                    <td class="on-prem-col">9 nodes</td>
+                    <td class="cloud-col">9 nodes</td>
+                    <td>Same</td>
+                  </tr>
+                  <tr>
+                    <td>Monthly Compute</td>
+                    <td class="on-prem-col">$2,850/mo</td>
+                    <td class="cloud-col">$2,400/mo</td>
+                    <td class="savings">-$450/mo</td>
+                  </tr>
+                  <tr>
+                    <td>License Cost</td>
+                    <td class="on-prem-col">$1,200/mo</td>
+                    <td class="cloud-col">Included</td>
+                    <td class="savings">-$1,200/mo</td>
+                  </tr>
+                  <tr>
+                    <td>Operations</td>
+                    <td class="on-prem-col">$800/mo (0.5 FTE)</td>
+                    <td class="cloud-col">$0 (managed)</td>
+                    <td class="savings">-$800/mo</td>
+                  </tr>
+                  <tr style="font-weight: 600;">
+                    <td>Total Monthly</td>
+                    <td class="on-prem-col">$4,850/mo</td>
+                    <td class="cloud-col">$2,400/mo</td>
+                    <td class="savings">-50% savings</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="info-box" style="margin-top: 12px;">
+                <strong>Recommendation:</strong> Azure ARO reduces TCO by 50% while providing 99.95% SLA and joint Microsoft/Red Hat support.
+                Consider migration for production workloads.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Link -->
+  <div style="position: fixed; bottom: 8px; left: 8px; font-size: 10px;">
+    <a href="index.html" style="color: var(--color-text-secondary);">Wireframe Index</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Nodes Panel - Wireframe</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+        .panel-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .vm-badge {
+            background: #059669;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Host Presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .preset-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            background: #3b4f6b;
+        }
+        .preset-btn.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.2);
+        }
+        .preset-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        .preset-specs {
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Host Resource Inputs */
+        .host-config {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .host-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .host-input {
+            text-align: center;
+        }
+        .host-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .host-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .host-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .host-btn:hover { background: #475569; }
+        .host-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #10b981;
+            min-width: 50px;
+        }
+        .host-unit {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Overcommit Section */
+        .overcommit-container {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .overcommit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .overcommit-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .overcommit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: #475569;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+        }
+        .toggle.active {
+            background: #059669;
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: 0.2s;
+        }
+        .toggle.active::after {
+            left: 23px;
+        }
+        .toggle-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .overcommit-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .overcommit-env {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .env-name {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .ratio-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #0f172a;
+        }
+        .ratio-row:last-child {
+            border-bottom: none;
+        }
+        .ratio-label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .ratio-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #10b981;
+        }
+        .ratio-value.aggressive {
+            color: #f59e0b;
+        }
+        .ratio-value.high {
+            color: #ef4444;
+        }
+
+        /* Ratio Legend */
+        .ratio-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 10px;
+            background: #1e293b;
+            border-radius: 6px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .legend-dot.safe { background: #10b981; }
+        .legend-dot.moderate { background: #f59e0b; }
+        .legend-dot.aggressive { background: #ef4444; }
+        .legend-text { color: #94a3b8; }
+
+        /* Host Count */
+        .host-count-box {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .count-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .count-row:last-child {
+            border-bottom: none;
+        }
+        .count-info {
+            flex: 1;
+        }
+        .count-label {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .count-sublabel {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .count-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .count-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: #334155;
+            color: #e2e8f0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .count-btn:hover { background: #475569; }
+        .count-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #10b981;
+            min-width: 40px;
+            text-align: center;
+        }
+        .auto-badge {
+            background: #059669;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* Summary */
+        .summary {
+            background: linear-gradient(135deg, #065f46, #1e293b);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #065f46;
+        }
+        .summary-title {
+            font-size: 12px;
+            color: #6ee7b7;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .summary-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .summary-column {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .column-title {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .column-title.highlight {
+            color: #34d399;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .summary-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .summary-value.savings {
+            color: #34d399;
+        }
+
+        /* Savings Highlight */
+        .savings-box {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .savings-text {
+            font-size: 14px;
+            color: #34d399;
+            font-weight: 600;
+        }
+        .savings-detail {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .warning-icon {
+            font-size: 16px;
+            color: #f59e0b;
+        }
+        .warning-text {
+            font-size: 11px;
+            color: #fbbf24;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Hypervisor Host Configuration</h2>
+            <span class="vm-badge">Virtual Machines</span>
+        </div>
+
+        <!-- Host Size Presets -->
+        <div class="section">
+            <div class="section-title">Physical Host Size</div>
+            <div class="preset-grid">
+                <div class="preset-btn">
+                    <div class="preset-name">Small</div>
+                    <div class="preset-specs">8 cores<br>32GB RAM<br>500GB SSD</div>
+                </div>
+                <div class="preset-btn selected">
+                    <div class="preset-name">Medium</div>
+                    <div class="preset-specs">16 cores<br>64GB RAM<br>1TB SSD</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">Large</div>
+                    <div class="preset-specs">32 cores<br>128GB RAM<br>2TB SSD</div>
+                </div>
+                <div class="preset-btn">
+                    <div class="preset-name">XLarge</div>
+                    <div class="preset-specs">64 cores<br>256GB RAM<br>4TB SSD</div>
+                </div>
+            </div>
+
+            <!-- Custom Host Config -->
+            <div class="host-config">
+                <div class="host-grid">
+                    <div class="host-input">
+                        <div class="host-label">Physical Cores</div>
+                        <div class="host-controls">
+                            <button class="host-btn">-</button>
+                            <span class="host-value">16</span>
+                            <button class="host-btn">+</button>
+                        </div>
+                        <div class="host-unit">cores per host</div>
+                    </div>
+                    <div class="host-input">
+                        <div class="host-label">Physical RAM</div>
+                        <div class="host-controls">
+                            <button class="host-btn">-</button>
+                            <span class="host-value">64</span>
+                            <button class="host-btn">+</button>
+                        </div>
+                        <div class="host-unit">GB per host</div>
+                    </div>
+                    <div class="host-input">
+                        <div class="host-label">Storage</div>
+                        <div class="host-controls">
+                            <button class="host-btn">-</button>
+                            <span class="host-value">1000</span>
+                            <button class="host-btn">+</button>
+                        </div>
+                        <div class="host-unit">GB per host</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overcommit Ratios -->
+        <div class="section">
+            <div class="section-title">Overcommit Ratios by Environment</div>
+            <div class="overcommit-container">
+                <div class="overcommit-header">
+                    <span class="overcommit-title">Enable Resource Overcommit</span>
+                    <div class="overcommit-toggle">
+                        <div class="toggle active"></div>
+                        <span class="toggle-label">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="overcommit-grid">
+                    <div class="overcommit-env">
+                        <div class="env-name">Development</div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">CPU</span>
+                            <span class="ratio-value aggressive">8:1</span>
+                        </div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">RAM</span>
+                            <span class="ratio-value aggressive">2:1</span>
+                        </div>
+                    </div>
+                    <div class="overcommit-env">
+                        <div class="env-name">Test</div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">CPU</span>
+                            <span class="ratio-value aggressive">4:1</span>
+                        </div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">RAM</span>
+                            <span class="ratio-value">1.5:1</span>
+                        </div>
+                    </div>
+                    <div class="overcommit-env">
+                        <div class="env-name">Staging</div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">CPU</span>
+                            <span class="ratio-value">2:1</span>
+                        </div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">RAM</span>
+                            <span class="ratio-value">1.25:1</span>
+                        </div>
+                    </div>
+                    <div class="overcommit-env">
+                        <div class="env-name">Production</div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">CPU</span>
+                            <span class="ratio-value">1:1</span>
+                        </div>
+                        <div class="ratio-row">
+                            <span class="ratio-label">RAM</span>
+                            <span class="ratio-value">1:1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ratio-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot safe"></div>
+                        <span class="legend-text">1:1 - 2:1 (Safe)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot moderate"></div>
+                        <span class="legend-text">2:1 - 4:1 (Moderate)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot aggressive"></div>
+                        <span class="legend-text">4:1+ (Aggressive)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Host Count -->
+        <div class="section">
+            <div class="section-title">Physical Hosts Required</div>
+            <div class="host-count-box">
+                <div class="count-row">
+                    <div class="count-info">
+                        <div class="count-label">Host Count</div>
+                        <div class="count-sublabel">Based on VM requirements + overcommit</div>
+                    </div>
+                    <div class="count-controls">
+                        <span class="auto-badge">AUTO</span>
+                        <button class="count-btn">-</button>
+                        <span class="count-value">2</span>
+                        <button class="count-btn">+</button>
+                    </div>
+                </div>
+                <div class="count-row">
+                    <div class="count-info">
+                        <div class="count-label">N+1 Redundancy</div>
+                        <div class="count-sublabel">Extra host for failover</div>
+                    </div>
+                    <div class="overcommit-toggle">
+                        <div class="toggle active"></div>
+                    </div>
+                </div>
+                <div class="count-row">
+                    <div class="count-info">
+                        <div class="count-label">Total Physical Hosts</div>
+                        <div class="count-sublabel">Including redundancy</div>
+                    </div>
+                    <span class="count-value" style="color: #22c55e;">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-title">Physical Resource Summary</div>
+            <div class="summary-comparison">
+                <div class="summary-column">
+                    <div class="column-title">Without Overcommit</div>
+                    <div class="summary-item">
+                        <span class="summary-label">CPU Required</span>
+                        <span class="summary-value">40 vCPU</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">RAM Required</span>
+                        <span class="summary-value">100 GB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Storage</span>
+                        <span class="summary-value">2 TB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Hosts Needed</span>
+                        <span class="summary-value">5 hosts</span>
+                    </div>
+                </div>
+                <div class="summary-column">
+                    <div class="column-title highlight">With Overcommit</div>
+                    <div class="summary-item">
+                        <span class="summary-label">Physical CPU</span>
+                        <span class="summary-value savings">18 cores</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Physical RAM</span>
+                        <span class="summary-value savings">72 GB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Storage</span>
+                        <span class="summary-value">2 TB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Hosts Needed</span>
+                        <span class="summary-value savings">2 hosts</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="savings-box">
+                <div class="savings-text">60% Infrastructure Savings</div>
+                <div class="savings-detail">Using environment-appropriate overcommit ratios</div>
+            </div>
+        </div>
+
+        <!-- Warning Box -->
+        <div class="warning-box">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-text">
+                <strong>Overcommit Risks:</strong> High overcommit ratios (4:1+) work for non-production
+                workloads but can cause performance issues if all VMs consume resources simultaneously.
+                Always use 1:1 ratio for production workloads.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

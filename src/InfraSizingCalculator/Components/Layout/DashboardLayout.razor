@@ -1,0 +1,65 @@
+@*
+    DashboardLayout.razor - v0.4.4 Dashboard Layout
+
+    Matches wireframe v0.4.4 (01-dashboard-k8s.html):
+    - Fixed viewport layout with NO scroll on body
+    - Header (48px) at top
+    - Content area with Main (flex:1) + Side Panel (30%, min 360px)
+    - Panel is INLINE (not overlay), no dimming
+    - NO action bar (removed in v0.4.4)
+*@
+
+<div class="app" data-testid="dashboard-layout">
+    @* Header section - injected by child components *@
+    <header class="header">
+        @Header
+    </header>
+
+    @* Content - Main + Side Panel *@
+    <div class="content">
+        @* Main Area - Dashboard content *@
+        <main class="main" data-testid="dashboard-content">
+            @Body
+        </main>
+
+        @* Side Panel - Configuration (inline, not overlay) *@
+        @if (IsPanelOpen && Panel != null)
+        {
+            <aside class="side-panel" data-testid="side-panel">
+                @Panel
+            </aside>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Header content (GuestHeader or AuthHeader)
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    /// <summary>
+    /// Main body content
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Body { get; set; }
+
+    /// <summary>
+    /// Side panel content (configuration panels)
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Panel { get; set; }
+
+    /// <summary>
+    /// Controls panel visibility
+    /// </summary>
+    [Parameter]
+    public bool IsPanelOpen { get; set; }
+
+    /// <summary>
+    /// Callback when panel should close
+    /// </summary>
+    [Parameter]
+    public EventCallback OnPanelClose { get; set; }
+}

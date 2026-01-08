@@ -1,0 +1,114 @@
+@*
+    ServersConfigSection.razor - v0.4.4 Server Configuration
+    VM-specific configuration for server roles and counts
+*@
+
+<div class="config-section" data-testid="servers-config">
+    <div class="form-group">
+        <label class="form-label">Application Type</label>
+        <div class="toggle-group">
+            <button class="toggle-btn @(_appType == "mendix" ? "active" : "")"
+                    @onclick="@(() => SetAppType("mendix"))">Mendix</button>
+            <button class="toggle-btn @(_appType == "generic" ? "active" : "")"
+                    @onclick="@(() => SetAppType("generic"))">Generic</button>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-group">
+        <label class="form-label">Application Servers</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="20" @bind="_appServers" @bind:after="NotifyChange">
+            <span class="slider-value">@_appServers</span>
+        </div>
+        <div class="form-hint">@(_appType == "mendix" ? "Mendix Runtime VMs" : "Application VMs")</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Database Servers</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="1" max="10" @bind="_dbServers" @bind:after="NotifyChange">
+            <span class="slider-value">@_dbServers</span>
+        </div>
+        <div class="form-hint">@(_appType == "mendix" ? "PostgreSQL/SQL Server VMs" : "Database VMs")</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Web Servers</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="10" @bind="_webServers" @bind:after="NotifyChange">
+            <span class="slider-value">@_webServers</span>
+        </div>
+        <div class="form-hint">Load balancer / reverse proxy VMs</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Utility Servers</label>
+        <div class="slider-row">
+            <input type="range" class="slider" min="0" max="10" @bind="_utilServers" @bind:after="NotifyChange">
+            <span class="slider-value">@_utilServers</span>
+        </div>
+        <div class="form-hint">Build, monitoring, logging VMs</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="info-box">
+        <strong>Server Summary</strong>
+        <table class="summary-table">
+            <tr><td>App Servers</td><td class="text-right">@_appServers</td></tr>
+            <tr><td>Database Servers</td><td class="text-right">@_dbServers</td></tr>
+            <tr><td>Web Servers</td><td class="text-right">@_webServers</td></tr>
+            <tr><td>Utility Servers</td><td class="text-right">@_utilServers</td></tr>
+            <tr class="total"><td>Total VMs</td><td class="text-right">@GetTotalVMs()</td></tr>
+        </table>
+    </div>
+</div>
+
+<style>
+    .summary-table {
+        width: 100%;
+        font-size: 11px;
+        margin-top: 8px;
+    }
+    .summary-table td {
+        padding: 4px 0;
+        color: var(--color-text-secondary, #64748b);
+    }
+    .summary-table .text-right {
+        text-align: right;
+        font-weight: 600;
+        color: var(--color-text, #1e293b);
+    }
+    .summary-table .total td {
+        border-top: 1px solid var(--color-border, #e2e8f0);
+        padding-top: 8px;
+        font-weight: 600;
+        color: var(--color-text, #1e293b);
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback OnConfigChange { get; set; }
+
+    private string _appType = "mendix";
+    private int _appServers = 6;
+    private int _dbServers = 4;
+    private int _webServers = 4;
+    private int _utilServers = 4;
+
+    private async Task SetAppType(string type)
+    {
+        _appType = type;
+        await NotifyChange();
+    }
+
+    private async Task NotifyChange()
+    {
+        await OnConfigChange.InvokeAsync();
+    }
+
+    private int GetTotalVMs() => _appServers + _dbServers + _webServers + _utilServers;
+}

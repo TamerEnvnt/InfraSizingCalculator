@@ -4,6 +4,13 @@
 
 Complete VM sizing implementation with comprehensive test coverage. This roadmap takes the existing VMSizingService foundation and systematically addresses edge cases, adds DR pattern support, completes technology templates, and expands test coverage across all VM-related components.
 
+**Key Reference Documents:**
+- `docs/vendor-specs/OS/OUTSYSTEMS_PRICING_GAP_ANALYSIS.md` - OutSystems pricing model
+- `docs/guides/mendix-pricing.md` - Mendix pricing tiers
+- `docs/vendor-specs/technologies/outsystems.md` - OutSystems architecture specs
+- `docs/plans/VM_IMPLEMENTATION_PLAN.md` - Existing implementation plan
+- `docs/testing/COVERAGE_GAPS_TASKS.md` - Test coverage gaps (67.7% → 80%+)
+
 ## Domain Expertise
 
 None

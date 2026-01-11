@@ -246,7 +246,7 @@ public class OutSystemsPricingSettings
     /// </summary>
     public List<OutSystemsUserTier> O11ExternalUserTiers { get; set; } = new()
     {
-        new() { MinUsers = 1, MaxUsers = 10000, PricePerPack = 4840m, PackSize = 1000 },
+        new() { MinUsers = 1000, MaxUsers = 10000, PricePerPack = 4840m, PackSize = 1000 },
         new() { MinUsers = 11000, MaxUsers = 250000, PricePerPack = 1452m, PackSize = 1000 },
         new() { MinUsers = 251000, MaxUsers = 100000000, PricePerPack = 30.25m, PackSize = 1000 }
     };
@@ -282,8 +282,8 @@ public class OutSystemsPricingSettings
     /// <summary>O11 Sentry (includes HA): $24,200 per pack of AOs (Cloud only)</summary>
     public decimal O11SentryPerPack { get; set; } = 24200m;
 
-    /// <summary>O11 Non-Production Environment: $3,630 per pack of AOs (supports quantity)</summary>
-    public decimal O11NonProdEnvPerPack { get; set; } = 3630m;
+    /// <summary>O11 Non-Production Environment: $7,260 flat fee (supports quantity)</summary>
+    public decimal O11NonProdEnvPerPack { get; set; } = 7260m;
 
     /// <summary>O11 Load Test Environment: $6,050 per pack of AOs (Cloud only)</summary>
     public decimal O11LoadTestEnvPerPack { get; set; } = 6050m;

@@ -314,6 +314,103 @@ public class DistributionService : IDistributionService
             HasManagedControlPlane = false
         };
 
+        _configs[Distribution.K3sAWS] = new DistributionConfig
+        {
+            Distribution = Distribution.K3sAWS,
+            Name = "K3s on AWS",
+            Vendor = "SUSE / AWS",
+            Icon = "k3s",
+            BrandColor = "#FFC61C",
+            Tags = new[] { "cloud", "lightweight", "edge" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.K3sAzure] = new DistributionConfig
+        {
+            Distribution = Distribution.K3sAzure,
+            Name = "K3s on Azure",
+            Vendor = "SUSE / Microsoft",
+            Icon = "k3s",
+            BrandColor = "#FFC61C",
+            Tags = new[] { "cloud", "lightweight", "edge" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.K3sGCP] = new DistributionConfig
+        {
+            Distribution = Distribution.K3sGCP,
+            Name = "K3s on GCP",
+            Vendor = "SUSE / Google",
+            Icon = "k3s",
+            BrandColor = "#FFC61C",
+            Tags = new[] { "cloud", "lightweight", "edge" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        // RKE2 Cloud Variants
+        _configs[Distribution.RKE2AWS] = new DistributionConfig
+        {
+            Distribution = Distribution.RKE2AWS,
+            Name = "RKE2 on AWS",
+            Vendor = "SUSE / AWS",
+            Icon = "rancher",
+            BrandColor = "#0075A8",
+            Tags = new[] { "cloud", "enterprise", "security" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.RKE2Azure] = new DistributionConfig
+        {
+            Distribution = Distribution.RKE2Azure,
+            Name = "RKE2 on Azure",
+            Vendor = "SUSE / Microsoft",
+            Icon = "rancher",
+            BrandColor = "#0075A8",
+            Tags = new[] { "cloud", "enterprise", "security" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.RKE2GCP] = new DistributionConfig
+        {
+            Distribution = Distribution.RKE2GCP,
+            Name = "RKE2 on GCP",
+            Vendor = "SUSE / Google",
+            Icon = "rancher",
+            BrandColor = "#0075A8",
+            Tags = new[] { "cloud", "enterprise", "security" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
         // Canonical
         _configs[Distribution.MicroK8s] = new DistributionConfig
         {
@@ -343,6 +440,102 @@ public class DistributionService : IDistributionService
             NonProdControlPlane = new NodeSpecs(2, 8, 50),
             ProdWorker = new NodeSpecs(8, 32, 100),
             NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.CharmedAWS] = new DistributionConfig
+        {
+            Distribution = Distribution.CharmedAWS,
+            Name = "Charmed Kubernetes on AWS",
+            Vendor = "Canonical / AWS",
+            Icon = "charmed",
+            BrandColor = "#772953",
+            Tags = new[] { "cloud", "enterprise" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.CharmedAzure] = new DistributionConfig
+        {
+            Distribution = Distribution.CharmedAzure,
+            Name = "Charmed Kubernetes on Azure",
+            Vendor = "Canonical / Microsoft",
+            Icon = "charmed",
+            BrandColor = "#772953",
+            Tags = new[] { "cloud", "enterprise" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.CharmedGCP] = new DistributionConfig
+        {
+            Distribution = Distribution.CharmedGCP,
+            Name = "Charmed Kubernetes on GCP",
+            Vendor = "Canonical / Google",
+            Icon = "charmed",
+            BrandColor = "#772953",
+            Tags = new[] { "cloud", "enterprise" },
+            ProdControlPlane = new NodeSpecs(4, 16, 100),
+            NonProdControlPlane = new NodeSpecs(2, 8, 50),
+            ProdWorker = new NodeSpecs(8, 32, 100),
+            NonProdWorker = new NodeSpecs(4, 16, 50),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.MicroK8sAWS] = new DistributionConfig
+        {
+            Distribution = Distribution.MicroK8sAWS,
+            Name = "MicroK8s on AWS",
+            Vendor = "Canonical / AWS",
+            Icon = "microk8s",
+            BrandColor = "#E95420",
+            Tags = new[] { "cloud", "lightweight" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.MicroK8sAzure] = new DistributionConfig
+        {
+            Distribution = Distribution.MicroK8sAzure,
+            Name = "MicroK8s on Azure",
+            Vendor = "Canonical / Microsoft",
+            Icon = "microk8s",
+            BrandColor = "#E95420",
+            Tags = new[] { "cloud", "lightweight" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
+            HasInfraNodes = false,
+            HasManagedControlPlane = false
+        };
+
+        _configs[Distribution.MicroK8sGCP] = new DistributionConfig
+        {
+            Distribution = Distribution.MicroK8sGCP,
+            Name = "MicroK8s on GCP",
+            Vendor = "Canonical / Google",
+            Icon = "microk8s",
+            BrandColor = "#E95420",
+            Tags = new[] { "cloud", "lightweight" },
+            ProdControlPlane = new NodeSpecs(2, 4, 50),
+            NonProdControlPlane = new NodeSpecs(1, 2, 25),
+            ProdWorker = new NodeSpecs(4, 8, 50),
+            NonProdWorker = new NodeSpecs(2, 4, 25),
             HasInfraNodes = false,
             HasManagedControlPlane = false
         };

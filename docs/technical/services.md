@@ -11,6 +11,7 @@ This document describes all services in the Infrastructure Sizing Calculator.
 | K8sSizingService | IK8sSizingService | Kubernetes cluster sizing calculations |
 | VMSizingService | IVMSizingService | Virtual machine sizing calculations |
 | TechnologyService | ITechnologyService | Technology configurations and specs |
+| TechnologyTemplateService | ITechnologyTemplateService | Technology-specific server role templates for VM sizing |
 | DistributionService | IDistributionService | K8s distribution configurations (46 distributions) |
 | IconResources | - | CSS icon class mappings for technologies, distributions, environments |
 | ExportService | IExportService | Result export to various formats |
@@ -224,6 +225,80 @@ Get load balancer VM specifications.
 | Single | 1 | 2 | 4 |
 | HAPair | 2 | 2 | 4 |
 | CloudLB | 0 | 0 | 0 |
+
+---
+
+## TechnologyTemplateService
+
+**File:** `Services/TechnologyTemplateService.cs`
+**Interface:** `Services/Interfaces/ITechnologyTemplateService.cs`
+
+Provides technology-specific server role templates for VM sizing. Each technology has pre-defined server roles with recommended configurations.
+
+### Dependencies
+- None (standalone service)
+
+### Data
+Static dictionary of `TechnologyRoleTemplate` for all 7 technologies.
+
+### Supported Technologies
+
+| Technology | Template Name | IsLowCode |
+|------------|---------------|-----------|
+| DotNet | .NET Web Application Stack | No |
+| Java | Java Enterprise Application Stack | No |
+| NodeJs | Node.js Application Stack | No |
+| Python | Python Web Application Stack | No |
+| Go | Go Application Stack | No |
+| Mendix | Mendix Low-Code Platform | Yes |
+| OutSystems | OutSystems Enterprise Platform | Yes |
+
+### Server Roles per Technology
+
+Each template defines server roles with:
+- Default instance counts (prod vs non-prod)
+- Default size tier (Small to XLarge)
+- Memory multiplier (e.g., Java/Mendix/OutSystems = 1.5x)
+- IsRequired flag (required vs optional roles)
+- IsScalable flag (can scale horizontally)
+
+### Methods
+
+#### GetTemplate
+```csharp
+TechnologyRoleTemplate GetTemplate(Technology technology)
+```
+Get the role template for a specific technology.
+
+#### GetAllTemplates
+```csharp
+IEnumerable<TechnologyRoleTemplate> GetAllTemplates()
+```
+Get all available technology templates.
+
+#### GetTemplatesByPlatformType
+```csharp
+IEnumerable<TechnologyRoleTemplate> GetTemplatesByPlatformType(PlatformType platformType)
+```
+Filter templates by low-code vs traditional.
+
+#### ApplyTemplate
+```csharp
+VMEnvironmentConfig ApplyTemplate(Technology technology, EnvironmentType environment, bool includeOptionalRoles = false)
+```
+Generate a `VMEnvironmentConfig` from a template for a specific environment.
+
+#### GetDefaultRoles
+```csharp
+List<VMRoleConfig> GetDefaultRoles(Technology technology, bool isProd, bool includeOptional = false)
+```
+Get default role configurations for a technology.
+
+#### IsLowCodePlatform
+```csharp
+bool IsLowCodePlatform(Technology technology)
+```
+Check if a technology is Mendix or OutSystems.
 
 ---
 

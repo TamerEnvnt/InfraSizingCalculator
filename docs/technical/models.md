@@ -384,10 +384,50 @@ Tanzu           // VMware Tanzu
 
 **OpenShift Variants (4):**
 ```csharp
-ROSA,               // Red Hat OpenShift on AWS
-ARO,                // Azure Red Hat OpenShift
-OpenShiftDedicated, // OpenShift Dedicated (managed)
-OpenShiftOnline     // OpenShift Online (SaaS)
+OpenShiftROSA,      // Red Hat OpenShift on AWS (ROSA)
+OpenShiftARO,       // Azure Red Hat OpenShift (ARO)
+OpenShiftDedicated, // OpenShift Dedicated on GCP
+OpenShiftIBM        // Red Hat OpenShift on IBM Cloud
+```
+
+**Rancher Cloud Variants (4):**
+```csharp
+RancherHosted,  // Rancher Hosted on any cloud
+RancherEKS,     // Rancher on EKS
+RancherAKS,     // Rancher on AKS
+RancherGKE      // Rancher on GKE
+```
+
+**Tanzu Cloud Variants (4):**
+```csharp
+TanzuCloud,     // VMware Tanzu Cloud (generic)
+TanzuAWS,       // VMware Tanzu on AWS
+TanzuAzure,     // VMware Tanzu on Azure
+TanzuGCP        // VMware Tanzu on GCP
+```
+
+**Canonical Cloud Variants (6):**
+```csharp
+CharmedAWS,     // Charmed Kubernetes on AWS
+CharmedAzure,   // Charmed Kubernetes on Azure
+CharmedGCP,     // Charmed Kubernetes on GCP
+MicroK8sAWS,    // MicroK8s on AWS
+MicroK8sAzure,  // MicroK8s on Azure
+MicroK8sGCP     // MicroK8s on GCP
+```
+
+**K3s Cloud Variants (3):**
+```csharp
+K3sAWS,         // K3s on AWS
+K3sAzure,       // K3s on Azure
+K3sGCP          // K3s on GCP
+```
+
+**RKE2 Cloud Variants (3):**
+```csharp
+RKE2AWS,        // RKE2 on AWS
+RKE2Azure,      // RKE2 on Azure
+RKE2GCP         // RKE2 on GCP
 ```
 
 **Major Cloud Managed (8):**
@@ -402,34 +442,14 @@ TKE,    // Tencent TKE
 CCE     // Huawei CCE
 ```
 
-**Cloud Variants (12):**
+**Developer/Smaller Cloud (6):**
 ```csharp
-// Rancher on Cloud
-RancherEKS, RancherAKS, RancherGKE,
-// Tanzu on Cloud
-TanzuAWS, TanzuAzure, TanzuGCP,
-// EKS Variants
-EKSAnywhere, EKSDistro, EKSOutposts,
-// Other
-AKSArc, GKEAutopilot, GKEAnthos
-```
-
-**Developer-Focused (14):**
-```csharp
-DOKS,               // DigitalOcean Kubernetes
-LKE,                // Linode/Akamai LKE
-VKE,                // Vultr Kubernetes
-CivoK8s,            // Civo Kubernetes
-HetznerK8s,         // Hetzner Kubernetes
-OVHKubernetes,      // OVH Managed Kubernetes
-ScalewayKapsule,    // Scaleway Kapsule
-UpcloudKubernetes,  // UpCloud Kubernetes
-ExoscaleSKS,        // Exoscale SKS
-IonosK8s,           // IONOS Kubernetes
-NaverCloudKubernetes, // Naver Cloud
-KakaoiCloud,        // Kakao i Cloud
-Minikube,           // Local development
-Kind                // Kubernetes in Docker
+DOKS,           // DigitalOcean Kubernetes
+LKE,            // Linode/Akamai LKE
+VKE,            // Vultr Kubernetes Engine
+HetznerK8s,     // Hetzner Kubernetes
+OVHKubernetes,  // OVHcloud Managed Kubernetes
+ScalewayKapsule // Scaleway Kapsule
 ```
 
 ### EnvironmentType

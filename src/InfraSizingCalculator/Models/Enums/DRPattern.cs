@@ -8,6 +8,9 @@ public enum DRPattern
     /// <summary>No DR - Single site only</summary>
     None,
 
+    /// <summary>Pilot Light - Minimal DR footprint with core services only, scales up on failover</summary>
+    PilotLight,
+
     /// <summary>Warm Standby - DR site with minimal resources, scales up on failover</summary>
     WarmStandby,
 

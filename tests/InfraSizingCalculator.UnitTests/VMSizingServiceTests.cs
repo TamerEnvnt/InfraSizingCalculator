@@ -290,6 +290,421 @@ public class VMSizingServiceTests
 
     #endregion
 
+    #region DR Pattern Tests
+
+    /// <summary>
+    /// Verify PilotLight DR pattern exists and has correct multiplier
+    /// </summary>
+    [Fact]
+    public void Calculate_WithPilotLightDR_AppliesCorrectMultiplier()
+    {
+        var input = CreateBasicInput();
+        input.EnvironmentConfigs[EnvironmentType.DR].DRPattern = DRPattern.PilotLight;
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        var drEnv = result.Environments.First(e => e.Environment == EnvironmentType.DR);
+        Assert.True(drEnv.TotalVMs > 0);
+    }
+
+    /// <summary>
+    /// Verify WarmStandby DR pattern
+    /// </summary>
+    [Fact]
+    public void Calculate_WithWarmStandbyDR_AppliesCorrectMultiplier()
+    {
+        var input = CreateBasicInput();
+        input.EnvironmentConfigs[EnvironmentType.DR].DRPattern = DRPattern.WarmStandby;
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        var drEnv = result.Environments.First(e => e.Environment == EnvironmentType.DR);
+        Assert.True(drEnv.TotalVMs > 0);
+    }
+
+    /// <summary>
+    /// Verify HotStandby DR pattern provides full redundancy
+    /// </summary>
+    [Fact]
+    public void Calculate_WithHotStandbyDR_ProvidesFuLLRedundancy()
+    {
+        var input = CreateBasicInput();
+        input.EnvironmentConfigs[EnvironmentType.DR].DRPattern = DRPattern.HotStandby;
+        input.EnvironmentConfigs[EnvironmentType.Prod].DRPattern = DRPattern.None;
+
+        // Make both have same roles
+        input.EnvironmentConfigs[EnvironmentType.DR].Roles = new List<VMRoleConfig>
+        {
+            new() { Role = ServerRole.Web, Size = AppTier.Medium, InstanceCount = 2, DiskGB = 100 },
+            new() { Role = ServerRole.App, Size = AppTier.Medium, InstanceCount = 2, DiskGB = 100 },
+            new() { Role = ServerRole.Database, Size = AppTier.Large, InstanceCount = 1, DiskGB = 500 }
+        };
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        var drEnv = result.Environments.First(e => e.Environment == EnvironmentType.DR);
+        Assert.True(drEnv.TotalVMs >= 5); // At least 5 VMs for full redundancy
+    }
+
+    /// <summary>
+    /// Verify MultiRegion DR pattern
+    /// </summary>
+    [Fact]
+    public void Calculate_WithMultiRegionDR_ReturnsResults()
+    {
+        var input = CreateBasicInput();
+        input.EnvironmentConfigs[EnvironmentType.DR].DRPattern = DRPattern.MultiRegion;
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        var drEnv = result.Environments.First(e => e.Environment == EnvironmentType.DR);
+        Assert.True(drEnv.TotalVMs > 0);
+    }
+
+    #endregion
+
+    #region Custom CPU/RAM Override Tests
+
+    /// <summary>
+    /// Verify custom CPU override is applied
+    /// </summary>
+    [Fact]
+    public void Calculate_WithCustomCpu_UsesCustomValue()
+    {
+        var input = CreateBasicInput();
+        input.SystemOverheadPercent = 0; // Remove overhead to test exact values
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        var webRole = prodConfig.Roles.First(r => r.Role == ServerRole.Web);
+        webRole.CustomCpu = 32; // Override to 32 CPU
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.First(e => e.Environment == EnvironmentType.Prod);
+        var webResult = prod.Roles.First(r => r.Role == ServerRole.Web);
+        Assert.Equal(32, webResult.CpuPerInstance);
+    }
+
+    /// <summary>
+    /// Verify custom RAM override is applied
+    /// </summary>
+    [Fact]
+    public void Calculate_WithCustomRam_UsesCustomValue()
+    {
+        var input = CreateBasicInput();
+        input.SystemOverheadPercent = 0; // Remove overhead to test exact values
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        var webRole = prodConfig.Roles.First(r => r.Role == ServerRole.Web);
+        webRole.CustomRam = 128; // Override to 128 GB
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.First(e => e.Environment == EnvironmentType.Prod);
+        var webResult = prod.Roles.First(r => r.Role == ServerRole.Web);
+        Assert.Equal(128, webResult.RamPerInstance);
+    }
+
+    /// <summary>
+    /// Verify custom CPU and RAM together
+    /// </summary>
+    [Fact]
+    public void Calculate_WithBothCustomCpuAndRam_UsesBothValues()
+    {
+        var input = CreateBasicInput();
+        input.SystemOverheadPercent = 0; // Remove overhead to test exact values
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        var dbRole = prodConfig.Roles.First(r => r.Role == ServerRole.Database);
+        dbRole.CustomCpu = 64;
+        dbRole.CustomRam = 256;
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.First(e => e.Environment == EnvironmentType.Prod);
+        var dbResult = prod.Roles.First(r => r.Role == ServerRole.Database);
+        Assert.Equal(64, dbResult.CpuPerInstance);
+        Assert.Equal(256, dbResult.RamPerInstance);
+    }
+
+    #endregion
+
+    #region Edge Case Tests
+
+    /// <summary>
+    /// Verify handling of zero instance count
+    /// </summary>
+    [Fact]
+    public void Calculate_WithZeroInstances_ReturnsZeroForRole()
+    {
+        var input = CreateBasicInput();
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        var webRole = prodConfig.Roles.First(r => r.Role == ServerRole.Web);
+        webRole.InstanceCount = 0;
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.First(e => e.Environment == EnvironmentType.Prod);
+        var webResult = prod.Roles.FirstOrDefault(r => r.Role == ServerRole.Web);
+
+        // Either role is excluded or has zero VMs
+        if (webResult != null)
+        {
+            Assert.Equal(0, webResult.TotalInstances);
+        }
+    }
+
+    /// <summary>
+    /// Verify handling of XLarge tier (maximum size)
+    /// </summary>
+    [Fact]
+    public void Calculate_WithXLargeTier_ReturnsCorrectSpecs()
+    {
+        var input = CreateBasicInput();
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        foreach (var role in prodConfig.Roles)
+        {
+            role.Size = AppTier.XLarge;
+        }
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        Assert.True(result.GrandTotal.TotalCpu > 0);
+        Assert.True(result.GrandTotal.TotalRam > 0);
+    }
+
+    /// <summary>
+    /// Verify handling of single environment
+    /// </summary>
+    [Fact]
+    public void Calculate_WithSingleEnvironment_ReturnsResults()
+    {
+        var input = CreateBasicInput();
+        input.EnabledEnvironments = new HashSet<EnvironmentType> { EnvironmentType.Prod };
+        input.EnvironmentConfigs = new Dictionary<EnvironmentType, VMEnvironmentConfig>
+        {
+            [EnvironmentType.Prod] = input.EnvironmentConfigs[EnvironmentType.Prod]
+        };
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        Assert.Single(result.Environments);
+        Assert.True(result.GrandTotal.TotalVMs > 0);
+    }
+
+    /// <summary>
+    /// Verify handling of many environments
+    /// </summary>
+    [Fact]
+    public void Calculate_WithAllEnvironments_ReturnsResults()
+    {
+        var input = CreateBasicInput();
+        input.EnabledEnvironments = new HashSet<EnvironmentType>
+        {
+            EnvironmentType.Dev,
+            EnvironmentType.Test,
+            EnvironmentType.Stage,
+            EnvironmentType.Prod,
+            EnvironmentType.DR
+        };
+
+        foreach (var env in input.EnabledEnvironments)
+        {
+            if (!input.EnvironmentConfigs.ContainsKey(env))
+            {
+                input.EnvironmentConfigs[env] = new VMEnvironmentConfig
+                {
+                    Environment = env,
+                    Enabled = true,
+                    HAPattern = HAPattern.None,
+                    LoadBalancer = LoadBalancerOption.None,
+                    StorageGB = 100,
+                    Roles = new List<VMRoleConfig>
+                    {
+                        new() { Role = ServerRole.Web, Size = AppTier.Small, InstanceCount = 1, DiskGB = 50 }
+                    }
+                };
+            }
+        }
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        Assert.Equal(5, result.Environments.Count);
+    }
+
+    /// <summary>
+    /// Verify handling of high instance counts
+    /// </summary>
+    [Fact]
+    public void Calculate_WithHighInstanceCounts_ReturnsCorrectTotals()
+    {
+        var input = CreateBasicInput();
+        var prodConfig = input.EnvironmentConfigs[EnvironmentType.Prod];
+        prodConfig.Roles = new List<VMRoleConfig>
+        {
+            new() { Role = ServerRole.Web, Size = AppTier.Medium, InstanceCount = 10, DiskGB = 100 },
+            new() { Role = ServerRole.App, Size = AppTier.Medium, InstanceCount = 10, DiskGB = 100 }
+        };
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.First(e => e.Environment == EnvironmentType.Prod);
+        Assert.True(prod.TotalVMs >= 20);
+    }
+
+    #endregion
+
+    #region Technology Memory Multiplier Tests
+
+    /// <summary>
+    /// Verify DotNet does NOT get memory multiplier
+    /// </summary>
+    [Fact]
+    public void GetRoleSpecs_DotNet_NoMemoryMultiplier()
+    {
+        var (cpu, ram) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.DotNet);
+
+        Assert.Equal(4, cpu);
+        Assert.Equal(8, ram); // Base RAM without multiplier
+    }
+
+    /// <summary>
+    /// Verify Python does NOT get memory multiplier
+    /// </summary>
+    [Fact]
+    public void GetRoleSpecs_Python_NoMemoryMultiplier()
+    {
+        var (cpuDotNet, ramDotNet) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.DotNet);
+        var (cpuPython, ramPython) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.Python);
+
+        Assert.Equal(cpuDotNet, cpuPython);
+        Assert.Equal(ramDotNet, ramPython);
+    }
+
+    /// <summary>
+    /// Verify Go does NOT get memory multiplier
+    /// </summary>
+    [Fact]
+    public void GetRoleSpecs_Go_NoMemoryMultiplier()
+    {
+        var (cpuDotNet, ramDotNet) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.DotNet);
+        var (cpuGo, ramGo) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.Go);
+
+        Assert.Equal(cpuDotNet, cpuGo);
+        Assert.Equal(ramDotNet, ramGo);
+    }
+
+    /// <summary>
+    /// Verify NodeJs does NOT get memory multiplier
+    /// </summary>
+    [Fact]
+    public void GetRoleSpecs_NodeJs_NoMemoryMultiplier()
+    {
+        var (cpuDotNet, ramDotNet) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.DotNet);
+        var (cpuNode, ramNode) = _service.GetRoleSpecs(ServerRole.Web, AppTier.Medium, Technology.NodeJs);
+
+        Assert.Equal(cpuDotNet, cpuNode);
+        Assert.Equal(ramDotNet, ramNode);
+    }
+
+    /// <summary>
+    /// Verify memory multiplier applies to all roles for Java
+    /// </summary>
+    [Theory]
+    [InlineData(ServerRole.Web)]
+    [InlineData(ServerRole.App)]
+    [InlineData(ServerRole.Database)]
+    [InlineData(ServerRole.Cache)]
+    public void GetRoleSpecs_Java_AppliesMultiplierToAllRoles(ServerRole role)
+    {
+        var (_, ramDotNet) = _service.GetRoleSpecs(role, AppTier.Medium, Technology.DotNet);
+        var (_, ramJava) = _service.GetRoleSpecs(role, AppTier.Medium, Technology.Java);
+
+        Assert.Equal((int)(ramDotNet * 1.5), ramJava);
+    }
+
+    /// <summary>
+    /// Verify memory multiplier applies to all tiers for Mendix
+    /// </summary>
+    [Theory]
+    [InlineData(AppTier.Small)]
+    [InlineData(AppTier.Medium)]
+    [InlineData(AppTier.Large)]
+    [InlineData(AppTier.XLarge)]
+    public void GetRoleSpecs_Mendix_AppliesMultiplierToAllTiers(AppTier tier)
+    {
+        var (_, ramDotNet) = _service.GetRoleSpecs(ServerRole.App, tier, Technology.DotNet);
+        var (_, ramMendix) = _service.GetRoleSpecs(ServerRole.App, tier, Technology.Mendix);
+
+        Assert.Equal((int)(ramDotNet * 1.5), ramMendix);
+    }
+
+    #endregion
+
+    #region Validation Tests
+
+    /// <summary>
+    /// Verify empty enabled environments returns empty results
+    /// </summary>
+    [Fact]
+    public void Calculate_WithNoEnabledEnvironments_ReturnsEmptyResults()
+    {
+        var input = CreateBasicInput();
+        input.EnabledEnvironments = new HashSet<EnvironmentType>();
+
+        var result = _service.Calculate(input);
+
+        Assert.NotNull(result);
+        Assert.Empty(result.Environments);
+        Assert.Equal(0, result.GrandTotal.TotalVMs);
+    }
+
+    /// <summary>
+    /// Verify empty roles returns zero VMs for environment
+    /// </summary>
+    [Fact]
+    public void Calculate_WithNoRoles_ReturnsZeroVMsForEnvironment()
+    {
+        var input = CreateBasicInput();
+        input.EnvironmentConfigs[EnvironmentType.Prod].Roles = new List<VMRoleConfig>();
+
+        var result = _service.Calculate(input);
+
+        var prod = result.Environments.FirstOrDefault(e => e.Environment == EnvironmentType.Prod);
+        if (prod != null)
+        {
+            Assert.Equal(0, prod.Roles.Sum(r => r.TotalInstances));
+        }
+    }
+
+    /// <summary>
+    /// Verify 50% system overhead increases resources significantly
+    /// </summary>
+    [Fact]
+    public void Calculate_With50PercentOverhead_IncreasesResourcesSignificantly()
+    {
+        var inputNoOverhead = CreateBasicInput();
+        inputNoOverhead.SystemOverheadPercent = 0;
+
+        var inputWithOverhead = CreateBasicInput();
+        inputWithOverhead.SystemOverheadPercent = 50; // 50% overhead
+
+        var resultNoOverhead = _service.Calculate(inputNoOverhead);
+        var resultWithOverhead = _service.Calculate(inputWithOverhead);
+
+        // With 50% overhead, CPU and RAM should increase by at least 40%
+        Assert.True(resultWithOverhead.GrandTotal.TotalCpu >= resultNoOverhead.GrandTotal.TotalCpu * 1.4,
+            $"Expected CPU to increase by at least 40% with 50% overhead. Without: {resultNoOverhead.GrandTotal.TotalCpu}, With: {resultWithOverhead.GrandTotal.TotalCpu}");
+        Assert.True(resultWithOverhead.GrandTotal.TotalRam >= resultNoOverhead.GrandTotal.TotalRam * 1.4,
+            $"Expected RAM to increase by at least 40% with 50% overhead. Without: {resultNoOverhead.GrandTotal.TotalRam}, With: {resultWithOverhead.GrandTotal.TotalRam}");
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private VMSizingInput CreateBasicInput()

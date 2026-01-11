@@ -1,12 +1,8 @@
 @* Horizontal Accordion Panel - A single expandable panel *@
-@inject IJSRuntime JS
-@implements IAsyncDisposable
 
 <div class="h-accordion-panel @(GetIsExpanded() ? "expanded" : "collapsed") @AdditionalClass"
      style="@GetFlexStyle()">
     <button type="button" class="h-accordion-header"
-            data-accordion-key="@Key"
-            @ref="headerButton"
             @onclick="HandleClick">
         <div class="header-content">
             @if (!string.IsNullOrEmpty(IconClass))
@@ -34,13 +30,7 @@
     }
 </div>
 
-@using InfraSizingCalculator.Services
-
 @code {
-    private string? _registryKey;
-    private System.Threading.Timer? _pollTimer;
-    private bool _isDisposed;
-
     [CascadingParameter] public HorizontalAccordion? ParentAccordion { get; set; }
 
     [Parameter] public string? Key { get; set; }
@@ -72,65 +62,6 @@
     /// </summary>
     [Parameter] public int ExpandedFlex { get; set; } = 1;
 
-    private ElementReference headerButton;
-    private DotNetObjectReference<HorizontalAccordionPanel>? objRef;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            objRef = DotNetObjectReference.Create(this);
-
-            // Register in static helper for test/Playwright workaround
-            if (!string.IsNullOrEmpty(Key))
-            {
-                _registryKey = Key;
-                AccordionInteropHelper.RegisterClickHandler(Key, HandleClick);
-            }
-
-            // Register a native click handler that queues clicks for polling
-            await JS.InvokeVoidAsync("window.registerAccordionClickHandler", Key, objRef);
-
-            // Start polling for pending clicks (workaround for Playwright where JS->NET interop fails)
-            StartPollingForPendingClicks();
-        }
-    }
-
-    private void StartPollingForPendingClicks()
-    {
-        // Poll every 100ms for pending clicks from Playwright
-        _pollTimer = new System.Threading.Timer(async _ =>
-        {
-            if (_isDisposed) return;
-
-            try
-            {
-                await InvokeAsync(async () =>
-                {
-                    if (_isDisposed) return;
-
-                    // Check if there's a pending click specifically for THIS panel's key
-                    var hasPending = await JS.InvokeAsync<bool>("window.hasPendingAccordionClickForKey", Key);
-                    if (hasPending)
-                    {
-                        Console.WriteLine($"[Accordion] Polling found pending click for Key={Key}");
-                        // Consume the pending click before handling (to prevent duplicate handling)
-                        await JS.InvokeVoidAsync("window.consumePendingAccordionClick", Key);
-                        await HandleClick();
-                    }
-                });
-            }
-            catch (ObjectDisposedException)
-            {
-                // Component was disposed, ignore
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Accordion] Polling error: {ex.Message}");
-            }
-        }, null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100));
-    }
-
     private bool GetIsExpanded()
     {
         if (ParentAccordion != null && !string.IsNullOrEmpty(Key))
@@ -159,21 +90,10 @@
         return $"flex: 0 0 {CollapsedWidth};";
     }
 
-    [JSInvokable]
-    public async Task HandleClickFromJS()
-    {
-        await JS.InvokeVoidAsync("console.log", $"[Accordion] HandleClickFromJS called for Key={Key}");
-        await HandleClick();
-    }
-
     private async Task HandleClick()
     {
-        // Debug: Log to browser console to verify event is triggered
-        await JS.InvokeVoidAsync("console.log", $"[Accordion] HandleClick called for Key={Key}, ParentAccordion={ParentAccordion != null}");
-
         if (ParentAccordion != null && !string.IsNullOrEmpty(Key))
         {
-            await JS.InvokeVoidAsync("console.log", $"[Accordion] Calling TogglePanel({Key})");
             await ParentAccordion.TogglePanel(Key);
         }
         else
@@ -181,25 +101,5 @@
             IsExpanded = !IsExpanded;
             await IsExpandedChanged.InvokeAsync(IsExpanded);
         }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        _isDisposed = true;
-
-        // Stop polling timer
-        if (_pollTimer != null)
-        {
-            await _pollTimer.DisposeAsync();
-            _pollTimer = null;
-        }
-
-        // Unregister from static helper
-        if (!string.IsNullOrEmpty(_registryKey))
-        {
-            AccordionInteropHelper.UnregisterClickHandler(_registryKey);
-        }
-
-        objRef?.Dispose();
     }
 }

@@ -248,6 +248,139 @@ Add-ons = Sum(Add-on per-pack price × Number of AO Packs)
 
 ---
 
+## Pricing Examples (EXACT from Partner Calculator Screenshots)
+
+> **Note**: These examples are taken directly from OutSystems Partner Calculator screenshots.
+> All figures are verified from the actual calculator interface.
+
+### Example 1: ODC Deployment (from ODC-Exmp-1.x screenshots)
+
+**Configuration:**
+- Platform: OutSystems Developer Cloud (ODC)
+- AOs: 450 (3 packs)
+- Internal Users: 1,000 (10 packs)
+- External Users: 5,000 (5 packs)
+- Region: Middle East
+
+**Platform & Users (from screenshot):**
+| Item | Screenshot Value |
+|------|-----------------|
+| ODC Platform Base | **$30,250.00** |
+| Application Objects (3 packs) | **$36,300.00** |
+| Internal Users (10 packs) | **$54,450.00** |
+| External Users (5 packs) | **$30,250.00** |
+
+**Add-Ons Total: $148,830.00 (from screenshot)**
+| Add-On | Enabled | Screenshot Value |
+|--------|---------|-----------------|
+| Support 24x7 Extended | Yes | $18,150.00 |
+| Support 24x7 Premium | No | - |
+| AppShield (6,000 users) | Yes | $18,150.00 |
+| High Availability | Yes | $54,450.00 |
+| Non-Production Runtime (×2) | Yes | $36,300.00 |
+| Private Gateway | Yes | $3,630.00 |
+| ODC Sentry | Yes | $18,150.00 |
+
+**Services Total: $67,170.00 (Middle East)**
+| Service | Qty | Screenshot Value |
+|---------|-----|-----------------|
+| Premier Success Plan | 1 | $60,500.00 |
+| Dedicated Group Session | 1 | $3,820.00 |
+| Public Session | 1 | $720.00 |
+| Expert Days | 1 | $2,130.00 |
+
+**Screenshot Totals:**
+- Platform + Users: $151,250.00
+- Add-Ons: $148,830.00
+- Services: $67,170.00
+- **Grand Total: $367,250.00**
+
+---
+
+### Example 2: O11 Cloud Large Enterprise (from O11-Cloud-Exmp-2.x screenshots)
+
+**Configuration:**
+- Platform: OutSystems 11 Cloud
+- AOs: 450 (3 packs)
+- Unlimited Users: Yes
+- AppShield: 15,000,000 users
+- Region: Middle East
+
+**Platform & Users (from screenshot):**
+| Item | Screenshot Value |
+|------|-----------------|
+| Enterprise Edition (Cloud) | **$36,300.00** |
+| Application Objects (3 packs) | **$72,600.00** |
+| Unlimited Users (enabled) | **$181,500.00** |
+
+**Add-Ons Total: $1,721,830.00 (from screenshot)**
+| Add-On | Status | Screenshot Value |
+|--------|--------|-----------------|
+| Support 24x7 Extended | Included | $0 |
+| Support 24x7 Premium | Enabled | $10,890.00 |
+| AppShield (15M users = Tier 19) | Enabled | $1,476,200.00 |
+| High Availability | Included | $0 |
+| Sentry (inc. HA) | Enabled | $72,600.00 |
+| Log Streaming | 1 | $7,260.00 |
+| Non-Production Environment | 1 | $10,890.00 |
+| Load Test Environment | 1 | $18,150.00 |
+| Environment Pack | 1 | $29,040.00 |
+| Disaster Recovery | Self-Managed only | N/A |
+| Database Replica | 1 | $96,800.00 |
+
+**Services Total: $67,170.00 (Middle East)**
+
+**Screenshot Totals:**
+- Platform + Users: $290,400.00
+- Add-Ons: $1,721,830.00
+- Services: $67,170.00
+- **Grand Total: $2,079,400.00**
+
+---
+
+### Example 3: O11 Self-Managed Enterprise (from O11-Self-Managed-Exmp-3.x screenshots)
+
+**Configuration:**
+- Platform: OutSystems 11 Self-Managed
+- AOs: 450 (3 packs)
+- Internal Users: 2,000 (tiered pricing)
+- External Users: 1,000,000 (tiered pricing)
+- AppShield: ~1M users
+- Region: Middle East
+
+**Platform & Users (from screenshot):**
+| Item | Screenshot Value |
+|------|-----------------|
+| Enterprise Edition (Self-Managed) | **$36,300.00** |
+| Application Objects (3 packs) | **$72,600.00** |
+| Internal Users (2,000 - 20 packs, tiered) | **$133,100.00** |
+| External Users (1,000,000 - 1000 packs, tiered) | **$419,567.50** |
+
+**Add-Ons Total: $363,000.00 (from screenshot)**
+| Add-On | Status | Screenshot Value |
+|--------|--------|-----------------|
+| Support 24x7 Extended | Included | $0 |
+| Support 24x7 Premium | Enabled | $10,890.00 |
+| AppShield (1,002,000 users = Tier 6) | Enabled | $275,880.00 |
+| High Availability | Cloud only | N/A |
+| Sentry (inc. HA) | Cloud only | N/A |
+| Log Streaming | Cloud only | N/A |
+| Non-Production Environment | 1 | $10,890.00 |
+| Load Test Environment | Cloud only | N/A |
+| Environment Pack | 1 | $29,040.00 |
+| Disaster Recovery | Enabled | $36,300.00 |
+| Database Replica | Cloud only | N/A |
+
+**Services Total: $67,170.00 (Middle East)**
+
+**Screenshot Totals:**
+- Platform + Users: $661,567.50
+- Add-Ons: $363,000.00
+- Services: $67,170.00
+- **Grand Total: $1,091,737.50**
+
+---
+
 ## Appendix: Source Images Analyzed
 
 | Image | Key Data Extracted |

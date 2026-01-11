@@ -762,7 +762,17 @@ public class DefaultPricingDataTests
 
         // Assert
         pricing.Storage.Should().NotBeNull();
-        pricing.Storage.SsdPerGBMonth.Should().BeGreaterThan(0);
+
+        // OnPrem doesn't have cloud storage costs - pricing comes from hardware TCO
+        if (provider == CloudProvider.OnPrem)
+        {
+            pricing.Storage.SsdPerGBMonth.Should().BeGreaterThanOrEqualTo(0);
+        }
+        else
+        {
+            pricing.Storage.SsdPerGBMonth.Should().BeGreaterThan(0);
+        }
+
         pricing.Storage.HddPerGBMonth.Should().BeGreaterThanOrEqualTo(0);
         pricing.Storage.ObjectStoragePerGBMonth.Should().BeGreaterThanOrEqualTo(0);
         pricing.Storage.BackupPerGBMonth.Should().BeGreaterThanOrEqualTo(0);

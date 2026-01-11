@@ -200,10 +200,10 @@ public class OutSystemsPricingCalculationTests
     }
 
     /// <summary>
-    /// O11 External User tiers should have correct pricing
-    /// Tier 1: 1-10000 users = $4,840/1000
-    /// Tier 2: 11000-250000 users = $1,452/1000
-    /// Tier 3: 251000+ users = $30.25/1000
+    /// O11 External User tiers should have correct pricing per OUTSYSTEMS_PRICING_SPEC.md
+    /// Tier 1: 1,000-10,000 users = $4,840/1000 (packs of 1000)
+    /// Tier 2: 11,000-250,000 users = $1,452/1000
+    /// Tier 3: 251,000+ users = $30.25/1000
     /// </summary>
     [Fact]
     public void O11ExternalUserTiers_HasThreeTiers()
@@ -211,7 +211,7 @@ public class OutSystemsPricingCalculationTests
         Assert.Equal(3, _settings.O11ExternalUserTiers.Count);
 
         var tier1 = _settings.O11ExternalUserTiers[0];
-        Assert.Equal(1, tier1.MinUsers);
+        Assert.Equal(1000, tier1.MinUsers);    // External packs start at 1000 users
         Assert.Equal(10000, tier1.MaxUsers);
         Assert.Equal(4840m, tier1.PricePerPack);
         Assert.Equal(1000, tier1.PackSize);
@@ -1029,6 +1029,221 @@ public class OutSystemsPricingCalculationTests
 
         var total = baseCost + haCost + sentryCost + nonProdCost;
         Assert.Equal(66550m, total);
+    }
+
+    #endregion
+
+    #region Verified Partner Calculator Examples from OUTSYSTEMS_PRICING_SPEC.md
+
+    /// <summary>
+    /// VERIFIED Example 1: ODC (Middle East)
+    /// Source: Partner Calculator screenshots ODC - Exmp 1.1/1.2/1.3.png
+    /// Configuration:
+    /// - Platform: ODC
+    /// - AOs: 450 (3 packs)
+    /// - Internal Users: 1,000 (10 packs)
+    /// - External Users: 5,000 (5 packs)
+    /// - Add-Ons: 24x7 Extended, AppShield, HA, 2 Non-Prod, Private Gateway, Sentry
+    /// - Services: Premier Success, Dedicated Session, Public Session, Expert Day
+    /// - TOTAL: $367,250.00
+    /// </summary>
+    [Fact]
+    public void VerifiedExample1_ODC_MiddleEast_CorrectTotal()
+    {
+        // Section 1-4: License
+        var platformBase = _settings.OdcPlatformBasePrice;                    // $30,250
+        var aoPackCount = 3;
+        var aoPacks = (aoPackCount - 1) * _settings.OdcAOPackPrice;           // 2 × $18,150 = $36,300
+        var internalPacks = 9;  // 1000 users - 100 included = 900 additional / 100 = 9 packs
+        var internalUsers = internalPacks * _settings.OdcInternalUserPackPrice; // 9 × $6,050 = $54,450
+        var externalPacks = 5;  // 5000 users / 1000 = 5 packs
+        var externalUsers = externalPacks * _settings.OdcExternalUserPackPrice; // 5 × $6,050 = $30,250
+
+        var licenseSubtotal = platformBase + aoPacks + internalUsers + externalUsers;
+        Assert.Equal(151250m, licenseSubtotal);
+
+        // Section 5: Add-Ons
+        var support24x7Extended = aoPackCount * _settings.OdcSupport24x7ExtendedPerPack; // 3 × $6,050 = $18,150
+        var appShield = _settings.GetAppShieldPrice(6000);  // 6K users = Tier 1 = $18,150
+        var highAvailability = aoPackCount * _settings.OdcHighAvailabilityPerPack;      // 3 × $18,150 = $54,450
+        var nonProdRuntime = 2 * aoPackCount * _settings.OdcNonProdRuntimePerPack;      // 2 × 3 × $6,050 = $36,300
+        var privateGateway = aoPackCount * _settings.OdcPrivateGatewayPerPack;          // 3 × $1,210 = $3,630
+        var sentry = aoPackCount * _settings.OdcSentryPerPack;                          // 3 × $6,050 = $18,150
+
+        var addOnsSubtotal = support24x7Extended + appShield + highAvailability + nonProdRuntime + privateGateway + sentry;
+        Assert.Equal(148830m, addOnsSubtotal);
+
+        // Section 6: Services (Middle East)
+        var servicesPricing = _settings.GetServicesPricing(OutSystemsRegion.MiddleEast);
+        var premierSuccess = servicesPricing.PremierSuccessPlan;                // $60,500
+        var dedicatedSession = servicesPricing.DedicatedGroupSession;           // $3,820
+        var publicSession = servicesPricing.PublicSession;                      // $720
+        var expertDay = servicesPricing.ExpertDay;                              // $2,130
+
+        var servicesSubtotal = premierSuccess + dedicatedSession + publicSession + expertDay;
+        Assert.Equal(67170m, servicesSubtotal);
+
+        // TOTAL
+        var total = licenseSubtotal + addOnsSubtotal + servicesSubtotal;
+        Assert.Equal(367250m, total);
+    }
+
+    /// <summary>
+    /// VERIFIED Example 2: O11 Cloud (Middle East)
+    /// Source: Partner Calculator screenshots O11 Cloud - Exmp 2.1/2.2/2.3.png
+    /// Configuration:
+    /// - Platform: O11 Enterprise Cloud
+    /// - AOs: 450 (3 packs)
+    /// - Users: Unlimited
+    /// - AppShield: 15,000,000 users (Tier 19)
+    /// - Add-Ons: 24x7 Premium, Sentry, Log Streaming, 1 Non-Prod, Load Test, Env Pack, DB Replica
+    /// - Services: Premier Success, Dedicated Session, Public Session, Expert Day
+    /// - TOTAL: $2,079,400.00
+    /// </summary>
+    [Fact]
+    public void VerifiedExample2_O11Cloud_MiddleEast_CorrectTotal()
+    {
+        // Section 1-4: License
+        var platformBase = _settings.O11EnterpriseBasePrice;                  // $36,300
+        var aoPackCount = 3;
+        var aoPacks = (aoPackCount - 1) * _settings.O11AOPackPrice;           // 2 × $36,300 = $72,600
+        var unlimitedUsers = aoPackCount * _settings.UnlimitedUsersPerAOPack; // 3 × $60,500 = $181,500
+
+        var licenseSubtotal = platformBase + aoPacks + unlimitedUsers;
+        Assert.Equal(290400m, licenseSubtotal);
+
+        // Section 5: Add-Ons
+        var support24x7Premium = aoPackCount * _settings.O11Support24x7PremiumPerPack; // 3 × $3,630 = $10,890
+        var appShield = _settings.GetAppShieldPrice(15000000);  // 15M users = Tier 19 = $1,476,200
+        Assert.Equal(1476200m, appShield);
+        var sentry = aoPackCount * _settings.O11SentryPerPack;                         // 3 × $24,200 = $72,600
+        var logStreaming = _settings.O11LogStreamingFlat;                              // $7,260 flat
+        var nonProdEnv = aoPackCount * _settings.O11NonProdEnvPerPack;                 // 3 × $3,630 = $10,890
+        var loadTestEnv = aoPackCount * _settings.O11LoadTestEnvPerPack;               // 3 × $6,050 = $18,150
+        var envPack = aoPackCount * _settings.O11EnvironmentPackPerPack;               // 3 × $9,680 = $29,040
+        var dbReplica = _settings.O11DatabaseReplicaFlat;                              // $96,800 flat
+
+        var addOnsSubtotal = support24x7Premium + appShield + sentry + logStreaming + nonProdEnv + loadTestEnv + envPack + dbReplica;
+        Assert.Equal(1721830m, addOnsSubtotal);
+
+        // Section 6: Services (Middle East)
+        var servicesPricing = _settings.GetServicesPricing(OutSystemsRegion.MiddleEast);
+        var servicesSubtotal = servicesPricing.PremierSuccessPlan + servicesPricing.DedicatedGroupSession
+                             + servicesPricing.PublicSession + servicesPricing.ExpertDay;
+        Assert.Equal(67170m, servicesSubtotal);
+
+        // TOTAL
+        var total = licenseSubtotal + addOnsSubtotal + servicesSubtotal;
+        Assert.Equal(2079400m, total);
+    }
+
+    /// <summary>
+    /// VERIFIED Example 3: O11 Self-Managed (Middle East)
+    /// Source: Partner Calculator screenshots O11 Self-Managed - Exmp 3.1/3.2/3.3.png
+    /// Configuration:
+    /// - Platform: O11 Enterprise Self-Managed
+    /// - AOs: 450 (3 packs)
+    /// - Internal Users: 2,000 (tiered pricing)
+    /// - External Users: 1,000,000 (tiered pricing)
+    /// - AppShield: 1,002,000 users (Tier 6)
+    /// - Add-Ons: 24x7 Premium, 1 Non-Prod, Env Pack, Disaster Recovery
+    /// - Services: Premier Success, Dedicated Session, Public Session, Expert Day
+    /// - TOTAL: $1,091,737.50
+    /// </summary>
+    [Fact]
+    public void VerifiedExample3_O11SelfManaged_MiddleEast_CorrectTotal()
+    {
+        // Section 1-4: License
+        var platformBase = _settings.O11EnterpriseBasePrice;         // $36,300
+        var aoPackCount = 3;
+        var aoPacks = (aoPackCount - 1) * _settings.O11AOPackPrice;  // 2 × $36,300 = $72,600
+
+        // Internal Users: 2,000 with tiered pricing
+        // Base: 100 users included = $0
+        // Tier 1 (200-1000): 900 users = 9 packs × $12,100 = $108,900
+        // Tier 2 (1100-10000): 1000 users = 10 packs × $2,420 = $24,200
+        // Total: $133,100
+        var internalUsersCost = 133100m;
+
+        // External Users: 1,000,000 with tiered pricing
+        // Tier 1 (1-10000): 10,000 users = 10 packs × $4,840 = $48,400
+        // Tier 2 (11000-250000): 240,000 users = 240 packs × $1,452 = $348,480
+        // Tier 3 (251000+): 750,000 users = 750 packs × $30.25 = $22,687.50
+        // Total: $419,567.50
+        var externalUsersCost = 419567.50m;
+
+        var licenseSubtotal = platformBase + aoPacks + internalUsersCost + externalUsersCost;
+        Assert.Equal(661567.50m, licenseSubtotal);
+
+        // Section 5: Add-Ons
+        var support24x7Premium = aoPackCount * _settings.O11Support24x7PremiumPerPack; // 3 × $3,630 = $10,890
+        var appShield = _settings.GetAppShieldPrice(1002000);  // 1,002,000 users = Tier 6 = $275,880
+        Assert.Equal(275880m, appShield);
+        var nonProdEnv = aoPackCount * _settings.O11NonProdEnvPerPack;                 // 3 × $3,630 = $10,890
+        var envPack = aoPackCount * _settings.O11EnvironmentPackPerPack;               // 3 × $9,680 = $29,040
+        var disasterRecovery = aoPackCount * _settings.O11DisasterRecoveryPerPack;     // 3 × $12,100 = $36,300
+
+        var addOnsSubtotal = support24x7Premium + appShield + nonProdEnv + envPack + disasterRecovery;
+        Assert.Equal(363000m, addOnsSubtotal);
+
+        // Section 6: Services (Middle East)
+        var servicesPricing = _settings.GetServicesPricing(OutSystemsRegion.MiddleEast);
+        var servicesSubtotal = servicesPricing.PremierSuccessPlan + servicesPricing.DedicatedGroupSession
+                             + servicesPricing.PublicSession + servicesPricing.ExpertDay;
+        Assert.Equal(67170m, servicesSubtotal);
+
+        // TOTAL
+        var total = licenseSubtotal + addOnsSubtotal + servicesSubtotal;
+        Assert.Equal(1091737.50m, total);
+    }
+
+    /// <summary>
+    /// Verify O11 Internal User tiered pricing calculation
+    /// 2,000 users should cost $133,100 based on spec
+    /// </summary>
+    [Fact]
+    public void VerifiedO11InternalUserTieredPricing_2000Users()
+    {
+        // Base: 100 users included = $0
+        // Tier 1 (200-1000): 900 users = 9 packs × $12,100 = $108,900
+        // Tier 2 (1100-10000): 1000 users = 10 packs × $2,420 = $24,200
+        // Total: $133,100
+
+        var tier1 = _settings.O11InternalUserTiers[0];
+        var tier2 = _settings.O11InternalUserTiers[1];
+
+        var tier1Cost = 9 * tier1.PricePerPack;  // 900 users / 100 per pack = 9 packs
+        var tier2Cost = 10 * tier2.PricePerPack; // 1000 users / 100 per pack = 10 packs
+
+        Assert.Equal(108900m, tier1Cost);
+        Assert.Equal(24200m, tier2Cost);
+        Assert.Equal(133100m, tier1Cost + tier2Cost);
+    }
+
+    /// <summary>
+    /// Verify O11 External User tiered pricing calculation
+    /// 1,000,000 users should cost $419,567.50 based on spec
+    /// </summary>
+    [Fact]
+    public void VerifiedO11ExternalUserTieredPricing_1MUsers()
+    {
+        // Tier 1 (1-10000): 10,000 users = 10 packs × $4,840 = $48,400
+        // Tier 2 (11000-250000): 240,000 users = 240 packs × $1,452 = $348,480
+        // Tier 3 (251000+): 750,000 users = 750 packs × $30.25 = $22,687.50
+        // Total: $419,567.50
+
+        var tier1 = _settings.O11ExternalUserTiers[0];
+        var tier2 = _settings.O11ExternalUserTiers[1];
+        var tier3 = _settings.O11ExternalUserTiers[2];
+
+        var tier1Cost = 10 * tier1.PricePerPack;   // 10,000 users / 1000 per pack
+        var tier2Cost = 240 * tier2.PricePerPack;  // 240,000 users / 1000 per pack
+        var tier3Cost = 750 * tier3.PricePerPack;  // 750,000 users / 1000 per pack
+
+        Assert.Equal(48400m, tier1Cost);
+        Assert.Equal(348480m, tier2Cost);
+        Assert.Equal(22687.50m, tier3Cost);
+        Assert.Equal(419567.50m, tier1Cost + tier2Cost + tier3Cost);
     }
 
     #endregion

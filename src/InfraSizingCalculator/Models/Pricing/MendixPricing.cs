@@ -60,19 +60,29 @@ public enum MendixResourcePackTier
 
 /// <summary>
 /// Mendix Cloud Resource Pack sizes
+/// Verified from Mendix Deployment Options PriceBook (June 2025)
 /// </summary>
 public enum MendixResourcePackSize
 {
+    // Standard compute sizes
     XS,
     S,
     M,
     L,
     XL,
-    XXL,    // Only for Premium Plus
-    TwoXL,  // 2XL
-    ThreeXL, // 3XL
-    FourXL,  // 4XL
-    FourXL_5XLDB // 4XL with 5XL Database
+    XXL,
+    XXXL,
+    FourXL,
+
+    // DB-enhanced sizes (compute + enhanced database)
+    XS_SDB,      // XS with Small DB
+    S_MDB,       // S with Medium DB
+    M_LDB,       // M with Large DB
+    L_XLDB,      // L with XL DB
+    XL_XXLDB,    // XL with XXL DB
+    XXL_XXXLDB,  // XXL with XXXL DB
+    XXXL_4XLDB,  // XXXL with 4XL DB
+    FourXL_5XLDB // 4XL with 5XL DB
 }
 
 /// <summary>
@@ -141,45 +151,73 @@ public class MendixPricingSettings
 
     /// <summary>
     /// Standard Resource Packs (99.5% SLA)
+    /// Verified from Mendix Deployment Options PriceBook (June 2025)
     /// </summary>
     public List<MendixResourcePackSpec> StandardResourcePacks { get; set; } = new()
     {
+        // Compute-only sizes
         new() { Size = MendixResourcePackSize.XS, DisplayName = "XS", MxMemoryGB = 1, MxVCpu = 0.25m, DbMemoryGB = 1, DbVCpu = 2, DbStorageGB = 5, FileStorageGB = 10, PricePerYear = 516, CloudTokens = 10, UptimeSla = 99.5m },
         new() { Size = MendixResourcePackSize.S, DisplayName = "S", MxMemoryGB = 2, MxVCpu = 0.5m, DbMemoryGB = 2, DbVCpu = 2, DbStorageGB = 10, FileStorageGB = 20, PricePerYear = 1032, CloudTokens = 20, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.M, DisplayName = "M", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 40, PricePerYear = 2064, CloudTokens = 40, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.L, DisplayName = "L", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 80, PricePerYear = 4128, CloudTokens = 80, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.XL, DisplayName = "XL", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 160, PricePerYear = 8256, CloudTokens = 160, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.TwoXL, DisplayName = "2XL", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 320, PricePerYear = 16512, CloudTokens = 320, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.ThreeXL, DisplayName = "3XL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 33024, CloudTokens = 640, UptimeSla = 99.5m },
-        new() { Size = MendixResourcePackSize.FourXL, DisplayName = "4XL", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 1280, PricePerYear = 66048, CloudTokens = 1280, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.M, DisplayName = "M", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 40, PricePerYear = 2580, CloudTokens = 50, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.L, DisplayName = "L", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 80, PricePerYear = 5160, CloudTokens = 100, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XL, DisplayName = "XL", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 160, PricePerYear = 10320, CloudTokens = 200, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XXL, DisplayName = "XXL", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 320, PricePerYear = 20640, CloudTokens = 400, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XXXL, DisplayName = "XXXL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 41280, CloudTokens = 800, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.FourXL, DisplayName = "4XL", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 1280, PricePerYear = 82560, CloudTokens = 1600, UptimeSla = 99.5m },
+
+        // DB-enhanced sizes (compute + enhanced database)
+        new() { Size = MendixResourcePackSize.XS_SDB, DisplayName = "XS-SDB", MxMemoryGB = 1, MxVCpu = 0.25m, DbMemoryGB = 2, DbVCpu = 2, DbStorageGB = 10, FileStorageGB = 10, PricePerYear = 1032, CloudTokens = 20, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.S_MDB, DisplayName = "S-MDB", MxMemoryGB = 2, MxVCpu = 0.5m, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 20, PricePerYear = 2580, CloudTokens = 50, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.M_LDB, DisplayName = "M-LDB", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 40, PricePerYear = 5160, CloudTokens = 100, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.L_XLDB, DisplayName = "L-XLDB", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 80, PricePerYear = 10320, CloudTokens = 200, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XL_XXLDB, DisplayName = "XL-XXLDB", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 160, PricePerYear = 20640, CloudTokens = 400, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XXL_XXXLDB, DisplayName = "XXL-XXXLDB", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 320, PricePerYear = 41280, CloudTokens = 800, UptimeSla = 99.5m },
+        new() { Size = MendixResourcePackSize.XXXL_4XLDB, DisplayName = "XXXL-4XLDB", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 640, PricePerYear = 82560, CloudTokens = 1600, UptimeSla = 99.5m },
         new() { Size = MendixResourcePackSize.FourXL_5XLDB, DisplayName = "4XL-5XLDB", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 256, DbVCpu = 32, DbStorageGB = 1280, FileStorageGB = 1280, PricePerYear = 115584, CloudTokens = 2240, UptimeSla = 99.5m }
     };
 
     /// <summary>
     /// Premium Resource Packs (99.95% SLA + Fallback)
+    /// Verified from Mendix Deployment Options PriceBook (June 2025)
     /// </summary>
     public List<MendixResourcePackSpec> PremiumResourcePacks { get; set; } = new()
     {
+        // Compute-only sizes
         new() { Size = MendixResourcePackSize.S, DisplayName = "S", MxMemoryGB = 2, MxVCpu = 0.5m, DbMemoryGB = 2, DbVCpu = 2, DbStorageGB = 10, FileStorageGB = 20, PricePerYear = 1548, CloudTokens = 30, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.M, DisplayName = "M", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 40, PricePerYear = 3096, CloudTokens = 60, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.L, DisplayName = "L", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 80, PricePerYear = 6192, CloudTokens = 120, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.XL, DisplayName = "XL", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 160, PricePerYear = 12384, CloudTokens = 240, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.TwoXL, DisplayName = "2XL", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 320, PricePerYear = 24768, CloudTokens = 480, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.ThreeXL, DisplayName = "3XL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 49536, CloudTokens = 960, UptimeSla = 99.95m, HasFallback = true },
-        new() { Size = MendixResourcePackSize.FourXL, DisplayName = "4XL", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 1280, PricePerYear = 99072, CloudTokens = 1920, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.M, DisplayName = "M", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 40, PricePerYear = 3870, CloudTokens = 75, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.L, DisplayName = "L", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 80, PricePerYear = 7740, CloudTokens = 150, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XL, DisplayName = "XL", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 160, PricePerYear = 15480, CloudTokens = 300, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XXL, DisplayName = "XXL", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 320, PricePerYear = 30960, CloudTokens = 600, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XXXL, DisplayName = "XXXL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 61920, CloudTokens = 1200, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.FourXL, DisplayName = "4XL", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 1280, PricePerYear = 123840, CloudTokens = 2400, UptimeSla = 99.95m, HasFallback = true },
+
+        // DB-enhanced sizes (compute + enhanced database)
+        new() { Size = MendixResourcePackSize.S_MDB, DisplayName = "S-MDB", MxMemoryGB = 2, MxVCpu = 0.5m, DbMemoryGB = 4, DbVCpu = 2, DbStorageGB = 20, FileStorageGB = 20, PricePerYear = 3870, CloudTokens = 75, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.M_LDB, DisplayName = "M-LDB", MxMemoryGB = 4, MxVCpu = 1, DbMemoryGB = 8, DbVCpu = 2, DbStorageGB = 40, FileStorageGB = 40, PricePerYear = 7740, CloudTokens = 150, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.L_XLDB, DisplayName = "L-XLDB", MxMemoryGB = 8, MxVCpu = 2, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 80, PricePerYear = 15480, CloudTokens = 300, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XL_XXLDB, DisplayName = "XL-XXLDB", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 160, PricePerYear = 30960, CloudTokens = 600, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XXL_XXXLDB, DisplayName = "XXL-XXXLDB", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 320, PricePerYear = 61920, CloudTokens = 1200, UptimeSla = 99.95m, HasFallback = true },
+        new() { Size = MendixResourcePackSize.XXXL_4XLDB, DisplayName = "XXXL-4XLDB", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 640, PricePerYear = 123840, CloudTokens = 2400, UptimeSla = 99.95m, HasFallback = true },
         new() { Size = MendixResourcePackSize.FourXL_5XLDB, DisplayName = "4XL-5XLDB", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 256, DbVCpu = 32, DbStorageGB = 1280, FileStorageGB = 1280, PricePerYear = 173376, CloudTokens = 3360, UptimeSla = 99.95m, HasFallback = true }
     };
 
     /// <summary>
     /// Premium Plus Resource Packs (99.95% SLA + Fallback + Multi-region Failover)
+    /// Verified from Mendix Deployment Options PriceBook (June 2025)
     /// </summary>
     public List<MendixResourcePackSpec> PremiumPlusResourcePacks { get; set; } = new()
     {
+        // Compute-only sizes (start at XL for Premium Plus)
         new() { Size = MendixResourcePackSize.XL, DisplayName = "XL", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 16, DbVCpu = 4, DbStorageGB = 80, FileStorageGB = 160, PricePerYear = 20640, CloudTokens = 400, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
         new() { Size = MendixResourcePackSize.XXL, DisplayName = "XXL", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 320, PricePerYear = 41280, CloudTokens = 800, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
-        new() { Size = MendixResourcePackSize.ThreeXL, DisplayName = "3XL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 82560, CloudTokens = 1600, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
+        new() { Size = MendixResourcePackSize.XXXL, DisplayName = "XXXL", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 640, PricePerYear = 82560, CloudTokens = 1600, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
         new() { Size = MendixResourcePackSize.FourXL, DisplayName = "4XL", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 1280, PricePerYear = 165120, CloudTokens = 3200, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
-        new() { Size = MendixResourcePackSize.FourXL_5XLDB, DisplayName = "4XL-5XLDB", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 128, DbVCpu = 32, DbStorageGB = 1280, FileStorageGB = 1280, PricePerYear = 288960, CloudTokens = 5600, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true }
+
+        // DB-enhanced sizes
+        new() { Size = MendixResourcePackSize.XL_XXLDB, DisplayName = "XL-XXLDB", MxMemoryGB = 16, MxVCpu = 4, DbMemoryGB = 32, DbVCpu = 4, DbStorageGB = 160, FileStorageGB = 160, PricePerYear = 41280, CloudTokens = 800, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
+        new() { Size = MendixResourcePackSize.XXL_XXXLDB, DisplayName = "XXL-XXXLDB", MxMemoryGB = 32, MxVCpu = 8, DbMemoryGB = 64, DbVCpu = 8, DbStorageGB = 320, FileStorageGB = 320, PricePerYear = 82560, CloudTokens = 1600, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
+        new() { Size = MendixResourcePackSize.XXXL_4XLDB, DisplayName = "XXXL-4XLDB", MxMemoryGB = 64, MxVCpu = 16, DbMemoryGB = 128, DbVCpu = 16, DbStorageGB = 640, FileStorageGB = 640, PricePerYear = 165120, CloudTokens = 3200, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true },
+        new() { Size = MendixResourcePackSize.FourXL_5XLDB, DisplayName = "4XL-5XLDB", MxMemoryGB = 128, MxVCpu = 32, DbMemoryGB = 256, DbVCpu = 32, DbStorageGB = 1280, FileStorageGB = 1280, PricePerYear = 288960, CloudTokens = 5600, UptimeSla = 99.95m, HasFallback = true, HasMultiRegionFailover = true }
     };
 
     /// <summary>
@@ -217,13 +255,18 @@ public class MendixPricingSettings
 
     /// <summary>
     /// Mendix on Kubernetes - Environment tier pricing
+    /// Per MENDIX_PRICING_SPEC.md - tiers based on TOTAL environment number:
+    /// - Tier 1: environments 4-50 (47 environments at $552)
+    /// - Tier 2: environments 51-100 (50 environments at $408)
+    /// - Tier 3: environments 101-150 (50 environments at $240)
+    /// - Tier 4: environments 151+ (free)
     /// </summary>
     public List<MendixK8sEnvironmentTier> K8sEnvironmentTiers { get; set; } = new()
     {
-        new() { MinEnvironments = 1, MaxEnvironments = 50, PricePerEnvironment = 552m, Description = "Up to 50 environments" },
-        new() { MinEnvironments = 51, MaxEnvironments = 100, PricePerEnvironment = 408m, Description = "51 to 100 environments" },
-        new() { MinEnvironments = 101, MaxEnvironments = 150, PricePerEnvironment = 240m, Description = "101 to 150 environments" },
-        new() { MinEnvironments = 151, MaxEnvironments = -1, PricePerEnvironment = 0m, Description = "From 151+ (Free)" }
+        new() { MinEnvironments = 4, MaxEnvironments = 50, PricePerEnvironment = 552m, Description = "Environments 4-50" },
+        new() { MinEnvironments = 51, MaxEnvironments = 100, PricePerEnvironment = 408m, Description = "Environments 51-100" },
+        new() { MinEnvironments = 101, MaxEnvironments = 150, PricePerEnvironment = 240m, Description = "Environments 101-150" },
+        new() { MinEnvironments = 151, MaxEnvironments = -1, PricePerEnvironment = 0m, Description = "Environments 151+ (Free)" }
     };
 
     // ==================== MENDIX ON SERVER (VMs/Docker) ====================
@@ -309,35 +352,44 @@ public class MendixPricingSettings
     // ==================== HELPER METHODS ====================
 
     /// <summary>
-    /// Calculate K8s environment cost based on tiered pricing
+    /// Calculate K8s environment cost based on tiered pricing.
+    /// Tiers are based on TOTAL environment count (not additional):
+    /// - Environments 1-3: Included (free)
+    /// - Environments 4-50: Tier 1 ($552/env)
+    /// - Environments 51-100: Tier 2 ($408/env)
+    /// - Environments 101-150: Tier 3 ($240/env)
+    /// - Environments 151+: Tier 4 (free)
     /// </summary>
     public decimal CalculateK8sEnvironmentCost(int totalEnvironments)
     {
         if (totalEnvironments <= K8sBaseEnvironmentsIncluded)
             return 0;
 
-        int additionalEnvs = totalEnvironments - K8sBaseEnvironmentsIncluded;
         decimal totalCost = 0;
-        int remaining = additionalEnvs;
+        int firstBillableEnv = K8sBaseEnvironmentsIncluded + 1; // Environment 4
 
         foreach (var tier in K8sEnvironmentTiers.OrderBy(t => t.MinEnvironments))
         {
-            if (remaining <= 0) break;
+            // Skip tiers entirely before our billable range
+            if (tier.MaxEnvironments != -1 && tier.MaxEnvironments < firstBillableEnv)
+                continue;
 
-            int tierCapacity = tier.MaxEnvironments == -1
-                ? remaining
-                : Math.Min(tier.MaxEnvironments - tier.MinEnvironments + 1, remaining);
+            // Skip tiers entirely after our total
+            if (tier.MinEnvironments > totalEnvironments)
+                break;
 
-            // Adjust for first tier starting at 1
-            if (tier.MinEnvironments == 1)
-                tierCapacity = Math.Min(50, remaining);
-            else if (tier.MinEnvironments == 51)
-                tierCapacity = Math.Min(50, remaining);
-            else if (tier.MinEnvironments == 101)
-                tierCapacity = Math.Min(50, remaining);
+            // Calculate how many environments fall into this tier
+            int tierStart = Math.Max(tier.MinEnvironments, firstBillableEnv);
+            int tierEnd = tier.MaxEnvironments == -1
+                ? totalEnvironments
+                : Math.Min(tier.MaxEnvironments, totalEnvironments);
 
-            totalCost += tierCapacity * tier.PricePerEnvironment;
-            remaining -= tierCapacity;
+            int envsInTier = tierEnd - tierStart + 1;
+
+            if (envsInTier > 0)
+            {
+                totalCost += envsInTier * tier.PricePerEnvironment;
+            }
         }
 
         return totalCost;

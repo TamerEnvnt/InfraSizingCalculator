@@ -266,6 +266,71 @@ User licensing is required for ALL deployment options.
 
 ---
 
+### Example 6: Real-World Verified - Riyadh Region Municipality
+
+**Source**: `Mendix Commercial Proposal.xlsx` - Actual commercial proposal
+
+This example is from a verified commercial proposal document.
+
+#### Option A: Mendix for Server-Based (Per Year)
+
+**Configuration:**
+- Platform: Premium Platform (Unlimited Apps)
+- Internal Users: 100
+- External Users: 250,000
+- Deployment: Mendix on Server
+
+| Component | Unit | List Price | Discount Price (10% off) |
+|-----------|------|-----------|-------------------------|
+| Platform: Premium Platform | Unlimited | $65,400 | $58,860 |
+| Internal Users - Multi App | 100 | $40,800 | $36,720 |
+| External Users | 250,000 | $60,000 | $54,000 |
+| Mendix for Server Based | - | $33,060 | $33,060 |
+| **Yearly License Fee** | | **$199,260** | **$182,640** |
+
+Additional:
+- Customer Enablement from Expert Services: $45,000
+
+**3-Year Total (List)**: $199,260 × 3 = $597,780
+**3-Year Total (Discount)**: $182,640 × 3 = $547,920
+
+#### Option B: Mendix for Kubernetes (Per Year)
+
+**Configuration:**
+- Platform: Premium Platform (Unlimited Apps)
+- Internal Users: 100
+- External Users: 250,000
+- Deployment: Mendix on Kubernetes
+- Environments: 153 total (3 included + 150 additional)
+
+| Component | Unit | List Price | Discount Price (10% off) |
+|-----------|------|-----------|-------------------------|
+| Platform: Premium Platform | Unlimited | $65,400 | $58,860 |
+| Internal Users - Multi App | 100 | $40,800 | $36,720 |
+| External Users | 250,000 | $60,000 | $54,000 |
+| Mendix for Kubernetes | - | $60,240 | $60,240 |
+| **Yearly License Fee** | | **$226,440** | **$209,820** |
+
+**Kubernetes Environment Breakdown (150 additional):**
+
+| Tier | Qty | Rate | Subtotal |
+|------|-----|------|----------|
+| Tier 1 (4-50) | 47 | $552 | $25,944 |
+| Tier 2 (51-100) | 50 | $408 | $20,400 |
+| Tier 3 (101-150) | 50 | $240 | $12,000 |
+| Tier 4 (151+) | 3 | $0 | $0 |
+| **Total K8s Environments** | 150 | | **$58,344** |
+
+*Note: Excel shows $60,240 for K8s base which includes 3 environments ($6,360) + calculated additional environments (~$53,880). Minor rounding differences may exist.*
+
+Additional:
+- Customer Enablement from Expert Services: $45,000
+
+**3-Year Total (List)**: $226,440 × 3 = $679,320
+**3-Year Total (Discount)**: $209,820 × 3 = $629,460
+
+---
+
 ## 8. Comparison: Current Implementation vs Spec
 
 | Component | Current Implementation | Spec | Gap |

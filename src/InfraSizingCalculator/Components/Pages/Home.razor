@@ -24,7 +24,7 @@
 @using InfraSizingCalculator.Models.Pricing
 @using InfraSizingCalculator.Models.Growth
 @using InfraSizingCalculator.Helpers
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Infrastructure Sizing Calculator</PageTitle>
 
@@ -1886,17 +1886,17 @@
     <div class="wizard-footer">
         @if (currentStep >= GetResultsStep())
         {
-            <button class="btn-nav" @onclick="BackToPricing">
+            <button class="btn-nav" @onclick="() => BackToPricing()">
                 ← Back to Pricing
             </button>
             <span class="step-indicator">Results</span>
-            <button class="btn-nav primary" @onclick="StartNewCalculation">
+            <button class="btn-nav primary" @onclick="() => StartNewCalculation()">
                 New Calculation
             </button>
         }
         else
         {
-            <button class="btn-nav" @onclick="PreviousStep" disabled="@(currentStep == 1)">
+            <button class="btn-nav" @onclick="() => PreviousStepAsync()" disabled="@(currentStep == 1)">
                 Back
             </button>
             <span class="step-indicator">Step @currentStep of @GetTotalSteps()</span>
@@ -3773,23 +3773,23 @@
         }
     }
 
-    private void PreviousStep()
+    private async Task PreviousStepAsync()
     {
         if (currentStep > 1)
         {
             currentStep--;
             results = null;
         }
+        StateHasChanged();
+        await Task.Delay(1); // Yield to allow render batch to flush
     }
 
-    private async Task NextStep()
+    private void NextStep()
     {
         if (!CanProceed()) return;
 
         if (IsLastStep())
         {
-            // Go to results step (varies by deployment/technology)
-            // K8s: step 7, Mendix VMs: step 7, OutSystems VMs: step 6
             currentStep = GetResultsStep();
         }
         else
@@ -3797,17 +3797,146 @@
             // Calculate at appropriate steps
             if (selectedDeployment == DeploymentModel.Kubernetes && currentStep == 5)
             {
-                // K8s: Calculate before going to pricing step
-                await CalculateK8s();
+                CalculateK8sSync();
             }
             else if (selectedDeployment == DeploymentModel.VMs && currentStep == GetConfigStep())
             {
-                // VMs: Calculate when leaving config step (step 4 for non-Mendix, step 5 for Mendix)
-                await CalculateVM();
+                CalculateVMSync();
             }
             currentStep++;
         }
         StateHasChanged();
+    }
+
+    // Synchronous version for NextStep
+    private void CalculateVMSync()
+    {
+        if (selectedTechnology == null) return;
+
+        var input = new VMSizingInput
+        {
+            Technology = selectedTechnology.Value,
+            EnabledEnvironments = enabledEnvironments,
+            EnvironmentConfigs = vmEnvironmentConfigs,
+            SystemOverheadPercent = vmSystemOverhead
+        };
+
+        vmResults = VMSizingService.Calculate(input);
+        vmValidationWarnings = ValidationService.Analyze(vmResults, input);
+        vmCostEstimate = null;
+        vmResultsTab = "sizing";
+    }
+
+    // Synchronous K8s calculation for NextStep
+    private void CalculateK8sSync()
+    {
+        if (selectedDistribution == null || selectedTechnology == null || selectedClusterMode == null) return;
+
+        var effectiveClusterMode = selectedClusterMode.Value;
+        var effectiveEnabledEnvs = enabledEnvironments;
+
+        if (IsSingleClusterMode())
+        {
+            if (singleClusterScope == "Shared")
+            {
+                effectiveClusterMode = ClusterMode.SharedCluster;
+            }
+            else
+            {
+                effectiveClusterMode = ClusterMode.PerEnvironment;
+                var singleEnv = GetSingleClusterEnvironment();
+                effectiveEnabledEnvs = new HashSet<EnvironmentType> { singleEnv };
+            }
+        }
+
+        var input = new K8sSizingInput
+        {
+            Distribution = selectedDistribution.Value,
+            Technology = selectedTechnology.Value,
+            ClusterMode = effectiveClusterMode,
+            SelectedEnvironment = singleClusterScope != "Shared" ? GetSingleClusterEnvironment() : EnvironmentType.Prod,
+            EnvironmentApps = new Dictionary<EnvironmentType, AppConfig>(envApps),
+            ProdApps = envApps.GetValueOrDefault(EnvironmentType.Prod, new AppConfig { Medium = 70 }),
+            NonProdApps = envApps.GetValueOrDefault(EnvironmentType.Dev, new AppConfig { Medium = 70 }),
+            EnabledEnvironments = effectiveEnabledEnvs,
+            EnableHeadroom = true,
+            Headroom = new HeadroomSettings
+            {
+                Dev = headroom.GetValueOrDefault(EnvironmentType.Dev, 33),
+                Test = headroom.GetValueOrDefault(EnvironmentType.Test, 33),
+                Stage = headroom.GetValueOrDefault(EnvironmentType.Stage, 0),
+                Prod = headroom.GetValueOrDefault(EnvironmentType.Prod, 37.5),
+                DR = headroom.GetValueOrDefault(EnvironmentType.DR, 37.5)
+            },
+            Replicas = new ReplicaSettings
+            {
+                NonProd = replicas.GetValueOrDefault(EnvironmentType.Dev, 1),
+                Stage = replicas.GetValueOrDefault(EnvironmentType.Stage, 2),
+                Prod = replicas.GetValueOrDefault(EnvironmentType.Prod, 3)
+            },
+            ProdOvercommit = new OvercommitSettings { Cpu = prodCpuOvercommit, Memory = prodMemoryOvercommit },
+            NonProdOvercommit = new OvercommitSettings { Cpu = nonProdCpuOvercommit, Memory = nonProdMemoryOvercommit },
+            HADRConfig = k8sHADRConfig
+        };
+
+        if (selectedDistribution != null)
+        {
+            var distroConfig = DistributionService.GetConfig(selectedDistribution.Value);
+            Dictionary<EnvironmentType, NodeSpecs>? perEnvControlPlane = null;
+            Dictionary<EnvironmentType, NodeSpecs>? perEnvWorker = null;
+            Dictionary<EnvironmentType, NodeSpecs>? perEnvInfra = null;
+
+            if (selectedClusterMode == ClusterMode.MultiCluster)
+            {
+                perEnvControlPlane = new Dictionary<EnvironmentType, NodeSpecs>
+                {
+                    [EnvironmentType.Dev] = nodeSpecs.GetControlPlaneSpecs(EnvironmentType.Dev),
+                    [EnvironmentType.Test] = nodeSpecs.GetControlPlaneSpecs(EnvironmentType.Test),
+                    [EnvironmentType.Stage] = nodeSpecs.GetControlPlaneSpecs(EnvironmentType.Stage),
+                    [EnvironmentType.Prod] = nodeSpecs.GetControlPlaneSpecs(EnvironmentType.Prod),
+                    [EnvironmentType.DR] = nodeSpecs.GetControlPlaneSpecs(EnvironmentType.DR)
+                };
+                perEnvWorker = new Dictionary<EnvironmentType, NodeSpecs>
+                {
+                    [EnvironmentType.Dev] = nodeSpecs.GetWorkerSpecs(EnvironmentType.Dev),
+                    [EnvironmentType.Test] = nodeSpecs.GetWorkerSpecs(EnvironmentType.Test),
+                    [EnvironmentType.Stage] = nodeSpecs.GetWorkerSpecs(EnvironmentType.Stage),
+                    [EnvironmentType.Prod] = nodeSpecs.GetWorkerSpecs(EnvironmentType.Prod),
+                    [EnvironmentType.DR] = nodeSpecs.GetWorkerSpecs(EnvironmentType.DR)
+                };
+                perEnvInfra = new Dictionary<EnvironmentType, NodeSpecs>
+                {
+                    [EnvironmentType.Dev] = nodeSpecs.GetInfraSpecs(EnvironmentType.Dev),
+                    [EnvironmentType.Test] = nodeSpecs.GetInfraSpecs(EnvironmentType.Test),
+                    [EnvironmentType.Stage] = nodeSpecs.GetInfraSpecs(EnvironmentType.Stage),
+                    [EnvironmentType.Prod] = nodeSpecs.GetInfraSpecs(EnvironmentType.Prod),
+                    [EnvironmentType.DR] = nodeSpecs.GetInfraSpecs(EnvironmentType.DR)
+                };
+            }
+
+            input.CustomNodeSpecs = new DistributionConfig
+            {
+                Distribution = selectedDistribution.Value,
+                Name = distroConfig.Name,
+                Vendor = distroConfig.Vendor,
+                HasManagedControlPlane = distroConfig.HasManagedControlPlane,
+                HasInfraNodes = distroConfig.HasInfraNodes,
+                ProdControlPlane = new NodeSpecs(nodeSpecs.ProdMasterCpu, nodeSpecs.ProdMasterRam, nodeSpecs.ProdMasterDisk),
+                NonProdControlPlane = new NodeSpecs(nodeSpecs.NonProdMasterCpu, nodeSpecs.NonProdMasterRam, nodeSpecs.NonProdMasterDisk),
+                ProdWorker = new NodeSpecs(nodeSpecs.ProdWorkerCpu, nodeSpecs.ProdWorkerRam, nodeSpecs.ProdWorkerDisk),
+                NonProdWorker = new NodeSpecs(nodeSpecs.NonProdWorkerCpu, nodeSpecs.NonProdWorkerRam, nodeSpecs.NonProdWorkerDisk),
+                ProdInfra = new NodeSpecs(nodeSpecs.ProdInfraCpu, nodeSpecs.ProdInfraRam, nodeSpecs.ProdInfraDisk),
+                NonProdInfra = new NodeSpecs(nodeSpecs.NonProdInfraCpu, nodeSpecs.NonProdInfraRam, nodeSpecs.NonProdInfraDisk),
+                PerEnvControlPlane = perEnvControlPlane,
+                PerEnvWorker = perEnvWorker,
+                PerEnvInfra = perEnvInfra
+            };
+        }
+
+        results = K8sSizingService.Calculate(input);
+        validationWarnings = ValidationService.Analyze(results, input);
+        k8sCostEstimate = null;
+        k8sResultsTab = "sizing";
     }
 
     private bool CanProceed()
@@ -5700,16 +5829,11 @@
         // Generate validation warnings and recommendations
         vmValidationWarnings = ValidationService.Analyze(vmResults, input);
 
-        // Reset cost estimate and auto-calculate default costs
+        // Reset cost estimate - costs will be auto-calculated after step increment
         vmCostEstimate = null;
         vmResultsTab = "sizing";
-        StateHasChanged();
-
-        // Auto-calculate costs in the background
-        _ = AutoCalculateVMCost();
-
-        await Task.Delay(100);
-        await JSRuntime.InvokeVoidAsync("scrollToElement", "results");
+        // Note: Don't call StateHasChanged() or AutoCalculateVMCost() here
+        // Let NextStep() handle both after incrementing currentStep to avoid race conditions
     }
 
     // Info modals
